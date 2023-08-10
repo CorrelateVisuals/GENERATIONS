@@ -1,0 +1,85 @@
+# Folders
+x64/
+
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Windows Object files
+*.vsidx
+*.lock
+*.suo
+*.db
+*.ipch
+*.lastbuildstate
+*.tlog
+*.unsuccessfullbuild
+*.log
+*.db
+*.pdb
+*.idb
+*.ilk
+*.recipe
+*.db-shm
+*.db-wal
+*.opendb
+*.user
+
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Logging
+log.txt
+
+# CMake
+CMakeLists.txt.user
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Testing
+Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+_deps
+
+# Shaders
+*.spv
+
+# Visual Studio
+.vcxproj.user
+
+# src/Debug
+*.ilk
+*.log
+*.tlog/link.read.1.tlog
+
+.vs/CAPITAL-engine/v17/fileList.bin
