@@ -1,8 +1,8 @@
-# CAPITAL Engine
-CAPITAL Engine is a cross platform Vulkan engine built in C++ for simulations and algorithms that benefit from parallel computing. Currently tested on Linux and Windows, keeping external libraries to a minimum. GLFW for platform agnostic window and input handeling, GLM for our mathematical operations. 
+# GENERATION
+GENERATION is a cross platform Vulkan engine built in C++ for simulations and algorithms that benefit from parallel computing. Currently tested on Linux and Windows, keeping external libraries to a minimum. GLFW for platform agnostic window and input handeling, GLM for our mathematical operations. 
 
-In it's current stage CAPITAL Engine is running ![Conway's Game of Life](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life) in a Vulkan compute shader. We will explore increasing the resolution within the lifespan of a cell in future updates.
-![Cover Image](https://github.com/whooki3/CAPITAL-engine/blob/development/assets/CoverCapture.PNG?raw=true)
+In it's current stage GENERATION is running ![Conway's Game of Life](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life) in a Vulkan compute shader. We will explore increasing the resolution within the lifespan of a cell in future updates.
+![Cover Image](https://github.com/whooki3/GENERATION/blob/main/assets/CoverCapture.PNG?raw=true)
 
 ## To Do
 - Arcball Camera for improved camera control.
@@ -43,7 +43,7 @@ Go to **build** sub-directory:
   make -j
 ```
 The excutable **CapitalEngine** is compiled in the **bin** sub-directory. De .spv files in **shaders** sub-directory.
-Executing: Go to the project root directory **CAPITAL-Engine**:
+Executing: Go to the project root directory **GENERATION**:
 ```bash
 ./bin/CapitalEngine
 ```
