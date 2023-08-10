@@ -22,7 +22,7 @@ class Control {
   } grid;
 
   struct DisplayConfiguration {
-    const char* title{"CAPITAL Engine"};
+    const char* title{"GENERATION"};
     uint16_t width = 1920;
     uint16_t height = 1080;
   } display;
