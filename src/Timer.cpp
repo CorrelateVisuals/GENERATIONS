@@ -4,7 +4,7 @@
 #include <iostream>
 #include <thread>
 
-void Control::runTimer() {
+void Timer::runTimer() {
   auto lastTime = std::chrono::steady_clock::now();
   std::chrono::time_point<std::chrono::steady_clock> dayStart =
       std::chrono::steady_clock::now();
@@ -13,24 +13,24 @@ void Control::runTimer() {
     auto currentTime = std::chrono::steady_clock::now();
 
     if (currentTime - lastTime >=
-        std::chrono::duration<float>(1.0f / timer.speed)) {
-      timer.passedHours++;
+        std::chrono::duration<float>(1.0f / config.speed)) {
+      config.passedHours++;
       lastTime = currentTime;
-      std::cout << "Passed hours: " << timer.passedHours << std::endl;
+      std::cout << "Passed hours: " << config.passedHours << std::endl;
     }
 
     std::chrono::duration<float> elapsedTime = currentTime - dayStart;
     std::chrono::duration<float> remainingTime =
-        std::chrono::duration<float>(timer.targetDuration) - elapsedTime;
+        std::chrono::duration<float>(config.targetDuration) - elapsedTime;
     float elapsedSeconds = elapsedTime.count();
     float remainingSeconds = remainingTime.count();
 
-    timer.dayFraction = 1.0f - remainingSeconds / timer.targetDuration;
+    config.dayFraction = 1.0f - remainingSeconds / config.targetDuration;
 
-    if (elapsedTime >= std::chrono::duration<float>(timer.targetDuration)) {
+    if (elapsedTime >= std::chrono::duration<float>(config.targetDuration)) {
       dayStart = currentTime;
     }
-    std::cout << "Day Fraction: " << timer.dayFraction << std::endl;
+    std::cout << "Day Fraction: " << config.dayFraction << std::endl;
 
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
   }

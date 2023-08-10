@@ -1,8 +1,11 @@
 #include <vector>
 
-class World {
+class Terrain {
  public:
-  struct Terrain {
+  Terrain(){};
+  ~Terrain(){};
+
+  struct Configuration {
     size_t numRows = 8;
     size_t widthChars = 8;
     int maxHeight = 3;
@@ -11,17 +14,14 @@ class World {
     size_t numGridPoints = (numRows * widthChars) * (numGridsX * numGridsY);
     float surfaceRoughness[2] = {0.0f, 0.5f};
     int surfaceHeightSteps = 4;
-  } terrain;
+  } config;
 
  public:
-  std::vector<float> generateTerrain(Terrain terrain);
+  std::vector<float> generateTerrain();
 
  private:
   std::vector<float> generateSurfaceNoise();
-  void generateGrid(int numRows,
-                    int widthChars,
-                    int maxHeight,
-                    std::vector<std::vector<int>>& grid);
+  void generateGrid(std::vector<std::vector<int>>& grid);
   void attachGrids(std::vector<std::vector<int>>& mainGrid,
                    const std::vector<std::vector<int>>& subGrid,
                    int rowOffset,

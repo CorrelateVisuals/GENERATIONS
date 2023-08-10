@@ -84,3 +84,5 @@ _deps
 
 .vs/CAPITAL-engine/v17/fileList.bin
 .vs/GENERATION/v17/fileList.bin
+src/CAPITAL-engine.vcxproj.filters
+src/CAPITAL-engine.vcxproj.filters
