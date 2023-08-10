@@ -2,7 +2,7 @@
 GENERATION is a cross platform Vulkan engine built in C++ for simulations and algorithms that benefit from parallel computing. Currently tested on Linux and Windows, keeping external libraries to a minimum. GLFW for platform agnostic window and input handeling, GLM for our mathematical operations. 
 
 In it's current stage GENERATION is running ![Conway's Game of Life](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life) in a Vulkan compute shader. We will explore increasing the resolution within the lifespan of a cell in future updates.
-![Cover Image](https://github.com/whooki3/GENERATION/blob/main/assets/CoverCapture.PNG?raw=true)
+![Cover Image](https://github.com/CorrelateVisuals/GENERATION/blob/main/assets/CoverCapture.PNG?raw=true)
 
 ## To Do
 - Arcball Camera for improved camera control.
