@@ -1,4 +1,5 @@
 #pragma once
+#include "Timer.h"
 
 #include <array>
 #include <string>
@@ -6,23 +7,23 @@
 
 constexpr int off = -1;
 
+class Timer;
+
 class Control {
  public:
   Control();
   ~Control();
 
-  struct Timer {
-    float speed = 30.0f;
-    uint64_t passedHours{0};
-  } timer;
+  Timer time;
+  float timelineSpeed = 100.0f;
 
   struct Grid {
-    uint_fast32_t totalAliveCells = 0;
-    std::array<uint_fast16_t, 2> dimensions = {20, 20};
+    uint_fast32_t totalAliveCells = 1000;
+    std::array<uint_fast16_t, 2> dimensions = {40, 40};
   } grid;
 
   struct DisplayConfiguration {
-    const char* title{"GENERATION"};
+    const char* title{"G E N E R A T I O N S"};
     uint16_t width = 1920;
     uint16_t height = 1080;
   } display;
@@ -35,7 +36,5 @@ class Control {
 
  public:
   std::vector<uint_fast32_t> setCellsAliveRandomly(uint_fast32_t numberOfCells);
-  void setPassedHours();
-
   void setPushConstants();
 };

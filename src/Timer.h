@@ -2,17 +2,16 @@
 
 class Timer {
  public:
-  Timer(){};
-  ~Timer(){};
+  Timer( float timerSpeed );
+  ~Timer();
 
-  struct Configuration {
-    float speed = 10.0f;
-    uint64_t passedHours{0};
-    float dayFraction{0.0f};
+  float speed;
+  uint64_t passedHours;
+  float dayFraction;
 
+  void run();
+
+private:
     const int HOURS_PER_DAY{24};
-    const float targetDuration{1.0f / (speed / HOURS_PER_DAY)};
-  } config;
-
-  void runTimer();
+    const float TARGET_DURATION{ 1.0f / (speed / HOURS_PER_DAY) };
 };

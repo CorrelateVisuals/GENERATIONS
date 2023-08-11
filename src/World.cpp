@@ -209,9 +209,9 @@ std::vector<float> World::constructTerrain(const int& numGridPoints) {
   int nRows = 0;
 
   for (size_t i = 0; i < numGridPoints; i++) {
-    int cycleLength = gridWidth / terrain.hillWidth;
-    int cycleIndex = i / cycleLength;
-    int cyclePosition = i % cycleLength;
+    size_t cycleLength = gridWidth / terrain.hillWidth;
+    size_t cycleIndex = i / cycleLength;
+    size_t cyclePosition = i % cycleLength;
 
     // std::cout << cycleLength << " " << cycleIndex << " " << cyclePosition <<
     // " "
