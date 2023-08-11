@@ -12,15 +12,10 @@
 #include <array>
 #include <vector>
 
-class Terrain;
-
 class World {
  public:
   World();
   ~World();
-
-  Terrain terrain;
-  size_t numGridPoints = 40 * 40;
 
   struct Camera {
     const float fieldOfView = 60.0f;

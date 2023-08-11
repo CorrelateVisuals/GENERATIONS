@@ -11,7 +11,6 @@
 #include <random>
 
 World::World() {
-    terrain.config.numGridPoints = numGridPoints;
   _log.console("{ (X) }", "constructing World");
 }
 
@@ -64,7 +63,36 @@ std::vector<World::Cell> World::initializeCells() {
     isAliveIndices[aliveIndex] = true;
   }
 
-  std::vector<float> tileHeight = terrain.generateTerrain();
+  Terrain::Config terrainConfig = { .width = _control.grid.dimensions[0],
+                                 .height = _control.grid.dimensions[1],
+                                 .roughness = 0.1f,
+                                 .octaves = 7,
+                                 .scale = 0.5f,
+                                 .amplitude = 6.0f,
+                                 .exponent = 1.0f,
+                                 .frequency = 1.0f };
+  Terrain terrain(terrainConfig);
+
+  std::vector<float> noiseValues1 =
+      terrain.generatePerlinGrid(terrainConfig.width * terrainConfig.height);
+
+  terrainConfig.frequency = 2.0f;
+  terrainConfig.amplitude = 1.0f;
+  terrainConfig.exponent = 1.0f;
+  terrainConfig.roughness = 1.0f;
+
+  Terrain terrain2(terrainConfig);
+
+  std::vector<float> noiseValues2 =
+      terrain2.generatePerlinGrid(terrainConfig.width * terrainConfig.height);
+
+  std::vector<float> tileHeight(noiseValues1.size());
+  for (size_t i = 0; i < tileHeight.size(); i++) {
+      float blendFactor =
+          0.5f;  
+      tileHeight[i] = terrain.linearInterpolationFunction(
+          noiseValues1[i], noiseValues2[i], blendFactor);
+  }
 
   const std::array<float, 4> sidesHeight = {0.0f, 0.0f, 0.0f, 0.0f};
   const std::array<float, 4> cornersHeight = {0.0f, 0.0f, 0.0f, 0.0f};
