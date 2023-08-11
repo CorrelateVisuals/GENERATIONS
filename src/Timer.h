@@ -2,7 +2,7 @@
 
 class Timer {
  public:
-  Timer( float timerSpeed );
+  Timer();
   ~Timer();
 
   float speed;

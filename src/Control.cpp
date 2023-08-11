@@ -1,13 +1,14 @@
-#include "CapitalEngine.h"
-#include "Control.h"
-#include "World.h"
-
 #include <chrono>
 #include <numbers>
 #include <random>
 #include <unordered_set>
 
-Control::Control() : time{ timelineSpeed } {
+#include "CapitalEngine.h"
+#include "Control.h"
+#include "World.h"
+
+Control::Control() : time{} {
+  time.speed = timelineSpeed;
   _log.console("{ CTR }", "constructing Control");
 }
 
