@@ -42,7 +42,7 @@ class World {
   struct UniformBufferObject {
     std::array<float, 4> light;
     std::array<uint32_t, 2> gridDimensions;
-    float waterThreshHold;
+    float waterThreshold;
     float cellSize;
     alignas(16) glm::mat4 model;
     alignas(16) glm::mat4 view;

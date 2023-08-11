@@ -9,7 +9,7 @@ layout(location = 5) in vec4 inTileCornersHeight;
 layout (binding = 0) uniform ParameterUBO {
     vec4 light;
     ivec2 gridDimensions;
-    float waterThreshHold;
+    float waterThreshold;
     float cellSize;
     mat4 model;
     mat4 view;
@@ -20,6 +20,7 @@ ivec2 gridDimensions = ubo.gridDimensions;
 mat4 model = ubo.model;
 mat4 view = ubo.view;
 mat4 projection = ubo.projection;
+float waterThreshold = ubo.waterThreshold;
 
 vec4 matchHeight(vec4 targetHeight, float multiplyBy ){
     vec4 myHeight = vec4(inPosition.z);
@@ -100,7 +101,6 @@ vec3 getNormal(){
 vec4 worldPosition = model * constructTile();
 vec4 viewPosition =  view * worldPosition;
 vec3 worldNormal =   mat3(model) * getNormal();
-float waterThreshold = 0.1;
 
 vec4 setColor() {
     vec2 normalizedPosition = (worldPosition.xy + gridDimensions.xy * 0.5) / gridDimensions.xy;

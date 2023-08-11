@@ -63,7 +63,7 @@ std::vector<World::Cell> World::initializeCells() {
     isAliveIndices[aliveIndex] = true;
   }
 
-  Terrain::Config terrainConfig = { .width = _control.grid.dimensions[0],
+  Terrain::Config terrainLayer1 = { .width = _control.grid.dimensions[0],
                                     .height = _control.grid.dimensions[1],
                                     .roughness = 0.4f,
                                     .octaves = 10,
@@ -72,23 +72,28 @@ std::vector<World::Cell> World::initializeCells() {
                                     .exponent = 2.0f,
                                     .frequency = 2.0f,
                                     .heightOffset = 0.0f};
-  Terrain terrain(terrainConfig);
+  Terrain terrain(terrainLayer1);
 
-  terrainConfig.frequency = 2.0f;
-  terrainConfig.amplitude = 0.3f;
-  terrainConfig.exponent = 1.0f;
-  terrainConfig.roughness = 1.0f;
-  Terrain terrain2(terrainConfig);
+  Terrain::Config terrainLayer2 = { .width = _control.grid.dimensions[0],
+                                  .height = _control.grid.dimensions[1],
+                                  .roughness = 1.0f,
+                                  .octaves = 10,
+                                  .scale = 1.1f,
+                                  .amplitude = 0.3f,
+                                  .exponent = 1.0f,
+                                  .frequency = 2.0f,
+                                  .heightOffset = 0.0f };
+  Terrain terrainSurface(terrainLayer2);
 
-  std::vector<float> noiseValues1 = terrain.generatePerlinGrid();
-  std::vector<float> noiseValues2 = terrain2.generatePerlinGrid();
+  std::vector<float> terrainPerlinGrid1 = terrain.generatePerlinGrid();
+  std::vector<float> terrainPerlinGrid2 = terrainSurface.generatePerlinGrid();
 
-  std::vector<float> tileHeight(noiseValues1.size());
+  std::vector<float> tileHeight(terrainPerlinGrid1.size());
   for (size_t i = 0; i < tileHeight.size(); i++) {
       float blendFactor =
           0.5f;
       tileHeight[i] = terrain.linearInterpolationFunction(
-          noiseValues1[i], noiseValues2[i], blendFactor);
+          terrainPerlinGrid1[i], terrainPerlinGrid2[i], blendFactor);
   }
 
   const std::array<float, 4> sidesHeight = {0.0f, 0.0f, 0.0f, 0.0f};
@@ -124,7 +129,7 @@ World::UniformBufferObject World::updateUniforms() {
       .light = light.position,
       .gridDimensions = {static_cast<uint32_t>(_control.grid.dimensions[0]),
                          static_cast<uint32_t>(_control.grid.dimensions[1])},
-      .waterThreshHold = -0.0f,
+      .waterThreshold = 0.1f,
       .cellSize = tile.cubeSize,
       .model = setModel(),
       .view = setView(),

@@ -17,7 +17,7 @@ layout(push_constant, std430) uniform pushConstant { uint64_t passedHours; };
 layout (binding = 0) uniform ParameterUBO {
     vec4 lightDirection;
     ivec2 gridDimensions;
-    float waterThreshHold;
+    float waterThreshold;
     float cellSize;
     mat4 model;
     mat4 view;
@@ -108,14 +108,19 @@ bool reachedCycleEnd    = statesIn.z == cycleSize;
 bool initialized        = aliveCell && colorIn == blue;
 bool lifeCycle          = aliveCell && inCycleRange;
 bool endOfStage         = aliveCell && reachedCycleEnd;
+float waterHeightOffset = 0.1;
+bool underWater         = pos.z <= (ubo.waterThreshold + waterHeightOffset);
+
 bool live(int neighbours) { return (aliveCell && (neighbours == 3 || neighbours == 2)) || (deadCell && neighbours == 3); }
-bool die(int neighbours)  { return (aliveCell && (neighbours < 2 || neighbours > 3));}
+bool die(int neighbours)  { return (aliveCell && (neighbours < 2 || neighbours > 3)); }
 vec4 colorIncrement     = colorIn + vec4(float((passedHours % cycleSize + 1)) / float(cycleSize * 50), vec3(0.0));
 
-void simulate(out Cell cell){
+void simulate(out Cell cell) {
     int neighbours  = cycleNeighbours(1);
 
-    if (stage(0)) {
+    if (underWater) {   
+       cell = Cell(pos, grey1, sizeOff, setState(dead, 0), sidesHeight, cornersHeight); 
+   } else if (stage(0)) {
         cell = initialized ?    Cell(pos, white, size, setState(alive, 0), sidesHeight, cornersHeight) :
                lifeCycle ?      Cell(pos, colorIncrement, size, setState(alive, 0),sidesHeight, cornersHeight) :
                endOfStage ?     Cell(pos, white, size, setState(alive, 1),sidesHeight, cornersHeight) :
