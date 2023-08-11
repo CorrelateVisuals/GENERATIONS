@@ -14,28 +14,34 @@ std::vector<float> Terrain::generateSurfaceNoise(size_t numPoints) {
         glm::vec2 position(i % config.widthChars, i / config.widthChars);
         glm::vec2 scaledPosition = position / glm::vec2(config.widthChars, config.numRows);
 
-        randomValues[i] = glm::perlin(scaledPosition * 10.0f);
+        randomValues[i] = glm::perlin(scaledPosition * config.surfaceRoughness);
     }
     return randomValues;
 }
 
+void Terrain::generateGrid(std::vector<std::vector<size_t>>& grid) {
+    float centerX = config.widthChars / 2.0f;
+    float centerY = config.numRows / 2.0f;
+    float maxRadius = std::min(centerX, centerY);
 
-void Terrain::generateGrid(std::vector<std::vector<int>>& grid) {
-  for (size_t row = 0; row < config.numRows; ++row) {
-    for (size_t col = 0; col < config.widthChars; ++col) {
-      int distanceToEdge = std::min(std::min(row, config.numRows - row - 1),
-                                    std::min(col, config.widthChars - col - 1));
-      grid[row][col] =
-          distanceToEdge < config.maxHeight ? distanceToEdge : config.maxHeight;
+    for (size_t row = 0; row < config.numRows; ++row) {
+        for (size_t col = 0; col < config.widthChars; ++col) {
+            float distanceToCenter = glm::distance(glm::vec2(col, row), glm::vec2(centerX, centerY));
+
+            float roundedFactor = 1.0f - (distanceToCenter / maxRadius * config.gridRoundness);
+            roundedFactor = glm::clamp(roundedFactor, 0.0f, 1.0f); 
+
+            size_t maxHeightWithRounding = static_cast<size_t>(config.maxHeight * roundedFactor);
+
+            grid[row][col] = maxHeightWithRounding;
+        }
     }
-  }
-  return;
 }
 
-void Terrain::attachGrids(std::vector<std::vector<int>>& mainGrid,
-                          const std::vector<std::vector<int>>& subGrid,
-                          int rowOffset,
-                          int colOffset) {
+void Terrain::attachGrids(std::vector<std::vector<size_t>>& mainGrid,
+                          const std::vector<std::vector<size_t>>& subGrid,
+                          size_t rowOffset,
+                          size_t colOffset) {
   size_t subRows = subGrid.size();
   size_t subCols = subGrid[0].size();
 
@@ -48,36 +54,28 @@ void Terrain::attachGrids(std::vector<std::vector<int>>& mainGrid,
 }
 
 std::vector<float> Terrain::generateTerrain() {
-  size_t totalRows = config.numRows * config.numGridsY;
-  size_t totalCols = config.widthChars * config.numGridsX;
+    size_t totalRows = config.numRows * config.numGridsY;
+    size_t totalCols = config.widthChars * config.numGridsX;
 
-  std::vector<std::vector<int>> mainGrid(totalRows,
-                                         std::vector<int>(totalCols, 0));
+    std::vector<std::vector<size_t>> mainGrid(totalRows, std::vector<size_t>(totalCols, 0));
+    std::vector<float> surfaceNoise = generateSurfaceNoise(totalRows * totalCols);
+    std::vector<float> finalGrid(totalRows * totalCols);
 
-  for (size_t gridRow = 0; gridRow < config.numGridsY; ++gridRow) {
-    for (size_t gridCol = 0; gridCol < config.numGridsX; ++gridCol) {
-      std::vector<std::vector<int>> subGrid(
-          config.numRows, std::vector<int>(config.widthChars, 0));
-      generateGrid(subGrid);
-      attachGrids(mainGrid, subGrid, gridRow * config.numRows,
-                  gridCol * config.widthChars);
+    for (size_t i = 0; i < totalRows * totalCols; ++i) {
+        size_t row = i / totalCols;
+        size_t col = i % totalCols;
+        size_t subRow = row % config.numRows;
+        size_t subCol = col % config.widthChars;
+
+        if (subCol == 0 && col > 0) {
+            std::vector<std::vector<size_t>> subGrid(config.numRows, std::vector<size_t>(config.widthChars, 0));
+            generateGrid(subGrid);
+            attachGrids(mainGrid, subGrid, row - subRow, col - config.widthChars);
+        }
+
+        size_t height = std::min<size_t>(mainGrid[subRow][subCol], config.maxHeight);
+        finalGrid[i] = static_cast<float>(height * config.heightMultiplyer + surfaceNoise[i]);
     }
-  }
 
-  std::vector<float> finalGrid;
-  for (size_t row = 0; row < totalRows; ++row) {
-    for (size_t col = 0; col < totalCols; ++col) {
-      finalGrid.push_back(static_cast<float>(mainGrid[row][col]));
-    }
-  }
-
-  std::vector<float> surfaceNoise = generateSurfaceNoise( finalGrid.size() );
-
-  std::cout << surfaceNoise.size() << " " << finalGrid.size();
-  for (size_t i = 0; i < finalGrid.size(); i++) {
-    finalGrid[i] *= config.heightMultiplyer;
-    finalGrid[i] += surfaceNoise[i];
-  }
-
-  return finalGrid;
+    return finalGrid;
 }
