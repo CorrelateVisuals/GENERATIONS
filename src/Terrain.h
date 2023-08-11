@@ -12,7 +12,7 @@ class Terrain {
     float heightMultiplyer = 0.25;
     size_t numGridsX = 10;
     size_t numGridsY = 10;
-    size_t numGridPoints = 500 * 500;
+    size_t numGridPoints = (widthChars * numGridsX) * (numRows * numGridsY);
     float surfaceRoughness[2] = {0.0f, 0.75f};
     int surfaceHeightSteps = 10;
   } config;

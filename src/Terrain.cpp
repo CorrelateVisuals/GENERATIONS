@@ -1,24 +1,24 @@
 #include "Terrain.h"
 
+#include <glm/glm.hpp>
+#include <glm/gtc/noise.hpp>
+
 #include <iostream>
 #include <random>
 #include <vector>
 
-std::vector<float> Terrain::generateSurfaceNoise( size_t gridPoints ) {
-  static std::random_device rd;
-  static std::mt19937 gen(rd());
-  std::uniform_real_distribution<float> dis(config.surfaceRoughness[0],
-                                            config.surfaceRoughness[1]);
-  std::vector<float> randomValues(gridPoints);
-  int heightSteps = config.surfaceHeightSteps;
-  int offset = 0;
-  for (size_t i = 0; i < gridPoints; i++) {
-    randomValues[i] = (dis(gen) * offset) / heightSteps;
-    offset = (offset + 1) % heightSteps;
-  }
-  std::shuffle(randomValues.begin(), randomValues.end(), gen);
-  return randomValues;
+std::vector<float> Terrain::generateSurfaceNoise(size_t numPoints) {
+    std::vector<float> randomValues(numPoints);
+
+    for (size_t i = 0; i < numPoints; i++) {
+        glm::vec2 position(i % config.widthChars, i / config.widthChars);
+        glm::vec2 scaledPosition = position / glm::vec2(config.widthChars, config.numRows);
+
+        randomValues[i] = glm::perlin(scaledPosition * 10.0f);
+    }
+    return randomValues;
 }
+
 
 void Terrain::generateGrid(std::vector<std::vector<int>>& grid) {
   for (size_t row = 0; row < config.numRows; ++row) {
