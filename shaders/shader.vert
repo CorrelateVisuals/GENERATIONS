@@ -9,7 +9,7 @@ layout(location = 5) in vec4 inTileCornersHeight;
 layout (binding = 0) uniform ParameterUBO {
     vec4 light;
     ivec2 gridDimensions;
-    float gridHeight;
+    float waterThreshHold;
     float cellSize;
     mat4 model;
     mat4 view;

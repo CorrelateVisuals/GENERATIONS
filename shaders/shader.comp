@@ -17,7 +17,7 @@ layout(push_constant, std430) uniform pushConstant { uint64_t passedHours; };
 layout (binding = 0) uniform ParameterUBO {
     vec4 lightDirection;
     ivec2 gridDimensions;
-    float gridHeight;
+    float waterThreshHold;
     float cellSize;
     mat4 model;
     mat4 view;

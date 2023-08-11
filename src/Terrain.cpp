@@ -7,7 +7,8 @@
 
 Terrain::Terrain(const Config& _config) : config(_config) {}
 
-std::vector<float> Terrain::generatePerlinGrid(size_t numPoints) {
+std::vector<float> Terrain::generatePerlinGrid() {
+    size_t numPoints = config.width * config.height;
     std::vector<float> randomValues(numPoints);
 
     for (size_t i = 0; i < numPoints; i++) {
@@ -28,7 +29,7 @@ std::vector<float> Terrain::generatePerlinGrid(size_t numPoints) {
 
         totalNoise = pow(totalNoise, config.exponent);
 
-        randomValues[i] = totalNoise;
+        randomValues[i] = totalNoise + config.heightOffset;
     }
     return randomValues;
 }

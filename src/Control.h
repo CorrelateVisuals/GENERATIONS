@@ -19,7 +19,7 @@ class Control {
 
   struct Grid {
     uint_fast32_t totalAliveCells = 5000;
-    std::array<uint_fast16_t, 2> dimensions = {100, 100};
+    std::array<uint_fast16_t, 2> dimensions = {250, 250};
   } grid;
 
   struct DisplayConfiguration {

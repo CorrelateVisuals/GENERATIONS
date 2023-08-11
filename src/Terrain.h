@@ -11,11 +11,12 @@ public:
         float amplitude;
         float exponent;
         float frequency;
+        float heightOffset;
     };
 
     Terrain(const Config& _config);
 
-    std::vector<float> generatePerlinGrid(size_t numPoints);
+    std::vector<float> generatePerlinGrid();
     float linearInterpolationFunction(float a, float b, float t);
 
 private:

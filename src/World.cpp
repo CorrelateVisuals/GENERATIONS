@@ -64,32 +64,29 @@ std::vector<World::Cell> World::initializeCells() {
   }
 
   Terrain::Config terrainConfig = { .width = _control.grid.dimensions[0],
-                                 .height = _control.grid.dimensions[1],
-                                 .roughness = 0.1f,
-                                 .octaves = 7,
-                                 .scale = 0.5f,
-                                 .amplitude = 6.0f,
-                                 .exponent = 1.0f,
-                                 .frequency = 1.0f };
+                                    .height = _control.grid.dimensions[1],
+                                    .roughness = 0.4f,
+                                    .octaves = 10,
+                                    .scale = 1.1f,
+                                    .amplitude = 5.0f,
+                                    .exponent = 2.0f,
+                                    .frequency = 2.0f,
+                                    .heightOffset = 0.0f};
   Terrain terrain(terrainConfig);
 
-  std::vector<float> noiseValues1 =
-      terrain.generatePerlinGrid(terrainConfig.width * terrainConfig.height);
-
   terrainConfig.frequency = 2.0f;
-  terrainConfig.amplitude = 1.0f;
+  terrainConfig.amplitude = 0.3f;
   terrainConfig.exponent = 1.0f;
   terrainConfig.roughness = 1.0f;
-
   Terrain terrain2(terrainConfig);
 
-  std::vector<float> noiseValues2 =
-      terrain2.generatePerlinGrid(terrainConfig.width * terrainConfig.height);
+  std::vector<float> noiseValues1 = terrain.generatePerlinGrid();
+  std::vector<float> noiseValues2 = terrain2.generatePerlinGrid();
 
   std::vector<float> tileHeight(noiseValues1.size());
   for (size_t i = 0; i < tileHeight.size(); i++) {
       float blendFactor =
-          0.5f;  
+          0.5f;
       tileHeight[i] = terrain.linearInterpolationFunction(
           noiseValues1[i], noiseValues2[i], blendFactor);
   }
@@ -127,7 +124,7 @@ World::UniformBufferObject World::updateUniforms() {
       .light = light.position,
       .gridDimensions = {static_cast<uint32_t>(_control.grid.dimensions[0]),
                          static_cast<uint32_t>(_control.grid.dimensions[1])},
-      .gridHeight = -0.0f,
+      .waterThreshHold = -0.0f,
       .cellSize = tile.cubeSize,
       .model = setModel(),
       .view = setView(),
@@ -182,12 +179,12 @@ void World::updateCamera() {
     float movementSpeed = getForwardMovement(leftButtonDelta);
     camera.position += movementSpeed * camera.front;
 
-    constexpr float panningSpeed = 0.1f;
+    constexpr float panningSpeed = 1.3f;
     glm::vec3 cameraUp = glm::cross(cameraRight, camera.front);
     camera.position -= panningSpeed * rightButtonDelta.x * cameraRight;
     camera.position -= panningSpeed * rightButtonDelta.y * cameraUp;
 
-    constexpr float zoomSpeed = 0.1f;
+    constexpr float zoomSpeed = 0.5f;
     camera.position += zoomSpeed * middleButtonDelta.x * camera.front;
     camera.position.z = std::max(camera.position.z, 0.0f);
   }
@@ -204,8 +201,8 @@ float World::getForwardMovement(const glm::vec2& leftButtonDelta) {
       leftMouseButtonDown = true;
       forwardMovement = 0.0f;
     }
-    constexpr float maxSpeed = 0.02f;
-    constexpr float acceleration = 0.001f;
+    constexpr float maxSpeed = 0.1f;
+    constexpr float acceleration = 0.01f;
 
     // Calculate the speed based on the distance from the center
     float normalizedDeltaLength = glm::clamp(leftButtonDeltaLength, 0.0f, 1.0f);
