@@ -4,15 +4,15 @@
 #include <random>
 #include <vector>
 
-std::vector<float> Terrain::generateSurfaceNoise() {
+std::vector<float> Terrain::generateSurfaceNoise( size_t gridPoints ) {
   static std::random_device rd;
   static std::mt19937 gen(rd());
   std::uniform_real_distribution<float> dis(config.surfaceRoughness[0],
                                             config.surfaceRoughness[1]);
-  std::vector<float> randomValues(config.numGridPoints);
+  std::vector<float> randomValues(gridPoints);
   int heightSteps = config.surfaceHeightSteps;
   int offset = 0;
-  for (size_t i = 0; i < config.numGridPoints; i++) {
+  for (size_t i = 0; i < gridPoints; i++) {
     randomValues[i] = (dis(gen) * offset) / heightSteps;
     offset = (offset + 1) % heightSteps;
   }
@@ -68,13 +68,14 @@ std::vector<float> Terrain::generateTerrain() {
   for (size_t row = 0; row < totalRows; ++row) {
     for (size_t col = 0; col < totalCols; ++col) {
       finalGrid.push_back(static_cast<float>(mainGrid[row][col]));
-      std::cout << mainGrid[row][col] << " ";
     }
-    std::cout << std::endl;
   }
 
-  std::vector<float> surfaceNoise = generateSurfaceNoise();
+  std::vector<float> surfaceNoise = generateSurfaceNoise( finalGrid.size() );
+
+  std::cout << surfaceNoise.size() << " " << finalGrid.size();
   for (size_t i = 0; i < finalGrid.size(); i++) {
+    finalGrid[i] *= config.heightMultiplyer;
     finalGrid[i] += surfaceNoise[i];
   }
 

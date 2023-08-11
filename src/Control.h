@@ -15,11 +15,11 @@ class Control {
   ~Control();
 
   Timer time;
-  float timelineSpeed = 100.0f;
+  float timelineSpeed = 10.0f;
 
   struct Grid {
-    uint_fast32_t totalAliveCells = 1000;
-    std::array<uint_fast16_t, 2> dimensions = {40, 40};
+    uint_fast32_t totalAliveCells = 200;
+    std::array<uint_fast16_t, 2> dimensions = {500, 500};
   } grid;
 
   struct DisplayConfiguration {

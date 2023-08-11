@@ -4,7 +4,7 @@
 #include <iostream>
 #include <thread>
 
-Timer::Timer(  ) : speed{ 0.0f }, passedHours{ 0 }, dayFraction{ 0.0f } {}
+Timer::Timer(){}
 
 Timer::~Timer(){}
 

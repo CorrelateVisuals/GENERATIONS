@@ -1,4 +1,8 @@
 #pragma once
+#include "Control.h"
+#include "Terrain.h"
+#include "CapitalEngine.h"
+
 #include <vulkan/vulkan.h>
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -8,21 +12,15 @@
 #include <array>
 #include <vector>
 
-#include "Control.h"
+class Terrain;
 
 class World {
  public:
   World();
   ~World();
 
-  struct Terrain {
-    float surfaceRoughness[2] = {0.0f, 0.5f};
-    int surfaceHeightSteps = 4;
-    float hillHeight = 0.25f;
-    int hillWidth = 5;
-    float hillSpacing = 1.5f;
-    float waterThreshold = 0.1f;
-  } terrain;
+  Terrain terrain;
+  size_t numGridPoints = 40 * 40;
 
   struct Camera {
     const float fieldOfView = 60.0f;
@@ -78,7 +76,6 @@ class World {
   glm::mat4 setView();
   glm::mat4 setProjection(VkExtent2D& swapChainExtent);
 
-  std::vector<float> constructTerrain(const int& numGridPoints);
 
   inline static const std::array<float, 4> red{1.0f, 0.0f, 0.0f, 1.0f};
   inline static const std::array<float, 4> blue{0.0f, 0.0f, 1.0f, 1.0f};
