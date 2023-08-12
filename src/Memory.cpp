@@ -166,7 +166,13 @@ void Memory::createDescriptorSetLayout() {
        .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
        .descriptorCount = 1,
        .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
-       .pImmutableSamplers = nullptr}};
+       .pImmutableSamplers = nullptr},
+      {.binding = 3,
+       .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+       .descriptorCount = 1,
+       .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+       .pImmutableSamplers = nullptr},
+  };
 
   VkDescriptorSetLayoutCreateInfo layoutInfo{
       .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
@@ -183,7 +189,9 @@ void Memory::createDescriptorPool() {
       {.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
        .descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT)},
       {.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-       .descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT) * 2}};
+       .descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT) * 2},
+      {.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+       .descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT)}};
 
   VkDescriptorPoolCreateInfo poolInfo{
       .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
@@ -442,6 +450,11 @@ void Memory::createDescriptorSets() {
         .range = sizeof(World::Cell) * _control.grid.dimensions[0] *
                  _control.grid.dimensions[1]};
 
+    VkDescriptorImageInfo imageInfo{
+        .sampler = image.textureSampler,
+        .imageView = image.textureView,
+        .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL};
+
     std::vector<VkWriteDescriptorSet> descriptorWrites{
         {.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
          .dstSet = descriptor.sets[i],
@@ -465,7 +478,16 @@ void Memory::createDescriptorSets() {
          .dstArrayElement = 0,
          .descriptorCount = 1,
          .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-         .pBufferInfo = &storageBufferInfoCurrentFrame}};
+         .pBufferInfo = &storageBufferInfoCurrentFrame},
+
+        {.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+         .dstSet = descriptor.sets[i],
+         .dstBinding = 3,
+         .dstArrayElement = 0,
+         .descriptorCount = 1,
+         .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+         .pImageInfo = &imageInfo},
+    };
 
     vkUpdateDescriptorSets(_mechanics.mainDevice.logical,
                            static_cast<uint32_t>(descriptorWrites.size()),

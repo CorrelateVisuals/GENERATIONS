@@ -37,6 +37,8 @@ class World {
     std::array<int, 4> states;
     std::array<float, 4> tileSidesHeight;
     std::array<float, 4> tileCornersHeight;
+
+    std::array<float, 4> textureCoords;
   };
 
   struct UniformBufferObject {

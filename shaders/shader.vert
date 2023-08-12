@@ -6,6 +6,9 @@ layout(location = 3) in ivec4 inStates;
 layout(location = 4) in vec4 inTileSidesHeight;
 layout(location = 5) in vec4 inTileCornersHeight;
 
+layout(location = 6) in vec2 textureCoords;
+
+
 layout (binding = 0) uniform ParameterUBO {
     vec4 light;
     ivec2 gridDimensions;
@@ -136,10 +139,14 @@ float gouraudShading(float brightness, float emit) {
 }
 
 layout(location = 0) out vec4 fragColor;
+layout(location = 6) out vec2 textureCoordinates;
 
 void main() {
     vec4 color = inColor * setColor() * gouraudShading(2.0f, 0.2f); 
+
     fragColor = modifyColorContrast(color, 1.3f);
+    textureCoordinates = textureCoords;
+
     gl_Position = projection * viewPosition;
 }
 

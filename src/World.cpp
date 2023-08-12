@@ -32,7 +32,9 @@ World::getAttributeDescriptions() {
       {2, 0, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(Cell, size)},
       {3, 0, VK_FORMAT_R32G32B32A32_SINT, offsetof(Cell, states)},
       {4, 0, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(Cell, tileSidesHeight)},
-      {5, 0, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(Cell, tileCornersHeight)}};
+      {5, 0, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(Cell, tileCornersHeight)},
+      {6, 0, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(Cell, textureCoords)},
+  };
   return attributeDescriptions;
 }
 
@@ -63,26 +65,26 @@ std::vector<World::Cell> World::initializeCells() {
     isAliveIndices[aliveIndex] = true;
   }
 
-  Terrain::Config terrainLayer1 = { .width = _control.grid.dimensions[0],
-                                    .height = _control.grid.dimensions[1],
-                                    .roughness = 0.4f,
-                                    .octaves = 10,
-                                    .scale = 1.1f,
-                                    .amplitude = 5.0f,
-                                    .exponent = 2.0f,
-                                    .frequency = 2.0f,
-                                    .heightOffset = 0.0f};
+  Terrain::Config terrainLayer1 = {.width = _control.grid.dimensions[0],
+                                   .height = _control.grid.dimensions[1],
+                                   .roughness = 0.4f,
+                                   .octaves = 10,
+                                   .scale = 1.1f,
+                                   .amplitude = 5.0f,
+                                   .exponent = 2.0f,
+                                   .frequency = 2.0f,
+                                   .heightOffset = 0.0f};
   Terrain terrain(terrainLayer1);
 
-  Terrain::Config terrainLayer2 = { .width = _control.grid.dimensions[0],
-                                  .height = _control.grid.dimensions[1],
-                                  .roughness = 1.0f,
-                                  .octaves = 10,
-                                  .scale = 1.1f,
-                                  .amplitude = 0.3f,
-                                  .exponent = 1.0f,
-                                  .frequency = 2.0f,
-                                  .heightOffset = 0.0f };
+  Terrain::Config terrainLayer2 = {.width = _control.grid.dimensions[0],
+                                   .height = _control.grid.dimensions[1],
+                                   .roughness = 1.0f,
+                                   .octaves = 10,
+                                   .scale = 1.1f,
+                                   .amplitude = 0.3f,
+                                   .exponent = 1.0f,
+                                   .frequency = 2.0f,
+                                   .heightOffset = 0.0f};
   Terrain terrainSurface(terrainLayer2);
 
   std::vector<float> terrainPerlinGrid1 = terrain.generatePerlinGrid();
@@ -90,10 +92,9 @@ std::vector<World::Cell> World::initializeCells() {
 
   std::vector<float> tileHeight(terrainPerlinGrid1.size());
   for (size_t i = 0; i < tileHeight.size(); i++) {
-      float blendFactor =
-          0.5f;
-      tileHeight[i] = terrain.linearInterpolationFunction(
-          terrainPerlinGrid1[i], terrainPerlinGrid2[i], blendFactor);
+    float blendFactor = 0.5f;
+    tileHeight[i] = terrain.linearInterpolationFunction(
+        terrainPerlinGrid1[i], terrainPerlinGrid2[i], blendFactor);
   }
 
   const std::array<float, 4> sidesHeight = {0.0f, 0.0f, 0.0f, 0.0f};

@@ -383,6 +383,7 @@ bool VulkanMechanics::isDeviceSuitable(VkPhysicalDevice physicalDevice) {
   // VkPhysicalDeviceFeatures supportedFeatures;
   // vkGetPhysicalDeviceFeatures(mainDevice.physical, &supportedFeatures);
   //&& supportedFeatures.samplerAnisotropy
+
   return indices.isComplete() && extensionsSupported && swapChainAdequate;
 }
 
