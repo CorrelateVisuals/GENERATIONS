@@ -29,7 +29,7 @@ void Pipelines::createColorResources() {
                           VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
                       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
                       graphics.msaa.colorImage, graphics.msaa.colorImageMemory);
-  graphics.msaa.colorImageView = _mechanics.createImageView(
+  graphics.msaa.colorImageView = _memory.createImageView(
       graphics.msaa.colorImage, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT);
 }
 
@@ -42,7 +42,7 @@ void Pipelines::createDepthResources() {
                       VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
                       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, graphics.depth.image,
                       graphics.depth.imageMemory);
-  graphics.depth.imageView = _mechanics.createImageView(
+  graphics.depth.imageView = _memory.createImageView(
       graphics.depth.image, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
 }
 

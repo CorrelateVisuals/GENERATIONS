@@ -223,6 +223,7 @@ void VulkanMechanics::createLogicalDevice() {
                                           .sampleRateShading = VK_TRUE,
                                           .depthClamp = VK_TRUE,
                                           .depthBiasClamp = VK_TRUE,
+                                          .samplerAnisotropy = VK_TRUE,
                                           .shaderInt64 = VK_TRUE};
 
   VkDeviceCreateInfo createInfo{
@@ -379,6 +380,9 @@ bool VulkanMechanics::isDeviceSuitable(VkPhysicalDevice physicalDevice) {
                         !swapChainSupport.presentModes.empty();
   }
 
+  // VkPhysicalDeviceFeatures supportedFeatures;
+  // vkGetPhysicalDeviceFeatures(mainDevice.physical, &supportedFeatures);
+  //&& supportedFeatures.samplerAnisotropy
   return indices.isComplete() && extensionsSupported && swapChainAdequate;
 }
 
@@ -452,7 +456,7 @@ void VulkanMechanics::recreateSwapChain() {
   cleanupSwapChain();
 
   createSwapChain();
-  createImageViews();
+  _memory.createImageViews();
   _pipelines.createDepthResources();
   _pipelines.createColorResources();
   _memory.createFramebuffers();
@@ -471,50 +475,4 @@ std::vector<const char*> VulkanMechanics::getRequiredExtensions() {
   }
 
   return extensions;
-}
-
-void VulkanMechanics::createImageViews() {
-  _log.console(_log.style.charLeader, "creating Image Views");
-  swapChain.imageViews.resize(swapChain.images.size());
-
-  for (size_t i = 0; i < swapChain.images.size(); i++) {
-    VkImageViewCreateInfo createInfo{
-        .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-        .image = swapChain.images[i],
-        .viewType = VK_IMAGE_VIEW_TYPE_2D,
-        .format = swapChain.imageFormat,
-        .components = {.r = VK_COMPONENT_SWIZZLE_IDENTITY,
-                       .g = VK_COMPONENT_SWIZZLE_IDENTITY,
-                       .b = VK_COMPONENT_SWIZZLE_IDENTITY,
-                       .a = VK_COMPONENT_SWIZZLE_IDENTITY},
-        .subresourceRange = {.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                             .baseMipLevel = 0,
-                             .levelCount = 1,
-                             .baseArrayLayer = 0,
-                             .layerCount = 1}};
-
-    _mechanics.result(vkCreateImageView, mainDevice.logical, &createInfo,
-                      nullptr, &swapChain.imageViews[i]);
-  }
-}
-
-VkImageView VulkanMechanics::createImageView(VkImage image,
-                                             VkFormat format,
-                                             VkImageAspectFlags aspectFlags) {
-  VkImageViewCreateInfo viewInfo{
-      .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-      .image = image,
-      .viewType = VK_IMAGE_VIEW_TYPE_2D,
-      .format = format,
-      .subresourceRange = {.aspectMask = aspectFlags,
-                           .baseMipLevel = 0,
-                           .levelCount = 1,
-                           .baseArrayLayer = 0,
-                           .layerCount = 1}};
-
-  VkImageView imageView;
-  _mechanics.result(vkCreateImageView, mainDevice.logical, &viewInfo, nullptr,
-                    &imageView);
-
-  return imageView;
 }

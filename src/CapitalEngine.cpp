@@ -65,7 +65,7 @@ void CapitalEngine::initVulkan() {
   _mechanics.pickPhysicalDevice();
   _mechanics.createLogicalDevice();
   _mechanics.createSwapChain();
-  _mechanics.createImageViews();
+  _memory.createImageViews();
 
   _pipelines.createRenderPass();
   _memory.createDescriptorSetLayout();
@@ -73,6 +73,10 @@ void CapitalEngine::initVulkan() {
   _pipelines.createComputePipeline();
 
   _memory.createCommandPool();
+  _memory.createTextureImage("../assets/GenerationsCapture.PNG");
+  _memory.createTextureImageView();
+  _memory.createTextureSampler();
+
   _pipelines.createColorResources();
   _pipelines.createDepthResources();
   _memory.createFramebuffers();
@@ -209,6 +213,14 @@ void CapitalEngine::drawFrame() {
 
 void Global::cleanup() {
   _mechanics.cleanupSwapChain();
+
+  vkDestroySampler(_mechanics.mainDevice.logical, _memory.image.textureSampler,
+                   nullptr);
+  vkDestroyImageView(_mechanics.mainDevice.logical, _memory.image.textureView,
+                     nullptr);
+  vkDestroyImage(_mechanics.mainDevice.logical, _memory.image.texture, nullptr);
+  vkFreeMemory(_mechanics.mainDevice.logical, _memory.image.textureMemory,
+               nullptr);
 
   vkDestroyPipeline(_mechanics.mainDevice.logical, _pipelines.graphics.pipeline,
                     nullptr);

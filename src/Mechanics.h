@@ -74,11 +74,6 @@ class VulkanMechanics {
   void recreateSwapChain();
   void cleanupSwapChain();
 
-  void createImageViews();
-  VkImageView createImageView(VkImage image,
-                              VkFormat format,
-                              VkImageAspectFlags aspectFlags);
-
   void createSyncObjects();
 
   Queues::FamilyIndices findQueueFamilies(VkPhysicalDevice physicalDevice);
