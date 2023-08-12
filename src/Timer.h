@@ -14,4 +14,5 @@ class Timer {
 private:
     const int HOURS_PER_DAY{ 24 };
     const float TARGET_DURATION{ 1.0f / (speed / HOURS_PER_DAY) };
+    const float TRIGGER_DELAY_UNDER_SPEED = 100.0f;
 };
