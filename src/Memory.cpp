@@ -406,8 +406,8 @@ void Memory::createTextureImageView() {
 }
 
 void Memory::createImageViews() {
-  _log.console("{ IMG }", "Creating ", _mechanics.swapChain.images.size(),
-               " Image Views");
+  _log.console("{ IMG }", "Creating", _mechanics.swapChain.images.size(),
+               "Image Views");
 
   _mechanics.swapChain.imageViews.resize(_mechanics.swapChain.images.size());
 

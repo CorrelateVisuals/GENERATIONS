@@ -190,7 +190,6 @@
     <ClInclude Include="Mechanics.h" />
     <ClInclude Include="Terrain.h" />
     <ClInclude Include="Timer.h" />
-    <ClInclude Include="TODO.h" />
     <ClInclude Include="Window.h" />
     <ClInclude Include="World.h" />
   </ItemGroup>
