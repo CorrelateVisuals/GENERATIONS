@@ -1,7 +1,7 @@
 #pragma once
+#include "CapitalEngine.h"
 #include "Control.h"
 #include "Terrain.h"
-#include "CapitalEngine.h"
 
 #include <vulkan/vulkan.h>
 #define GLM_FORCE_RADIANS
@@ -27,7 +27,7 @@ class World {
   } camera;
 
   struct Light {
-    std::array<float, 4> position{0.0f, 0.0f, 30.0f, 0.0f};
+    std::array<float, 4> position{0.0f, 0.0f, 200.0f, 0.0f};
   } light;
 
   struct Cell {
@@ -70,7 +70,6 @@ class World {
   glm::mat4 setModel();
   glm::mat4 setView();
   glm::mat4 setProjection(VkExtent2D& swapChainExtent);
-
 
   inline static const std::array<float, 4> red{1.0f, 0.0f, 0.0f, 1.0f};
   inline static const std::array<float, 4> blue{0.0f, 0.0f, 1.0f, 1.0f};
