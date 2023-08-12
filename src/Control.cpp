@@ -7,7 +7,8 @@
 #include "Control.h"
 #include "World.h"
 
-Control::Control() {
+Control::Control() : time{} {
+  time.speed = timelineSpeed;
   _log.console("{ CTR }", "constructing Control");
 }
 
@@ -15,21 +16,8 @@ Control::~Control() {
   _log.console("{ CTR }", "destructing Control");
 }
 
-auto lastTime = std::chrono::high_resolution_clock::now();
-void Control::setPassedHours() {
-  auto currentTime = std::chrono::high_resolution_clock::now();
-
-  if (currentTime - lastTime >=
-      std::chrono::duration_cast<std::chrono::high_resolution_clock::duration>(
-          std::chrono::duration<float>(1.0 / timer.speed))) {
-    timer.passedHours++;
-    lastTime = currentTime;
-  };
-  return;
-}
-
 void Control::setPushConstants() {
-  _memory.pushConstants.data = {_control.timer.passedHours};
+  _memory.pushConstants.data = {time.passedHours};
 }
 
 std::vector<uint_fast32_t> Control::setCellsAliveRandomly(

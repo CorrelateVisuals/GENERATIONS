@@ -9,7 +9,7 @@ layout(location = 5) in vec4 inTileCornersHeight;
 layout (binding = 0) uniform ParameterUBO {
     vec4 light;
     ivec2 gridDimensions;
-    float gridHeight;
+    float waterThreshold;
     float cellSize;
     mat4 model;
     mat4 view;
@@ -20,6 +20,7 @@ ivec2 gridDimensions = ubo.gridDimensions;
 mat4 model = ubo.model;
 mat4 view = ubo.view;
 mat4 projection = ubo.projection;
+float waterThreshold = ubo.waterThreshold;
 
 vec4 matchHeight(vec4 targetHeight, float multiplyBy ){
     vec4 myHeight = vec4(inPosition.z);
@@ -100,7 +101,6 @@ vec3 getNormal(){
 vec4 worldPosition = model * constructTile();
 vec4 viewPosition =  view * worldPosition;
 vec3 worldNormal =   mat3(model) * getNormal();
-float waterThreshold = 0.1;
 
 vec4 setColor() {
     vec2 normalizedPosition = (worldPosition.xy + gridDimensions.xy * 0.5) / gridDimensions.xy;
@@ -112,12 +112,12 @@ vec4 setColor() {
     float blendBottomRight = max(normalizedPosition.x + normalizedPosition.y - 0.9, 0.0);
  
     vec4 color = vec4(0.1);
-    color += vec4(1.0, 0.0, 0.0, 1.0) * blendTopLeft;        // Red for top left corner
-    color += vec4(1.0, 1.0, 0.0, 1.0) * blendTopRight;       // Yellow for top right corner
-    color += vec4(0.0, 0.0, 1.0, 1.0) * blendBottomLeft;     // Blue for bottom left corner
-    color += vec4(0.0, 1.0, 0.0, 1.0) * blendBottomRight;    // Green for bottom right corner
+    color += vec4(0.5, 0.4, 0.0, 0.5) * blendTopRight;        // Red for top left corner
+    color += vec4(0.3, 0.8, 0.2, 0.6) * blendTopLeft;       // Yellow for top right corner
+    color += vec4(0.0, 0.8, 0.4, 0.7) * blendBottomLeft;     // Blue for bottom left corner
+    color += vec4(0.5, 0.2, 0.1, 0.7) * blendBottomRight;    // Green for bottom right corner
 
-    color *= worldPosition.z + 0.7;
+    color *= clamp(worldPosition.z, 1.5, 3.0);;
 
     vec4 waterColor = vec4(0.0, 0.5, 0.8, 1.0);
     float isBelowWater = step(worldPosition.z, waterThreshold);
@@ -138,7 +138,7 @@ float gouraudShading(float brightness, float emit) {
 layout(location = 0) out vec4 fragColor;
 
 void main() {
-    vec4 color = inColor * setColor() * gouraudShading(2.0f, 0.5f); 
+    vec4 color = inColor * setColor() * gouraudShading(2.0f, 0.2f); 
     fragColor = modifyColorContrast(color, 1.3f);
     gl_Position = projection * viewPosition;
 }

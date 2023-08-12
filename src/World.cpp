@@ -63,7 +63,38 @@ std::vector<World::Cell> World::initializeCells() {
     isAliveIndices[aliveIndex] = true;
   }
 
-  std::vector<float> tileHeight = constructTerrain(numGridPoints);
+  Terrain::Config terrainLayer1 = { .width = _control.grid.dimensions[0],
+                                    .height = _control.grid.dimensions[1],
+                                    .roughness = 0.4f,
+                                    .octaves = 10,
+                                    .scale = 1.1f,
+                                    .amplitude = 5.0f,
+                                    .exponent = 2.0f,
+                                    .frequency = 2.0f,
+                                    .heightOffset = 0.0f};
+  Terrain terrain(terrainLayer1);
+
+  Terrain::Config terrainLayer2 = { .width = _control.grid.dimensions[0],
+                                  .height = _control.grid.dimensions[1],
+                                  .roughness = 1.0f,
+                                  .octaves = 10,
+                                  .scale = 1.1f,
+                                  .amplitude = 0.3f,
+                                  .exponent = 1.0f,
+                                  .frequency = 2.0f,
+                                  .heightOffset = 0.0f };
+  Terrain terrainSurface(terrainLayer2);
+
+  std::vector<float> terrainPerlinGrid1 = terrain.generatePerlinGrid();
+  std::vector<float> terrainPerlinGrid2 = terrainSurface.generatePerlinGrid();
+
+  std::vector<float> tileHeight(terrainPerlinGrid1.size());
+  for (size_t i = 0; i < tileHeight.size(); i++) {
+      float blendFactor =
+          0.5f;
+      tileHeight[i] = terrain.linearInterpolationFunction(
+          terrainPerlinGrid1[i], terrainPerlinGrid2[i], blendFactor);
+  }
 
   const std::array<float, 4> sidesHeight = {0.0f, 0.0f, 0.0f, 0.0f};
   const std::array<float, 4> cornersHeight = {0.0f, 0.0f, 0.0f, 0.0f};
@@ -98,7 +129,7 @@ World::UniformBufferObject World::updateUniforms() {
       .light = light.position,
       .gridDimensions = {static_cast<uint32_t>(_control.grid.dimensions[0]),
                          static_cast<uint32_t>(_control.grid.dimensions[1])},
-      .gridHeight = terrain.hillHeight,
+      .waterThreshold = 0.1f,
       .cellSize = tile.cubeSize,
       .model = setModel(),
       .view = setView(),
@@ -153,12 +184,12 @@ void World::updateCamera() {
     float movementSpeed = getForwardMovement(leftButtonDelta);
     camera.position += movementSpeed * camera.front;
 
-    constexpr float panningSpeed = 0.1f;
+    constexpr float panningSpeed = 1.3f;
     glm::vec3 cameraUp = glm::cross(cameraRight, camera.front);
     camera.position -= panningSpeed * rightButtonDelta.x * cameraRight;
     camera.position -= panningSpeed * rightButtonDelta.y * cameraUp;
 
-    constexpr float zoomSpeed = 0.1f;
+    constexpr float zoomSpeed = 0.5f;
     camera.position += zoomSpeed * middleButtonDelta.x * camera.front;
     camera.position.z = std::max(camera.position.z, 0.0f);
   }
@@ -175,8 +206,8 @@ float World::getForwardMovement(const glm::vec2& leftButtonDelta) {
       leftMouseButtonDown = true;
       forwardMovement = 0.0f;
     }
-    constexpr float maxSpeed = 0.02f;
-    constexpr float acceleration = 0.001f;
+    constexpr float maxSpeed = 0.1f;
+    constexpr float acceleration = 0.01f;
 
     // Calculate the speed based on the distance from the center
     float normalizedDeltaLength = glm::clamp(leftButtonDeltaLength, 0.0f, 1.0f);
@@ -189,55 +220,6 @@ float World::getForwardMovement(const glm::vec2& leftButtonDelta) {
     forwardMovement = 0.0f;
   }
   return forwardMovement;
-}
-
-std::vector<float> World::constructTerrain(const int& numGridPoints) {
-  static std::random_device rd;
-  static std::mt19937 gen(rd());
-  std::uniform_real_distribution<float> dis(terrain.surfaceRoughness[0],
-                                            terrain.surfaceRoughness[1]);
-  std::vector<float> randomValues(numGridPoints);
-  int heightSteps = terrain.surfaceHeightSteps;
-  int offset = 0;
-  for (size_t i = 0; i < numGridPoints; i++) {
-    randomValues[i] = (dis(gen) * offset) / heightSteps;
-    offset = (offset + 1) % heightSteps;
-  }
-  std::shuffle(randomValues.begin(), randomValues.end(), gen);
-
-  int gridWidth = _control.grid.dimensions[0];
-  int nRows = 0;
-
-  for (size_t i = 0; i < numGridPoints; i++) {
-    int cycleLength = gridWidth / terrain.hillWidth;
-    int cycleIndex = i / cycleLength;
-    int cyclePosition = i % cycleLength;
-
-    // std::cout << cycleLength << " " << cycleIndex << " " << cyclePosition <<
-    // " "
-    //<< std::endl;
-
-    if (cyclePosition >= cycleLength / 2) {
-      cyclePosition = cycleLength - cyclePosition;
-    }
-
-    if (cyclePosition < terrain.hillWidth && nRows < terrain.hillWidth) {
-      float consecutiveWidthFloat =
-          static_cast<float>(cyclePosition) * terrain.hillHeight;
-      randomValues[i] += consecutiveWidthFloat;
-      std::cout << cyclePosition << " ";
-    }
-
-    if (i % gridWidth == 0) {
-      nRows++;
-    }
-    if (nRows >= terrain.hillWidth * terrain.hillSpacing) {
-      nRows = 0;
-      std::cout << std::endl;
-    }
-  }
-
-  return randomValues;
 }
 
 glm::mat4 World::setModel() {

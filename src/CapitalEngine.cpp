@@ -32,7 +32,7 @@ void CapitalEngine::mainLoop() {
     glfwPollEvents();
 
     _window.setMouse();
-    _control.setPassedHours();
+    _control.time.run();
 
     drawFrame();
 

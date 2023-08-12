@@ -1,29 +1,24 @@
 #include <vector>
 
 class Terrain {
- public:
-  Terrain(){};
-  ~Terrain(){};
+public:
+    struct Config {
+        uint_fast16_t width;
+        uint_fast16_t height;
+        float roughness;
+        int octaves;
+        float scale;
+        float amplitude;
+        float exponent;
+        float frequency;
+        float heightOffset;
+    };
 
-  struct Configuration {
-    size_t numRows = 8;
-    size_t widthChars = 8;
-    int maxHeight = 3;
-    size_t numGridsX = 2;
-    size_t numGridsY = 2;
-    size_t numGridPoints = (numRows * widthChars) * (numGridsX * numGridsY);
-    float surfaceRoughness[2] = {0.0f, 0.5f};
-    int surfaceHeightSteps = 4;
-  } config;
+    Terrain(const Config& _config);
 
- public:
-  std::vector<float> generateTerrain();
+    std::vector<float> generatePerlinGrid();
+    float linearInterpolationFunction(float a, float b, float t);
 
- private:
-  std::vector<float> generateSurfaceNoise();
-  void generateGrid(std::vector<std::vector<int>>& grid);
-  void attachGrids(std::vector<std::vector<int>>& mainGrid,
-                   const std::vector<std::vector<int>>& subGrid,
-                   int rowOffset,
-                   int colOffset);
+private:
+    Config config;
 };

@@ -1,4 +1,8 @@
 #pragma once
+#include "Control.h"
+#include "Terrain.h"
+#include "CapitalEngine.h"
+
 #include <vulkan/vulkan.h>
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -8,33 +12,22 @@
 #include <array>
 #include <vector>
 
-#include "Control.h"
-
 class World {
  public:
   World();
   ~World();
 
-  struct Terrain {
-    float surfaceRoughness[2] = {0.0f, 0.5f};
-    int surfaceHeightSteps = 4;
-    float hillHeight = 0.25f;
-    int hillWidth = 5;
-    float hillSpacing = 1.5f;
-    float waterThreshold = 0.1f;
-  } terrain;
-
   struct Camera {
     const float fieldOfView = 60.0f;
     const float nearClipping = 0.0001f;
     const float farClipping = 200.0f;
-    glm::vec3 position{0.0f, 0.0f, 10.0f};
+    glm::vec3 position{0.0f, 0.0f, 30.0f};
     glm::vec3 front{0.0f, 0.0f, -1.0f};
     glm::vec3 up{0.0f, -1.0f, 0.0f};
   } camera;
 
   struct Light {
-    std::array<float, 4> position{0.0f, 2.0f, 10.0f, 0.0f};
+    std::array<float, 4> position{0.0f, 0.0f, 30.0f, 0.0f};
   } light;
 
   struct Cell {
@@ -49,7 +42,7 @@ class World {
   struct UniformBufferObject {
     std::array<float, 4> light;
     std::array<uint32_t, 2> gridDimensions;
-    float gridHeight;
+    float waterThreshold;
     float cellSize;
     alignas(16) glm::mat4 model;
     alignas(16) glm::mat4 view;
@@ -78,7 +71,6 @@ class World {
   glm::mat4 setView();
   glm::mat4 setProjection(VkExtent2D& swapChainExtent);
 
-  std::vector<float> constructTerrain(const int& numGridPoints);
 
   inline static const std::array<float, 4> red{1.0f, 0.0f, 0.0f, 1.0f};
   inline static const std::array<float, 4> blue{0.0f, 0.0f, 1.0f, 1.0f};
