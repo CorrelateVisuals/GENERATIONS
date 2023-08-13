@@ -82,17 +82,12 @@ class Memory {
                              VkFormat format,
                              VkImageLayout oldLayout,
                              VkImageLayout newLayout);
-  void copyBufferToImage(VkBuffer buffer,
-                         VkImage image,
-                         uint32_t width,
-                         uint32_t height);
+
   void createTextureImageView();
-
-  void createImageViews();
-
   VkImageView createImageView(VkImage image,
                               VkFormat format,
                               VkImageAspectFlags aspectFlags);
+  void createImageViews();
   void createTextureSampler();
 
  private:
@@ -104,4 +99,9 @@ class Memory {
   uint32_t findMemoryType(uint32_t typeFilter,
                           VkMemoryPropertyFlags properties);
   void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
+
+  void copyBufferToImage(VkBuffer buffer,
+                         VkImage image,
+                         uint32_t width,
+                         uint32_t height);
 };
