@@ -10,8 +10,6 @@
 CapitalEngine::CapitalEngine() {
   _log.console("\n", _log.style.indentSize, "[ CAPITAL engine ]",
                "starting...\n");
-
-  compileShaders();
   initVulkan();
 }
 
@@ -59,6 +57,7 @@ void CapitalEngine::compileShaders() {
 
 void CapitalEngine::initVulkan() {
   _log.console("{ *** }", "initializing Capital Engine");
+  compileShaders();
   _mechanics.createInstance();
   _validation.setupDebugMessenger(_mechanics.instance);
   _mechanics.createSurface();
@@ -73,6 +72,7 @@ void CapitalEngine::initVulkan() {
   _pipelines.createComputePipeline();
 
   _memory.createCommandPool();
+
   _memory.createTextureImage("../assets/GenerationsCapture.PNG");
   _memory.createTextureImageView();
   _memory.createTextureSampler();
