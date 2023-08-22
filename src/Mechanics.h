@@ -63,6 +63,8 @@ class VulkanMechanics {
     uint32_t currentFrame = 0;
   } syncObjects;
 
+  void setupVulkan();
+
  public:
   void createInstance();
   void createSurface();

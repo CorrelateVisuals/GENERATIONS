@@ -30,6 +30,15 @@ VulkanMechanics::~VulkanMechanics() {
   _log.console("{ VkM }", "destructing Vulkan Mechanics");
 }
 
+void VulkanMechanics::setupVulkan() {
+  createInstance();
+  _validation.setupDebugMessenger(instance);
+  createSurface();
+  pickPhysicalDevice();
+  createLogicalDevice();
+  createSwapChain();
+}
+
 void VulkanMechanics::createInstance() {
   _log.console("{ VkI }", "creating Vulkan Instance");
   if (_validation.enableValidationLayers &&

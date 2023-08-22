@@ -19,6 +19,10 @@ class CapitalEngine {
   void drawFrame();
 
 private:
+    void setupVulkan();
+
+
+
     void compileShaders();
 };
 

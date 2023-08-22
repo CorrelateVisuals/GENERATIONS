@@ -58,37 +58,35 @@ void CapitalEngine::compileShaders() {
 void CapitalEngine::initVulkan() {
   _log.console("{ *** }", "initializing Capital Engine");
   compileShaders();
-  _mechanics.createInstance();
-  _validation.setupDebugMessenger(_mechanics.instance);
-  _mechanics.createSurface();
-  _mechanics.pickPhysicalDevice();
-  _mechanics.createLogicalDevice();
-  _mechanics.createSwapChain();
-  _memory.createImageViews();
+  ///// setupVulkan()
+  _mechanics.setupVulkan();
+  /////
+
+  _memory.createImageViews();  // pipeline ?
 
   _pipelines.createRenderPass();
-  _memory.createDescriptorSetLayout();
+  _memory.createDescriptorSetLayout();  // pipeline resource allocation
   _pipelines.createGraphicsPipeline();
   _pipelines.createComputePipeline();
 
-  _memory.createCommandPool();
+  _memory.createCommandPool();  // commands sent
 
   _memory.createTextureImage("../assets/GenerationsCapture.PNG");
   _memory.createTextureImageView();
   _memory.createTextureSampler();
-
   _pipelines.createColorResources();
   _pipelines.createDepthResources();
+
   _memory.createFramebuffers();
 
   _memory.createShaderStorageBuffers();
   _memory.createUniformBuffers();
   _memory.createDescriptorPool();
   _memory.createDescriptorSets();
-
+  ///
   _memory.createCommandBuffers();
   _memory.createComputeCommandBuffers();
-
+  ///
   _mechanics.createSyncObjects();
 }
 
@@ -210,6 +208,8 @@ void CapitalEngine::drawFrame() {
   _mechanics.syncObjects.currentFrame =
       (_mechanics.syncObjects.currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 }
+
+void CapitalEngine::setupVulkan() {}
 
 void Global::cleanup() {
   _mechanics.cleanupSwapChain();
