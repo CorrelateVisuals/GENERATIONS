@@ -333,23 +333,20 @@ void VulkanMechanics::createSyncObjects() {
                               .flags = VK_FENCE_CREATE_SIGNALED_BIT};
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-    _mechanics.result(vkCreateSemaphore, _mechanics.mainDevice.logical,
-                      &semaphoreInfo, nullptr,
-                      &syncObjects.imageAvailableSemaphores[i]);
+    result(vkCreateSemaphore, mainDevice.logical, &semaphoreInfo, nullptr,
+           &syncObjects.imageAvailableSemaphores[i]);
 
-    _mechanics.result(vkCreateSemaphore, _mechanics.mainDevice.logical,
-                      &semaphoreInfo, nullptr,
-                      &syncObjects.renderFinishedSemaphores[i]);
+    result(vkCreateSemaphore, mainDevice.logical, &semaphoreInfo, nullptr,
+           &syncObjects.renderFinishedSemaphores[i]);
 
-    _mechanics.result(vkCreateFence, _mechanics.mainDevice.logical, &fenceInfo,
-                      nullptr, &syncObjects.inFlightFences[i]);
+    result(vkCreateFence, mainDevice.logical, &fenceInfo, nullptr,
+           &syncObjects.inFlightFences[i]);
 
-    _mechanics.result(vkCreateSemaphore, _mechanics.mainDevice.logical,
-                      &semaphoreInfo, nullptr,
-                      &syncObjects.computeFinishedSemaphores[i]);
+    result(vkCreateSemaphore, mainDevice.logical, &semaphoreInfo, nullptr,
+           &syncObjects.computeFinishedSemaphores[i]);
 
-    _mechanics.result(vkCreateFence, _mechanics.mainDevice.logical, &fenceInfo,
-                      nullptr, &syncObjects.computeInFlightFences[i]);
+    result(vkCreateFence, mainDevice.logical, &fenceInfo, nullptr,
+           &syncObjects.computeInFlightFences[i]);
   }
 }
 
