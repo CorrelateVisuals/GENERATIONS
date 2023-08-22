@@ -46,6 +46,8 @@ class Memory {
     std::vector<VkDescriptorSet> sets;
   } descriptor;
 
+  void createResources();
+
  public:
   void createFramebuffers();
 

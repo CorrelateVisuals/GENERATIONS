@@ -14,6 +14,21 @@ Memory::~Memory() {
   _log.console("{ 010 }", "destructing Memory Management");
 }
 
+void Memory::createResources() {
+  createTextureImage("../assets/GenerationsCapture.PNG");
+  createTextureImageView();
+  createTextureSampler();
+
+  createFramebuffers();
+  createShaderStorageBuffers();
+  createUniformBuffers();
+
+  createDescriptorPool();
+  createDescriptorSets();
+  createCommandBuffers();
+  createComputeCommandBuffers();
+}
+
 void Memory::createFramebuffers() {
   _log.console("{ BUF }", "creating Frame Buffers");
 

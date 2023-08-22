@@ -44,32 +44,10 @@ void CapitalEngine::mainLoop() {
 
 void CapitalEngine::initCapitalEngine() {
   _log.console("{ *** }", "initializing Capital Engine");
-  _mechanics.setupVulkan();  // setupVulkan();
-
-  _memory.createDescriptorSetLayout();  // createPipelines();
-
-  _pipelines.createRenderPass();        // createPipelines();
-  _pipelines.createGraphicsPipeline();  // createPipelines();
-  _pipelines.createComputePipeline();   // createPipelines();
-
-  _memory.createTextureImage("../assets/GenerationsCapture.PNG");  // ?
-  _memory.createTextureImageView();                                // ?
-  _memory.createTextureSampler();                                  // ?
-
-  _pipelines.createColorResources();  // ?
-  _pipelines.createDepthResources();  // ?
-  _memory.createFramebuffers();       // ?
-
-  _memory.createShaderStorageBuffers();  // shaderResources
-  _memory.createUniformBuffers();        // shaderResources
-
-  _memory.createDescriptorPool();  //
-  _memory.createDescriptorSets();  //
-
-  _memory.createCommandBuffers();         //
-  _memory.createComputeCommandBuffers();  //
-
-  _mechanics.createSyncObjects();  //
+  _mechanics.setupVulkan();  
+  _pipelines.createPipelines();
+  _memory.createResources();
+  _mechanics.createSyncObjects();  
 }
 
 void CapitalEngine::drawFrame() {

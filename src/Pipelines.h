@@ -34,6 +34,8 @@ class Pipelines {
     std::vector<VkShaderModule> shaderModules;
   } compute;
 
+  void createPipelines();
+
  public:
   void createColorResources();
   void createDepthResources();
