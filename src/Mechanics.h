@@ -93,6 +93,7 @@ class VulkanMechanics {
   }
 
  private:
+  void compileShaders();
   std::vector<const char*> getRequiredExtensions();
 
   bool isDeviceSuitable(VkPhysicalDevice physicalDevice);

@@ -31,6 +31,7 @@ VulkanMechanics::~VulkanMechanics() {
 }
 
 void VulkanMechanics::setupVulkan() {
+  compileShaders();
   createInstance();
   _validation.setupDebugMessenger(instance);
   createSurface();
@@ -470,6 +471,19 @@ void VulkanMechanics::recreateSwapChain() {
   _pipelines.createDepthResources();
   _pipelines.createColorResources();
   _memory.createFramebuffers();
+}
+
+void VulkanMechanics::compileShaders() {
+  _log.console("{ SHA }", "compiling shaders");
+#ifdef _WIN32
+  // auto err = std::system("cmd /C \"..\\shaders\\compile_shaders.bat >
+  // NUL\"");
+  auto err = std::system("..\\shaders\\compile_shaders.bat");
+
+#else
+  // Linux-specific code
+  auto err = std::system("./shaders/compile_shaders.sh");
+#endif
 }
 
 std::vector<const char*> VulkanMechanics::getRequiredExtensions() {
