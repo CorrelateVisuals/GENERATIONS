@@ -19,6 +19,18 @@ Pipelines::~Pipelines() {
   _log.console("{ PIP }", "destructing Pipelines");
 }
 
+void Pipelines::createPipelines() {
+  _log.console("{ PIP }", "creating pipelines");
+  _memory.createDescriptorSetLayout();
+
+  createRenderPass();
+  createGraphicsPipeline();
+  createComputePipeline();
+
+  createColorResources();
+  createDepthResources();
+}
+
 void Pipelines::createColorResources() {
   VkFormat colorFormat = _mechanics.swapChain.imageFormat;
 

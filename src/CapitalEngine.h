@@ -15,9 +15,8 @@ class CapitalEngine {
   void mainLoop();
 
  private:
-  void compileShaders();
-  void initVulkan();
   void drawFrame();
+  void initCapitalEngine();
 };
 
 class Global {

@@ -10,9 +10,7 @@
 CapitalEngine::CapitalEngine() {
   _log.console("\n", _log.style.indentSize, "[ CAPITAL engine ]",
                "starting...\n");
-
-  compileShaders();
-  initVulkan();
+  initCapitalEngine();
 }
 
 CapitalEngine::~CapitalEngine() {
@@ -44,52 +42,12 @@ void CapitalEngine::mainLoop() {
   _log.console("\n", _log.style.indentSize, "{ Main Loop } ....... terminated");
 }
 
-void CapitalEngine::compileShaders() {
-  _log.console("{ SHA }", "compiling shaders");
-#ifdef _WIN32
-  // auto err = std::system("cmd /C \"..\\shaders\\compile_shaders.bat >
-  // NUL\"");
-  auto err = std::system("..\\shaders\\compile_shaders.bat");
-
-#else
-  // Linux-specific code
-  auto err = std::system("./shaders/compile_shaders.sh");
-#endif
-}
-
-void CapitalEngine::initVulkan() {
+void CapitalEngine::initCapitalEngine() {
   _log.console("{ *** }", "initializing Capital Engine");
-  _mechanics.createInstance();
-  _validation.setupDebugMessenger(_mechanics.instance);
-  _mechanics.createSurface();
-  _mechanics.pickPhysicalDevice();
-  _mechanics.createLogicalDevice();
-  _mechanics.createSwapChain();
-  _memory.createImageViews();
-
-  _pipelines.createRenderPass();
-  _memory.createDescriptorSetLayout();
-  _pipelines.createGraphicsPipeline();
-  _pipelines.createComputePipeline();
-
-  _memory.createCommandPool();
-  _memory.createTextureImage("../assets/GenerationsCapture.PNG");
-  _memory.createTextureImageView();
-  _memory.createTextureSampler();
-
-  _pipelines.createColorResources();
-  _pipelines.createDepthResources();
-  _memory.createFramebuffers();
-
-  _memory.createShaderStorageBuffers();
-  _memory.createUniformBuffers();
-  _memory.createDescriptorPool();
-  _memory.createDescriptorSets();
-
-  _memory.createCommandBuffers();
-  _memory.createComputeCommandBuffers();
-
-  _mechanics.createSyncObjects();
+  _mechanics.setupVulkan();  
+  _pipelines.createPipelines();
+  _memory.createResources();
+  _mechanics.createSyncObjects();  
 }
 
 void CapitalEngine::drawFrame() {

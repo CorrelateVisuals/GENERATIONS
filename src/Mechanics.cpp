@@ -30,6 +30,22 @@ VulkanMechanics::~VulkanMechanics() {
   _log.console("{ VkM }", "destructing Vulkan Mechanics");
 }
 
+void VulkanMechanics::setupVulkan() {
+  _log.console("{ VK. }", "setting up Vulkan");
+  compileShaders();
+  createInstance();
+  _validation.setupDebugMessenger(instance);
+  createSurface();
+
+  pickPhysicalDevice();
+  createLogicalDevice();
+
+  createSwapChain();
+  createSwapChainImageViews();
+
+  createCommandPool();
+}
+
 void VulkanMechanics::createInstance() {
   _log.console("{ VkI }", "creating Vulkan Instance");
   if (_validation.enableValidationLayers &&
@@ -444,6 +460,32 @@ void VulkanMechanics::createSwapChain() {
   swapChain.extent = extent;
 }
 
+void VulkanMechanics::createSwapChainImageViews() {
+  _log.console("{ IMG }", "Creating", swapChain.images.size(), "Image Views");
+
+  swapChain.imageViews.resize(swapChain.images.size());
+
+  for (size_t i = 0; i < swapChain.images.size(); i++) {
+    swapChain.imageViews[i] = _memory.createImageView(
+        swapChain.images[i], swapChain.imageFormat, VK_IMAGE_ASPECT_COLOR_BIT);
+  }
+}
+
+void VulkanMechanics::createCommandPool() {
+  _log.console("{ CMD }", "creating Command Pool");
+
+  VulkanMechanics::Queues::FamilyIndices queueFamilyIndices =
+      findQueueFamilies(mainDevice.physical);
+
+  VkCommandPoolCreateInfo poolInfo{
+      .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+      .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
+      .queueFamilyIndex = queueFamilyIndices.graphicsAndComputeFamily.value()};
+
+  result(vkCreateCommandPool, mainDevice.logical, &poolInfo, nullptr,
+         &_memory.buffers.command.pool);
+}
+
 void VulkanMechanics::recreateSwapChain() {
   int width = 0, height = 0;
   glfwGetFramebufferSize(_window.window, &width, &height);
@@ -457,10 +499,23 @@ void VulkanMechanics::recreateSwapChain() {
   cleanupSwapChain();
 
   createSwapChain();
-  _memory.createImageViews();
+  createSwapChainImageViews();
   _pipelines.createDepthResources();
   _pipelines.createColorResources();
   _memory.createFramebuffers();
+}
+
+void VulkanMechanics::compileShaders() {
+  _log.console("{ SHA }", "compiling shaders");
+#ifdef _WIN32
+  // auto err = std::system("cmd /C \"..\\shaders\\compile_shaders.bat >
+  // NUL\"");
+  auto err = std::system("..\\shaders\\compile_shaders.bat");
+
+#else
+  // Linux-specific code
+  auto err = std::system("./shaders/compile_shaders.sh");
+#endif
 }
 
 std::vector<const char*> VulkanMechanics::getRequiredExtensions() {

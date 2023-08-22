@@ -46,10 +46,11 @@ class Memory {
     std::vector<VkDescriptorSet> sets;
   } descriptor;
 
+  void createResources();
+
  public:
   void createFramebuffers();
 
-  void createCommandPool();
   void createCommandBuffers();
   void createComputeCommandBuffers();
 
@@ -87,7 +88,6 @@ class Memory {
   VkImageView createImageView(VkImage image,
                               VkFormat format,
                               VkImageAspectFlags aspectFlags);
-  void createImageViews();
   void createTextureSampler();
 
  private:
