@@ -44,34 +44,32 @@ void CapitalEngine::mainLoop() {
 
 void CapitalEngine::initCapitalEngine() {
   _log.console("{ *** }", "initializing Capital Engine");
-  _mechanics.setupVulkan();
+  _mechanics.setupVulkan();  // setupVulkan();
 
-  _memory.createImageViews();  // pipeline ?
+  _memory.createDescriptorSetLayout();  // createPipelines();
 
-  _pipelines.createRenderPass();
-  _memory.createDescriptorSetLayout();  // pipeline resource allocation
-  _pipelines.createGraphicsPipeline();
-  _pipelines.createComputePipeline();
+  _pipelines.createRenderPass();        // createPipelines();
+  _pipelines.createGraphicsPipeline();  // createPipelines();
+  _pipelines.createComputePipeline();   // createPipelines();
 
-  _memory.createCommandPool();  // commands sent
+  _memory.createTextureImage("../assets/GenerationsCapture.PNG");  // ?
+  _memory.createTextureImageView();                                // ?
+  _memory.createTextureSampler();                                  // ?
 
-  _memory.createTextureImage("../assets/GenerationsCapture.PNG");
-  _memory.createTextureImageView();
-  _memory.createTextureSampler();
-  _pipelines.createColorResources();
-  _pipelines.createDepthResources();
+  _pipelines.createColorResources();  // ?
+  _pipelines.createDepthResources();  // ?
+  _memory.createFramebuffers();       // ?
 
-  _memory.createFramebuffers();
+  _memory.createShaderStorageBuffers();  // shaderResources
+  _memory.createUniformBuffers();        // shaderResources
 
-  _memory.createShaderStorageBuffers();
-  _memory.createUniformBuffers();
-  _memory.createDescriptorPool();
-  _memory.createDescriptorSets();
-  ///
-  _memory.createCommandBuffers();
-  _memory.createComputeCommandBuffers();
-  ///
-  _mechanics.createSyncObjects();
+  _memory.createDescriptorPool();  //
+  _memory.createDescriptorSets();  //
+
+  _memory.createCommandBuffers();         //
+  _memory.createComputeCommandBuffers();  //
+
+  _mechanics.createSyncObjects();  //
 }
 
 void CapitalEngine::drawFrame() {
@@ -192,8 +190,6 @@ void CapitalEngine::drawFrame() {
   _mechanics.syncObjects.currentFrame =
       (_mechanics.syncObjects.currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 }
-
-void CapitalEngine::setupVulkan() {}
 
 void Global::cleanup() {
   _mechanics.cleanupSwapChain();

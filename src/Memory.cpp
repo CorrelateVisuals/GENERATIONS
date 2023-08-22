@@ -41,21 +41,6 @@ void Memory::createFramebuffers() {
   }
 }
 
-void Memory::createCommandPool() {
-  _log.console("{ CMD }", "creating Command Pool");
-
-  VulkanMechanics::Queues::FamilyIndices queueFamilyIndices =
-      _mechanics.findQueueFamilies(_mechanics.mainDevice.physical);
-
-  VkCommandPoolCreateInfo poolInfo{
-      .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
-      .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
-      .queueFamilyIndex = queueFamilyIndices.graphicsAndComputeFamily.value()};
-
-  _mechanics.result(vkCreateCommandPool, _mechanics.mainDevice.logical,
-                    &poolInfo, nullptr, &buffers.command.pool);
-}
-
 void Memory::createCommandBuffers() {
   _log.console("{ CMD }", "creating Command Buffers");
 
@@ -73,7 +58,6 @@ void Memory::createCommandBuffers() {
 }
 
 void Memory::createComputeCommandBuffers() {
-  _log.console("{ CMD }", "creating Compute Command Buffers");
   _log.console("{ CMD }", "creating Compute Command Buffers");
 
   buffers.command.compute.resize(MAX_FRAMES_IN_FLIGHT);
@@ -403,19 +387,6 @@ void Memory::createTextureImageView() {
   _log.console("{ IMG }", "Creating Texture Image View");
   image.textureView = createImageView(image.texture, VK_FORMAT_R8G8B8A8_SRGB,
                                       VK_IMAGE_ASPECT_COLOR_BIT);
-}
-
-void Memory::createImageViews() {
-  _log.console("{ IMG }", "Creating", _mechanics.swapChain.images.size(),
-               "Image Views");
-
-  _mechanics.swapChain.imageViews.resize(_mechanics.swapChain.images.size());
-
-  for (size_t i = 0; i < _mechanics.swapChain.images.size(); i++) {
-    _mechanics.swapChain.imageViews[i] = createImageView(
-        _mechanics.swapChain.images[i], _mechanics.swapChain.imageFormat,
-        VK_IMAGE_ASPECT_COLOR_BIT);
-  }
 }
 
 void Memory::createDescriptorSets() {

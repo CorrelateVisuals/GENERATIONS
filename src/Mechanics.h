@@ -63,22 +63,13 @@ class VulkanMechanics {
     uint32_t currentFrame = 0;
   } syncObjects;
 
+ public:
   void setupVulkan();
 
- public:
-  void createInstance();
-  void createSurface();
-
-  void pickPhysicalDevice();
-  void createLogicalDevice();
-
-  void createSwapChain();
   void recreateSwapChain();
   void cleanupSwapChain();
 
   void createSyncObjects();
-
-  Queues::FamilyIndices findQueueFamilies(VkPhysicalDevice physicalDevice);
 
   template <typename Checkresult, typename... Args>
   void result(Checkresult vkResult, Args&&... args) {
@@ -94,6 +85,14 @@ class VulkanMechanics {
 
  private:
   void compileShaders();
+  void createInstance();
+  void createSurface();
+  void pickPhysicalDevice();
+  void createLogicalDevice();
+  void createSwapChain();
+  void createSwapChainImageViews();
+  void createCommandPool();
+
   std::vector<const char*> getRequiredExtensions();
 
   bool isDeviceSuitable(VkPhysicalDevice physicalDevice);
@@ -106,4 +105,6 @@ class VulkanMechanics {
   VkPresentModeKHR chooseSwapPresentMode(
       const std::vector<VkPresentModeKHR>& availablePresentModes);
   VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
+
+  Queues::FamilyIndices findQueueFamilies(VkPhysicalDevice physicalDevice);
 };
