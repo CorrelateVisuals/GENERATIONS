@@ -97,6 +97,7 @@ class VulkanMechanics {
 
   bool isDeviceSuitable(VkPhysicalDevice physicalDevice);
   bool checkDeviceExtensionSupport(VkPhysicalDevice physicalDevice);
+  VkSampleCountFlagBits getMaxUsableSampleCount();
 
   SwapChain::SupportDetails querySwapChainSupport(
       VkPhysicalDevice physicalDevice);

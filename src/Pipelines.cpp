@@ -311,22 +311,6 @@ void Pipelines::createComputePipeline() {
   destroyShaderModules(compute.shaderModules);
 }
 
-VkSampleCountFlagBits Pipelines::getMaxUsableSampleCount() {
-  VkPhysicalDeviceProperties physicalDeviceProperties;
-  vkGetPhysicalDeviceProperties(_mechanics.mainDevice.physical,
-                                &physicalDeviceProperties);
-  VkSampleCountFlags counts =
-      physicalDeviceProperties.limits.framebufferColorSampleCounts &
-      physicalDeviceProperties.limits.framebufferDepthSampleCounts;
-
-  for (size_t i = VK_SAMPLE_COUNT_64_BIT; i >= VK_SAMPLE_COUNT_1_BIT; i >>= 1) {
-    if (counts & i) {
-      return static_cast<VkSampleCountFlagBits>(i);
-    }
-  }
-  return VK_SAMPLE_COUNT_1_BIT;
-}
-
 VkShaderModule Pipelines::createShaderModule(const std::vector<char>& code) {
   _log.console(_log.style.charLeader, "creating Shader Module");
   VkShaderModuleCreateInfo createInfo{

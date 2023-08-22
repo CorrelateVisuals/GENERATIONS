@@ -114,7 +114,7 @@ void VulkanMechanics::pickPhysicalDevice() {
   for (const auto& device : devices) {
     if (isDeviceSuitable(device)) {
       mainDevice.physical = device;
-      _pipelines.graphics.msaa.samples = _pipelines.getMaxUsableSampleCount();
+      _pipelines.graphics.msaa.samples = getMaxUsableSampleCount();
       break;
     }
   }
@@ -215,6 +215,21 @@ bool VulkanMechanics::checkDeviceExtensionSupport(
   }
 
   return requiredExtensions.empty();
+}
+
+VkSampleCountFlagBits VulkanMechanics::getMaxUsableSampleCount() {
+  VkPhysicalDeviceProperties physicalDeviceProperties;
+  vkGetPhysicalDeviceProperties(mainDevice.physical, &physicalDeviceProperties);
+  VkSampleCountFlags counts =
+      physicalDeviceProperties.limits.framebufferColorSampleCounts &
+      physicalDeviceProperties.limits.framebufferDepthSampleCounts;
+
+  for (size_t i = VK_SAMPLE_COUNT_64_BIT; i >= VK_SAMPLE_COUNT_1_BIT; i >>= 1) {
+    if (counts & i) {
+      return static_cast<VkSampleCountFlagBits>(i);
+    }
+  }
+  return VK_SAMPLE_COUNT_1_BIT;
 }
 
 void VulkanMechanics::createLogicalDevice() {

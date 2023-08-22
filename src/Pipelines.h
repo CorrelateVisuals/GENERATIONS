@@ -34,20 +34,18 @@ class Pipelines {
     std::vector<VkShaderModule> shaderModules;
   } compute;
 
+ public:
   void createPipelines();
 
- public:
   void createColorResources();
   void createDepthResources();
 
+ private:
   void createRenderPass();
 
   void createGraphicsPipeline();
   void createComputePipeline();
 
-  VkSampleCountFlagBits getMaxUsableSampleCount();
-
- private:
   VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates,
                                VkImageTiling tiling,
                                VkFormatFeatureFlags features);
