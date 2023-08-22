@@ -46,24 +46,15 @@ class Memory {
     std::vector<VkDescriptorSet> sets;
   } descriptor;
 
+ public:
   void createResources();
 
- public:
   void createFramebuffers();
-
-  void createCommandBuffers();
-  void createComputeCommandBuffers();
-
-  void createDescriptorPool();
   void createDescriptorSetLayout();
-  void createDescriptorSets();
 
   void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
   void recordComputeCommandBuffer(VkCommandBuffer commandBuffer);
 
-  void createShaderStorageBuffers();
-
-  void createUniformBuffers();
   void updateUniformBuffer(uint32_t currentImage);
 
   void createImage(uint32_t width,
@@ -75,22 +66,21 @@ class Memory {
                    VkMemoryPropertyFlags properties,
                    VkImage& image,
                    VkDeviceMemory& imageMemory);
-
-  void createTextureImage(std::string imagePath);
-  VkCommandBuffer beginSingleTimeCommands();
-  void endSingleTimeCommands(VkCommandBuffer commandBuffer);
-  void transitionImageLayout(VkImage image,
-                             VkFormat format,
-                             VkImageLayout oldLayout,
-                             VkImageLayout newLayout);
-
-  void createTextureImageView();
   VkImageView createImageView(VkImage image,
                               VkFormat format,
                               VkImageAspectFlags aspectFlags);
-  void createTextureSampler();
 
  private:
+  VkCommandBuffer beginSingleTimeCommands();
+  void endSingleTimeCommands(VkCommandBuffer commandBuffer);
+  void createCommandBuffers();
+  void createComputeCommandBuffers();
+  void createDescriptorPool();
+
+  void createDescriptorSets();
+  void createShaderStorageBuffers();
+  void createUniformBuffers();
+
   void createBuffer(VkDeviceSize size,
                     VkBufferUsageFlags usage,
                     VkMemoryPropertyFlags properties,
@@ -99,9 +89,15 @@ class Memory {
   uint32_t findMemoryType(uint32_t typeFilter,
                           VkMemoryPropertyFlags properties);
   void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
-
   void copyBufferToImage(VkBuffer buffer,
                          VkImage image,
                          uint32_t width,
                          uint32_t height);
+  void transitionImageLayout(VkImage image,
+                             VkFormat format,
+                             VkImageLayout oldLayout,
+                             VkImageLayout newLayout);
+  void createTextureImage(std::string imagePath);
+  void createTextureSampler();
+  void createTextureImageView();
 };

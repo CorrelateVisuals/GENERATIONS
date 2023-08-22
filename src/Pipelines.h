@@ -42,7 +42,6 @@ class Pipelines {
 
  private:
   void createRenderPass();
-
   void createGraphicsPipeline();
   void createComputePipeline();
 

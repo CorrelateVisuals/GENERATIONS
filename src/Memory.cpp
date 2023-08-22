@@ -15,6 +15,8 @@ Memory::~Memory() {
 }
 
 void Memory::createResources() {
+  _log.console("{ RES }", "creating Resources ...");
+
   createTextureImage("../assets/GenerationsCapture.PNG");
   createTextureImageView();
   createTextureSampler();
