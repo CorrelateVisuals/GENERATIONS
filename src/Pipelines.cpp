@@ -17,7 +17,7 @@ Pipelines::~Pipelines() {
 
 void Pipelines::createPipelines() {
   _log.console("{ PIP }", "creating pipelines");
-  _memory.createDescriptorSetLayout();
+  _resources.createDescriptorSetLayout();
 
   createRenderPass();
   createGraphicsPipeline();
@@ -30,27 +30,27 @@ void Pipelines::createPipelines() {
 void Pipelines::createColorResources() {
   VkFormat colorFormat = _mechanics.swapChain.imageFormat;
 
-  _memory.createImage(_mechanics.swapChain.extent.width,
+  _resources.createImage(_mechanics.swapChain.extent.width,
                       _mechanics.swapChain.extent.height, graphics.msaa.samples,
                       colorFormat, VK_IMAGE_TILING_OPTIMAL,
                       VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT |
                           VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
                       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
                       graphics.msaa.colorImage, graphics.msaa.colorImageMemory);
-  graphics.msaa.colorImageView = _memory.createImageView(
+  graphics.msaa.colorImageView = _resources.createImageView(
       graphics.msaa.colorImage, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT);
 }
 
 void Pipelines::createDepthResources() {
   VkFormat depthFormat = findDepthFormat();
 
-  _memory.createImage(_mechanics.swapChain.extent.width,
+  _resources.createImage(_mechanics.swapChain.extent.width,
                       _mechanics.swapChain.extent.height, graphics.msaa.samples,
                       depthFormat, VK_IMAGE_TILING_OPTIMAL,
                       VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
                       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, graphics.depth.image,
                       graphics.depth.imageMemory);
-  graphics.depth.imageView = _memory.createImageView(
+  graphics.depth.imageView = _resources.createImageView(
       graphics.depth.image, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
 }
 
@@ -175,7 +175,7 @@ void Pipelines::createGraphicsPipeline() {
   VkPipelineLayoutCreateInfo pipelineLayoutInfo{
       .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
       .setLayoutCount = 1,
-      .pSetLayouts = &_memory.descriptor.setLayout};
+      .pSetLayouts = &_resources.descriptor.setLayout};
 
   _mechanics.result(vkCreatePipelineLayout, _mechanics.mainDevice.logical,
                     &pipelineLayoutInfo, nullptr, &graphics.pipelineLayout);
@@ -281,14 +281,14 @@ void Pipelines::createComputePipeline() {
       getShaderStageInfo(VK_SHADER_STAGE_COMPUTE_BIT, "comp.spv", compute);
 
   VkPushConstantRange pushConstantRange = {
-      .stageFlags = _memory.pushConstants.shaderStage,
-      .offset = _memory.pushConstants.offset,
-      .size = _memory.pushConstants.size};
+      .stageFlags = _resources.pushConstants.shaderStage,
+      .offset = _resources.pushConstants.offset,
+      .size = _resources.pushConstants.size};
 
   VkPipelineLayoutCreateInfo pipelineLayoutInfo{
       .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
       .setLayoutCount = 1,
-      .pSetLayouts = &_memory.descriptor.setLayout,
+      .pSetLayouts = &_resources.descriptor.setLayout,
       .pushConstantRangeCount = 1,
       .pPushConstantRanges = &pushConstantRange};
 

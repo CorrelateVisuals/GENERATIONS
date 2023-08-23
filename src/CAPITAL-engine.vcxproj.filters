@@ -42,7 +42,7 @@
     <ClCompile Include="Library.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Memory.cpp">
+    <ClCompile Include="Resources.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Terrain.cpp">
@@ -80,7 +80,7 @@
     <ClInclude Include="Library.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Memory.h">
+    <ClInclude Include="Resources.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Terrain.h">

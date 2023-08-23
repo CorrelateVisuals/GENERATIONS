@@ -473,7 +473,7 @@ void VulkanMechanics::createSwapChainImageViews() {
   swapChain.imageViews.resize(swapChain.images.size());
 
   for (size_t i = 0; i < swapChain.images.size(); i++) {
-    swapChain.imageViews[i] = _memory.createImageView(
+    swapChain.imageViews[i] = _resources.createImageView(
         swapChain.images[i], swapChain.imageFormat, VK_IMAGE_ASPECT_COLOR_BIT);
   }
 }
@@ -490,7 +490,7 @@ void VulkanMechanics::createCommandPool() {
       .queueFamilyIndex = queueFamilyIndices.graphicsAndComputeFamily.value()};
 
   result(vkCreateCommandPool, mainDevice.logical, &poolInfo, nullptr,
-         &_memory.buffers.command.pool);
+         &_resources.buffers.command.pool);
 }
 
 void VulkanMechanics::recreateSwapChain() {
@@ -509,7 +509,7 @@ void VulkanMechanics::recreateSwapChain() {
   createSwapChainImageViews();
   _pipelines.createDepthResources();
   _pipelines.createColorResources();
-  _memory.createFramebuffers();
+  _resources.createFramebuffers();
 }
 
 void VulkanMechanics::compileShaders() {

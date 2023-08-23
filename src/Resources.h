@@ -6,10 +6,10 @@
 #include <string>
 #include <vector>
 
-class Memory {
+class Resources {
  public:
-  Memory();
-  ~Memory();
+  Resources();
+  ~Resources();
 
   struct PushConstants {
     VkShaderStageFlags shaderStage = {VK_SHADER_STAGE_COMPUTE_BIT};

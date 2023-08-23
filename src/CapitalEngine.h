@@ -2,8 +2,8 @@
 #include "Control.h"
 #include "Log.h"
 #include "Mechanics.h"
-#include "Memory.h"
 #include "Pipelines.h"
+#include "Resources.h"
 #include "ValidationLayers.h"
 #include "Window.h"
 #include "World.h"
@@ -34,7 +34,7 @@ class Global {
     Control control;
     VulkanMechanics mechanics;
     Pipelines pipelines;
-    Memory memory;
+    Resources memory;
     Window mainWindow;
     World world;
   };
@@ -49,6 +49,6 @@ inline static auto& _validation = Global::obj.validation;
 inline static auto& _window = Global::obj.mainWindow;
 inline static auto& _mechanics = Global::obj.mechanics;
 inline static auto& _pipelines = Global::obj.pipelines;
-inline static auto& _memory = Global::obj.memory;
+inline static auto& _resources = Global::obj.memory;
 inline static auto& _control = Global::obj.control;
 inline static auto& _world = Global::obj.world;

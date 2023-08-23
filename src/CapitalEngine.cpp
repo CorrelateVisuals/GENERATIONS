@@ -7,7 +7,7 @@ CapitalEngine::CapitalEngine() {
                "starting...\n");
   _mechanics.setupVulkan();
   _pipelines.createPipelines();
-  _memory.createResources();
+  _resources.createResources();
   _mechanics.createSyncObjects();
 }
 
@@ -48,7 +48,7 @@ void CapitalEngine::drawFrame() {
            .computeInFlightFences[_mechanics.syncObjects.currentFrame],
       VK_TRUE, UINT64_MAX);
 
-  _memory.updateUniformBuffer(_mechanics.syncObjects.currentFrame);
+  _resources.updateUniformBuffer(_mechanics.syncObjects.currentFrame);
 
   vkResetFences(
       _mechanics.mainDevice.logical, 1,
@@ -56,15 +56,16 @@ void CapitalEngine::drawFrame() {
            .computeInFlightFences[_mechanics.syncObjects.currentFrame]);
 
   vkResetCommandBuffer(
-      _memory.buffers.command.compute[_mechanics.syncObjects.currentFrame], 0);
-  _memory.recordComputeCommandBuffer(
-      _memory.buffers.command.compute[_mechanics.syncObjects.currentFrame]);
+      _resources.buffers.command.compute[_mechanics.syncObjects.currentFrame],
+      0);
+  _resources.recordComputeCommandBuffer(
+      _resources.buffers.command.compute[_mechanics.syncObjects.currentFrame]);
 
   VkSubmitInfo computeSubmitInfo{
       .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
       .commandBufferCount = 1,
-      .pCommandBuffers =
-          &_memory.buffers.command.compute[_mechanics.syncObjects.currentFrame],
+      .pCommandBuffers = &_resources.buffers.command
+                              .compute[_mechanics.syncObjects.currentFrame],
       .signalSemaphoreCount = 1,
       .pSignalSemaphores =
           &_mechanics.syncObjects
@@ -100,10 +101,11 @@ void CapitalEngine::drawFrame() {
                      .inFlightFences[_mechanics.syncObjects.currentFrame]);
 
   vkResetCommandBuffer(
-      _memory.buffers.command.graphic[_mechanics.syncObjects.currentFrame], 0);
+      _resources.buffers.command.graphic[_mechanics.syncObjects.currentFrame],
+      0);
 
-  _memory.recordCommandBuffer(
-      _memory.buffers.command.graphic[_mechanics.syncObjects.currentFrame],
+  _resources.recordCommandBuffer(
+      _resources.buffers.command.graphic[_mechanics.syncObjects.currentFrame],
       imageIndex);
 
   std::vector<VkSemaphore> waitSemaphores{
@@ -121,8 +123,8 @@ void CapitalEngine::drawFrame() {
       .pWaitSemaphores = waitSemaphores.data(),
       .pWaitDstStageMask = waitStages.data(),
       .commandBufferCount = 1,
-      .pCommandBuffers =
-          &_memory.buffers.command.graphic[_mechanics.syncObjects.currentFrame],
+      .pCommandBuffers = &_resources.buffers.command
+                              .graphic[_mechanics.syncObjects.currentFrame],
       .signalSemaphoreCount = 1,
       .pSignalSemaphores =
           &_mechanics.syncObjects
@@ -162,12 +164,13 @@ void CapitalEngine::drawFrame() {
 void Global::cleanup() {
   _mechanics.cleanupSwapChain();
 
-  vkDestroySampler(_mechanics.mainDevice.logical, _memory.image.textureSampler,
-                   nullptr);
-  vkDestroyImageView(_mechanics.mainDevice.logical, _memory.image.textureView,
-                     nullptr);
-  vkDestroyImage(_mechanics.mainDevice.logical, _memory.image.texture, nullptr);
-  vkFreeMemory(_mechanics.mainDevice.logical, _memory.image.textureMemory,
+  vkDestroySampler(_mechanics.mainDevice.logical,
+                   _resources.image.textureSampler, nullptr);
+  vkDestroyImageView(_mechanics.mainDevice.logical,
+                     _resources.image.textureView, nullptr);
+  vkDestroyImage(_mechanics.mainDevice.logical, _resources.image.texture,
+                 nullptr);
+  vkFreeMemory(_mechanics.mainDevice.logical, _resources.image.textureMemory,
                nullptr);
 
   vkDestroyPipeline(_mechanics.mainDevice.logical, _pipelines.graphics.pipeline,
@@ -186,22 +189,22 @@ void Global::cleanup() {
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
     vkDestroyBuffer(_mechanics.mainDevice.logical,
 
-                    _memory.buffers.uniforms[i], nullptr);
+                    _resources.buffers.uniforms[i], nullptr);
     vkFreeMemory(_mechanics.mainDevice.logical,
-                 _memory.buffers.uniformsMemory[i], nullptr);
+                 _resources.buffers.uniformsMemory[i], nullptr);
   }
 
   vkDestroyDescriptorPool(_mechanics.mainDevice.logical,
-                          _memory.descriptor.pool, nullptr);
+                          _resources.descriptor.pool, nullptr);
 
   vkDestroyDescriptorSetLayout(_mechanics.mainDevice.logical,
-                               _memory.descriptor.setLayout, nullptr);
+                               _resources.descriptor.setLayout, nullptr);
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
     vkDestroyBuffer(_mechanics.mainDevice.logical,
-                    _memory.buffers.shaderStorage[i], nullptr);
+                    _resources.buffers.shaderStorage[i], nullptr);
     vkFreeMemory(_mechanics.mainDevice.logical,
-                 _memory.buffers.shaderStorageMemory[i], nullptr);
+                 _resources.buffers.shaderStorageMemory[i], nullptr);
   }
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
@@ -221,7 +224,7 @@ void Global::cleanup() {
   }
 
   vkDestroyCommandPool(_mechanics.mainDevice.logical,
-                       _memory.buffers.command.pool, nullptr);
+                       _resources.buffers.command.pool, nullptr);
 
   vkDestroyDevice(_mechanics.mainDevice.logical, nullptr);
 

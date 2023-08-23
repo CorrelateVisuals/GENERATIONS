@@ -2,17 +2,17 @@
 #include <stb_image.h>
 
 #include "CapitalEngine.h"
-#include "Memory.h"
+#include "Resources.h"
 
-Memory::Memory() : pushConstants{}, buffers{}, descriptor{} {
-  _log.console("{ 010 }", "constructing Memory Management");
+Resources::Resources() : pushConstants{}, buffers{}, descriptor{} {
+  _log.console("{ 010 }", "constructing Resources Management");
 }
 
-Memory::~Memory() {
-  _log.console("{ 010 }", "destructing Memory Management");
+Resources::~Resources() {
+  _log.console("{ 010 }", "destructing Resources Management");
 }
 
-void Memory::createResources() {
+void Resources::createResources() {
   _log.console("{ RES }", "creating Resources ...");
 
   createTextureImage("../assets/GenerationsCapture.PNG");
@@ -29,7 +29,7 @@ void Memory::createResources() {
   createComputeCommandBuffers();
 }
 
-void Memory::createFramebuffers() {
+void Resources::createFramebuffers() {
   _log.console("{ BUF }", "creating Frame Buffers");
 
   _mechanics.swapChain.framebuffers.resize(
@@ -56,7 +56,7 @@ void Memory::createFramebuffers() {
   }
 }
 
-void Memory::createCommandBuffers() {
+void Resources::createCommandBuffers() {
   _log.console("{ CMD }", "creating Command Buffers");
 
   buffers.command.graphic.resize(MAX_FRAMES_IN_FLIGHT);
@@ -72,7 +72,7 @@ void Memory::createCommandBuffers() {
                     &allocateInfo, buffers.command.graphic.data());
 }
 
-void Memory::createComputeCommandBuffers() {
+void Resources::createComputeCommandBuffers() {
   _log.console("{ CMD }", "creating Compute Command Buffers");
 
   buffers.command.compute.resize(MAX_FRAMES_IN_FLIGHT);
@@ -88,7 +88,7 @@ void Memory::createComputeCommandBuffers() {
                     &allocateInfo, buffers.command.compute.data());
 }
 
-void Memory::createShaderStorageBuffers() {
+void Resources::createShaderStorageBuffers() {
   _log.console("{ BUF }", "creating Shader Storage Buffers");
 
   std::vector<World::Cell> cells = _world.initializeCells();
@@ -128,7 +128,7 @@ void Memory::createShaderStorageBuffers() {
   vkFreeMemory(_mechanics.mainDevice.logical, stagingBufferMemory, nullptr);
 }
 
-void Memory::createUniformBuffers() {
+void Resources::createUniformBuffers() {
   _log.console("{ BUF }", "creating Uniform Buffers");
   VkDeviceSize bufferSize = sizeof(World::UniformBufferObject);
 
@@ -147,7 +147,7 @@ void Memory::createUniformBuffers() {
   }
 }
 
-void Memory::createDescriptorSetLayout() {
+void Resources::createDescriptorSetLayout() {
   _log.console("{ DES }", "creating Compute Descriptor Set Layout");
 
   std::vector<VkDescriptorSetLayoutBinding> layoutBindings = {
@@ -179,10 +179,10 @@ void Memory::createDescriptorSetLayout() {
       .pBindings = layoutBindings.data()};
 
   _mechanics.result(vkCreateDescriptorSetLayout, _mechanics.mainDevice.logical,
-                    &layoutInfo, nullptr, &_memory.descriptor.setLayout);
+                    &layoutInfo, nullptr, &_resources.descriptor.setLayout);
 }
 
-void Memory::createDescriptorPool() {
+void Resources::createDescriptorPool() {
   _log.console("{ DES }", "creating Descriptor Pools");
   std::vector<VkDescriptorPoolSize> poolSizes{
       {.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
@@ -199,18 +199,18 @@ void Memory::createDescriptorPool() {
       .pPoolSizes = poolSizes.data()};
 
   _mechanics.result(vkCreateDescriptorPool, _mechanics.mainDevice.logical,
-                    &poolInfo, nullptr, &_memory.descriptor.pool);
+                    &poolInfo, nullptr, &_resources.descriptor.pool);
 }
 
-void Memory::createImage(uint32_t width,
-                         uint32_t height,
-                         VkSampleCountFlagBits numSamples,
-                         VkFormat format,
-                         VkImageTiling tiling,
-                         VkImageUsageFlags usage,
-                         VkMemoryPropertyFlags properties,
-                         VkImage& image,
-                         VkDeviceMemory& imageMemory) {
+void Resources::createImage(uint32_t width,
+                            uint32_t height,
+                            VkSampleCountFlagBits numSamples,
+                            VkFormat format,
+                            VkImageTiling tiling,
+                            VkImageUsageFlags usage,
+                            VkMemoryPropertyFlags properties,
+                            VkImage& image,
+                            VkDeviceMemory& imageMemory) {
   VkImageCreateInfo imageInfo{
       .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
       .pNext = nullptr,
@@ -246,7 +246,7 @@ void Memory::createImage(uint32_t width,
   vkBindImageMemory(_mechanics.mainDevice.logical, image, imageMemory, 0);
 }
 
-void Memory::createTextureImage(std::string imagePath) {
+void Resources::createTextureImage(std::string imagePath) {
   _log.console("{ IMG }", "Loading Image Texture: ", imagePath);
   int texWidth, texHeight, texChannels;
   int rgba = 4;
@@ -294,7 +294,7 @@ void Memory::createTextureImage(std::string imagePath) {
   vkFreeMemory(_mechanics.mainDevice.logical, stagingBufferMemory, nullptr);
 }
 
-VkCommandBuffer Memory::beginSingleTimeCommands() {
+VkCommandBuffer Resources::beginSingleTimeCommands() {
   VkCommandBufferAllocateInfo allocInfo{};
   allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
   allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
@@ -314,7 +314,7 @@ VkCommandBuffer Memory::beginSingleTimeCommands() {
   return commandBuffer;
 }
 
-void Memory::endSingleTimeCommands(VkCommandBuffer commandBuffer) {
+void Resources::endSingleTimeCommands(VkCommandBuffer commandBuffer) {
   vkEndCommandBuffer(commandBuffer);
 
   VkSubmitInfo submitInfo{};
@@ -329,10 +329,10 @@ void Memory::endSingleTimeCommands(VkCommandBuffer commandBuffer) {
                        &commandBuffer);
 }
 
-void Memory::transitionImageLayout(VkImage image,
-                                   VkFormat format,
-                                   VkImageLayout oldLayout,
-                                   VkImageLayout newLayout) {
+void Resources::transitionImageLayout(VkImage image,
+                                      VkFormat format,
+                                      VkImageLayout oldLayout,
+                                      VkImageLayout newLayout) {
   VkCommandBuffer commandBuffer = beginSingleTimeCommands();
 
   VkImageMemoryBarrier barrier{};
@@ -375,10 +375,10 @@ void Memory::transitionImageLayout(VkImage image,
   endSingleTimeCommands(commandBuffer);
 }
 
-void Memory::copyBufferToImage(VkBuffer buffer,
-                               VkImage image,
-                               uint32_t width,
-                               uint32_t height) {
+void Resources::copyBufferToImage(VkBuffer buffer,
+                                  VkImage image,
+                                  uint32_t width,
+                                  uint32_t height) {
   VkCommandBuffer commandBuffer = beginSingleTimeCommands();
 
   VkBufferImageCopy region{};
@@ -398,13 +398,13 @@ void Memory::copyBufferToImage(VkBuffer buffer,
   endSingleTimeCommands(commandBuffer);
 }
 
-void Memory::createTextureImageView() {
+void Resources::createTextureImageView() {
   _log.console("{ IMG }", "Creating Texture Image View");
   image.textureView = createImageView(image.texture, VK_FORMAT_R8G8B8A8_SRGB,
                                       VK_IMAGE_ASPECT_COLOR_BIT);
 }
 
-void Memory::createDescriptorSets() {
+void Resources::createDescriptorSets() {
   _log.console("{ DES }", "creating Compute Descriptor Sets");
   std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT,
                                              descriptor.setLayout);
@@ -481,13 +481,13 @@ void Memory::createDescriptorSets() {
   }
 }
 
-void Memory::updateUniformBuffer(uint32_t currentImage) {
+void Resources::updateUniformBuffer(uint32_t currentImage) {
   World::UniformBufferObject uniformObject = _world.updateUniforms();
   std::memcpy(buffers.uniformsMapped[currentImage], &uniformObject,
               sizeof(uniformObject));
 }
 
-void Memory::recordComputeCommandBuffer(VkCommandBuffer commandBuffer) {
+void Resources::recordComputeCommandBuffer(VkCommandBuffer commandBuffer) {
   VkCommandBufferBeginInfo beginInfo{
       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO};
 
@@ -522,8 +522,8 @@ void Memory::recordComputeCommandBuffer(VkCommandBuffer commandBuffer) {
   _mechanics.result(vkEndCommandBuffer, commandBuffer);
 }
 
-void Memory::recordCommandBuffer(VkCommandBuffer commandBuffer,
-                                 uint32_t imageIndex) {
+void Resources::recordCommandBuffer(VkCommandBuffer commandBuffer,
+                                    uint32_t imageIndex) {
   VkCommandBufferBeginInfo beginInfo{
       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO};
 
@@ -562,7 +562,7 @@ void Memory::recordCommandBuffer(VkCommandBuffer commandBuffer,
   VkDeviceSize offsets[]{0};
   vkCmdBindVertexBuffers(
       commandBuffer, 0, 1,
-      &_memory.buffers.shaderStorage[_mechanics.syncObjects.currentFrame],
+      &_resources.buffers.shaderStorage[_mechanics.syncObjects.currentFrame],
       offsets);
 
   vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -578,9 +578,9 @@ void Memory::recordCommandBuffer(VkCommandBuffer commandBuffer,
   _mechanics.result(vkEndCommandBuffer, commandBuffer);
 }
 
-VkImageView Memory::createImageView(VkImage image,
-                                    VkFormat format,
-                                    VkImageAspectFlags aspectFlags) {
+VkImageView Resources::createImageView(VkImage image,
+                                       VkFormat format,
+                                       VkImageAspectFlags aspectFlags) {
   _log.console("{ IMG }", "Creating Image View");
 
   VkImageViewCreateInfo viewInfo{
@@ -601,7 +601,7 @@ VkImageView Memory::createImageView(VkImage image,
   return imageView;
 }
 
-void Memory::createTextureSampler() {
+void Resources::createTextureSampler() {
   _log.console("{ IMG }", "Creating Texture Sampler");
   VkPhysicalDeviceProperties properties{};
   vkGetPhysicalDeviceProperties(_mechanics.mainDevice.physical, &properties);
@@ -627,11 +627,11 @@ void Memory::createTextureSampler() {
   }
 }
 
-void Memory::createBuffer(VkDeviceSize size,
-                          VkBufferUsageFlags usage,
-                          VkMemoryPropertyFlags properties,
-                          VkBuffer& buffer,
-                          VkDeviceMemory& bufferMemory) {
+void Resources::createBuffer(VkDeviceSize size,
+                             VkBufferUsageFlags usage,
+                             VkMemoryPropertyFlags properties,
+                             VkBuffer& buffer,
+                             VkDeviceMemory& bufferMemory) {
   VkBufferCreateInfo bufferInfo{.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
                                 .size = size,
                                 .usage = usage,
@@ -660,9 +660,9 @@ void Memory::createBuffer(VkDeviceSize size,
   vkBindBufferMemory(_mechanics.mainDevice.logical, buffer, bufferMemory, 0);
 }
 
-void Memory::copyBuffer(VkBuffer srcBuffer,
-                        VkBuffer dstBuffer,
-                        VkDeviceSize size) {
+void Resources::copyBuffer(VkBuffer srcBuffer,
+                           VkBuffer dstBuffer,
+                           VkDeviceSize size) {
   VkCommandBuffer commandBuffer = beginSingleTimeCommands();
 
   VkBufferCopy copyRegion{};
@@ -672,8 +672,8 @@ void Memory::copyBuffer(VkBuffer srcBuffer,
   endSingleTimeCommands(commandBuffer);
 }
 
-uint32_t Memory::findMemoryType(uint32_t typeFilter,
-                                VkMemoryPropertyFlags properties) {
+uint32_t Resources::findMemoryType(uint32_t typeFilter,
+                                   VkMemoryPropertyFlags properties) {
   VkPhysicalDeviceMemoryProperties memProperties;
   vkGetPhysicalDeviceMemoryProperties(_mechanics.mainDevice.physical,
                                       &memProperties);
