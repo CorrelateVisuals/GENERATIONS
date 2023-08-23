@@ -7,11 +7,11 @@
 
 ValidationLayers::ValidationLayers()
     : debugMessenger{}, validation{"VK_LAYER_KHRONOS_validation"} {
-  _log.console("{ --- }", "constructing Validation Layers");
+  Logging::console("{ --- }", "constructing Validation Layers");
 }
 
 ValidationLayers::~ValidationLayers() {
-  _log.console("{ --- }", "destructing Validation Layers");
+  Logging::console("{ --- }", "destructing Validation Layers");
 }
 
 void ValidationLayers::logValidationMessage(const std::string& string,
@@ -19,8 +19,8 @@ void ValidationLayers::logValidationMessage(const std::string& string,
   if (string.find(excludeError) != std::string::npos)
     return;
 
-  _log.console("\n\n                     > > > Validation Layer: ", string,
-               "\n");
+  Logging::console("\n\n                     > > > Validation Layer: ", string,
+                   "\n");
 }
 
 VkResult ValidationLayers::CreateDebugUtilsMessengerEXT(

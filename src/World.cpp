@@ -11,11 +11,11 @@
 #include <random>
 
 World::World() {
-  _log.console("{ (X) }", "constructing World");
+  Logging::console("{ (X) }", "constructing World");
 }
 
 World::~World() {
-  _log.console("{ (X) }", "destructing World");
+  Logging::console("{ (X) }", "destructing World");
 }
 
 std::vector<VkVertexInputBindingDescription> World::getBindingDescriptions() {

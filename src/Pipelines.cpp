@@ -8,15 +8,15 @@
 #include <random>
 
 Pipelines::Pipelines() : graphics{}, compute{} {
-  _log.console("{ PIP }", "constructing Pipelines");
+  Logging::console("{ PIP }", "constructing Pipelines");
 }
 
 Pipelines::~Pipelines() {
-  _log.console("{ PIP }", "destructing Pipelines");
+  Logging::console("{ PIP }", "destructing Pipelines");
 }
 
 void Pipelines::createPipelines() {
-  _log.console("{ PIP }", "creating pipelines");
+  Logging::console("{ PIP }", "creating pipelines");
   _resources.createDescriptorSetLayout();
 
   createRenderPass();
@@ -30,13 +30,13 @@ void Pipelines::createPipelines() {
 void Pipelines::createColorResources() {
   VkFormat colorFormat = _mechanics.swapChain.imageFormat;
 
-  _resources.createImage(_mechanics.swapChain.extent.width,
-                      _mechanics.swapChain.extent.height, graphics.msaa.samples,
-                      colorFormat, VK_IMAGE_TILING_OPTIMAL,
-                      VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT |
-                          VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                      graphics.msaa.colorImage, graphics.msaa.colorImageMemory);
+  _resources.createImage(
+      _mechanics.swapChain.extent.width, _mechanics.swapChain.extent.height,
+      graphics.msaa.samples, colorFormat, VK_IMAGE_TILING_OPTIMAL,
+      VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT |
+          VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, graphics.msaa.colorImage,
+      graphics.msaa.colorImageMemory);
   graphics.msaa.colorImageView = _resources.createImageView(
       graphics.msaa.colorImage, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT);
 }
@@ -44,18 +44,18 @@ void Pipelines::createColorResources() {
 void Pipelines::createDepthResources() {
   VkFormat depthFormat = findDepthFormat();
 
-  _resources.createImage(_mechanics.swapChain.extent.width,
-                      _mechanics.swapChain.extent.height, graphics.msaa.samples,
-                      depthFormat, VK_IMAGE_TILING_OPTIMAL,
-                      VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
-                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, graphics.depth.image,
-                      graphics.depth.imageMemory);
+  _resources.createImage(
+      _mechanics.swapChain.extent.width, _mechanics.swapChain.extent.height,
+      graphics.msaa.samples, depthFormat, VK_IMAGE_TILING_OPTIMAL,
+      VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, graphics.depth.image,
+      graphics.depth.imageMemory);
   graphics.depth.imageView = _resources.createImageView(
       graphics.depth.image, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
 }
 
 void Pipelines::createRenderPass() {
-  _log.console("{ []< }", "creating Render Pass");
+  Logging::console("{ []< }", "creating Render Pass");
   VkAttachmentDescription colorAttachment{
       .format = _mechanics.swapChain.imageFormat,
       .samples = graphics.msaa.samples,
@@ -131,7 +131,7 @@ void Pipelines::createRenderPass() {
 }
 
 void Pipelines::createGraphicsPipeline() {
-  _log.console("{ PIP }", "creating Graphics Pipeline");
+  Logging::console("{ PIP }", "creating Graphics Pipeline");
 
   std::vector<VkPipelineShaderStageCreateInfo> shaderStages{
       getShaderStageInfo(VK_SHADER_STAGE_VERTEX_BIT, "vert.spv", graphics),
@@ -275,7 +275,7 @@ std::vector<char> Pipelines::readShaderFile(const std::string& filename) {
 }
 
 void Pipelines::createComputePipeline() {
-  _log.console("{ PIP }", "creating Compute Pipeline");
+  Logging::console("{ PIP }", "creating Compute Pipeline");
 
   VkPipelineShaderStageCreateInfo computeShaderStageInfo =
       getShaderStageInfo(VK_SHADER_STAGE_COMPUTE_BIT, "comp.spv", compute);
@@ -308,7 +308,7 @@ void Pipelines::createComputePipeline() {
 }
 
 VkShaderModule Pipelines::createShaderModule(const std::vector<char>& code) {
-  _log.console(_log.style.charLeader, "creating Shader Module");
+  Logging::console(Logging::Style::charLeader, "creating Shader Module");
   VkShaderModuleCreateInfo createInfo{
       .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
       .codeSize = code.size(),

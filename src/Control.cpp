@@ -8,11 +8,11 @@
 
 Control::Control() : time{} {
   time.speed = timelineSpeed;
-  _log.console("{ CTR }", "constructing Control");
+  Logging::console("{ CTR }", "constructing Control");
 }
 
 Control::~Control() {
-  _log.console("{ CTR }", "destructing Control");
+  Logging::console("{ CTR }", "destructing Control");
 }
 
 void Control::setPushConstants() {

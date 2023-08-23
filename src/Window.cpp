@@ -5,12 +5,12 @@
 #include <unordered_map>
 
 Window::Window() : window{nullptr}, framebufferResized{false}, mouse{} {
-  _log.console("{ [-] }", "constructing Window");
+  Logging::console("{ [-] }", "constructing Window");
   initWindow();
 }
 
 Window::~Window() {
-  _log.console("{ [-] }", "destructing Window");
+  Logging::console("{ [-] }", "destructing Window");
   glfwDestroyWindow(window);
   glfwTerminate();
 }
@@ -22,8 +22,8 @@ void Window::initWindow() {
                             _control.display.title, nullptr, nullptr);
   glfwSetWindowUserPointer(window, this);
   glfwSetFramebufferSizeCallback(window, windowResize);
-  _log.console("{ [*] }", "Window initialized with", _control.display.width,
-               "*", _control.display.height);
+  Logging::console("{ [*] }", "Window initialized with", _control.display.width,
+                   "*", _control.display.height);
 }
 
 void Window::windowResize(GLFWwindow* win, int width, int height) {
@@ -31,7 +31,7 @@ void Window::windowResize(GLFWwindow* win, int width, int height) {
   app->framebufferResized = true;
   _control.display.width = width;
   _control.display.height = height;
-  _log.console("{ [*] }", "Window resized to", width, "*", height);
+  Logging::console("{ [*] }", "Window resized to", width, "*", height);
 }
 
 void Window::setMouse() {
@@ -73,9 +73,9 @@ void Window::setMouse() {
             const std::string& message = buttonMapping->second;
             mouse.buttonClick[buttonType].position = glm::vec2{x, y};
 
-            _log.console(message + " clicked at",
-                         mouse.buttonClick[buttonType].position.x, ":",
-                         mouse.buttonClick[buttonType].position.y);
+            Logging::console(message + " clicked at",
+                             mouse.buttonClick[buttonType].position.x, ":",
+                             mouse.buttonClick[buttonType].position.y);
             timer = 0.0f;
           }
         } else {
@@ -92,9 +92,9 @@ void Window::setMouse() {
               mouse.buttonDown[buttonType].position +=
                   normalizedCoords * mouse.speed;
 
-              //_log.console(message + " moved to",
-              //             mouse.buttonDown[buttonType].position.x, ":",
-              //             mouse.buttonDown[buttonType].position.y);
+              // Logging::console(message + " moved to",
+              //              mouse.buttonDown[buttonType].position.x, ":",
+              //              mouse.buttonDown[buttonType].position.y);
             }
           }
         }

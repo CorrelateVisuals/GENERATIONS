@@ -5,7 +5,7 @@ int main() {
     CapitalEngine CAPITAL;
     CAPITAL.mainLoop();
   } catch (const std::exception& e) {
-    _log.console(e.what());
+    Logging::console(e.what());
     return EXIT_FAILURE;
   } catch (...) {
     throw std::runtime_error("\n!ERROR! Unknown error caught in main()");
