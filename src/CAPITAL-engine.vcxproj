@@ -169,7 +169,7 @@
   <ItemGroup>
     <ClCompile Include="CapitalEngine.cpp" />
     <ClCompile Include="Control.cpp" />
-    <ClCompile Include="Debug.cpp" />
+    <ClCompile Include="Log.cpp" />
     <ClCompile Include="Library.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Memory.cpp" />
@@ -177,12 +177,13 @@
     <ClCompile Include="Mechanics.cpp" />
     <ClCompile Include="Terrain.cpp" />
     <ClCompile Include="Timer.cpp" />
+    <ClCompile Include="ValidationLayers.cpp" />
     <ClCompile Include="Window.cpp" />
     <ClCompile Include="World.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Control.h" />
-    <ClInclude Include="Debug.h" />
+    <ClInclude Include="Log.h" />
     <ClInclude Include="CapitalEngine.h" />
     <ClInclude Include="Library.h" />
     <ClInclude Include="Memory.h" />
@@ -190,6 +191,7 @@
     <ClInclude Include="Mechanics.h" />
     <ClInclude Include="Terrain.h" />
     <ClInclude Include="Timer.h" />
+    <ClInclude Include="ValidationLayers.h" />
     <ClInclude Include="Window.h" />
     <ClInclude Include="World.h" />
   </ItemGroup>

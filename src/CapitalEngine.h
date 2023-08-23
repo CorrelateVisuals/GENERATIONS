@@ -1,9 +1,10 @@
 #pragma once
 #include "Control.h"
-#include "Debug.h"
+#include "Log.h"
 #include "Mechanics.h"
 #include "Memory.h"
 #include "Pipelines.h"
+#include "ValidationLayers.h"
 #include "Window.h"
 #include "World.h"
 
