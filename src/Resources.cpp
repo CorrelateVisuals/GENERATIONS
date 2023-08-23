@@ -4,7 +4,7 @@
 #include "CapitalEngine.h"
 #include "Resources.h"
 
-Resources::Resources() : pushConstants{}, buffers{}, descriptor{} {
+Resources::Resources() : pushConstants{}, image{}, buffers{}, descriptor{} {
   _log.console("{ 010 }", "constructing Resources Management");
 }
 

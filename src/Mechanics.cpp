@@ -84,13 +84,12 @@ void VulkanMechanics::createInstance() {
     createInfo.pNext = &debugCreateInfo;
   }
 
-  _mechanics.result(vkCreateInstance, &createInfo, nullptr, &instance);
+  result(vkCreateInstance, &createInfo, nullptr, &instance);
 }
 
 void VulkanMechanics::createSurface() {
   _log.console("{ [ ] }", "creating Surface");
-  _mechanics.result(glfwCreateWindowSurface, instance, _window.window, nullptr,
-                    &surface);
+  result(glfwCreateWindowSurface, instance, _window.window, nullptr, &surface);
 }
 
 void VulkanMechanics::pickPhysicalDevice() {
@@ -268,8 +267,8 @@ void VulkanMechanics::createLogicalDevice() {
     createInfo.ppEnabledLayerNames = _validation.validation.data();
   }
 
-  _mechanics.result(vkCreateDevice, mainDevice.physical, &createInfo, nullptr,
-                    &mainDevice.logical);
+  result(vkCreateDevice, mainDevice.physical, &createInfo, nullptr,
+         &mainDevice.logical);
 
   vkGetDeviceQueue(mainDevice.logical, indices.graphicsAndComputeFamily.value(),
                    0, &queues.graphics);
@@ -361,30 +360,28 @@ void VulkanMechanics::createSyncObjects() {
 }
 
 void VulkanMechanics::cleanupSwapChain() {
-  vkDestroyImageView(_mechanics.mainDevice.logical,
-                     _pipelines.graphics.depth.imageView, nullptr);
-  vkDestroyImage(_mechanics.mainDevice.logical, _pipelines.graphics.depth.image,
-                 nullptr);
-  vkFreeMemory(_mechanics.mainDevice.logical,
-               _pipelines.graphics.depth.imageMemory, nullptr);
+  vkDestroyImageView(mainDevice.logical, _pipelines.graphics.depth.imageView,
+                     nullptr);
+  vkDestroyImage(mainDevice.logical, _pipelines.graphics.depth.image, nullptr);
+  vkFreeMemory(mainDevice.logical, _pipelines.graphics.depth.imageMemory,
+               nullptr);
 
-  vkDestroyImageView(_mechanics.mainDevice.logical,
+  vkDestroyImageView(mainDevice.logical,
                      _pipelines.graphics.msaa.colorImageView, nullptr);
-  vkDestroyImage(_mechanics.mainDevice.logical,
-                 _pipelines.graphics.msaa.colorImage, nullptr);
-  vkFreeMemory(_mechanics.mainDevice.logical,
-               _pipelines.graphics.msaa.colorImageMemory, nullptr);
+  vkDestroyImage(mainDevice.logical, _pipelines.graphics.msaa.colorImage,
+                 nullptr);
+  vkFreeMemory(mainDevice.logical, _pipelines.graphics.msaa.colorImageMemory,
+               nullptr);
 
   for (auto framebuffer : swapChain.framebuffers) {
-    vkDestroyFramebuffer(_mechanics.mainDevice.logical, framebuffer, nullptr);
+    vkDestroyFramebuffer(mainDevice.logical, framebuffer, nullptr);
   }
 
   for (auto imageView : swapChain.imageViews) {
-    vkDestroyImageView(_mechanics.mainDevice.logical, imageView, nullptr);
+    vkDestroyImageView(mainDevice.logical, imageView, nullptr);
   }
 
-  vkDestroySwapchainKHR(_mechanics.mainDevice.logical, swapChain.swapChain,
-                        nullptr);
+  vkDestroySwapchainKHR(mainDevice.logical, swapChain.swapChain, nullptr);
 }
 
 bool VulkanMechanics::isDeviceSuitable(VkPhysicalDevice physicalDevice) {
@@ -454,8 +451,8 @@ void VulkanMechanics::createSwapChain() {
     createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
   }
 
-  _mechanics.result(vkCreateSwapchainKHR, mainDevice.logical, &createInfo,
-                    nullptr, &swapChain.swapChain);
+  result(vkCreateSwapchainKHR, mainDevice.logical, &createInfo, nullptr,
+         &swapChain.swapChain);
 
   vkGetSwapchainImagesKHR(mainDevice.logical, swapChain.swapChain, &imageCount,
                           nullptr);
