@@ -1,5 +1,10 @@
 #pragma once
+#include <GLFW/glfw3.h>
+
 #include "CapitalEngine.h"
+#include "Pipelines.h"
+#include "Resources.h"
+#include "ValidationLayers.h"
 
 #include <iostream>
 #include <optional>
@@ -84,13 +89,13 @@ class VulkanMechanics {
 
  private:
   void compileShaders();
-  void createInstance();
-  void createSurface();
-  void pickPhysicalDevice();
-  void createLogicalDevice();
+  void createInstance(ValidationLayers& validation);
+  void createSurface(GLFWwindow* window);
+  void pickPhysicalDevice(Pipelines::Graphics::MultiSampling& msaa);
+  void createLogicalDevice(ValidationLayers& validation);
   void createSwapChain();
-  void createSwapChainImageViews();
-  void createCommandPool();
+  void createSwapChainImageViews(Resources& resources);
+  void createCommandPool(VkCommandPool* commandPool);
 
   std::vector<const char*> getRequiredExtensions();
 

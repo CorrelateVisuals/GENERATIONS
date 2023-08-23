@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <set>
 #include <stdexcept>
+#include <string>
 
 VulkanMechanics::VulkanMechanics()
     : surface(VK_NULL_HANDLE),
@@ -28,23 +29,23 @@ VulkanMechanics::~VulkanMechanics() {
 void VulkanMechanics::setupVulkan() {
   _log.console("{ VK. }", "setting up Vulkan");
   compileShaders();
-  createInstance();
+  createInstance(_validation);
   _validation.setupDebugMessenger(instance);
-  createSurface();
+  createSurface(_window.window);
 
-  pickPhysicalDevice();
-  createLogicalDevice();
+  pickPhysicalDevice(_pipelines.graphics.msaa);
+  createLogicalDevice(_validation);
 
   createSwapChain();
-  createSwapChainImageViews();
+  createSwapChainImageViews(_resources);
 
-  createCommandPool();
+  createCommandPool(&_resources.buffers.command.pool);
 }
 
-void VulkanMechanics::createInstance() {
+void VulkanMechanics::createInstance(ValidationLayers& validation) {
   _log.console("{ VkI }", "creating Vulkan Instance");
-  if (_validation.enableValidationLayers &&
-      !_validation.checkValidationLayerSupport()) {
+  if (validation.enableValidationLayers &&
+      !validation.checkValidationLayerSupport()) {
     throw std::runtime_error(
         "\n!ERROR! validation layers requested, but not available!");
   }
@@ -87,12 +88,13 @@ void VulkanMechanics::createInstance() {
   result(vkCreateInstance, &createInfo, nullptr, &instance);
 }
 
-void VulkanMechanics::createSurface() {
+void VulkanMechanics::createSurface(GLFWwindow* window) {
   _log.console("{ [ ] }", "creating Surface");
-  result(glfwCreateWindowSurface, instance, _window.window, nullptr, &surface);
+  result(glfwCreateWindowSurface, instance, window, nullptr, &surface);
 }
 
-void VulkanMechanics::pickPhysicalDevice() {
+void VulkanMechanics::pickPhysicalDevice(
+    Pipelines::Graphics::MultiSampling& msaa) {
   _log.console("{ ### }", "picking Physical Device");
   uint32_t deviceCount = 0;
   vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
@@ -108,7 +110,7 @@ void VulkanMechanics::pickPhysicalDevice() {
   for (const auto& device : devices) {
     if (isDeviceSuitable(device)) {
       mainDevice.physical = device;
-      _pipelines.graphics.msaa.samples = getMaxUsableSampleCount();
+      msaa.samples = getMaxUsableSampleCount();
       break;
     }
   }
@@ -226,7 +228,7 @@ VkSampleCountFlagBits VulkanMechanics::getMaxUsableSampleCount() {
   return VK_SAMPLE_COUNT_1_BIT;
 }
 
-void VulkanMechanics::createLogicalDevice() {
+void VulkanMechanics::createLogicalDevice(ValidationLayers& validation) {
   _log.console("{ +++ }", "creating Logical Device");
   Queues::FamilyIndices indices = findQueueFamilies(mainDevice.physical);
 
@@ -261,10 +263,10 @@ void VulkanMechanics::createLogicalDevice() {
       .ppEnabledExtensionNames = mainDevice.extensions.data(),
       .pEnabledFeatures = &deviceFeatures};
 
-  if (_validation.enableValidationLayers) {
+  if (validation.enableValidationLayers) {
     createInfo.enabledLayerCount =
-        static_cast<uint32_t>(_validation.validation.size());
-    createInfo.ppEnabledLayerNames = _validation.validation.data();
+        static_cast<uint32_t>(validation.validation.size());
+    createInfo.ppEnabledLayerNames = validation.validation.data();
   }
 
   result(vkCreateDevice, mainDevice.physical, &createInfo, nullptr,
@@ -464,18 +466,18 @@ void VulkanMechanics::createSwapChain() {
   swapChain.extent = extent;
 }
 
-void VulkanMechanics::createSwapChainImageViews() {
+void VulkanMechanics::createSwapChainImageViews(Resources& resources) {
   _log.console("{ IMG }", "Creating", swapChain.images.size(), "Image Views");
 
   swapChain.imageViews.resize(swapChain.images.size());
 
   for (size_t i = 0; i < swapChain.images.size(); i++) {
-    swapChain.imageViews[i] = _resources.createImageView(
+    swapChain.imageViews[i] = resources.createImageView(
         swapChain.images[i], swapChain.imageFormat, VK_IMAGE_ASPECT_COLOR_BIT);
   }
 }
 
-void VulkanMechanics::createCommandPool() {
+void VulkanMechanics::createCommandPool(VkCommandPool* commandPool) {
   _log.console("{ CMD }", "creating Command Pool");
 
   VulkanMechanics::Queues::FamilyIndices queueFamilyIndices =
@@ -487,7 +489,7 @@ void VulkanMechanics::createCommandPool() {
       .queueFamilyIndex = queueFamilyIndices.graphicsAndComputeFamily.value()};
 
   result(vkCreateCommandPool, mainDevice.logical, &poolInfo, nullptr,
-         &_resources.buffers.command.pool);
+         commandPool);
 }
 
 void VulkanMechanics::recreateSwapChain() {
@@ -503,7 +505,7 @@ void VulkanMechanics::recreateSwapChain() {
   cleanupSwapChain();
 
   createSwapChain();
-  createSwapChainImageViews();
+  createSwapChainImageViews(_resources);
   _pipelines.createDepthResources();
   _pipelines.createColorResources();
   _resources.createFramebuffers();
@@ -512,10 +514,7 @@ void VulkanMechanics::recreateSwapChain() {
 void VulkanMechanics::compileShaders() {
   _log.console("{ SHA }", "compiling shaders");
 #ifdef _WIN32
-  // auto err = std::system("cmd /C \"..\\shaders\\compile_shaders.bat >
-  // NUL\"");
   auto err = std::system("..\\shaders\\compile_shaders.bat");
-
 #else
   // Linux-specific code
   auto err = std::system("./shaders/compile_shaders.sh");
