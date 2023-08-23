@@ -1,11 +1,10 @@
+#include "Control.h"
+#include "CapitalEngine.h"
+
 #include <chrono>
 #include <numbers>
 #include <random>
 #include <unordered_set>
-
-#include "CapitalEngine.h"
-#include "Control.h"
-#include "World.h"
 
 Control::Control() : time{} {
   time.speed = timelineSpeed;

@@ -1,10 +1,10 @@
+#include "CapitalEngine.h"
+
 #include <chrono>
 #include <ctime>
 #include <iostream>
 #include <set>
 #include <string>
-
-#include "CapitalEngine.h"
 
 Logging::Logging()
     : logFile("log.txt", std::ofstream::out | std::ofstream::trunc) {

@@ -1,10 +1,8 @@
+#include "Window.h"
+#include "CapitalEngine.h"
+
 #include <iostream>
 #include <unordered_map>
-
-#include "CapitalEngine.h"
-#include "Control.h"
-#include "Library.h"
-#include "Window.h"
 
 Window::Window() : window{nullptr}, framebufferResized{false}, mouse{} {
   _log.console("{ [-] }", "constructing Window");

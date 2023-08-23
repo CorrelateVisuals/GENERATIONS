@@ -2,7 +2,7 @@
 #include <glm/gtc/quaternion.hpp>
 
 #include "CapitalEngine.h"
-#include "Library.h"
+#include "Terrain.h"
 #include "World.h"
 
 #include <algorithm>

@@ -1,15 +1,11 @@
 #include <vulkan/vulkan.h>
 
+#include "CapitalEngine.h"
+#include "Pipelines.h"
+
 #include <array>
 #include <cstring>
 #include <random>
-
-#include "CapitalEngine.h"
-#include "Control.h"
-#include "Mechanics.h"
-#include "Memory.h"
-#include "Pipelines.h"
-#include "World.h"
 
 Pipelines::Pipelines() : graphics{}, compute{} {
   _log.console("{ PIP }", "constructing Pipelines");

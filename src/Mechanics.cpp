@@ -2,17 +2,11 @@
 #include "GLFW/glfw3.h"
 #include "vulkan/vulkan.h"
 
+#include "CapitalEngine.h"
+
 #include <algorithm>
 #include <set>
 #include <stdexcept>
-
-#include "CapitalEngine.h"
-#include "Control.h"
-#include "Mechanics.h"
-#include "Memory.h"
-#include "Pipelines.h"
-#include "Window.h"
-#include "World.h"
 
 VulkanMechanics::VulkanMechanics()
     : surface(VK_NULL_HANDLE),

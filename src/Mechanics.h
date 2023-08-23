@@ -1,11 +1,10 @@
 #pragma once
+#include "CapitalEngine.h"
 
 #include <iostream>
 #include <optional>
 #include <string>
 #include <vector>
-
-#include "CapitalEngine.h"
 
 constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 

@@ -1,11 +1,6 @@
-#include <iostream>
-
 #include "CapitalEngine.h"
-#include "Debug.h"
-#include "Mechanics.h"
-#include "Memory.h"
-#include "Pipelines.h"
-#include "Window.h"
+
+#include <iostream>
 
 CapitalEngine::CapitalEngine() {
   _log.console("\n", _log.style.indentSize, "[ CAPITAL engine ]",

@@ -1,10 +1,8 @@
-#include "Memory.h"
-#include "CapitalEngine.h"
-#include "Debug.h"
-#include "Pipelines.h"
-
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
+
+#include "CapitalEngine.h"
+#include "Memory.h"
 
 Memory::Memory() : pushConstants{}, buffers{}, descriptor{} {
   _log.console("{ 010 }", "constructing Memory Management");
