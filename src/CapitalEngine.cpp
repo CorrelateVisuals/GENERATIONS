@@ -10,7 +10,10 @@
 CapitalEngine::CapitalEngine() {
   _log.console("\n", _log.style.indentSize, "[ CAPITAL engine ]",
                "starting...\n");
-  initCapitalEngine();
+  _mechanics.setupVulkan();
+  _pipelines.createPipelines();
+  _memory.createResources();
+  _mechanics.createSyncObjects();
 }
 
 CapitalEngine::~CapitalEngine() {
@@ -40,14 +43,6 @@ void CapitalEngine::mainLoop() {
   }
   vkDeviceWaitIdle(_mechanics.mainDevice.logical);
   _log.console("\n", _log.style.indentSize, "{ Main Loop } ....... terminated");
-}
-
-void CapitalEngine::initCapitalEngine() {
-  _log.console("{ *** }", "initializing Capital Engine");
-  _mechanics.setupVulkan();  
-  _pipelines.createPipelines();
-  _memory.createResources();
-  _mechanics.createSyncObjects();  
 }
 
 void CapitalEngine::drawFrame() {

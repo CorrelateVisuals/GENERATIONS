@@ -16,7 +16,6 @@ class CapitalEngine {
 
  private:
   void drawFrame();
-  void initCapitalEngine();
 };
 
 class Global {
