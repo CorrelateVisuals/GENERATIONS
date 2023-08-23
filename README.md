@@ -4,7 +4,7 @@ GENERATIONS is a civilization simulator build on top of CAPITAL Engine. A cross 
 
 Currently GENERATIONS is running ![Conway's Game of Life](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life).
 
-![Cover Image](https://raw.githubusercontent.com/CorrelateVisuals/GENERATIONS/main/assets/GenerationsCapture.PNG?token=GHSAT0AAAAAACFIA634CAOQ74BUN3224FLKZHFJ7UQ)
+![Cover Image](main/assets/GenerationsCapture.PNG)
 
 ## Under development
 - Arcball Camera for improved camera control.
