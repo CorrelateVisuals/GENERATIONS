@@ -2,8 +2,8 @@
 
 int main() {
   try {
-    CapitalEngine CAPITAL;
-    CAPITAL.mainLoop();
+    CapitalEngine GENERATIONS;
+    GENERATIONS.mainLoop();
   } catch (const std::exception& e) {
     Log::console(e.what());
     return EXIT_FAILURE;
