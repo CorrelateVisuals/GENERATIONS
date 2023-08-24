@@ -17,7 +17,6 @@ Pipelines::~Pipelines() {
 
 void Pipelines::createPipelines() {
   Log::console("{ PIP }", "creating pipelines");
-  _resources.createDescriptorSetLayout();
 
   createRenderPass();
   createGraphicsPipeline();

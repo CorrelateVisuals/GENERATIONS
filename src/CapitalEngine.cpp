@@ -4,8 +4,9 @@
 
 CapitalEngine::CapitalEngine() {
   Log::console("\n", Log::Style::indentSize, "[ CAPITAL engine ]",
-                   "starting...\n");
+               "starting...\n");
   _mechanics.setupVulkan();
+  _resources.createDescriptorSetLayout();
   _pipelines.createPipelines();
   _resources.createResources();
   _mechanics.createSyncObjects();
@@ -13,7 +14,7 @@ CapitalEngine::CapitalEngine() {
 
 CapitalEngine::~CapitalEngine() {
   Log::console("\n", Log::Style::indentSize, "[ CAPITAL engine ]",
-                   "terminating...\n");
+               "terminating...\n");
 }
 
 Global::~Global() {
@@ -22,7 +23,7 @@ Global::~Global() {
 
 void CapitalEngine::mainLoop() {
   Log::console("\n", Log::Style::indentSize,
-                   "{ Main Loop } running ..........\n");
+               "{ Main Loop } running ..........\n");
 
   while (!glfwWindowShouldClose(_window.window)) {
     glfwPollEvents();
@@ -38,7 +39,7 @@ void CapitalEngine::mainLoop() {
   }
   vkDeviceWaitIdle(_mechanics.mainDevice.logical);
   Log::console("\n", Log::Style::indentSize,
-                   "{ Main Loop } ....... terminated");
+               "{ Main Loop } ....... terminated");
 }
 
 void CapitalEngine::drawFrame() {
