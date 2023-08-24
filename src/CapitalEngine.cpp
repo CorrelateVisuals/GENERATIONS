@@ -229,9 +229,9 @@ void Global::cleanup() {
 
   vkDestroyDevice(_mechanics.mainDevice.logical, nullptr);
 
-  if (_validation.enableValidationLayers) {
-    _validation.DestroyDebugUtilsMessengerEXT(
-        _mechanics.instance, _validation.debugMessenger, nullptr);
+  if (ValidationLayers::isValidationEnabled()) {
+    ValidationLayers::destroyDebugUtilsMessengerEXT(
+        _mechanics.instance, ValidationLayers::debugMessenger, nullptr);
   }
 
   vkDestroySurfaceKHR(_mechanics.instance, _mechanics.surface, nullptr);

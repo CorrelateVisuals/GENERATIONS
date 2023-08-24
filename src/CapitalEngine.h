@@ -30,7 +30,7 @@ class Global {
     ~Objects() = default;
 
     // Logging logging;
-    ValidationLayers validation;
+    // ValidationLayers validation;
     Control control;
     VulkanMechanics mechanics;
     Pipelines pipelines;
@@ -45,7 +45,7 @@ class Global {
 };
 
 // inline static auto& _log = Global::obj.logging;
-inline static auto& _validation = Global::obj.validation;
+// inline static auto& _validation = Global::obj.validation;
 inline static auto& _window = Global::obj.mainWindow;
 inline static auto& _mechanics = Global::obj.mechanics;
 inline static auto& _pipelines = Global::obj.pipelines;

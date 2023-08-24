@@ -29,12 +29,12 @@ VulkanMechanics::~VulkanMechanics() {
 void VulkanMechanics::setupVulkan() {
   Log::console("{ VK. }", "setting up Vulkan");
   compileShaders();
-  createInstance(_validation);
-  _validation.setupDebugMessenger(instance);
+  createInstance();
+  ValidationLayers::setupDebugMessenger(instance);
   createSurface(_window.window);
 
   pickPhysicalDevice(_pipelines.graphics.msaa);
-  createLogicalDevice(_validation);
+  createLogicalDevice();
 
   createSwapChain();
   createSwapChainImageViews(_resources);
@@ -42,10 +42,10 @@ void VulkanMechanics::setupVulkan() {
   createCommandPool(&_resources.buffers.command.pool);
 }
 
-void VulkanMechanics::createInstance(ValidationLayers& validation) {
+void VulkanMechanics::createInstance() {
   Log::console("{ VkI }", "creating Vulkan Instance");
-  if (validation.enableValidationLayers &&
-      !validation.checkValidationLayerSupport()) {
+  if (ValidationLayers::isValidationEnabled() &&
+      !ValidationLayers::checkValidationLayerSupport()) {
     throw std::runtime_error(
         "\n!ERROR! validation layers requested, but not available!");
   }
@@ -76,12 +76,12 @@ void VulkanMechanics::createInstance(ValidationLayers& validation) {
       .ppEnabledExtensionNames = extensions.data()};
 
   VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
-  if (_validation.enableValidationLayers) {
+  if (ValidationLayers::isValidationEnabled()) {
     createInfo.enabledLayerCount =
-        static_cast<uint32_t>(_validation.validation.size());
-    createInfo.ppEnabledLayerNames = _validation.validation.data();
+        static_cast<uint32_t>(ValidationLayers::validation.size());
+    createInfo.ppEnabledLayerNames = ValidationLayers::validation.data();
 
-    _validation.populateDebugMessengerCreateInfo(debugCreateInfo);
+    ValidationLayers::populateDebugMessengerCreateInfo(debugCreateInfo);
     createInfo.pNext = &debugCreateInfo;
   }
 
@@ -228,7 +228,7 @@ VkSampleCountFlagBits VulkanMechanics::getMaxUsableSampleCount() {
   return VK_SAMPLE_COUNT_1_BIT;
 }
 
-void VulkanMechanics::createLogicalDevice(ValidationLayers& validation) {
+void VulkanMechanics::createLogicalDevice() {
   Log::console("{ +++ }", "creating Logical Device");
   Queues::FamilyIndices indices = findQueueFamilies(mainDevice.physical);
 
@@ -263,10 +263,10 @@ void VulkanMechanics::createLogicalDevice(ValidationLayers& validation) {
       .ppEnabledExtensionNames = mainDevice.extensions.data(),
       .pEnabledFeatures = &deviceFeatures};
 
-  if (validation.enableValidationLayers) {
+  if (ValidationLayers::isValidationEnabled()) {
     createInfo.enabledLayerCount =
-        static_cast<uint32_t>(validation.validation.size());
-    createInfo.ppEnabledLayerNames = validation.validation.data();
+        static_cast<uint32_t>(ValidationLayers::validation.size());
+    createInfo.ppEnabledLayerNames = ValidationLayers::validation.data();
   }
 
   result(vkCreateDevice, mainDevice.physical, &createInfo, nullptr,
@@ -529,7 +529,7 @@ std::vector<const char*> VulkanMechanics::getRequiredExtensions() {
   std::vector<const char*> extensions(glfwExtensions,
                                       glfwExtensions + glfwExtensionCount);
 
-  if (_validation.enableValidationLayers) {
+  if (ValidationLayers::isValidationEnabled()) {
     extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
   }
 

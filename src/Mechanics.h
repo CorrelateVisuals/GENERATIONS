@@ -89,10 +89,10 @@ class VulkanMechanics {
 
  private:
   void compileShaders();
-  void createInstance(ValidationLayers& validation);
+  void createInstance();
   void createSurface(GLFWwindow* window);
   void pickPhysicalDevice(Pipelines::Graphics::MultiSampling& msaa);
-  void createLogicalDevice(ValidationLayers& validation);
+  void createLogicalDevice();
   void createSwapChain();
   void createSwapChainImageViews(Resources& resources);
   void createCommandPool(VkCommandPool* commandPool);
