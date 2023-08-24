@@ -51,9 +51,9 @@ void VulkanMechanics::createInstance(ValidationLayers& validation) {
   }
 
   VkApplicationInfo appInfo{.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
-                            .pApplicationName = "CAPITAL",
+                            .pApplicationName = _control.display.title,
                             .applicationVersion = VK_MAKE_VERSION(0, 0, 1),
-                            .pEngineName = _control.display.title,
+                            .pEngineName = "CAPITAL Engine",
                             .engineVersion = VK_MAKE_VERSION(0, 0, 1),
                             .apiVersion = VK_API_VERSION_1_3};
   Log::console(
