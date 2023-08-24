@@ -1,5 +1,5 @@
 #include "ValidationLayers.h"
-#include "CapitalEngine.h"  // Assuming this is where Log is defined
+#include "CapitalEngine.h"
 
 #include <set>
 

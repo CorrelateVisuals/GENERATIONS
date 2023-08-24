@@ -4,15 +4,6 @@
 #include <iostream>
 #include <string>
 
-// Log::Logging()
-//     : logFile("log.txt", std::ofstream::out | std::ofstream::trunc) {
-//   console("{ ... }", "constructing Logging");
-// }
-//
-// Log::~Logging() {
-//   console("{ ... }", "destructing Logging");
-// }
-
 namespace Log {
 std::ofstream logFile = static_cast<std::ofstream>("log.txt");
 

@@ -1,10 +1,13 @@
 #pragma once
-#include "Control.h"
+
+// Debug
 #include "Log.h"
+#include "ValidationLayers.h"
+
+#include "Control.h"
 #include "Mechanics.h"
 #include "Pipelines.h"
 #include "Resources.h"
-#include "ValidationLayers.h"
 #include "Window.h"
 #include "World.h"
 
