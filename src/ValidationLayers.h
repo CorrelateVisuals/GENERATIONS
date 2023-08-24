@@ -25,6 +25,8 @@ void destroyDebugUtilsMessengerEXT(VkInstance instance,
                                    const VkAllocationCallbacks* pAllocator);
 
 namespace Internal {
+void static logValidationMessage(const std::string& string,
+                                 const std::string& excludeError);
 void LogValidationMessage(const std::string& string,
                           const std::string& excludeError);
 VkResult CreateDebugUtilsMessengerEXT(

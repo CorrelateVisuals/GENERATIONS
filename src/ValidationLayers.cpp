@@ -6,28 +6,18 @@
 namespace ValidationLayers {
 VkDebugUtilsMessengerEXT debugMessenger = VK_NULL_HANDLE;
 
-// ValidationLayers::ValidationLayers()
-//     : debugMessenger{}, validation{ "VK_LAYER_KHRONOS_validation" } {
-//     Log::console("{ --- }", "constructing Validation Layers");
-// }
-
-// ValidationLayers::~ValidationLayers() {
-//     Log::console("{ --- }", "destructing Validation Layers");
-// }
-
 VKAPI_ATTR VkBool32 VKAPI_CALL Internal::debugCallback(
     VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
     VkDebugUtilsMessageTypeFlagsEXT messageType,
     const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
     void* pUserData) {
   const std::string debugMessage = pCallbackData->pMessage;
-  Log::console(debugMessage, "Epic Games");
+  logValidationMessage(debugMessage, "Epic Games");
   return VK_FALSE;
 }
 
-void ValidationLayers::Internal::LogValidationMessage(
-    const std::string& string,
-    const std::string& excludeError) {
+void Internal::logValidationMessage(const std::string& string,
+                                    const std::string& excludeError) {
   if (string.find(excludeError) != std::string::npos)
     return;
 
@@ -35,7 +25,16 @@ void ValidationLayers::Internal::LogValidationMessage(
                "\n");
 }
 
-VkResult ValidationLayers::Internal::CreateDebugUtilsMessengerEXT(
+void Internal::LogValidationMessage(const std::string& string,
+                                    const std::string& excludeError) {
+  if (string.find(excludeError) != std::string::npos)
+    return;
+
+  Log::console("\n\n                     > > > Validation Layer: ", string,
+               "\n");
+}
+
+VkResult Internal::CreateDebugUtilsMessengerEXT(
     VkInstance instance,
     const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
     const VkAllocationCallbacks* pAllocator,

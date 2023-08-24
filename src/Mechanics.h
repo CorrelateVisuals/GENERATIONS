@@ -4,7 +4,6 @@
 #include "CapitalEngine.h"
 #include "Pipelines.h"
 #include "Resources.h"
-#include "ValidationLayers.h"
 
 #include <iostream>
 #include <optional>
