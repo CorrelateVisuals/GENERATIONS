@@ -3,7 +3,7 @@
 #include <iostream>
 
 CapitalEngine::CapitalEngine() {
-  Logging::console("\n", Logging::Style::indentSize, "[ CAPITAL engine ]",
+  Log::console("\n", Log::Style::indentSize, "[ CAPITAL engine ]",
                    "starting...\n");
   _mechanics.setupVulkan();
   _pipelines.createPipelines();
@@ -12,7 +12,7 @@ CapitalEngine::CapitalEngine() {
 }
 
 CapitalEngine::~CapitalEngine() {
-  Logging::console("\n", Logging::Style::indentSize, "[ CAPITAL engine ]",
+  Log::console("\n", Log::Style::indentSize, "[ CAPITAL engine ]",
                    "terminating...\n");
 }
 
@@ -21,7 +21,7 @@ Global::~Global() {
 }
 
 void CapitalEngine::mainLoop() {
-  Logging::console("\n", Logging::Style::indentSize,
+  Log::console("\n", Log::Style::indentSize,
                    "{ Main Loop } running ..........\n");
 
   while (!glfwWindowShouldClose(_window.window)) {
@@ -37,7 +37,7 @@ void CapitalEngine::mainLoop() {
     }
   }
   vkDeviceWaitIdle(_mechanics.mainDevice.logical);
-  Logging::console("\n", Logging::Style::indentSize,
+  Log::console("\n", Log::Style::indentSize,
                    "{ Main Loop } ....... terminated");
 }
 

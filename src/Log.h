@@ -6,12 +6,12 @@
 #include <stdexcept>
 #include <vector>
 
-namespace Logging {
+namespace Log {
 
 struct Style {
-  static std::string charLeader;  // = std::string(8, ' ') + ":";
-  static std::string indentSize;  // e = std::string(17, ' ');
-  static int columnCount;         // = 14;
+  static std::string charLeader;
+  static std::string indentSize;
+  static int columnCount;
 };
 
 extern std::ofstream logFile;
@@ -22,10 +22,10 @@ void console(const T& first, const Ts&... inputs);
 
 std::string getBufferUsageString(VkBufferUsageFlags usage);
 std::string returnDateAndTime();
-};  // namespace Logging
+};  // namespace Log
 
 template <class T, class... Ts>
-void Logging::console(const T& first, const Ts&... inputs) {
+void Log::console(const T& first, const Ts&... inputs) {
   if (!logFile.is_open()) {
     std::cerr << "\n!ERROR! Could not open logFile for writing" << std::endl;
     return;

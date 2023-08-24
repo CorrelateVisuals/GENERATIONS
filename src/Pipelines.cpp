@@ -8,15 +8,15 @@
 #include <random>
 
 Pipelines::Pipelines() : graphics{}, compute{} {
-  Logging::console("{ PIP }", "constructing Pipelines");
+  Log::console("{ PIP }", "constructing Pipelines");
 }
 
 Pipelines::~Pipelines() {
-  Logging::console("{ PIP }", "destructing Pipelines");
+  Log::console("{ PIP }", "destructing Pipelines");
 }
 
 void Pipelines::createPipelines() {
-  Logging::console("{ PIP }", "creating pipelines");
+  Log::console("{ PIP }", "creating pipelines");
   _resources.createDescriptorSetLayout();
 
   createRenderPass();
@@ -55,7 +55,7 @@ void Pipelines::createDepthResources() {
 }
 
 void Pipelines::createRenderPass() {
-  Logging::console("{ []< }", "creating Render Pass");
+  Log::console("{ []< }", "creating Render Pass");
   VkAttachmentDescription colorAttachment{
       .format = _mechanics.swapChain.imageFormat,
       .samples = graphics.msaa.samples,
@@ -131,7 +131,7 @@ void Pipelines::createRenderPass() {
 }
 
 void Pipelines::createGraphicsPipeline() {
-  Logging::console("{ PIP }", "creating Graphics Pipeline");
+  Log::console("{ PIP }", "creating Graphics Pipeline");
 
   std::vector<VkPipelineShaderStageCreateInfo> shaderStages{
       getShaderStageInfo(VK_SHADER_STAGE_VERTEX_BIT, "vert.spv", graphics),
@@ -275,7 +275,7 @@ std::vector<char> Pipelines::readShaderFile(const std::string& filename) {
 }
 
 void Pipelines::createComputePipeline() {
-  Logging::console("{ PIP }", "creating Compute Pipeline");
+  Log::console("{ PIP }", "creating Compute Pipeline");
 
   VkPipelineShaderStageCreateInfo computeShaderStageInfo =
       getShaderStageInfo(VK_SHADER_STAGE_COMPUTE_BIT, "comp.spv", compute);
@@ -308,13 +308,13 @@ void Pipelines::createComputePipeline() {
 }
 
 VkShaderModule Pipelines::createShaderModule(const std::vector<char>& code) {
-  Logging::console(Logging::Style::charLeader, "creating Shader Module");
+  Log::console(Log::Style::charLeader, "creating Shader Module");
   VkShaderModuleCreateInfo createInfo{
       .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
       .codeSize = code.size(),
       .pCode = reinterpret_cast<const uint32_t*>(code.data())};
 
-  VkShaderModule shaderModule;
+  VkShaderModule shaderModule{};
 
   _mechanics.result(vkCreateShaderModule, _mechanics.mainDevice.logical,
                     &createInfo, nullptr, &shaderModule);

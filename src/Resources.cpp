@@ -5,15 +5,15 @@
 #include "Resources.h"
 
 Resources::Resources() : pushConstants{}, image{}, buffers{}, descriptor{} {
-  Logging::console("{ 010 }", "constructing Resources Management");
+  Log::console("{ 010 }", "constructing Resources Management");
 }
 
 Resources::~Resources() {
-  Logging::console("{ 010 }", "destructing Resources Management");
+  Log::console("{ 010 }", "destructing Resources Management");
 }
 
 void Resources::createResources() {
-  Logging::console("{ RES }", "creating Resources ...");
+  Log::console("{ RES }", "creating Resources ...");
 
   createTextureImage("../assets/GenerationsCapture.PNG");
   createTextureImageView();
@@ -30,7 +30,7 @@ void Resources::createResources() {
 }
 
 void Resources::createFramebuffers() {
-  Logging::console("{ BUF }", "creating Frame Buffers");
+  Log::console("{ BUF }", "creating Frame Buffers");
 
   _mechanics.swapChain.framebuffers.resize(
       _mechanics.swapChain.imageViews.size());
@@ -57,7 +57,7 @@ void Resources::createFramebuffers() {
 }
 
 void Resources::createCommandBuffers() {
-  Logging::console("{ CMD }", "creating Command Buffers");
+  Log::console("{ CMD }", "creating Command Buffers");
 
   buffers.command.graphic.resize(MAX_FRAMES_IN_FLIGHT);
 
@@ -73,7 +73,7 @@ void Resources::createCommandBuffers() {
 }
 
 void Resources::createComputeCommandBuffers() {
-  Logging::console("{ CMD }", "creating Compute Command Buffers");
+  Log::console("{ CMD }", "creating Compute Command Buffers");
 
   buffers.command.compute.resize(MAX_FRAMES_IN_FLIGHT);
 
@@ -89,7 +89,7 @@ void Resources::createComputeCommandBuffers() {
 }
 
 void Resources::createShaderStorageBuffers() {
-  Logging::console("{ BUF }", "creating Shader Storage Buffers");
+  Log::console("{ BUF }", "creating Shader Storage Buffers");
 
   std::vector<World::Cell> cells = _world.initializeCells();
 
@@ -129,7 +129,7 @@ void Resources::createShaderStorageBuffers() {
 }
 
 void Resources::createUniformBuffers() {
-  Logging::console("{ BUF }", "creating Uniform Buffers");
+  Log::console("{ BUF }", "creating Uniform Buffers");
   VkDeviceSize bufferSize = sizeof(World::UniformBufferObject);
 
   buffers.uniforms.resize(MAX_FRAMES_IN_FLIGHT);
@@ -148,7 +148,7 @@ void Resources::createUniformBuffers() {
 }
 
 void Resources::createDescriptorSetLayout() {
-  Logging::console("{ DES }", "creating Compute Descriptor Set Layout");
+  Log::console("{ DES }", "creating Compute Descriptor Set Layout");
 
   std::vector<VkDescriptorSetLayoutBinding> layoutBindings = {
       {.binding = 0,
@@ -183,7 +183,7 @@ void Resources::createDescriptorSetLayout() {
 }
 
 void Resources::createDescriptorPool() {
-  Logging::console("{ DES }", "creating Descriptor Pools");
+  Log::console("{ DES }", "creating Descriptor Pools");
   std::vector<VkDescriptorPoolSize> poolSizes{
       {.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
        .descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT)},
@@ -247,7 +247,7 @@ void Resources::createImage(uint32_t width,
 }
 
 void Resources::createTextureImage(std::string imagePath) {
-  Logging::console("{ IMG }", "Loading Image Texture: ", imagePath);
+  Log::console("{ IMG }", "Loading Image Texture: ", imagePath);
   int texWidth, texHeight, texChannels;
   int rgba = 4;
   stbi_uc* pixels = stbi_load(imagePath.c_str(), &texWidth, &texHeight,
@@ -399,13 +399,13 @@ void Resources::copyBufferToImage(VkBuffer buffer,
 }
 
 void Resources::createTextureImageView() {
-  Logging::console("{ IMG }", "Creating Texture Image View");
+  Log::console("{ IMG }", "Creating Texture Image View");
   image.textureView = createImageView(image.texture, VK_FORMAT_R8G8B8A8_SRGB,
                                       VK_IMAGE_ASPECT_COLOR_BIT);
 }
 
 void Resources::createDescriptorSets() {
-  Logging::console("{ DES }", "creating Compute Descriptor Sets");
+  Log::console("{ DES }", "creating Compute Descriptor Sets");
   std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT,
                                              descriptor.setLayout);
   VkDescriptorSetAllocateInfo allocateInfo{
@@ -581,7 +581,7 @@ void Resources::recordCommandBuffer(VkCommandBuffer commandBuffer,
 VkImageView Resources::createImageView(VkImage image,
                                        VkFormat format,
                                        VkImageAspectFlags aspectFlags) {
-  Logging::console("{ IMG }", "Creating Image View");
+  Log::console("{ IMG }", "Creating Image View");
 
   VkImageViewCreateInfo viewInfo{
       .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
@@ -602,7 +602,7 @@ VkImageView Resources::createImageView(VkImage image,
 }
 
 void Resources::createTextureSampler() {
-  Logging::console("{ IMG }", "Creating Texture Sampler");
+  Log::console("{ IMG }", "Creating Texture Sampler");
   VkPhysicalDeviceProperties properties{};
   vkGetPhysicalDeviceProperties(_mechanics.mainDevice.physical, &properties);
 
@@ -637,9 +637,9 @@ void Resources::createBuffer(VkDeviceSize size,
                                 .usage = usage,
                                 .sharingMode = VK_SHARING_MODE_EXCLUSIVE};
 
-  Logging::console("{ ... }", "creating Buffer:",
-                   Logging::getBufferUsageString(bufferInfo.usage));
-  Logging::console(Logging::Style::charLeader, bufferInfo.size, "bytes");
+  Log::console("{ ... }",
+               "creating Buffer:", Log::getBufferUsageString(bufferInfo.usage));
+  Log::console(Log::Style::charLeader, bufferInfo.size, "bytes");
 
   _mechanics.result(vkCreateBuffer, _mechanics.mainDevice.logical, &bufferInfo,
                     nullptr, &buffer);

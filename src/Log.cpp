@@ -4,16 +4,16 @@
 #include <iostream>
 #include <string>
 
-// Logging::Logging()
+// Log::Logging()
 //     : logFile("log.txt", std::ofstream::out | std::ofstream::trunc) {
 //   console("{ ... }", "constructing Logging");
 // }
 //
-// Logging::~Logging() {
+// Log::~Logging() {
 //   console("{ ... }", "destructing Logging");
 // }
 
-namespace Logging {
+namespace Log {
 std::ofstream logFile = static_cast<std::ofstream>("log.txt");
 
 std::string Style::charLeader = std::string(8, ' ') + ":";
@@ -78,4 +78,4 @@ std::string returnDateAndTime() {
 
   return std::string(nowStr);
 }
-}  // namespace Logging
+}  // namespace Log
