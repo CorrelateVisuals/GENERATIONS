@@ -9,15 +9,15 @@
 
 Pipelines::Pipelines(VulkanMechanics& mechanics)
     : graphics{}, compute{}, _mechanics(mechanics) {
-  // Log::console("{ PIP }", "constructing Pipelines");
+  // Log::console("{ === }", "constructing Pipelines");
 }
 
 Pipelines::~Pipelines() {
-  // Log::console("{ PIP }", "destructing Pipelines");
+  // Log::console("{ === }", "destructing Pipelines");
 }
 
 void Pipelines::createPipelines(Resources& _resources) {
-  Log::console("{ PIP }", "creating pipelines");
+  Log::console("{ === }", "creating pipelines");
 
   _resources.createDescriptorSetLayout();
   createRenderPass();
@@ -29,7 +29,7 @@ void Pipelines::createPipelines(Resources& _resources) {
 }
 
 void Pipelines::createColorResources(Resources& _resources) {
-  Log::console("{ RES }", "creating Color Resources ");
+  Log::console("{ []< }", "creating Color Resources ");
 
   VkFormat colorFormat = _mechanics.swapChain.imageFormat;
 
@@ -45,7 +45,7 @@ void Pipelines::createColorResources(Resources& _resources) {
 }
 
 void Pipelines::createDepthResources(Resources& _resources) {
-  Log::console("{ RES }", "creating Depth Resources ");
+  Log::console("{ []< }", "creating Depth Resources ");
   VkFormat depthFormat = findDepthFormat();
 
   _resources.createImage(
@@ -136,7 +136,7 @@ void Pipelines::createRenderPass() {
 
 void Pipelines::createGraphicsPipeline(
     VkDescriptorSetLayout& descriptorSetLayout) {
-  Log::console("{ PIP }", "creating Graphics Pipeline");
+  Log::console("{ === }", "creating Graphics Pipeline");
 
   std::vector<VkPipelineShaderStageCreateInfo> shaderStages{
       getShaderStageInfo(VK_SHADER_STAGE_VERTEX_BIT, "vert.spv", graphics),
@@ -284,7 +284,7 @@ std::vector<char> Pipelines::readShaderFile(const std::string& filename) {
 void Pipelines::createComputePipeline(
     VkDescriptorSetLayout& descriptorSetLayout,
     Resources::PushConstants& pushConstants) {
-  Log::console("{ PIP }", "creating Compute Pipeline");
+  Log::console("{ === }", "creating Compute Pipeline");
 
   VkPipelineShaderStageCreateInfo computeShaderStageInfo =
       getShaderStageInfo(VK_SHADER_STAGE_COMPUTE_BIT, "comp.spv", compute);

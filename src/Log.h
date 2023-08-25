@@ -24,7 +24,7 @@ void console(const T& first, const Ts&... inputs);
 std::string getBufferUsageString(VkBufferUsageFlags usage);
 std::string getMemoryPropertyString(VkMemoryPropertyFlags properties);
 std::string getDescriptorTypeString(VkDescriptorType type);
-std::string getShaderStageFlagString(VkShaderStageFlags flags);
+std::string getShaderStageString(VkShaderStageFlags flags);
 std::string getSampleCountString(VkSampleCountFlags sampleCount);
 std::string getImageUsageString(VkImageUsageFlags usage);
 

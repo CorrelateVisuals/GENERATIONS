@@ -16,7 +16,7 @@ Resources::~Resources() {
 }
 
 void Resources::createResources(Pipelines& _pipelines) {
-  Log::console("{ RES }", "creating Resources ...");
+  Log::console("{ /// }", "creating Resources ...");
 
   createTextureImage("../assets/GenerationsCapture.PNG");
   createTextureImageView();
@@ -34,7 +34,7 @@ void Resources::createResources(Pipelines& _pipelines) {
 }
 
 void Resources::createFramebuffers(Pipelines& _pipelines) {
-  Log::console("{ BUF }", "creating", _mechanics.swapChain.imageViews.size(),
+  Log::console("{ 101 }", "creating", _mechanics.swapChain.imageViews.size(),
                "Frame Buffers");
 
   _mechanics.swapChain.framebuffers.resize(
@@ -62,7 +62,7 @@ void Resources::createFramebuffers(Pipelines& _pipelines) {
 }
 
 void Resources::createCommandBuffers() {
-  Log::console("{ CMD }", "creating Command Buffers");
+  Log::console("{ cmd }", "creating Command Buffers");
 
   buffers.command.graphic.resize(MAX_FRAMES_IN_FLIGHT);
 
@@ -78,7 +78,7 @@ void Resources::createCommandBuffers() {
 }
 
 void Resources::createComputeCommandBuffers() {
-  Log::console("{ CMD }", "creating Compute Command Buffers");
+  Log::console("{ cmd }", "creating Compute Command Buffers");
 
   buffers.command.compute.resize(MAX_FRAMES_IN_FLIGHT);
 
@@ -94,7 +94,7 @@ void Resources::createComputeCommandBuffers() {
 }
 
 void Resources::createShaderStorageBuffers() {
-  Log::console("{ BUF }", "creating Shader Storage Buffers");
+  Log::console("{ 101 }", "creating Shader Storage Buffers");
 
   std::vector<World::Cell> cells = world.initializeCells();
 
@@ -134,7 +134,7 @@ void Resources::createShaderStorageBuffers() {
 }
 
 void Resources::createUniformBuffers() {
-  Log::console("{ BUF }", "creating", MAX_FRAMES_IN_FLIGHT, "Uniform Buffers");
+  Log::console("{ 101 }", "creating", MAX_FRAMES_IN_FLIGHT, "Uniform Buffers");
   VkDeviceSize bufferSize = sizeof(World::UniformBufferObject);
 
   buffers.uniforms.resize(MAX_FRAMES_IN_FLIGHT);
@@ -176,13 +176,13 @@ void Resources::createDescriptorSetLayout() {
        .pImmutableSamplers = nullptr},
   };
 
-  Log::console("{ DES }", "creating Descriptor Set Layout with",
+  Log::console("{ /=| }", "creating Descriptor Set Layout with",
                layoutBindings.size(), "bindings");
   for (const VkDescriptorSetLayoutBinding& item : layoutBindings) {
     Log::console("{ ", item.binding, " }",
                  Log::getDescriptorTypeString(item.descriptorType));
     Log::console(Log::Style::charLeader,
-                 Log::getShaderStageFlagString(item.stageFlags));
+                 Log::getShaderStageString(item.stageFlags));
   }
 
   VkDescriptorSetLayoutCreateInfo layoutInfo{
@@ -203,7 +203,7 @@ void Resources::createDescriptorPool() {
       {.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
        .descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT)}};
 
-  Log::console("{ DES }", "creating Descriptor Pool");
+  Log::console("{ /=| }", "creating Descriptor Pool");
   for (size_t i = 0; i < poolSizes.size(); i++) {
     Log::console(Log::Style::charLeader,
                  Log::getDescriptorTypeString(poolSizes[i].type));
@@ -228,7 +228,7 @@ void Resources::createImage(uint32_t width,
                             VkMemoryPropertyFlags properties,
                             VkImage& image,
                             VkDeviceMemory& imageMemory) {
-  Log::console("{ IMG }", "creating Image", width, height);
+  Log::console("{ img }", "creating Image", width, height);
   Log::console(Log::Style::charLeader, Log::getSampleCountString(numSamples));
   Log::console(Log::Style::charLeader, Log::getImageUsageString(usage));
   Log::console(Log::Style::charLeader,
@@ -270,7 +270,7 @@ void Resources::createImage(uint32_t width,
 }
 
 void Resources::createTextureImage(std::string imagePath) {
-  Log::console("{ IMG }", "loading Image Texture: ", imagePath);
+  Log::console("{ img }", "loading Image Texture: ", imagePath);
   int texWidth, texHeight, texChannels;
   int rgba = 4;
   stbi_uc* pixels = stbi_load(imagePath.c_str(), &texWidth, &texHeight,
@@ -431,13 +431,13 @@ void Resources::copyBufferToImage(VkBuffer buffer,
 }
 
 void Resources::createTextureImageView() {
-  Log::console("{ IMG }", "creating Texture Image View");
+  Log::console("{ img }", "creating Texture Image View");
   image.textureView = createImageView(image.texture, VK_FORMAT_R8G8B8A8_SRGB,
                                       VK_IMAGE_ASPECT_COLOR_BIT);
 }
 
 void Resources::createDescriptorSets() {
-  Log::console("{ DES }", "creating Descriptor Sets");
+  Log::console("{ /=| }", "creating Descriptor Sets");
   std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT,
                                              descriptor.setLayout);
   VkDescriptorSetAllocateInfo allocateInfo{
@@ -613,7 +613,7 @@ void Resources::recordCommandBuffer(VkCommandBuffer commandBuffer,
 VkImageView Resources::createImageView(VkImage image,
                                        VkFormat format,
                                        VkImageAspectFlags aspectFlags) {
-  Log::console("{ IMG }", "creating Image View");
+  Log::console("{ img }", "creating Image View");
 
   VkImageViewCreateInfo viewInfo{
       .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
@@ -634,7 +634,7 @@ VkImageView Resources::createImageView(VkImage image,
 }
 
 void Resources::createTextureSampler() {
-  Log::console("{ IMG }", "creating Texture Sampler");
+  Log::console("{ img }", "creating Texture Sampler");
   VkPhysicalDeviceProperties properties{};
   vkGetPhysicalDeviceProperties(_mechanics.mainDevice.physical, &properties);
 

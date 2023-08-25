@@ -28,7 +28,7 @@ VulkanMechanics::~VulkanMechanics() {
 
 void VulkanMechanics::setupVulkan(Pipelines& _pipelines,
                                   Resources& _resources) {
-  Log::console("{ VK. }", "setting up Vulkan");
+  Log::console("{ Vk. }", "setting up Vulkan");
   compileShaders();
   createInstance();
   ValidationLayers::setupDebugMessenger(instance);
@@ -468,7 +468,7 @@ void VulkanMechanics::createSwapChain() {
 }
 
 void VulkanMechanics::createSwapChainImageViews(Resources& resources) {
-  Log::console("{ IMG }", "creating", swapChain.images.size(),
+  Log::console("{ <-> }", "creating", swapChain.images.size(),
                "Swap Chain Image Views");
 
   swapChain.imageViews.resize(swapChain.images.size());
@@ -480,7 +480,7 @@ void VulkanMechanics::createSwapChainImageViews(Resources& resources) {
 }
 
 void VulkanMechanics::createCommandPool(VkCommandPool* commandPool) {
-  Log::console("{ CMD }", "creating Command Pool");
+  Log::console("{ cmd }", "creating Command Pool");
 
   VulkanMechanics::Queues::FamilyIndices queueFamilyIndices =
       findQueueFamilies(mainDevice.physical);
@@ -518,7 +518,7 @@ void VulkanMechanics::recreateSwapChain(Pipelines& _pipelines,
 #include "Log.h"    // Include your Log header
 
 void VulkanMechanics::compileShaders() {
-  Log::console("{ SHA }", "compiling shaders");
+  Log::console("{ GLSL }", "compiling shaders");
   std::string command;
 
 #ifdef _WIN32

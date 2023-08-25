@@ -118,7 +118,7 @@ std::string Log::getDescriptorTypeString(VkDescriptorType type) {
   }
 }
 
-std::string getShaderStageFlagString(VkShaderStageFlags flags) {
+std::string getShaderStageString(VkShaderStageFlags flags) {
   std::string result;
 #define ADD_FLAG_CASE(flag) \
   if (flags & flag) {       \
