@@ -51,7 +51,7 @@ void VulkanMechanics::createInstance() {
   }
 
   VkApplicationInfo appInfo{.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
-                            .pApplicationName = _control.display.title,
+                            .pApplicationName = Window::get().display.title,
                             .applicationVersion = VK_MAKE_VERSION(0, 0, 1),
                             .pEngineName = "CAPITAL Engine",
                             .engineVersion = VK_MAKE_VERSION(0, 0, 1),

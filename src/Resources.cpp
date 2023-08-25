@@ -4,6 +4,8 @@
 #include "CapitalEngine.h"
 #include "Resources.h"
 
+World Resources::world;
+
 Resources::Resources() : pushConstants{}, image{}, buffers{}, descriptor{} {
   Log::console("{ 010 }", "constructing Resources Management");
 }
@@ -91,7 +93,7 @@ void Resources::createComputeCommandBuffers() {
 void Resources::createShaderStorageBuffers() {
   Log::console("{ BUF }", "creating Shader Storage Buffers");
 
-  std::vector<World::Cell> cells = _world.initializeCells();
+  std::vector<World::Cell> cells = world.initializeCells();
 
   VkDeviceSize bufferSize = sizeof(World::Cell) * _control.grid.dimensions[0] *
                             _control.grid.dimensions[1];
@@ -294,6 +296,9 @@ void Resources::createTextureImage(std::string imagePath) {
   vkFreeMemory(_mechanics.mainDevice.logical, stagingBufferMemory, nullptr);
 }
 
+void Resources::setPushConstants() {
+  _resources.pushConstants.data = {world.time.passedHours};
+}
 VkCommandBuffer Resources::beginSingleTimeCommands() {
   VkCommandBufferAllocateInfo allocInfo{};
   allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -482,7 +487,7 @@ void Resources::createDescriptorSets() {
 }
 
 void Resources::updateUniformBuffer(uint32_t currentImage) {
-  World::UniformBufferObject uniformObject = _world.updateUniforms();
+  World::UniformBufferObject uniformObject = world.updateUniforms();
   std::memcpy(buffers.uniformsMapped[currentImage], &uniformObject,
               sizeof(uniformObject));
 }
@@ -504,20 +509,20 @@ void Resources::recordComputeCommandBuffer(VkCommandBuffer commandBuffer) {
                           &descriptor.sets[_mechanics.syncObjects.currentFrame],
                           0, nullptr);
 
-  _control.setPushConstants();
+  setPushConstants();
   vkCmdPushConstants(commandBuffer, _pipelines.compute.pipelineLayout,
                      pushConstants.shaderStage, pushConstants.offset,
                      pushConstants.size, pushConstants.data.data());
 
   uint32_t numberOfWorkgroupsX =
-      (_control.grid.dimensions[0] + _control.compute.localSizeX - 1) /
-      _control.compute.localSizeX;
+      (_control.grid.dimensions[0] + compute.localSizeX - 1) /
+      compute.localSizeX;
   uint32_t numberOfWorkgroupsY =
-      (_control.grid.dimensions[1] + _control.compute.localSizeY - 1) /
-      _control.compute.localSizeY;
+      (_control.grid.dimensions[1] + compute.localSizeY - 1) /
+      compute.localSizeY;
 
   vkCmdDispatch(commandBuffer, numberOfWorkgroupsX, numberOfWorkgroupsY,
-                _control.compute.localSizeZ);
+                compute.localSizeZ);
 
   _mechanics.result(vkEndCommandBuffer, commandBuffer);
 }
@@ -570,7 +575,7 @@ void Resources::recordCommandBuffer(VkCommandBuffer commandBuffer,
                           &descriptor.sets[_mechanics.syncObjects.currentFrame],
                           0, nullptr);
 
-  vkCmdDraw(commandBuffer, _world.tile.vertexCount,
+  vkCmdDraw(commandBuffer, world.tile.vertexCount,
             _control.grid.dimensions[0] * _control.grid.dimensions[1], 0, 0);
 
   vkCmdEndRenderPass(commandBuffer);
@@ -594,7 +599,7 @@ VkImageView Resources::createImageView(VkImage image,
                            .baseArrayLayer = 0,
                            .layerCount = 1}};
 
-  VkImageView imageView;
+  VkImageView imageView{};
   _mechanics.result(vkCreateImageView, _mechanics.mainDevice.logical, &viewInfo,
                     nullptr, &imageView);
 

@@ -20,19 +20,19 @@ Window::~Window() {
 void Window::initWindow() {
   glfwInit();
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-  window = glfwCreateWindow(_control.display.width, _control.display.height,
-                            _control.display.title, nullptr, nullptr);
+  window = glfwCreateWindow(display.width, display.height, display.title,
+                            nullptr, nullptr);
   glfwSetWindowUserPointer(window, this);
   glfwSetFramebufferSizeCallback(window, windowResize);
-  Log::console("{ [*] }", "Window initialized with", _control.display.width,
-               "*", _control.display.height);
+  Log::console("{ [*] }", "Window initialized with", display.width, "*",
+               display.height);
 }
 
 void Window::windowResize(GLFWwindow* win, int width, int height) {
   auto app = reinterpret_cast<Window*>(glfwGetWindowUserPointer(win));
   app->framebufferResized = true;
-  _control.display.width = width;
-  _control.display.height = height;
+  app->display.width = width;
+  app->display.height = height;
   Log::console("{ [*] }", "Window resized to", width, "*", height);
 }
 
@@ -58,8 +58,8 @@ void Window::setMouse() {
     static float pressTime = 0.0f;
 
     glfwGetCursorPos(window, &xpos, &ypos);
-    const float x = static_cast<float>(xpos) / _control.display.width;
-    const float y = static_cast<float>(ypos) / _control.display.height;
+    const float x = static_cast<float>(xpos) / display.width;
+    const float y = static_cast<float>(ypos) / display.height;
 
     static const std::unordered_map<int, std::string> buttonMappings = {
         {GLFW_MOUSE_BUTTON_LEFT, "{ --> } Left Mouse Button"},

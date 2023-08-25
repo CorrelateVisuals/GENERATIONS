@@ -1,6 +1,8 @@
 #pragma once
 #include "vulkan/vulkan.h"
 
+#include "World.h"
+
 #include <array>
 #include <cstring>
 #include <string>
@@ -10,6 +12,8 @@ class Resources {
  public:
   Resources();
   ~Resources();
+
+  static World world;
 
   struct PushConstants {
     VkShaderStageFlags shaderStage = {VK_SHADER_STAGE_COMPUTE_BIT};
@@ -71,6 +75,14 @@ class Resources {
                               VkImageAspectFlags aspectFlags);
 
  private:
+  struct Compute {
+    const uint8_t localSizeX{32};
+    const uint8_t localSizeY{32};
+    const uint8_t localSizeZ{1};
+  } compute;
+
+  void setPushConstants();
+
   VkCommandBuffer beginSingleTimeCommands();
   void endSingleTimeCommands(VkCommandBuffer commandBuffer);
   void createCommandBuffers();

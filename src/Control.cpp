@@ -6,8 +6,8 @@
 #include <random>
 #include <unordered_set>
 
-Control::Control() : time{} {
-  time.speed = timelineSpeed;
+Control::Control() {
+  /*time.speed = timelineSpeed;*/
   Log::console("{ CTR }", "constructing Control");
 }
 
@@ -15,9 +15,9 @@ Control::~Control() {
   Log::console("{ CTR }", "destructing Control");
 }
 
-void Control::setPushConstants() {
-  _resources.pushConstants.data = {time.passedHours};
-}
+// void Control::setPushConstants() {
+//   _resources.pushConstants.data = {time.passedHours};
+// }
 
 std::vector<uint_fast32_t> Control::setCellsAliveRandomly(
     uint_fast32_t numberOfCells) {

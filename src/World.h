@@ -6,14 +6,20 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "CapitalEngine.h"
+#include "Timer.h"
 
 #include <array>
 #include <vector>
+
+class Timer;
 
 class World {
  public:
   World();
   ~World();
+
+  Timer time;
+  float timelineSpeed = 100.0f;
 
   struct Cell {
     std::array<float, 4> position;

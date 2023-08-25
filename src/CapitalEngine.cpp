@@ -29,7 +29,7 @@ void CapitalEngine::mainLoop() {
     glfwPollEvents();
 
     Window::get().setMouse();
-    _control.time.run();
+    _resources.world.time.run();
 
     drawFrame();
 

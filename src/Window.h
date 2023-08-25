@@ -13,6 +13,12 @@ class Window {
   GLFWwindow* window;
   bool framebufferResized;
 
+  struct DisplayConfiguration {
+      const char* title{ "G E N E R A T I O N S" };
+      uint16_t width = 3800;
+      uint16_t height = 1080;
+  } display;
+
   struct Mouse {
     float pressDelay = 0.18f;
     float speed = 0.5f;
