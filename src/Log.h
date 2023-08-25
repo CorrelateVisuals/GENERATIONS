@@ -4,6 +4,7 @@
 #include <fstream>
 #include <iostream>
 #include <stdexcept>
+#include <unordered_map>
 #include <vector>
 
 namespace Log {
@@ -21,7 +22,12 @@ template <class T, class... Ts>
 void console(const T& first, const Ts&... inputs);
 
 std::string getBufferUsageString(VkBufferUsageFlags usage);
+std::string getMemoryPropertyString(VkMemoryPropertyFlags properties);
+std::string getDescriptorTypeString(VkDescriptorType type);
+std::string getShaderStageFlagString(VkShaderStageFlags flags);
+
 std::string returnDateAndTime();
+
 };  // namespace Log
 
 template <class T, class... Ts>

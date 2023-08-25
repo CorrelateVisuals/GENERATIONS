@@ -152,8 +152,6 @@ void Resources::createUniformBuffers() {
 }
 
 void Resources::createDescriptorSetLayout() {
-  Log::console("{ DES }", "creating Compute Descriptor Set Layout");
-
   std::vector<VkDescriptorSetLayoutBinding> layoutBindings = {
       {.binding = 0,
        .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
@@ -176,6 +174,14 @@ void Resources::createDescriptorSetLayout() {
        .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
        .pImmutableSamplers = nullptr},
   };
+
+  Log::console("{ DES }", "creating Descriptor Set Layout");
+  for (const VkDescriptorSetLayoutBinding& item : layoutBindings) {
+    Log::console("{ ", item.binding, " }",
+                 Log::getDescriptorTypeString(item.descriptorType));
+    Log::console(Log::Style::charLeader,
+                 Log::getShaderStageFlagString(item.stageFlags));
+  }
 
   VkDescriptorSetLayoutCreateInfo layoutInfo{
       .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
@@ -251,7 +257,7 @@ void Resources::createImage(uint32_t width,
 }
 
 void Resources::createTextureImage(std::string imagePath) {
-  Log::console("{ IMG }", "Loading Image Texture: ", imagePath);
+  Log::console("{ IMG }", "loading Image Texture: ", imagePath);
   int texWidth, texHeight, texChannels;
   int rgba = 4;
   stbi_uc* pixels = stbi_load(imagePath.c_str(), &texWidth, &texHeight,
@@ -406,7 +412,7 @@ void Resources::copyBufferToImage(VkBuffer buffer,
 }
 
 void Resources::createTextureImageView() {
-  Log::console("{ IMG }", "Creating Texture Image View");
+  Log::console("{ IMG }", "creating Texture Image View");
   image.textureView = createImageView(image.texture, VK_FORMAT_R8G8B8A8_SRGB,
                                       VK_IMAGE_ASPECT_COLOR_BIT);
 }
@@ -588,7 +594,7 @@ void Resources::recordCommandBuffer(VkCommandBuffer commandBuffer,
 VkImageView Resources::createImageView(VkImage image,
                                        VkFormat format,
                                        VkImageAspectFlags aspectFlags) {
-  Log::console("{ IMG }", "Creating Image View");
+  Log::console("{ IMG }", "creating Image View");
 
   VkImageViewCreateInfo viewInfo{
       .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
@@ -609,7 +615,7 @@ VkImageView Resources::createImageView(VkImage image,
 }
 
 void Resources::createTextureSampler() {
-  Log::console("{ IMG }", "Creating Texture Sampler");
+  Log::console("{ IMG }", "creating Texture Sampler");
   VkPhysicalDeviceProperties properties{};
   vkGetPhysicalDeviceProperties(_mechanics.mainDevice.physical, &properties);
 
@@ -644,9 +650,11 @@ void Resources::createBuffer(VkDeviceSize size,
                                 .usage = usage,
                                 .sharingMode = VK_SHARING_MODE_EXCLUSIVE};
 
-  Log::console("{ ... }",
-               "creating Buffer:", Log::getBufferUsageString(bufferInfo.usage));
-  Log::console(Log::Style::charLeader, bufferInfo.size, "bytes");
+  Log::console("{ ... }", "creating Buffer:");
+  Log::console(Log::Style::charLeader, Log::getBufferUsageString(usage));
+  Log::console(Log::Style::charLeader,
+               Log::getMemoryPropertyString(properties));
+  Log::console(Log::Style::charLeader, size, "bytes");
 
   _mechanics.result(vkCreateBuffer, _mechanics.mainDevice.logical, &bufferInfo,
                     nullptr, &buffer);
@@ -670,6 +678,8 @@ void Resources::createBuffer(VkDeviceSize size,
 void Resources::copyBuffer(VkBuffer srcBuffer,
                            VkBuffer dstBuffer,
                            VkDeviceSize size) {
+  Log::console("{ ... }", "copying Buffer with size of", size, "bytes");
+
   VkCommandBuffer commandBuffer = beginSingleTimeCommands();
 
   VkBufferCopy copyRegion{};
