@@ -95,8 +95,8 @@ void Resources::createShaderStorageBuffers() {
 
   std::vector<World::Cell> cells = world.initializeCells();
 
-  VkDeviceSize bufferSize = sizeof(World::Cell) * _control.grid.dimensions[0] *
-                            _control.grid.dimensions[1];
+  VkDeviceSize bufferSize =
+      sizeof(World::Cell) * world.grid.dimensions[0] * world.grid.dimensions[1];
 
   // Create a staging buffer used to upload data to the gpu
   VkBuffer stagingBuffer;
@@ -432,14 +432,14 @@ void Resources::createDescriptorSets() {
     VkDescriptorBufferInfo storageBufferInfoLastFrame{
         .buffer = buffers.shaderStorage[(i - 1) % MAX_FRAMES_IN_FLIGHT],
         .offset = 0,
-        .range = sizeof(World::Cell) * _control.grid.dimensions[0] *
-                 _control.grid.dimensions[1]};
+        .range = sizeof(World::Cell) * world.grid.dimensions[0] *
+                 world.grid.dimensions[1]};
 
     VkDescriptorBufferInfo storageBufferInfoCurrentFrame{
         .buffer = buffers.shaderStorage[i],
         .offset = 0,
-        .range = sizeof(World::Cell) * _control.grid.dimensions[0] *
-                 _control.grid.dimensions[1]};
+        .range = sizeof(World::Cell) * world.grid.dimensions[0] *
+                 world.grid.dimensions[1]};
 
     VkDescriptorImageInfo imageInfo{
         .sampler = image.textureSampler,
@@ -515,11 +515,9 @@ void Resources::recordComputeCommandBuffer(VkCommandBuffer commandBuffer) {
                      pushConstants.size, pushConstants.data.data());
 
   uint32_t numberOfWorkgroupsX =
-      (_control.grid.dimensions[0] + compute.localSizeX - 1) /
-      compute.localSizeX;
+      (world.grid.dimensions[0] + compute.localSizeX - 1) / compute.localSizeX;
   uint32_t numberOfWorkgroupsY =
-      (_control.grid.dimensions[1] + compute.localSizeY - 1) /
-      compute.localSizeY;
+      (world.grid.dimensions[1] + compute.localSizeY - 1) / compute.localSizeY;
 
   vkCmdDispatch(commandBuffer, numberOfWorkgroupsX, numberOfWorkgroupsY,
                 compute.localSizeZ);
@@ -576,7 +574,7 @@ void Resources::recordCommandBuffer(VkCommandBuffer commandBuffer,
                           0, nullptr);
 
   vkCmdDraw(commandBuffer, world.tile.vertexCount,
-            _control.grid.dimensions[0] * _control.grid.dimensions[1], 0, 0);
+            world.grid.dimensions[0] * world.grid.dimensions[1], 0, 0);
 
   vkCmdEndRenderPass(commandBuffer);
 

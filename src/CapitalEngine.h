@@ -34,7 +34,7 @@ class Global {
     Objects() = default;
     ~Objects() = default;
 
-    Control control;
+    // Control control;
     VulkanMechanics mechanics;
     Pipelines pipelines;
     Resources memory;
@@ -48,4 +48,4 @@ class Global {
 inline static auto& _mechanics = Global::obj.mechanics;
 inline static auto& _pipelines = Global::obj.pipelines;
 inline static auto& _resources = Global::obj.memory;
-inline static auto& _control = Global::obj.control;
+//inline static auto& _control = Global::obj.control;
