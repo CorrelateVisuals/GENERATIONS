@@ -4,6 +4,8 @@
 #include <iostream>
 #include <unordered_map>
 
+Window Window::mainWindow;
+
 Window::Window() : window{nullptr}, framebufferResized{false}, mouse{} {
   Log::console("{ [-] }", "constructing Window");
   initWindow();

@@ -25,15 +25,15 @@ void CapitalEngine::mainLoop() {
   Log::console("\n", Log::Style::indentSize,
                "{ Main Loop } running ..........\n");
 
-  while (!glfwWindowShouldClose(_window.window)) {
+  while (!glfwWindowShouldClose(Window::get().window)) {
     glfwPollEvents();
 
-    _window.setMouse();
+    Window::get().setMouse();
     _control.time.run();
 
     drawFrame();
 
-    if (glfwGetKey(_window.window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+    if (glfwGetKey(Window::get().window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
       break;
     }
   }
@@ -152,8 +152,8 @@ void CapitalEngine::drawFrame() {
   result = vkQueuePresentKHR(_mechanics.queues.present, &presentInfo);
 
   if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR ||
-      _window.framebufferResized) {
-    _window.framebufferResized = false;
+      Window::get().framebufferResized) {
+    Window::get().framebufferResized = false;
     _mechanics.recreateSwapChain();
   } else if (result != VK_SUCCESS) {
     throw std::runtime_error("\n!ERROR! failed to present swap chain image!");
@@ -238,7 +238,7 @@ void Global::cleanup() {
   vkDestroySurfaceKHR(_mechanics.instance, _mechanics.surface, nullptr);
   vkDestroyInstance(_mechanics.instance, nullptr);
 
-  glfwDestroyWindow(_window.window);
+  glfwDestroyWindow(Window::get().window);
 
   glfwTerminate();
 }

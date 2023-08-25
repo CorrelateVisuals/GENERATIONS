@@ -1,14 +1,16 @@
 #pragma once
 
-// Debug
+// Debug objectless
 #include "Log.h"
 #include "ValidationLayers.h"
+
+// Singleton
+#include "Window.h"
 
 #include "Control.h"
 #include "Mechanics.h"
 #include "Pipelines.h"
 #include "Resources.h"
-#include "Window.h"
 #include "World.h"
 
 class CapitalEngine {
@@ -36,7 +38,7 @@ class Global {
     VulkanMechanics mechanics;
     Pipelines pipelines;
     Resources memory;
-    Window mainWindow;
+    // Window mainWindow;
     World world;
   };
   inline static Objects obj;
@@ -45,7 +47,7 @@ class Global {
   void cleanup();
 };
 
-inline static auto& _window = Global::obj.mainWindow;
+// inline static auto& Window::get() = Global::obj.mainWindow;
 inline static auto& _mechanics = Global::obj.mechanics;
 inline static auto& _pipelines = Global::obj.pipelines;
 inline static auto& _resources = Global::obj.memory;

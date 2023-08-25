@@ -7,8 +7,8 @@
 
 class Window {
  public:
-  Window();
-  ~Window();
+  Window(const Window&) = delete;
+  static Window& get() { return mainWindow; }
 
   GLFWwindow* window;
   bool framebufferResized;
@@ -28,6 +28,11 @@ class Window {
   void setMouse();
 
  private:
+  Window();
+  ~Window();
+
   void initWindow();
   static void windowResize(GLFWwindow* win, int width, int height);
+
+  static Window mainWindow;
 };

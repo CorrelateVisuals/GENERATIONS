@@ -31,7 +31,7 @@ void VulkanMechanics::setupVulkan() {
   compileShaders();
   createInstance();
   ValidationLayers::setupDebugMessenger(instance);
-  createSurface(_window.window);
+  createSurface(Window::get().window);
 
   pickPhysicalDevice(_pipelines.graphics.msaa);
   createLogicalDevice();
@@ -313,7 +313,7 @@ VkExtent2D VulkanMechanics::chooseSwapExtent(
     return capabilities.currentExtent;
   } else {
     int width, height;
-    glfwGetFramebufferSize(_window.window, &width, &height);
+    glfwGetFramebufferSize(Window::get().window, &width, &height);
 
     VkExtent2D actualExtent{static_cast<uint32_t>(width),
                             static_cast<uint32_t>(height)};
@@ -494,9 +494,9 @@ void VulkanMechanics::createCommandPool(VkCommandPool* commandPool) {
 
 void VulkanMechanics::recreateSwapChain() {
   int width = 0, height = 0;
-  glfwGetFramebufferSize(_window.window, &width, &height);
+  glfwGetFramebufferSize(Window::get().window, &width, &height);
   while (width == 0 || height == 0) {
-    glfwGetFramebufferSize(_window.window, &width, &height);
+    glfwGetFramebufferSize(Window::get().window, &width, &height);
     glfwWaitEvents();
   }
 

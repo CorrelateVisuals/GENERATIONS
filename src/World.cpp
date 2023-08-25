@@ -147,14 +147,14 @@ void World::updateCamera() {
   static bool run = false;
 
   for (uint_fast8_t i = 0; i < 3; ++i) {
-    buttonType[i] = _window.mouse.buttonDown[i].position -
-                    _window.mouse.previousButtonDown[i].position;
+    buttonType[i] = Window::get().mouse.buttonDown[i].position -
+                    Window::get().mouse.previousButtonDown[i].position;
 
-    if (_window.mouse.buttonDown[i].position !=
-        _window.mouse.previousButtonDown[i].position) {
+    if (Window::get().mouse.buttonDown[i].position !=
+        Window::get().mouse.previousButtonDown[i].position) {
       mousePositionChanged = true;
-      _window.mouse.previousButtonDown[i].position =
-          _window.mouse.buttonDown[i].position;
+      Window::get().mouse.previousButtonDown[i].position =
+          Window::get().mouse.buttonDown[i].position;
     }
   }
   if (mousePositionChanged) {
@@ -214,14 +214,14 @@ glm::mat4 World::setProjection(VkExtent2D& swapChainExtent) {
 //     static bool run = false;
 //
 //     for (uint_fast8_t i = 0; i < 3; ++i) {
-//         buttonType[i] = _window.mouse.buttonDown[i].position -
-//             _window.mouse.previousButtonDown[i].position;
+//         buttonType[i] = Window::get().mouse.buttonDown[i].position -
+//             Window::get().mouse.previousButtonDown[i].position;
 //
-//         if (_window.mouse.buttonDown[i].position !=
-//             _window.mouse.previousButtonDown[i].position) {
+//         if (Window::get().mouse.buttonDown[i].position !=
+//             Window::get().mouse.previousButtonDown[i].position) {
 //             mousePositionChanged = true;
-//             _window.mouse.previousButtonDown[i].position =
-//                 _window.mouse.buttonDown[i].position;
+//             Window::get().mouse.previousButtonDown[i].position =
+//                 Window::get().mouse.buttonDown[i].position;
 //         }
 //     }
 //     if (mousePositionChanged) {
