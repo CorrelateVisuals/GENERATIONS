@@ -231,6 +231,8 @@ void Resources::createImage(uint32_t width,
   Log::console("{ IMG }", "creating Image", width, height);
   Log::console(Log::Style::charLeader, Log::getSampleCountString(numSamples));
   Log::console(Log::Style::charLeader, Log::getImageUsageString(usage));
+  Log::console(Log::Style::charLeader,
+               Log::getMemoryPropertyString(properties));
 
   VkImageCreateInfo imageInfo{
       .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,

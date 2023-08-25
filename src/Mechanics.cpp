@@ -546,7 +546,7 @@ void VulkanMechanics::compileShaders() {
   } else {
     Log::console("{ ERROR }", "Failed to execute command:", command);
   }
-  std::cout << std::endl;
+  Log::console("");
 }
 
 std::vector<const char*> VulkanMechanics::getRequiredExtensions() {

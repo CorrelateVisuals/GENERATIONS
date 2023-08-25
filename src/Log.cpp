@@ -54,28 +54,26 @@ std::string getBufferUsageString(VkBufferUsageFlags usage) {
 
 std::string getMemoryPropertyString(VkMemoryPropertyFlags properties) {
   std::string result;
-
-  if (properties & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) {
-    result += "DEVICE_LOCAL | ";
-  }
-  if (properties & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) {
-    result += "HOST_VISIBLE | ";
-  }
-  if (properties & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) {
-    result += "HOST_COHERENT | ";
-  }
-  if (properties & VK_MEMORY_PROPERTY_HOST_CACHED_BIT) {
-    result += "HOST_CACHED | ";
-  }
-  if (properties & VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT) {
-    result += "LAZILY_ALLOCATED | ";
+#define ADD_FLAG_CASE(flag) \
+  if (properties & flag) {  \
+    result += #flag " | ";  \
   }
 
-  // Remove the trailing " | " if there is one.
+  ADD_FLAG_CASE(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+  ADD_FLAG_CASE(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+  ADD_FLAG_CASE(VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+  ADD_FLAG_CASE(VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
+  ADD_FLAG_CASE(VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT);
+  ADD_FLAG_CASE(VK_MEMORY_PROPERTY_PROTECTED_BIT);
+  ADD_FLAG_CASE(VK_MEMORY_PROPERTY_DEVICE_COHERENT_BIT_AMD);
+  ADD_FLAG_CASE(VK_MEMORY_PROPERTY_DEVICE_UNCACHED_BIT_AMD);
+  ADD_FLAG_CASE(VK_MEMORY_PROPERTY_RDMA_CAPABLE_BIT_NV);
+
   if (!result.empty()) {
     result.erase(result.length() - 3);
   }
 
+#undef ADD_FLAG_CASE
   return result;
 }
 
@@ -214,8 +212,29 @@ std::string getImageUsageString(VkImageUsageFlags usage) {
   return result;
 }
 
-std::string getImageFormatString(VkImage format) {
-  return std::string();
+std::string getMemoryPropertyFlags(VkMemoryPropertyFlags memFlags) {
+  std::string result;
+#define ADD_FLAG_CASE(flag) \
+  if (memFlags & flag) {    \
+    result += #flag " | ";  \
+  }
+
+  ADD_FLAG_CASE(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+  ADD_FLAG_CASE(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+  ADD_FLAG_CASE(VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+  ADD_FLAG_CASE(VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
+  ADD_FLAG_CASE(VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT);
+  ADD_FLAG_CASE(VK_MEMORY_PROPERTY_PROTECTED_BIT);
+  ADD_FLAG_CASE(VK_MEMORY_PROPERTY_DEVICE_COHERENT_BIT_AMD);
+  ADD_FLAG_CASE(VK_MEMORY_PROPERTY_DEVICE_UNCACHED_BIT_AMD);
+  ADD_FLAG_CASE(VK_MEMORY_PROPERTY_RDMA_CAPABLE_BIT_NV);
+
+  if (!result.empty()) {
+    result.erase(result.length() - 3);
+  }
+
+#undef ADD_FLAG_CASE
+  return result;
 }
 
 std::string returnDateAndTime() {
