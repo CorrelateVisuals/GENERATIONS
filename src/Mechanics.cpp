@@ -468,7 +468,8 @@ void VulkanMechanics::createSwapChain() {
 }
 
 void VulkanMechanics::createSwapChainImageViews(Resources& resources) {
-  Log::console("{ IMG }", "Creating", swapChain.images.size(), "Image Views");
+  Log::console("{ IMG }", "Creating", swapChain.images.size(),
+               "Swap Chain Image Views");
 
   swapChain.imageViews.resize(swapChain.images.size());
 

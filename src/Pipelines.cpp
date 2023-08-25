@@ -29,6 +29,8 @@ void Pipelines::createPipelines(Resources& _resources) {
 }
 
 void Pipelines::createColorResources(Resources& _resources) {
+  Log::console("{ RES }", "creating Color Resources ");
+
   VkFormat colorFormat = _mechanics.swapChain.imageFormat;
 
   _resources.createImage(
@@ -43,6 +45,7 @@ void Pipelines::createColorResources(Resources& _resources) {
 }
 
 void Pipelines::createDepthResources(Resources& _resources) {
+  Log::console("{ RES }", "creating Depth Resources ");
   VkFormat depthFormat = findDepthFormat();
 
   _resources.createImage(
