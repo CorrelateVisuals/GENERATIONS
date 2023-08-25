@@ -34,13 +34,14 @@ void Resources::createResources(Pipelines& _pipelines) {
 }
 
 void Resources::createFramebuffers(Pipelines& _pipelines) {
-  Log::console("{ BUF }", "creating Frame Buffers");
+  Log::console("{ BUF }", "creating", _mechanics.swapChain.imageViews.size(),
+               "Frame Buffers");
 
   _mechanics.swapChain.framebuffers.resize(
       _mechanics.swapChain.imageViews.size());
 
   for (size_t i = 0; i < _mechanics.swapChain.imageViews.size(); i++) {
-    std::array<VkImageView, 3> attachments = {
+    std::vector<VkImageView> attachments{
         _pipelines.graphics.msaa.colorImageView,
         _pipelines.graphics.depth.imageView,
         _mechanics.swapChain.imageViews[i]};
@@ -133,7 +134,7 @@ void Resources::createShaderStorageBuffers() {
 }
 
 void Resources::createUniformBuffers() {
-  Log::console("{ BUF }", "creating Uniform Buffers");
+  Log::console("{ BUF }", "creating", MAX_FRAMES_IN_FLIGHT, "Uniform Buffers");
   VkDeviceSize bufferSize = sizeof(World::UniformBufferObject);
 
   buffers.uniforms.resize(MAX_FRAMES_IN_FLIGHT);
@@ -175,7 +176,8 @@ void Resources::createDescriptorSetLayout() {
        .pImmutableSamplers = nullptr},
   };
 
-  Log::console("{ DES }", "creating Descriptor Set Layout");
+  Log::console("{ DES }", "creating Descriptor Set Layout with",
+               layoutBindings.size(), "bindings");
   for (const VkDescriptorSetLayoutBinding& item : layoutBindings) {
     Log::console("{ ", item.binding, " }",
                  Log::getDescriptorTypeString(item.descriptorType));
@@ -193,7 +195,6 @@ void Resources::createDescriptorSetLayout() {
 }
 
 void Resources::createDescriptorPool() {
-  Log::console("{ DES }", "creating Descriptor Pools");
   std::vector<VkDescriptorPoolSize> poolSizes{
       {.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
        .descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT)},
@@ -201,6 +202,12 @@ void Resources::createDescriptorPool() {
        .descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT) * 2},
       {.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
        .descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT)}};
+
+  Log::console("{ DES }", "creating Descriptor Pool");
+  for (size_t i = 0; i < poolSizes.size(); i++) {
+    Log::console(Log::Style::charLeader,
+                 Log::getDescriptorTypeString(poolSizes[i].type));
+  }
 
   VkDescriptorPoolCreateInfo poolInfo{
       .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
@@ -221,6 +228,10 @@ void Resources::createImage(uint32_t width,
                             VkMemoryPropertyFlags properties,
                             VkImage& image,
                             VkDeviceMemory& imageMemory) {
+  Log::console("{ IMG }", "creating Image", width, height);
+  Log::console(Log::Style::charLeader, Log::getSampleCountString(numSamples));
+  Log::console(Log::Style::charLeader, Log::getImageUsageString(usage));
+
   VkImageCreateInfo imageInfo{
       .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
       .pNext = nullptr,
@@ -308,6 +319,8 @@ void Resources::setPushConstants() {
   pushConstants.data = {world.time.passedHours};
 }
 VkCommandBuffer Resources::beginSingleTimeCommands() {
+  Log::console("{ 1.. }", "Begin Single Time Commands");
+
   VkCommandBufferAllocateInfo allocInfo{};
   allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
   allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
@@ -328,6 +341,8 @@ VkCommandBuffer Resources::beginSingleTimeCommands() {
 }
 
 void Resources::endSingleTimeCommands(VkCommandBuffer commandBuffer) {
+  Log::console("{ ..1 }", "End Single Time Commands");
+
   vkEndCommandBuffer(commandBuffer);
 
   VkSubmitInfo submitInfo{};
@@ -346,6 +361,8 @@ void Resources::transitionImageLayout(VkImage image,
                                       VkFormat format,
                                       VkImageLayout oldLayout,
                                       VkImageLayout newLayout) {
+  Log::console("{ >>> }", "Transition Image Layout");
+
   VkCommandBuffer commandBuffer = beginSingleTimeCommands();
 
   VkImageMemoryBarrier barrier{};
@@ -418,7 +435,7 @@ void Resources::createTextureImageView() {
 }
 
 void Resources::createDescriptorSets() {
-  Log::console("{ DES }", "creating Compute Descriptor Sets");
+  Log::console("{ DES }", "creating Descriptor Sets");
   std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT,
                                              descriptor.setLayout);
   VkDescriptorSetAllocateInfo allocateInfo{
