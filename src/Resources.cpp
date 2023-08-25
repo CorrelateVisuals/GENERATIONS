@@ -30,6 +30,7 @@ void Resources::createResources(Pipelines& _pipelines) {
   createDescriptorSets();
   createCommandBuffers();
   createComputeCommandBuffers();
+  _mechanics.createSyncObjects();
 }
 
 void Resources::createFramebuffers(Pipelines& _pipelines) {

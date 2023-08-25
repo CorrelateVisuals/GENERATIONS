@@ -13,7 +13,6 @@ CapitalEngine::CapitalEngine() {
   _mechanics.setupVulkan(_pipelines, _resources);
   _pipelines.createPipelines(_resources);
   _resources.createResources(_pipelines);
-  _mechanics.createSyncObjects();
 }
 
 CapitalEngine::~CapitalEngine() {

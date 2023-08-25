@@ -514,14 +514,33 @@ void VulkanMechanics::recreateSwapChain(Pipelines& _pipelines,
   _resources.createFramebuffers(_pipelines);
 }
 
+#include <cstdlib>  // For std::system
+#include "Log.h"    // Include your Log header
+
 void VulkanMechanics::compileShaders() {
   Log::console("{ SHA }", "compiling shaders");
+  std::string command;
+
 #ifdef _WIN32
-  auto err = std::system("..\\shaders\\compile_shaders.bat");
+  command = "..\\shaders\\compile_shaders.bat";
 #else
   // Linux-specific code
-  auto err = std::system("./shaders/compile_shaders.sh");
+  command = "./shaders/compile_shaders.sh";
 #endif
+
+  if (FILE* pipe = _popen(command.c_str(), "r")) {
+    char buffer[128];
+    while (fgets(buffer, sizeof(buffer), pipe)) {
+      std::string output = buffer;
+      if (!output.empty() && output.back() == '\n') {
+        output.pop_back();
+      }
+      Log::console(output);
+    }
+    _pclose(pipe);
+  } else {
+    Log::console("{ ERROR }", "Failed to execute command:", command);
+  }
 }
 
 std::vector<const char*> VulkanMechanics::getRequiredExtensions() {
