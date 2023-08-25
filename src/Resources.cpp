@@ -8,11 +8,11 @@ World Resources::world;
 
 Resources::Resources(VulkanMechanics& mechanics)
     : pushConstants{}, image{}, buffers{}, descriptor{}, _mechanics(mechanics) {
-  Log::console("{ 010 }", "constructing Resources Management");
+  // Log::console("{ 010 }", "constructing Resources Management");
 }
 
 Resources::~Resources() {
-  Log::console("{ 010 }", "destructing Resources Management");
+  // Log::console("{ 010 }", "destructing Resources Management");
 }
 
 void Resources::createResources(Pipelines& _pipelines) {

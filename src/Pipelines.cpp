@@ -9,20 +9,21 @@
 
 Pipelines::Pipelines(VulkanMechanics& mechanics)
     : graphics{}, compute{}, _mechanics(mechanics) {
-  Log::console("{ PIP }", "constructing Pipelines");
+  // Log::console("{ PIP }", "constructing Pipelines");
 }
 
 Pipelines::~Pipelines() {
-  Log::console("{ PIP }", "destructing Pipelines");
+  // Log::console("{ PIP }", "destructing Pipelines");
 }
 
 void Pipelines::createPipelines(Resources& _resources) {
   Log::console("{ PIP }", "creating pipelines");
 
+  _resources.createDescriptorSetLayout();
   createRenderPass();
-  createGraphicsPipeline(_resources);
-  createComputePipeline(_resources);
-
+  createGraphicsPipeline(_resources.descriptor.setLayout);
+  createComputePipeline(_resources.descriptor.setLayout,
+                        _resources.pushConstants);
   createColorResources(_resources);
   createDepthResources(_resources);
 }
@@ -130,7 +131,8 @@ void Pipelines::createRenderPass() {
                     &renderPassInfo, nullptr, &graphics.renderPass);
 }
 
-void Pipelines::createGraphicsPipeline(Resources& _resources) {
+void Pipelines::createGraphicsPipeline(
+    VkDescriptorSetLayout& descriptorSetLayout) {
   Log::console("{ PIP }", "creating Graphics Pipeline");
 
   std::vector<VkPipelineShaderStageCreateInfo> shaderStages{
@@ -175,7 +177,7 @@ void Pipelines::createGraphicsPipeline(Resources& _resources) {
   VkPipelineLayoutCreateInfo pipelineLayoutInfo{
       .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
       .setLayoutCount = 1,
-      .pSetLayouts = &_resources.descriptor.setLayout};
+      .pSetLayouts = &descriptorSetLayout};
 
   _mechanics.result(vkCreatePipelineLayout, _mechanics.mainDevice.logical,
                     &pipelineLayoutInfo, nullptr, &graphics.pipelineLayout);
@@ -274,21 +276,23 @@ std::vector<char> Pipelines::readShaderFile(const std::string& filename) {
   return buffer;
 }
 
-void Pipelines::createComputePipeline(Resources& _resources) {
+void Pipelines::createComputePipeline(
+    VkDescriptorSetLayout& descriptorSetLayout,
+    Resources::PushConstants& pushConstants) {
   Log::console("{ PIP }", "creating Compute Pipeline");
 
   VkPipelineShaderStageCreateInfo computeShaderStageInfo =
       getShaderStageInfo(VK_SHADER_STAGE_COMPUTE_BIT, "comp.spv", compute);
 
   VkPushConstantRange pushConstantRange = {
-      .stageFlags = _resources.pushConstants.shaderStage,
-      .offset = _resources.pushConstants.offset,
-      .size = _resources.pushConstants.size};
+      .stageFlags = pushConstants.shaderStage,
+      .offset = pushConstants.offset,
+      .size = pushConstants.size};
 
   VkPipelineLayoutCreateInfo pipelineLayoutInfo{
       .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
       .setLayoutCount = 1,
-      .pSetLayouts = &_resources.descriptor.setLayout,
+      .pSetLayouts = &descriptorSetLayout,
       .pushConstantRangeCount = 1,
       .pPushConstantRanges = &pushConstantRange};
 

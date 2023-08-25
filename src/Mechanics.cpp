@@ -19,11 +19,11 @@ VulkanMechanics::VulkanMechanics()
              VK_NULL_HANDLE,
              {std::nullopt, std::nullopt}},
       swapChain{VK_NULL_HANDLE, {}, VK_FORMAT_UNDEFINED, {}, {0, 0}, {}, {}} {
-  Log::console("{ VkM }", "constructing Vulkan Mechanics");
+  // Log::console("{ VkM }", "constructing Vulkan Mechanics");
 }
 
 VulkanMechanics::~VulkanMechanics() {
-  Log::console("{ VkM }", "destructing Vulkan Mechanics");
+  // Log::console("{ VkM }", "destructing Vulkan Mechanics");
 }
 
 void VulkanMechanics::setupVulkan(Pipelines& _pipelines,

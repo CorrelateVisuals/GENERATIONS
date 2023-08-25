@@ -11,7 +11,6 @@ CapitalEngine::CapitalEngine() {
                "starting...\n");
 
   _mechanics.setupVulkan(_pipelines, _resources);
-  _resources.createDescriptorSetLayout();
   _pipelines.createPipelines(_resources);
   _resources.createResources(_pipelines);
   _mechanics.createSyncObjects();

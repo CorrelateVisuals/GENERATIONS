@@ -49,8 +49,9 @@ class Pipelines {
   VulkanMechanics& _mechanics;
 
   void createRenderPass();
-  void createGraphicsPipeline(Resources& _resources);
-  void createComputePipeline(Resources& _resources);
+  void createGraphicsPipeline(VkDescriptorSetLayout& descriptorSetLayout);
+  void createComputePipeline(VkDescriptorSetLayout& descriptorSetLayout,
+                             Resources::PushConstants& _pushConstants);
 
   VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates,
                                VkImageTiling tiling,
