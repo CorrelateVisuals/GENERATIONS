@@ -44,7 +44,7 @@ void VulkanMechanics::setupVulkan(Pipelines& _pipelines,
 }
 
 void VulkanMechanics::createInstance() {
-  Log::console("{ VkI }", "creating Vulkan Instance");
+  Log::console("{ VkI }", "Vulkan Instance");
   if (ValidationLayers::isValidationEnabled() &&
       !ValidationLayers::checkValidationLayerSupport()) {
     throw std::runtime_error(
@@ -90,13 +90,13 @@ void VulkanMechanics::createInstance() {
 }
 
 void VulkanMechanics::createSurface(GLFWwindow* window) {
-  Log::console("{ [ ] }", "creating Surface");
+  Log::console("{ [ ] }", "Surface");
   result(glfwCreateWindowSurface, instance, window, nullptr, &surface);
 }
 
 void VulkanMechanics::pickPhysicalDevice(
     Pipelines::Graphics::MultiSampling& msaa) {
-  Log::console("{ ### }", "picking Physical Device");
+  Log::console("{ ### }", "Physical Device");
   uint32_t deviceCount = 0;
   vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
 
@@ -230,7 +230,7 @@ VkSampleCountFlagBits VulkanMechanics::getMaxUsableSampleCount() {
 }
 
 void VulkanMechanics::createLogicalDevice() {
-  Log::console("{ +++ }", "creating Logical Device");
+  Log::console("{ +++ }", "Logical Device");
   Queues::FamilyIndices indices = findQueueFamilies(mainDevice.physical);
 
   std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
@@ -330,7 +330,7 @@ VkExtent2D VulkanMechanics::chooseSwapExtent(
 }
 
 void VulkanMechanics::createSyncObjects() {
-  Log::console("{ ||| }", "creating Sync Objects");
+  Log::console("{ ||| }", "Sync Objects");
 
   syncObjects.imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
   syncObjects.renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
@@ -411,7 +411,7 @@ bool VulkanMechanics::isDeviceSuitable(VkPhysicalDevice physicalDevice) {
 }
 
 void VulkanMechanics::createSwapChain() {
-  Log::console("{ <-> }", "creating Swap Chain");
+  Log::console("{ <-> }", "Swap Chain");
   SwapChain::SupportDetails swapChainSupport =
       querySwapChainSupport(mainDevice.physical);
 
@@ -468,8 +468,7 @@ void VulkanMechanics::createSwapChain() {
 }
 
 void VulkanMechanics::createSwapChainImageViews(Resources& resources) {
-  Log::console("{ <-> }", "creating", swapChain.images.size(),
-               "Swap Chain Image Views");
+  Log::console("{ <-> }", swapChain.images.size(), "Swap Chain Image Views");
 
   swapChain.imageViews.resize(swapChain.images.size());
 
@@ -480,7 +479,7 @@ void VulkanMechanics::createSwapChainImageViews(Resources& resources) {
 }
 
 void VulkanMechanics::createCommandPool(VkCommandPool* commandPool) {
-  Log::console("{ cmd }", "creating Command Pool");
+  Log::console("{ cmd }", "Command Pool");
 
   VulkanMechanics::Queues::FamilyIndices queueFamilyIndices =
       findQueueFamilies(mainDevice.physical);
