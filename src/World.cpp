@@ -146,7 +146,7 @@ bool World::isIndexAlive(const std::vector<int>& aliveCells, int index) {
          aliveCells.end();
 }
 
-World::UniformBufferObject World::updateUniforms() {
+World::UniformBufferObject World::updateUniforms(VkExtent2D& _swapChainExtent) {
   UniformBufferObject uniformObject{
       .light = light.position,
       .gridDimensions = {static_cast<uint32_t>(grid.dimensions[0]),
@@ -155,7 +155,7 @@ World::UniformBufferObject World::updateUniforms() {
       .cellSize = tile.cubeSize,
       .model = setModel(),
       .view = setView(),
-      .proj = setProjection(_mechanics.swapChain.extent)};
+      .proj = setProjection(_swapChainExtent)};
   return uniformObject;
 }
 

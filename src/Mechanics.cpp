@@ -26,7 +26,8 @@ VulkanMechanics::~VulkanMechanics() {
   Log::console("{ VkM }", "destructing Vulkan Mechanics");
 }
 
-void VulkanMechanics::setupVulkan() {
+void VulkanMechanics::setupVulkan(Pipelines& _pipelines,
+                                  Resources& _resources) {
   Log::console("{ VK. }", "setting up Vulkan");
   compileShaders();
   createInstance();
@@ -361,7 +362,7 @@ void VulkanMechanics::createSyncObjects() {
   }
 }
 
-void VulkanMechanics::cleanupSwapChain() {
+void VulkanMechanics::cleanupSwapChain(Pipelines& _pipelines) {
   vkDestroyImageView(mainDevice.logical, _pipelines.graphics.depth.imageView,
                      nullptr);
   vkDestroyImage(mainDevice.logical, _pipelines.graphics.depth.image, nullptr);
@@ -492,7 +493,8 @@ void VulkanMechanics::createCommandPool(VkCommandPool* commandPool) {
          commandPool);
 }
 
-void VulkanMechanics::recreateSwapChain() {
+void VulkanMechanics::recreateSwapChain(Pipelines& _pipelines,
+                                        Resources& _resources) {
   int width = 0, height = 0;
   glfwGetFramebufferSize(Window::get().window, &width, &height);
   while (width == 0 || height == 0) {
@@ -502,13 +504,13 @@ void VulkanMechanics::recreateSwapChain() {
 
   vkDeviceWaitIdle(mainDevice.logical);
 
-  cleanupSwapChain();
+  cleanupSwapChain(_pipelines);
 
   createSwapChain();
   createSwapChainImageViews(_resources);
-  _pipelines.createDepthResources();
-  _pipelines.createColorResources();
-  _resources.createFramebuffers();
+  _pipelines.createDepthResources(_resources);
+  _pipelines.createColorResources(_resources);
+  _resources.createFramebuffers(_pipelines);
 }
 
 void VulkanMechanics::compileShaders() {

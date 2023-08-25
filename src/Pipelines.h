@@ -1,9 +1,15 @@
 #pragma once
 #include <glm/glm.hpp>
 
+#include "Mechanics.h"
+#include "Resources.h"
+
+class VulkanMechanics;
+class Resources;
+
 class Pipelines {
  public:
-  Pipelines();
+  Pipelines(VulkanMechanics& mechanics);
   ~Pipelines();
 
   struct Graphics {
@@ -34,15 +40,17 @@ class Pipelines {
   } compute;
 
  public:
-  void createPipelines();
+  void createPipelines(Resources& _resources);
 
-  void createColorResources();
-  void createDepthResources();
+  void createColorResources(Resources& _resources);
+  void createDepthResources(Resources& _resources);
 
  private:
+  VulkanMechanics& _mechanics;
+
   void createRenderPass();
-  void createGraphicsPipeline();
-  void createComputePipeline();
+  void createGraphicsPipeline(Resources& _resources);
+  void createComputePipeline(Resources& _resources);
 
   VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates,
                                VkImageTiling tiling,

@@ -67,10 +67,10 @@ class VulkanMechanics {
   } syncObjects;
 
  public:
-  void setupVulkan();
+  void setupVulkan(Pipelines& _pipelines, Resources& _resources);
 
-  void recreateSwapChain();
-  void cleanupSwapChain();
+  void recreateSwapChain(Pipelines& _pipelines, Resources& _resources);
+  void cleanupSwapChain(Pipelines& _pipelines);
 
   void createSyncObjects();
 

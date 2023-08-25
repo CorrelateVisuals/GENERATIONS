@@ -6,7 +6,8 @@
 
 World Resources::world;
 
-Resources::Resources() : pushConstants{}, image{}, buffers{}, descriptor{} {
+Resources::Resources(VulkanMechanics& mechanics)
+    : pushConstants{}, image{}, buffers{}, descriptor{}, _mechanics(mechanics) {
   Log::console("{ 010 }", "constructing Resources Management");
 }
 
@@ -14,14 +15,14 @@ Resources::~Resources() {
   Log::console("{ 010 }", "destructing Resources Management");
 }
 
-void Resources::createResources() {
+void Resources::createResources(Pipelines& _pipelines) {
   Log::console("{ RES }", "creating Resources ...");
 
   createTextureImage("../assets/GenerationsCapture.PNG");
   createTextureImageView();
   createTextureSampler();
 
-  createFramebuffers();
+  createFramebuffers(_pipelines);
   createShaderStorageBuffers();
   createUniformBuffers();
 
@@ -31,7 +32,7 @@ void Resources::createResources() {
   createComputeCommandBuffers();
 }
 
-void Resources::createFramebuffers() {
+void Resources::createFramebuffers(Pipelines& _pipelines) {
   Log::console("{ BUF }", "creating Frame Buffers");
 
   _mechanics.swapChain.framebuffers.resize(
@@ -181,7 +182,7 @@ void Resources::createDescriptorSetLayout() {
       .pBindings = layoutBindings.data()};
 
   _mechanics.result(vkCreateDescriptorSetLayout, _mechanics.mainDevice.logical,
-                    &layoutInfo, nullptr, &_resources.descriptor.setLayout);
+                    &layoutInfo, nullptr, &descriptor.setLayout);
 }
 
 void Resources::createDescriptorPool() {
@@ -201,7 +202,7 @@ void Resources::createDescriptorPool() {
       .pPoolSizes = poolSizes.data()};
 
   _mechanics.result(vkCreateDescriptorPool, _mechanics.mainDevice.logical,
-                    &poolInfo, nullptr, &_resources.descriptor.pool);
+                    &poolInfo, nullptr, &descriptor.pool);
 }
 
 void Resources::createImage(uint32_t width,
@@ -297,7 +298,7 @@ void Resources::createTextureImage(std::string imagePath) {
 }
 
 void Resources::setPushConstants() {
-  _resources.pushConstants.data = {world.time.passedHours};
+  pushConstants.data = {world.time.passedHours};
 }
 VkCommandBuffer Resources::beginSingleTimeCommands() {
   VkCommandBufferAllocateInfo allocInfo{};
@@ -487,12 +488,14 @@ void Resources::createDescriptorSets() {
 }
 
 void Resources::updateUniformBuffer(uint32_t currentImage) {
-  World::UniformBufferObject uniformObject = world.updateUniforms();
+  World::UniformBufferObject uniformObject =
+      world.updateUniforms(_mechanics.swapChain.extent);
   std::memcpy(buffers.uniformsMapped[currentImage], &uniformObject,
               sizeof(uniformObject));
 }
 
-void Resources::recordComputeCommandBuffer(VkCommandBuffer commandBuffer) {
+void Resources::recordComputeCommandBuffer(VkCommandBuffer commandBuffer,
+                                           Pipelines& _pipelines) {
   VkCommandBufferBeginInfo beginInfo{
       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO};
 
@@ -526,7 +529,8 @@ void Resources::recordComputeCommandBuffer(VkCommandBuffer commandBuffer) {
 }
 
 void Resources::recordCommandBuffer(VkCommandBuffer commandBuffer,
-                                    uint32_t imageIndex) {
+                                    uint32_t imageIndex,
+                                    Pipelines& _pipelines) {
   VkCommandBufferBeginInfo beginInfo{
       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO};
 
@@ -565,8 +569,7 @@ void Resources::recordCommandBuffer(VkCommandBuffer commandBuffer,
   VkDeviceSize offsets[]{0};
   vkCmdBindVertexBuffers(
       commandBuffer, 0, 1,
-      &_resources.buffers.shaderStorage[_mechanics.syncObjects.currentFrame],
-      offsets);
+      &buffers.shaderStorage[_mechanics.syncObjects.currentFrame], offsets);
 
   vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                           _pipelines.graphics.pipelineLayout, 0, 1,

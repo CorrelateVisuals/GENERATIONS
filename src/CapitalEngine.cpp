@@ -2,23 +2,24 @@
 
 #include <iostream>
 
+VulkanMechanics _mechanics;
+Pipelines _pipelines(_mechanics);
+Resources _resources(_mechanics);
+
 CapitalEngine::CapitalEngine() {
   Log::console("\n", Log::Style::indentSize, "[ CAPITAL engine ]",
                "starting...\n");
-  _mechanics.setupVulkan();
+
+  _mechanics.setupVulkan(_pipelines, _resources);
   _resources.createDescriptorSetLayout();
-  _pipelines.createPipelines();
-  _resources.createResources();
+  _pipelines.createPipelines(_resources);
+  _resources.createResources(_pipelines);
   _mechanics.createSyncObjects();
 }
 
 CapitalEngine::~CapitalEngine() {
   Log::console("\n", Log::Style::indentSize, "[ CAPITAL engine ]",
                "terminating...\n");
-}
-
-Global::~Global() {
-  cleanup();
 }
 
 void CapitalEngine::mainLoop() {
@@ -61,7 +62,8 @@ void CapitalEngine::drawFrame() {
       _resources.buffers.command.compute[_mechanics.syncObjects.currentFrame],
       0);
   _resources.recordComputeCommandBuffer(
-      _resources.buffers.command.compute[_mechanics.syncObjects.currentFrame]);
+      _resources.buffers.command.compute[_mechanics.syncObjects.currentFrame],
+      _pipelines);
 
   VkSubmitInfo computeSubmitInfo{
       .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
@@ -92,7 +94,7 @@ void CapitalEngine::drawFrame() {
       VK_NULL_HANDLE, &imageIndex);
 
   if (result == VK_ERROR_OUT_OF_DATE_KHR) {
-    _mechanics.recreateSwapChain();
+    _mechanics.recreateSwapChain(_pipelines, _resources);
     return;
   } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
     throw std::runtime_error("\n!ERROR! failed to acquire swap chain image!");
@@ -108,7 +110,7 @@ void CapitalEngine::drawFrame() {
 
   _resources.recordCommandBuffer(
       _resources.buffers.command.graphic[_mechanics.syncObjects.currentFrame],
-      imageIndex);
+      imageIndex, _pipelines);
 
   std::vector<VkSemaphore> waitSemaphores{
       _mechanics.syncObjects
@@ -154,7 +156,7 @@ void CapitalEngine::drawFrame() {
   if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR ||
       Window::get().framebufferResized) {
     Window::get().framebufferResized = false;
-    _mechanics.recreateSwapChain();
+    _mechanics.recreateSwapChain(_pipelines, _resources);
   } else if (result != VK_SUCCESS) {
     throw std::runtime_error("\n!ERROR! failed to present swap chain image!");
   }
@@ -163,8 +165,8 @@ void CapitalEngine::drawFrame() {
       (_mechanics.syncObjects.currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 }
 
-void Global::cleanup() {
-  _mechanics.cleanupSwapChain();
+void CapitalEngine::cleanup() {
+  _mechanics.cleanupSwapChain(_pipelines);
 
   vkDestroySampler(_mechanics.mainDevice.logical,
                    _resources.image.textureSampler, nullptr);

@@ -7,7 +7,8 @@
 #include <cstring>
 #include <random>
 
-Pipelines::Pipelines() : graphics{}, compute{} {
+Pipelines::Pipelines(VulkanMechanics& mechanics)
+    : graphics{}, compute{}, _mechanics(mechanics) {
   Log::console("{ PIP }", "constructing Pipelines");
 }
 
@@ -15,18 +16,18 @@ Pipelines::~Pipelines() {
   Log::console("{ PIP }", "destructing Pipelines");
 }
 
-void Pipelines::createPipelines() {
+void Pipelines::createPipelines(Resources& _resources) {
   Log::console("{ PIP }", "creating pipelines");
 
   createRenderPass();
-  createGraphicsPipeline();
-  createComputePipeline();
+  createGraphicsPipeline(_resources);
+  createComputePipeline(_resources);
 
-  createColorResources();
-  createDepthResources();
+  createColorResources(_resources);
+  createDepthResources(_resources);
 }
 
-void Pipelines::createColorResources() {
+void Pipelines::createColorResources(Resources& _resources) {
   VkFormat colorFormat = _mechanics.swapChain.imageFormat;
 
   _resources.createImage(
@@ -40,7 +41,7 @@ void Pipelines::createColorResources() {
       graphics.msaa.colorImage, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT);
 }
 
-void Pipelines::createDepthResources() {
+void Pipelines::createDepthResources(Resources& _resources) {
   VkFormat depthFormat = findDepthFormat();
 
   _resources.createImage(
@@ -129,7 +130,7 @@ void Pipelines::createRenderPass() {
                     &renderPassInfo, nullptr, &graphics.renderPass);
 }
 
-void Pipelines::createGraphicsPipeline() {
+void Pipelines::createGraphicsPipeline(Resources& _resources) {
   Log::console("{ PIP }", "creating Graphics Pipeline");
 
   std::vector<VkPipelineShaderStageCreateInfo> shaderStages{
@@ -273,7 +274,7 @@ std::vector<char> Pipelines::readShaderFile(const std::string& filename) {
   return buffer;
 }
 
-void Pipelines::createComputePipeline() {
+void Pipelines::createComputePipeline(Resources& _resources) {
   Log::console("{ PIP }", "creating Compute Pipeline");
 
   VkPipelineShaderStageCreateInfo computeShaderStageInfo =

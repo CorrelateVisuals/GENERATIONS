@@ -52,7 +52,7 @@ class World {
   } tile;
 
  public:
-  UniformBufferObject updateUniforms();
+  UniformBufferObject updateUniforms(VkExtent2D& _swapChain);
 
   std::vector<World::Cell> initializeCells();
 
