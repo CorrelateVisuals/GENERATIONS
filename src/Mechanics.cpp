@@ -530,17 +530,23 @@ void VulkanMechanics::compileShaders() {
 
   if (FILE* pipe = _popen(command.c_str(), "r")) {
     char buffer[128];
+    std::string output;
+
     while (fgets(buffer, sizeof(buffer), pipe)) {
-      std::string output = buffer;
+      output = buffer;
       if (!output.empty() && output.back() == '\n') {
         output.pop_back();
+        Log::console(output);
+        if (output.find(".exe") != std::string::npos) {
+          Log::console(output);
+        }
       }
-      Log::console(output);
     }
     _pclose(pipe);
   } else {
     Log::console("{ ERROR }", "Failed to execute command:", command);
   }
+  std::cout << std::endl;
 }
 
 std::vector<const char*> VulkanMechanics::getRequiredExtensions() {

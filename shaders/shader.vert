@@ -9,7 +9,6 @@ layout(location = 5) in vec4 inTileCornersHeight;
 
 layout(location = 6) in vec2 textureCoords;
 
-
 layout (binding = 0) uniform ParameterUBO {
     vec4 light;
     ivec2 gridDimensions;
