@@ -2,42 +2,45 @@
 
 #include <iostream>
 
+VulkanMechanics _mechanics;
+Pipelines _pipelines(_mechanics);
+Resources _resources(_mechanics);
+
 CapitalEngine::CapitalEngine() {
-  _log.console("\n", _log.style.indentSize, "[ CAPITAL engine ]",
+  Log::console("\n", Log::Style::indentSize, "[ CAPITAL engine ]",
                "starting...\n");
-  _mechanics.setupVulkan();
-  _pipelines.createPipelines();
-  _resources.createResources();
+
+  _mechanics.setupVulkan(_pipelines, _resources);
+  _pipelines.createPipelines(_resources);
+  _resources.createResources(_pipelines);
   _mechanics.createSyncObjects();
 }
 
 CapitalEngine::~CapitalEngine() {
-  _log.console("\n", _log.style.indentSize, "[ CAPITAL engine ]",
+  Log::console("\n", Log::Style::indentSize, "[ CAPITAL engine ]",
                "terminating...\n");
-}
-
-Global::~Global() {
   cleanup();
 }
 
 void CapitalEngine::mainLoop() {
-  _log.console("\n", _log.style.indentSize,
+  Log::console("\n", Log::Style::indentSize,
                "{ Main Loop } running ..........\n");
 
-  while (!glfwWindowShouldClose(_window.window)) {
+  while (!glfwWindowShouldClose(Window::get().window)) {
     glfwPollEvents();
 
-    _window.setMouse();
-    _control.time.run();
+    Window::get().setMouse();
+    _resources.world.time.run();
 
     drawFrame();
 
-    if (glfwGetKey(_window.window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+    if (glfwGetKey(Window::get().window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
       break;
     }
   }
   vkDeviceWaitIdle(_mechanics.mainDevice.logical);
-  _log.console("\n", _log.style.indentSize, "{ Main Loop } ....... terminated");
+  Log::console("\n", Log::Style::indentSize,
+               "{ Main Loop } ....... terminated");
 }
 
 void CapitalEngine::drawFrame() {
@@ -59,7 +62,8 @@ void CapitalEngine::drawFrame() {
       _resources.buffers.command.compute[_mechanics.syncObjects.currentFrame],
       0);
   _resources.recordComputeCommandBuffer(
-      _resources.buffers.command.compute[_mechanics.syncObjects.currentFrame]);
+      _resources.buffers.command.compute[_mechanics.syncObjects.currentFrame],
+      _pipelines);
 
   VkSubmitInfo computeSubmitInfo{
       .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
@@ -90,7 +94,7 @@ void CapitalEngine::drawFrame() {
       VK_NULL_HANDLE, &imageIndex);
 
   if (result == VK_ERROR_OUT_OF_DATE_KHR) {
-    _mechanics.recreateSwapChain();
+    _mechanics.recreateSwapChain(_pipelines, _resources);
     return;
   } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
     throw std::runtime_error("\n!ERROR! failed to acquire swap chain image!");
@@ -106,7 +110,7 @@ void CapitalEngine::drawFrame() {
 
   _resources.recordCommandBuffer(
       _resources.buffers.command.graphic[_mechanics.syncObjects.currentFrame],
-      imageIndex);
+      imageIndex, _pipelines);
 
   std::vector<VkSemaphore> waitSemaphores{
       _mechanics.syncObjects
@@ -150,9 +154,9 @@ void CapitalEngine::drawFrame() {
   result = vkQueuePresentKHR(_mechanics.queues.present, &presentInfo);
 
   if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR ||
-      _window.framebufferResized) {
-    _window.framebufferResized = false;
-    _mechanics.recreateSwapChain();
+      Window::get().framebufferResized) {
+    Window::get().framebufferResized = false;
+    _mechanics.recreateSwapChain(_pipelines, _resources);
   } else if (result != VK_SUCCESS) {
     throw std::runtime_error("\n!ERROR! failed to present swap chain image!");
   }
@@ -161,8 +165,8 @@ void CapitalEngine::drawFrame() {
       (_mechanics.syncObjects.currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 }
 
-void Global::cleanup() {
-  _mechanics.cleanupSwapChain();
+void CapitalEngine::cleanup() {
+  _mechanics.cleanupSwapChain(_pipelines);
 
   vkDestroySampler(_mechanics.mainDevice.logical,
                    _resources.image.textureSampler, nullptr);
@@ -228,15 +232,15 @@ void Global::cleanup() {
 
   vkDestroyDevice(_mechanics.mainDevice.logical, nullptr);
 
-  if (_validation.enableValidationLayers) {
-    _validation.DestroyDebugUtilsMessengerEXT(
-        _mechanics.instance, _validation.debugMessenger, nullptr);
+  if (ValidationLayers::isValidationEnabled()) {
+    ValidationLayers::destroyDebugUtilsMessengerEXT(
+        _mechanics.instance, ValidationLayers::debugMessenger, nullptr);
   }
 
   vkDestroySurfaceKHR(_mechanics.instance, _mechanics.surface, nullptr);
   vkDestroyInstance(_mechanics.instance, nullptr);
 
-  glfwDestroyWindow(_window.window);
+  glfwDestroyWindow(Window::get().window);
 
   glfwTerminate();
 }

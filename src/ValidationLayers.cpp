@@ -1,29 +1,40 @@
 #include "ValidationLayers.h"
 #include "CapitalEngine.h"
 
-#include <chrono>
 #include <set>
-#include <string>
 
-ValidationLayers::ValidationLayers()
-    : debugMessenger{}, validation{"VK_LAYER_KHRONOS_validation"} {
-  _log.console("{ --- }", "constructing Validation Layers");
+namespace ValidationLayers {
+VkDebugUtilsMessengerEXT debugMessenger = VK_NULL_HANDLE;
+
+VKAPI_ATTR VkBool32 VKAPI_CALL Internal::debugCallback(
+    VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+    VkDebugUtilsMessageTypeFlagsEXT messageType,
+    const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+    void* pUserData) {
+  const std::string debugMessage = pCallbackData->pMessage;
+  logValidationMessage(debugMessage, "Epic Games");
+  return VK_FALSE;
 }
 
-ValidationLayers::~ValidationLayers() {
-  _log.console("{ --- }", "destructing Validation Layers");
-}
-
-void ValidationLayers::logValidationMessage(const std::string& string,
-                                            const std::string& excludeError) {
+void Internal::logValidationMessage(const std::string& string,
+                                    const std::string& excludeError) {
   if (string.find(excludeError) != std::string::npos)
     return;
 
-  _log.console("\n\n                     > > > Validation Layer: ", string,
+  Log::console("\n\n                     > > > Validation Layer: ", string,
                "\n");
 }
 
-VkResult ValidationLayers::CreateDebugUtilsMessengerEXT(
+void Internal::LogValidationMessage(const std::string& string,
+                                    const std::string& excludeError) {
+  if (string.find(excludeError) != std::string::npos)
+    return;
+
+  Log::console("\n\n                     > > > Validation Layer: ", string,
+               "\n");
+}
+
+VkResult Internal::CreateDebugUtilsMessengerEXT(
     VkInstance instance,
     const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
     const VkAllocationCallbacks* pAllocator,
@@ -37,7 +48,7 @@ VkResult ValidationLayers::CreateDebugUtilsMessengerEXT(
   }
 }
 
-void ValidationLayers::DestroyDebugUtilsMessengerEXT(
+void ValidationLayers::destroyDebugUtilsMessengerEXT(
     VkInstance instance,
     VkDebugUtilsMessengerEXT debugMessenger,
     const VkAllocationCallbacks* pAllocator) {
@@ -57,18 +68,18 @@ void ValidationLayers::populateDebugMessengerCreateInfo(
       .messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
                      VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
                      VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT,
-      .pfnUserCallback = debugCallback};
+      .pfnUserCallback = ValidationLayers::Internal::debugCallback};
 }
 
 void ValidationLayers::setupDebugMessenger(VkInstance instance) {
-  if (!enableValidationLayers)
+  if (!isValidationEnabled())
     return;
 
   VkDebugUtilsMessengerCreateInfoEXT createInfo;
   populateDebugMessengerCreateInfo(createInfo);
 
-  if (CreateDebugUtilsMessengerEXT(instance, &createInfo, nullptr,
-                                   &debugMessenger) != VK_SUCCESS)
+  if (ValidationLayers::Internal::CreateDebugUtilsMessengerEXT(
+          instance, &createInfo, nullptr, &debugMessenger) != VK_SUCCESS)
     throw std::runtime_error("\n!ERROR! Failed to set up debug messenger!");
 }
 
@@ -91,3 +102,5 @@ bool ValidationLayers::checkValidationLayerSupport() {
   }
   return true;
 }
+
+}  // namespace ValidationLayers

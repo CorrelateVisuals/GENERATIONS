@@ -1,15 +1,24 @@
 #pragma once
 #include "vulkan/vulkan.h"
 
+#include "Mechanics.h"
+#include "Pipelines.h"
+#include "World.h"
+
 #include <array>
 #include <cstring>
 #include <string>
 #include <vector>
 
+class VulkanMechanics;
+class Pipelines;
+
 class Resources {
  public:
-  Resources();
+  Resources(VulkanMechanics& mechanics);
   ~Resources();
+
+  static World world;
 
   struct PushConstants {
     VkShaderStageFlags shaderStage = {VK_SHADER_STAGE_COMPUTE_BIT};
@@ -47,13 +56,16 @@ class Resources {
   } descriptor;
 
  public:
-  void createResources();
+  void createResources(Pipelines& _pipelines);
 
-  void createFramebuffers();
+  void createFramebuffers(Pipelines& _pipelines);
   void createDescriptorSetLayout();
 
-  void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
-  void recordComputeCommandBuffer(VkCommandBuffer commandBuffer);
+  void recordCommandBuffer(VkCommandBuffer commandBuffer,
+                           uint32_t imageIndex,
+                           Pipelines& _pipelines);
+  void recordComputeCommandBuffer(VkCommandBuffer commandBuffer,
+                                  Pipelines& _pipelines);
 
   void updateUniformBuffer(uint32_t currentImage);
 
@@ -71,6 +83,16 @@ class Resources {
                               VkImageAspectFlags aspectFlags);
 
  private:
+  VulkanMechanics& _mechanics;
+
+  struct Compute {
+    const uint8_t localSizeX{32};
+    const uint8_t localSizeY{32};
+    const uint8_t localSizeZ{1};
+  } compute;
+
+  void setPushConstants();
+
   VkCommandBuffer beginSingleTimeCommands();
   void endSingleTimeCommands(VkCommandBuffer commandBuffer);
   void createCommandBuffers();

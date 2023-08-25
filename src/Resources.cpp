@@ -4,22 +4,25 @@
 #include "CapitalEngine.h"
 #include "Resources.h"
 
-Resources::Resources() : pushConstants{}, image{}, buffers{}, descriptor{} {
-  _log.console("{ 010 }", "constructing Resources Management");
+World Resources::world;
+
+Resources::Resources(VulkanMechanics& mechanics)
+    : pushConstants{}, image{}, buffers{}, descriptor{}, _mechanics(mechanics) {
+  // Log::console("{ 010 }", "constructing Resources Management");
 }
 
 Resources::~Resources() {
-  _log.console("{ 010 }", "destructing Resources Management");
+  // Log::console("{ 010 }", "destructing Resources Management");
 }
 
-void Resources::createResources() {
-  _log.console("{ RES }", "creating Resources ...");
+void Resources::createResources(Pipelines& _pipelines) {
+  Log::console("{ RES }", "creating Resources ...");
 
   createTextureImage("../assets/GenerationsCapture.PNG");
   createTextureImageView();
   createTextureSampler();
 
-  createFramebuffers();
+  createFramebuffers(_pipelines);
   createShaderStorageBuffers();
   createUniformBuffers();
 
@@ -29,8 +32,8 @@ void Resources::createResources() {
   createComputeCommandBuffers();
 }
 
-void Resources::createFramebuffers() {
-  _log.console("{ BUF }", "creating Frame Buffers");
+void Resources::createFramebuffers(Pipelines& _pipelines) {
+  Log::console("{ BUF }", "creating Frame Buffers");
 
   _mechanics.swapChain.framebuffers.resize(
       _mechanics.swapChain.imageViews.size());
@@ -57,7 +60,7 @@ void Resources::createFramebuffers() {
 }
 
 void Resources::createCommandBuffers() {
-  _log.console("{ CMD }", "creating Command Buffers");
+  Log::console("{ CMD }", "creating Command Buffers");
 
   buffers.command.graphic.resize(MAX_FRAMES_IN_FLIGHT);
 
@@ -73,7 +76,7 @@ void Resources::createCommandBuffers() {
 }
 
 void Resources::createComputeCommandBuffers() {
-  _log.console("{ CMD }", "creating Compute Command Buffers");
+  Log::console("{ CMD }", "creating Compute Command Buffers");
 
   buffers.command.compute.resize(MAX_FRAMES_IN_FLIGHT);
 
@@ -89,12 +92,12 @@ void Resources::createComputeCommandBuffers() {
 }
 
 void Resources::createShaderStorageBuffers() {
-  _log.console("{ BUF }", "creating Shader Storage Buffers");
+  Log::console("{ BUF }", "creating Shader Storage Buffers");
 
-  std::vector<World::Cell> cells = _world.initializeCells();
+  std::vector<World::Cell> cells = world.initializeCells();
 
-  VkDeviceSize bufferSize = sizeof(World::Cell) * _control.grid.dimensions[0] *
-                            _control.grid.dimensions[1];
+  VkDeviceSize bufferSize =
+      sizeof(World::Cell) * world.grid.dimensions[0] * world.grid.dimensions[1];
 
   // Create a staging buffer used to upload data to the gpu
   VkBuffer stagingBuffer;
@@ -129,7 +132,7 @@ void Resources::createShaderStorageBuffers() {
 }
 
 void Resources::createUniformBuffers() {
-  _log.console("{ BUF }", "creating Uniform Buffers");
+  Log::console("{ BUF }", "creating Uniform Buffers");
   VkDeviceSize bufferSize = sizeof(World::UniformBufferObject);
 
   buffers.uniforms.resize(MAX_FRAMES_IN_FLIGHT);
@@ -148,7 +151,7 @@ void Resources::createUniformBuffers() {
 }
 
 void Resources::createDescriptorSetLayout() {
-  _log.console("{ DES }", "creating Compute Descriptor Set Layout");
+  Log::console("{ DES }", "creating Compute Descriptor Set Layout");
 
   std::vector<VkDescriptorSetLayoutBinding> layoutBindings = {
       {.binding = 0,
@@ -179,11 +182,11 @@ void Resources::createDescriptorSetLayout() {
       .pBindings = layoutBindings.data()};
 
   _mechanics.result(vkCreateDescriptorSetLayout, _mechanics.mainDevice.logical,
-                    &layoutInfo, nullptr, &_resources.descriptor.setLayout);
+                    &layoutInfo, nullptr, &descriptor.setLayout);
 }
 
 void Resources::createDescriptorPool() {
-  _log.console("{ DES }", "creating Descriptor Pools");
+  Log::console("{ DES }", "creating Descriptor Pools");
   std::vector<VkDescriptorPoolSize> poolSizes{
       {.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
        .descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT)},
@@ -199,7 +202,7 @@ void Resources::createDescriptorPool() {
       .pPoolSizes = poolSizes.data()};
 
   _mechanics.result(vkCreateDescriptorPool, _mechanics.mainDevice.logical,
-                    &poolInfo, nullptr, &_resources.descriptor.pool);
+                    &poolInfo, nullptr, &descriptor.pool);
 }
 
 void Resources::createImage(uint32_t width,
@@ -247,7 +250,7 @@ void Resources::createImage(uint32_t width,
 }
 
 void Resources::createTextureImage(std::string imagePath) {
-  _log.console("{ IMG }", "Loading Image Texture: ", imagePath);
+  Log::console("{ IMG }", "Loading Image Texture: ", imagePath);
   int texWidth, texHeight, texChannels;
   int rgba = 4;
   stbi_uc* pixels = stbi_load(imagePath.c_str(), &texWidth, &texHeight,
@@ -294,6 +297,9 @@ void Resources::createTextureImage(std::string imagePath) {
   vkFreeMemory(_mechanics.mainDevice.logical, stagingBufferMemory, nullptr);
 }
 
+void Resources::setPushConstants() {
+  pushConstants.data = {world.time.passedHours};
+}
 VkCommandBuffer Resources::beginSingleTimeCommands() {
   VkCommandBufferAllocateInfo allocInfo{};
   allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -399,13 +405,13 @@ void Resources::copyBufferToImage(VkBuffer buffer,
 }
 
 void Resources::createTextureImageView() {
-  _log.console("{ IMG }", "Creating Texture Image View");
+  Log::console("{ IMG }", "Creating Texture Image View");
   image.textureView = createImageView(image.texture, VK_FORMAT_R8G8B8A8_SRGB,
                                       VK_IMAGE_ASPECT_COLOR_BIT);
 }
 
 void Resources::createDescriptorSets() {
-  _log.console("{ DES }", "creating Compute Descriptor Sets");
+  Log::console("{ DES }", "creating Compute Descriptor Sets");
   std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT,
                                              descriptor.setLayout);
   VkDescriptorSetAllocateInfo allocateInfo{
@@ -427,14 +433,14 @@ void Resources::createDescriptorSets() {
     VkDescriptorBufferInfo storageBufferInfoLastFrame{
         .buffer = buffers.shaderStorage[(i - 1) % MAX_FRAMES_IN_FLIGHT],
         .offset = 0,
-        .range = sizeof(World::Cell) * _control.grid.dimensions[0] *
-                 _control.grid.dimensions[1]};
+        .range = sizeof(World::Cell) * world.grid.dimensions[0] *
+                 world.grid.dimensions[1]};
 
     VkDescriptorBufferInfo storageBufferInfoCurrentFrame{
         .buffer = buffers.shaderStorage[i],
         .offset = 0,
-        .range = sizeof(World::Cell) * _control.grid.dimensions[0] *
-                 _control.grid.dimensions[1]};
+        .range = sizeof(World::Cell) * world.grid.dimensions[0] *
+                 world.grid.dimensions[1]};
 
     VkDescriptorImageInfo imageInfo{
         .sampler = image.textureSampler,
@@ -482,12 +488,14 @@ void Resources::createDescriptorSets() {
 }
 
 void Resources::updateUniformBuffer(uint32_t currentImage) {
-  World::UniformBufferObject uniformObject = _world.updateUniforms();
+  World::UniformBufferObject uniformObject =
+      world.updateUniforms(_mechanics.swapChain.extent);
   std::memcpy(buffers.uniformsMapped[currentImage], &uniformObject,
               sizeof(uniformObject));
 }
 
-void Resources::recordComputeCommandBuffer(VkCommandBuffer commandBuffer) {
+void Resources::recordComputeCommandBuffer(VkCommandBuffer commandBuffer,
+                                           Pipelines& _pipelines) {
   VkCommandBufferBeginInfo beginInfo{
       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO};
 
@@ -504,26 +512,25 @@ void Resources::recordComputeCommandBuffer(VkCommandBuffer commandBuffer) {
                           &descriptor.sets[_mechanics.syncObjects.currentFrame],
                           0, nullptr);
 
-  _control.setPushConstants();
+  setPushConstants();
   vkCmdPushConstants(commandBuffer, _pipelines.compute.pipelineLayout,
                      pushConstants.shaderStage, pushConstants.offset,
                      pushConstants.size, pushConstants.data.data());
 
   uint32_t numberOfWorkgroupsX =
-      (_control.grid.dimensions[0] + _control.compute.localSizeX - 1) /
-      _control.compute.localSizeX;
+      (world.grid.dimensions[0] + compute.localSizeX - 1) / compute.localSizeX;
   uint32_t numberOfWorkgroupsY =
-      (_control.grid.dimensions[1] + _control.compute.localSizeY - 1) /
-      _control.compute.localSizeY;
+      (world.grid.dimensions[1] + compute.localSizeY - 1) / compute.localSizeY;
 
   vkCmdDispatch(commandBuffer, numberOfWorkgroupsX, numberOfWorkgroupsY,
-                _control.compute.localSizeZ);
+                compute.localSizeZ);
 
   _mechanics.result(vkEndCommandBuffer, commandBuffer);
 }
 
 void Resources::recordCommandBuffer(VkCommandBuffer commandBuffer,
-                                    uint32_t imageIndex) {
+                                    uint32_t imageIndex,
+                                    Pipelines& _pipelines) {
   VkCommandBufferBeginInfo beginInfo{
       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO};
 
@@ -562,16 +569,15 @@ void Resources::recordCommandBuffer(VkCommandBuffer commandBuffer,
   VkDeviceSize offsets[]{0};
   vkCmdBindVertexBuffers(
       commandBuffer, 0, 1,
-      &_resources.buffers.shaderStorage[_mechanics.syncObjects.currentFrame],
-      offsets);
+      &buffers.shaderStorage[_mechanics.syncObjects.currentFrame], offsets);
 
   vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                           _pipelines.graphics.pipelineLayout, 0, 1,
                           &descriptor.sets[_mechanics.syncObjects.currentFrame],
                           0, nullptr);
 
-  vkCmdDraw(commandBuffer, _world.tile.vertexCount,
-            _control.grid.dimensions[0] * _control.grid.dimensions[1], 0, 0);
+  vkCmdDraw(commandBuffer, world.tile.vertexCount,
+            world.grid.dimensions[0] * world.grid.dimensions[1], 0, 0);
 
   vkCmdEndRenderPass(commandBuffer);
 
@@ -581,7 +587,7 @@ void Resources::recordCommandBuffer(VkCommandBuffer commandBuffer,
 VkImageView Resources::createImageView(VkImage image,
                                        VkFormat format,
                                        VkImageAspectFlags aspectFlags) {
-  _log.console("{ IMG }", "Creating Image View");
+  Log::console("{ IMG }", "Creating Image View");
 
   VkImageViewCreateInfo viewInfo{
       .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
@@ -594,7 +600,7 @@ VkImageView Resources::createImageView(VkImage image,
                            .baseArrayLayer = 0,
                            .layerCount = 1}};
 
-  VkImageView imageView;
+  VkImageView imageView{};
   _mechanics.result(vkCreateImageView, _mechanics.mainDevice.logical, &viewInfo,
                     nullptr, &imageView);
 
@@ -602,7 +608,7 @@ VkImageView Resources::createImageView(VkImage image,
 }
 
 void Resources::createTextureSampler() {
-  _log.console("{ IMG }", "Creating Texture Sampler");
+  Log::console("{ IMG }", "Creating Texture Sampler");
   VkPhysicalDeviceProperties properties{};
   vkGetPhysicalDeviceProperties(_mechanics.mainDevice.physical, &properties);
 
@@ -637,9 +643,9 @@ void Resources::createBuffer(VkDeviceSize size,
                                 .usage = usage,
                                 .sharingMode = VK_SHARING_MODE_EXCLUSIVE};
 
-  _log.console("{ ... }",
-               "creating Buffer:", _log.getBufferUsageString(bufferInfo.usage));
-  _log.console(_log.style.charLeader, bufferInfo.size, "bytes");
+  Log::console("{ ... }",
+               "creating Buffer:", Log::getBufferUsageString(bufferInfo.usage));
+  Log::console(Log::Style::charLeader, bufferInfo.size, "bytes");
 
   _mechanics.result(vkCreateBuffer, _mechanics.mainDevice.logical, &bufferInfo,
                     nullptr, &buffer);

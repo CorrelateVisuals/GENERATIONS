@@ -2,10 +2,10 @@
 
 int main() {
   try {
-    CapitalEngine CAPITAL;
-    CAPITAL.mainLoop();
+    CapitalEngine GENERATIONS;
+    GENERATIONS.mainLoop();
   } catch (const std::exception& e) {
-    _log.console(e.what());
+    Log::console(e.what());
     return EXIT_FAILURE;
   } catch (...) {
     throw std::runtime_error("\n!ERROR! Unknown error caught in main()");

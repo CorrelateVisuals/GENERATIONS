@@ -6,14 +6,25 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "CapitalEngine.h"
+#include "Timer.h"
 
 #include <array>
 #include <vector>
+
+class Timer;
 
 class World {
  public:
   World();
   ~World();
+
+  Timer time;
+  float timelineSpeed = 100.0f;
+
+  struct Grid {
+    uint_fast32_t totalAliveCells = 30000;
+    std::array<uint_fast16_t, 2> dimensions = {250, 250};
+  } grid;
 
   struct Cell {
     std::array<float, 4> position;
@@ -41,7 +52,7 @@ class World {
   } tile;
 
  public:
-  UniformBufferObject updateUniforms();
+  UniformBufferObject updateUniforms(VkExtent2D& _swapChain);
 
   std::vector<World::Cell> initializeCells();
 
@@ -71,6 +82,7 @@ class World {
 
   void updateCamera();
   // float getForwardMovement(const glm::vec2& leftButtonDelta);
+  std::vector<uint_fast32_t> setCellsAliveRandomly(uint_fast32_t numberOfCells);
   bool isIndexAlive(const std::vector<int>& aliveCells, int index);
 
   glm::mat4 setModel();

@@ -10,12 +10,13 @@
 #include <ctime>
 #include <random>
 
-World::World() {
-  _log.console("{ (X) }", "constructing World");
+World::World() : time{} {
+  Log::console("{ (X) }", "constructing World");
+  time.speed = timelineSpeed;
 }
 
 World::~World() {
-  _log.console("{ (X) }", "destructing World");
+  Log::console("{ (X) }", "destructing World");
 }
 
 std::vector<VkVertexInputBindingDescription> World::getBindingDescriptions() {
@@ -39,10 +40,10 @@ World::getAttributeDescriptions() {
 }
 
 std::vector<World::Cell> World::initializeCells() {
-  const uint_fast16_t width = _control.grid.dimensions[0];
-  const uint_fast16_t height = _control.grid.dimensions[1];
+  const uint_fast16_t width = grid.dimensions[0];
+  const uint_fast16_t height = grid.dimensions[1];
   const uint_fast32_t numGridPoints = width * height;
-  const uint_fast32_t numAliveCells = _control.grid.totalAliveCells;
+  const uint_fast32_t numAliveCells = grid.totalAliveCells;
   const float gap = 0.6f;
   std::array<float, 4> size = {tile.cubeSize};
 
@@ -60,13 +61,13 @@ std::vector<World::Cell> World::initializeCells() {
   }
 
   std::vector<uint_fast32_t> aliveCellIndices =
-      _control.setCellsAliveRandomly(_control.grid.totalAliveCells);
+      setCellsAliveRandomly(grid.totalAliveCells);
   for (int aliveIndex : aliveCellIndices) {
     isAliveIndices[aliveIndex] = true;
   }
 
-  Terrain::Config terrainLayer1 = {.width = _control.grid.dimensions[0],
-                                   .height = _control.grid.dimensions[1],
+  Terrain::Config terrainLayer1 = {.width = grid.dimensions[0],
+                                   .height = grid.dimensions[1],
                                    .roughness = 0.4f,
                                    .octaves = 10,
                                    .scale = 1.1f,
@@ -76,8 +77,8 @@ std::vector<World::Cell> World::initializeCells() {
                                    .heightOffset = 0.0f};
   Terrain terrain(terrainLayer1);
 
-  Terrain::Config terrainLayer2 = {.width = _control.grid.dimensions[0],
-                                   .height = _control.grid.dimensions[1],
+  Terrain::Config terrainLayer2 = {.width = grid.dimensions[0],
+                                   .height = grid.dimensions[1],
                                    .roughness = 1.0f,
                                    .octaves = 10,
                                    .scale = 1.1f,
@@ -120,21 +121,41 @@ std::vector<World::Cell> World::initializeCells() {
   return cells;
 }
 
+std::vector<uint_fast32_t> World::setCellsAliveRandomly(
+    uint_fast32_t numberOfCells) {
+  std::vector<uint_fast32_t> CellIDs;
+  CellIDs.reserve(numberOfCells);
+
+  std::random_device random;
+  std::mt19937 generate(random());
+  std::uniform_int_distribution<int> distribution(
+      0, grid.dimensions[0] * grid.dimensions[1] - 1);
+
+  while (CellIDs.size() < numberOfCells) {
+    int CellID = distribution(generate);
+    if (std::find(CellIDs.begin(), CellIDs.end(), CellID) == CellIDs.end()) {
+      CellIDs.push_back(CellID);
+    }
+  }
+  std::sort(CellIDs.begin(), CellIDs.end());
+  return CellIDs;
+}
+
 bool World::isIndexAlive(const std::vector<int>& aliveCells, int index) {
   return std::find(aliveCells.begin(), aliveCells.end(), index) !=
          aliveCells.end();
 }
 
-World::UniformBufferObject World::updateUniforms() {
+World::UniformBufferObject World::updateUniforms(VkExtent2D& _swapChainExtent) {
   UniformBufferObject uniformObject{
       .light = light.position,
-      .gridDimensions = {static_cast<uint32_t>(_control.grid.dimensions[0]),
-                         static_cast<uint32_t>(_control.grid.dimensions[1])},
+      .gridDimensions = {static_cast<uint32_t>(grid.dimensions[0]),
+                         static_cast<uint32_t>(grid.dimensions[1])},
       .waterThreshold = 0.1f,
       .cellSize = tile.cubeSize,
       .model = setModel(),
       .view = setView(),
-      .proj = setProjection(_mechanics.swapChain.extent)};
+      .proj = setProjection(_swapChainExtent)};
   return uniformObject;
 }
 
@@ -147,14 +168,14 @@ void World::updateCamera() {
   static bool run = false;
 
   for (uint_fast8_t i = 0; i < 3; ++i) {
-    buttonType[i] = _window.mouse.buttonDown[i].position -
-                    _window.mouse.previousButtonDown[i].position;
+    buttonType[i] = Window::get().mouse.buttonDown[i].position -
+                    Window::get().mouse.previousButtonDown[i].position;
 
-    if (_window.mouse.buttonDown[i].position !=
-        _window.mouse.previousButtonDown[i].position) {
+    if (Window::get().mouse.buttonDown[i].position !=
+        Window::get().mouse.previousButtonDown[i].position) {
       mousePositionChanged = true;
-      _window.mouse.previousButtonDown[i].position =
-          _window.mouse.buttonDown[i].position;
+      Window::get().mouse.previousButtonDown[i].position =
+          Window::get().mouse.buttonDown[i].position;
     }
   }
   if (mousePositionChanged) {
@@ -214,14 +235,14 @@ glm::mat4 World::setProjection(VkExtent2D& swapChainExtent) {
 //     static bool run = false;
 //
 //     for (uint_fast8_t i = 0; i < 3; ++i) {
-//         buttonType[i] = _window.mouse.buttonDown[i].position -
-//             _window.mouse.previousButtonDown[i].position;
+//         buttonType[i] = Window::get().mouse.buttonDown[i].position -
+//             Window::get().mouse.previousButtonDown[i].position;
 //
-//         if (_window.mouse.buttonDown[i].position !=
-//             _window.mouse.previousButtonDown[i].position) {
+//         if (Window::get().mouse.buttonDown[i].position !=
+//             Window::get().mouse.previousButtonDown[i].position) {
 //             mousePositionChanged = true;
-//             _window.mouse.previousButtonDown[i].position =
-//                 _window.mouse.buttonDown[i].position;
+//             Window::get().mouse.previousButtonDown[i].position =
+//                 Window::get().mouse.buttonDown[i].position;
 //         }
 //     }
 //     if (mousePositionChanged) {

@@ -4,7 +4,6 @@
 #include "CapitalEngine.h"
 #include "Pipelines.h"
 #include "Resources.h"
-#include "ValidationLayers.h"
 
 #include <iostream>
 #include <optional>
@@ -68,10 +67,10 @@ class VulkanMechanics {
   } syncObjects;
 
  public:
-  void setupVulkan();
+  void setupVulkan(Pipelines& _pipelines, Resources& _resources);
 
-  void recreateSwapChain();
-  void cleanupSwapChain();
+  void recreateSwapChain(Pipelines& _pipelines, Resources& _resources);
+  void cleanupSwapChain(Pipelines& _pipelines);
 
   void createSyncObjects();
 
@@ -89,10 +88,10 @@ class VulkanMechanics {
 
  private:
   void compileShaders();
-  void createInstance(ValidationLayers& validation);
+  void createInstance();
   void createSurface(GLFWwindow* window);
   void pickPhysicalDevice(Pipelines::Graphics::MultiSampling& msaa);
-  void createLogicalDevice(ValidationLayers& validation);
+  void createLogicalDevice();
   void createSwapChain();
   void createSwapChainImageViews(Resources& resources);
   void createCommandPool(VkCommandPool* commandPool);

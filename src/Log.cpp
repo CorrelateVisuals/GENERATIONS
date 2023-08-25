@@ -4,16 +4,16 @@
 #include <iostream>
 #include <string>
 
-Logging::Logging()
-    : logFile("log.txt", std::ofstream::out | std::ofstream::trunc) {
-  console("{ ... }", "constructing Logging");
-}
+namespace Log {
+std::ofstream logFile = static_cast<std::ofstream>("log.txt");
 
-Logging::~Logging() {
-  console("{ ... }", "destructing Logging");
-}
+std::string Style::charLeader = std::string(8, ' ') + ":";
+std::string Style::indentSize = std::string(17, ' ');
+int Style::columnCount = 14;
 
-std::string Logging::getBufferUsageString(VkBufferUsageFlags usage) {
+std::string previousTime;
+
+std::string getBufferUsageString(VkBufferUsageFlags usage) {
   std::string result;
 
   if (usage & VK_BUFFER_USAGE_TRANSFER_SRC_BIT) {
@@ -52,7 +52,7 @@ std::string Logging::getBufferUsageString(VkBufferUsageFlags usage) {
   return result;
 }
 
-std::string Logging::returnDateAndTime() {
+std::string returnDateAndTime() {
   auto now = std::chrono::system_clock::now();
   std::time_t nowC = std::chrono::system_clock::to_time_t(now);
   std::tm timeInfo;
@@ -69,3 +69,4 @@ std::string Logging::returnDateAndTime() {
 
   return std::string(nowStr);
 }
+}  // namespace Log
