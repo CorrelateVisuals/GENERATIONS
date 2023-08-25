@@ -20,6 +20,7 @@ CapitalEngine::CapitalEngine() {
 CapitalEngine::~CapitalEngine() {
   Log::console("\n", Log::Style::indentSize, "[ CAPITAL engine ]",
                "terminating...\n");
+  cleanup();
 }
 
 void CapitalEngine::mainLoop() {

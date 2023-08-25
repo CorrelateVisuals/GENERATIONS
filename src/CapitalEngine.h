@@ -22,25 +22,3 @@ class CapitalEngine {
   void drawFrame();
   void cleanup();
 };
-
-// class Global {
-//  public:
-//   Global() = default;
-//
-//   class Objects {
-//    public:
-//     Objects() = default;
-//     ~Objects() = default;
-//
-//     // VulkanMechanics mechanics;
-//     // Pipelines pipelines;
-//     Resources memory;
-//   };
-//   inline static Objects obj;
-//
-//  private:
-// };
-//
-//// inline static auto& _mechanics = Global::obj.mechanics;
-//// inline static auto& _pipelines = Global::obj.pipelines;
-// inline static auto& _resources = Global::obj.memory;
