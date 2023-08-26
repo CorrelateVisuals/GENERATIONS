@@ -1,91 +1,49 @@
+#include "CapitalEngine.h"
+
 #include <iostream>
 
-#include "CapitalEngine.h"
-#include "Debug.h"
-#include "Mechanics.h"
-#include "Memory.h"
-#include "Pipelines.h"
-#include "Window.h"
+VulkanMechanics _mechanics;
+Pipelines _pipelines(_mechanics);
+Resources _resources(_mechanics);
 
 CapitalEngine::CapitalEngine() {
-  _log.console("\n", _log.style.indentSize, "[ CAPITAL engine ]",
-               "starting...\n");
+  Log::text("\n");
+  Log::text(Log::Style::headerGuard, "\n", Log::Style::indentSize,
+            "| CAPITAL Engine");
 
-  compileShaders();
-  initVulkan();
+  _mechanics.setupVulkan(_pipelines, _resources);
+  _pipelines.createPipelines(_resources);
+  _resources.createResources(_pipelines);
 }
 
 CapitalEngine::~CapitalEngine() {
-  _log.console("\n", _log.style.indentSize, "[ CAPITAL engine ]",
-               "terminating...\n");
-}
+  Log::text(Log::Style::headerGuard, "\n", Log::Style::indentSize,
+            "| CAPITAL Engine");
+  Log::text(Log::Style::headerGuard, "\n");
 
-Global::~Global() {
   cleanup();
 }
 
 void CapitalEngine::mainLoop() {
-  _log.console("\n", _log.style.indentSize,
-               "{ Main Loop } running ..........\n");
+  Log::text("\n");
+  Log::text(Log::Style::headerGuard);
+  Log::text("{ Main Loop }");
 
-  while (!glfwWindowShouldClose(_window.window)) {
+  while (!glfwWindowShouldClose(Window::get().window)) {
     glfwPollEvents();
 
-    _window.setMouse();
-    _control.time.run();
+    Window::get().setMouse();
+    _resources.world.time.run();
 
     drawFrame();
 
-    if (glfwGetKey(_window.window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+    if (glfwGetKey(Window::get().window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
       break;
     }
   }
   vkDeviceWaitIdle(_mechanics.mainDevice.logical);
-  _log.console("\n", _log.style.indentSize, "{ Main Loop } ....... terminated");
-}
-
-void CapitalEngine::compileShaders() {
-  _log.console("{ SHA }", "compiling shaders");
-#ifdef _WIN32
-  // auto err = std::system("cmd /C \"..\\shaders\\compile_shaders.bat >
-  // NUL\"");
-  auto err = std::system("..\\shaders\\compile_shaders.bat");
-
-#else
-  // Linux-specific code
-  auto err = std::system("./shaders/compile_shaders.sh");
-#endif
-}
-
-void CapitalEngine::initVulkan() {
-  _log.console("{ *** }", "initializing Capital Engine");
-  _mechanics.createInstance();
-  _validation.setupDebugMessenger(_mechanics.instance);
-  _mechanics.createSurface();
-  _mechanics.pickPhysicalDevice();
-  _mechanics.createLogicalDevice();
-  _mechanics.createSwapChain();
-  _mechanics.createImageViews();
-
-  _pipelines.createRenderPass();
-  _memory.createDescriptorSetLayout();
-  _pipelines.createGraphicsPipeline();
-  _pipelines.createComputePipeline();
-
-  _memory.createCommandPool();
-  _pipelines.createColorResources();
-  _pipelines.createDepthResources();
-  _memory.createFramebuffers();
-
-  _memory.createShaderStorageBuffers();
-  _memory.createUniformBuffers();
-  _memory.createDescriptorPool();
-  _memory.createDescriptorSets();
-
-  _memory.createCommandBuffers();
-  _memory.createComputeCommandBuffers();
-
-  _mechanics.createSyncObjects();
+  Log::text("{ Main Loop }");
+  Log::text(Log::Style::headerGuard);
 }
 
 void CapitalEngine::drawFrame() {
@@ -96,7 +54,7 @@ void CapitalEngine::drawFrame() {
            .computeInFlightFences[_mechanics.syncObjects.currentFrame],
       VK_TRUE, UINT64_MAX);
 
-  _memory.updateUniformBuffer(_mechanics.syncObjects.currentFrame);
+  _resources.updateUniformBuffer(_mechanics.syncObjects.currentFrame);
 
   vkResetFences(
       _mechanics.mainDevice.logical, 1,
@@ -104,15 +62,17 @@ void CapitalEngine::drawFrame() {
            .computeInFlightFences[_mechanics.syncObjects.currentFrame]);
 
   vkResetCommandBuffer(
-      _memory.buffers.command.compute[_mechanics.syncObjects.currentFrame], 0);
-  _memory.recordComputeCommandBuffer(
-      _memory.buffers.command.compute[_mechanics.syncObjects.currentFrame]);
+      _resources.buffers.command.compute[_mechanics.syncObjects.currentFrame],
+      0);
+  _resources.recordComputeCommandBuffer(
+      _resources.buffers.command.compute[_mechanics.syncObjects.currentFrame],
+      _pipelines);
 
   VkSubmitInfo computeSubmitInfo{
       .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
       .commandBufferCount = 1,
-      .pCommandBuffers =
-          &_memory.buffers.command.compute[_mechanics.syncObjects.currentFrame],
+      .pCommandBuffers = &_resources.buffers.command
+                              .compute[_mechanics.syncObjects.currentFrame],
       .signalSemaphoreCount = 1,
       .pSignalSemaphores =
           &_mechanics.syncObjects
@@ -137,7 +97,7 @@ void CapitalEngine::drawFrame() {
       VK_NULL_HANDLE, &imageIndex);
 
   if (result == VK_ERROR_OUT_OF_DATE_KHR) {
-    _mechanics.recreateSwapChain();
+    _mechanics.recreateSwapChain(_pipelines, _resources);
     return;
   } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
     throw std::runtime_error("\n!ERROR! failed to acquire swap chain image!");
@@ -148,11 +108,12 @@ void CapitalEngine::drawFrame() {
                      .inFlightFences[_mechanics.syncObjects.currentFrame]);
 
   vkResetCommandBuffer(
-      _memory.buffers.command.graphic[_mechanics.syncObjects.currentFrame], 0);
+      _resources.buffers.command.graphic[_mechanics.syncObjects.currentFrame],
+      0);
 
-  _memory.recordCommandBuffer(
-      _memory.buffers.command.graphic[_mechanics.syncObjects.currentFrame],
-      imageIndex);
+  _resources.recordCommandBuffer(
+      _resources.buffers.command.graphic[_mechanics.syncObjects.currentFrame],
+      imageIndex, _pipelines);
 
   std::vector<VkSemaphore> waitSemaphores{
       _mechanics.syncObjects
@@ -169,8 +130,8 @@ void CapitalEngine::drawFrame() {
       .pWaitSemaphores = waitSemaphores.data(),
       .pWaitDstStageMask = waitStages.data(),
       .commandBufferCount = 1,
-      .pCommandBuffers =
-          &_memory.buffers.command.graphic[_mechanics.syncObjects.currentFrame],
+      .pCommandBuffers = &_resources.buffers.command
+                              .graphic[_mechanics.syncObjects.currentFrame],
       .signalSemaphoreCount = 1,
       .pSignalSemaphores =
           &_mechanics.syncObjects
@@ -196,9 +157,9 @@ void CapitalEngine::drawFrame() {
   result = vkQueuePresentKHR(_mechanics.queues.present, &presentInfo);
 
   if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR ||
-      _window.framebufferResized) {
-    _window.framebufferResized = false;
-    _mechanics.recreateSwapChain();
+      Window::get().framebufferResized) {
+    Window::get().framebufferResized = false;
+    _mechanics.recreateSwapChain(_pipelines, _resources);
   } else if (result != VK_SUCCESS) {
     throw std::runtime_error("\n!ERROR! failed to present swap chain image!");
   }
@@ -207,8 +168,17 @@ void CapitalEngine::drawFrame() {
       (_mechanics.syncObjects.currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 }
 
-void Global::cleanup() {
-  _mechanics.cleanupSwapChain();
+void CapitalEngine::cleanup() {
+  _mechanics.cleanupSwapChain(_pipelines);
+
+  vkDestroySampler(_mechanics.mainDevice.logical,
+                   _resources.image.textureSampler, nullptr);
+  vkDestroyImageView(_mechanics.mainDevice.logical,
+                     _resources.image.textureView, nullptr);
+  vkDestroyImage(_mechanics.mainDevice.logical, _resources.image.texture,
+                 nullptr);
+  vkFreeMemory(_mechanics.mainDevice.logical, _resources.image.textureMemory,
+               nullptr);
 
   vkDestroyPipeline(_mechanics.mainDevice.logical, _pipelines.graphics.pipeline,
                     nullptr);
@@ -226,22 +196,22 @@ void Global::cleanup() {
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
     vkDestroyBuffer(_mechanics.mainDevice.logical,
 
-                    _memory.buffers.uniforms[i], nullptr);
+                    _resources.buffers.uniforms[i], nullptr);
     vkFreeMemory(_mechanics.mainDevice.logical,
-                 _memory.buffers.uniformsMemory[i], nullptr);
+                 _resources.buffers.uniformsMemory[i], nullptr);
   }
 
   vkDestroyDescriptorPool(_mechanics.mainDevice.logical,
-                          _memory.descriptor.pool, nullptr);
+                          _resources.descriptor.pool, nullptr);
 
   vkDestroyDescriptorSetLayout(_mechanics.mainDevice.logical,
-                               _memory.descriptor.setLayout, nullptr);
+                               _resources.descriptor.setLayout, nullptr);
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
     vkDestroyBuffer(_mechanics.mainDevice.logical,
-                    _memory.buffers.shaderStorage[i], nullptr);
+                    _resources.buffers.shaderStorage[i], nullptr);
     vkFreeMemory(_mechanics.mainDevice.logical,
-                 _memory.buffers.shaderStorageMemory[i], nullptr);
+                 _resources.buffers.shaderStorageMemory[i], nullptr);
   }
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
@@ -261,19 +231,19 @@ void Global::cleanup() {
   }
 
   vkDestroyCommandPool(_mechanics.mainDevice.logical,
-                       _memory.buffers.command.pool, nullptr);
+                       _resources.buffers.command.pool, nullptr);
 
   vkDestroyDevice(_mechanics.mainDevice.logical, nullptr);
 
-  if (_validation.enableValidationLayers) {
-    _validation.DestroyDebugUtilsMessengerEXT(
-        _mechanics.instance, _validation.debugMessenger, nullptr);
+  if (ValidationLayers::isValidationEnabled()) {
+    ValidationLayers::destroyDebugUtilsMessengerEXT(
+        _mechanics.instance, ValidationLayers::debugMessenger, nullptr);
   }
 
   vkDestroySurfaceKHR(_mechanics.instance, _mechanics.surface, nullptr);
   vkDestroyInstance(_mechanics.instance, nullptr);
 
-  glfwDestroyWindow(_window.window);
+  glfwDestroyWindow(Window::get().window);
 
   glfwTerminate();
 }

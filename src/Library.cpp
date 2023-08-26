@@ -1,10 +1,10 @@
 #include <glm/glm.hpp>
 
+#include "Library.h"
+
 #include <chrono>
 #include <numbers>
 #include <random>
-
-#include "Library.h"
 
 std::vector<float> Library::generateRandomValues(int amount,
                                                  float min,

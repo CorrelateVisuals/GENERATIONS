@@ -1,11 +1,14 @@
 #pragma once
+#include <GLFW/glfw3.h>
+
+#include "CapitalEngine.h"
+#include "Pipelines.h"
+#include "Resources.h"
 
 #include <iostream>
 #include <optional>
 #include <string>
 #include <vector>
-
-#include "CapitalEngine.h"
 
 constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 
@@ -64,24 +67,12 @@ class VulkanMechanics {
   } syncObjects;
 
  public:
-  void createInstance();
-  void createSurface();
+  void setupVulkan(Pipelines& _pipelines, Resources& _resources);
 
-  void pickPhysicalDevice();
-  void createLogicalDevice();
-
-  void createSwapChain();
-  void recreateSwapChain();
-  void cleanupSwapChain();
-
-  void createImageViews();
-  VkImageView createImageView(VkImage image,
-                              VkFormat format,
-                              VkImageAspectFlags aspectFlags);
+  void recreateSwapChain(Pipelines& _pipelines, Resources& _resources);
+  void cleanupSwapChain(Pipelines& _pipelines);
 
   void createSyncObjects();
-
-  Queues::FamilyIndices findQueueFamilies(VkPhysicalDevice physicalDevice);
 
   template <typename Checkresult, typename... Args>
   void result(Checkresult vkResult, Args&&... args) {
@@ -96,10 +87,20 @@ class VulkanMechanics {
   }
 
  private:
+  void compileShaders();
+  void createInstance();
+  void createSurface(GLFWwindow* window);
+  void pickPhysicalDevice(Pipelines::Graphics::MultiSampling& msaa);
+  void createLogicalDevice();
+  void createSwapChain();
+  void createSwapChainImageViews(Resources& resources);
+  void createCommandPool(VkCommandPool* commandPool);
+
   std::vector<const char*> getRequiredExtensions();
 
   bool isDeviceSuitable(VkPhysicalDevice physicalDevice);
   bool checkDeviceExtensionSupport(VkPhysicalDevice physicalDevice);
+  VkSampleCountFlagBits getMaxUsableSampleCount();
 
   SwapChain::SupportDetails querySwapChainSupport(
       VkPhysicalDevice physicalDevice);
@@ -108,4 +109,6 @@ class VulkanMechanics {
   VkPresentModeKHR chooseSwapPresentMode(
       const std::vector<VkPresentModeKHR>& availablePresentModes);
   VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
+
+  Queues::FamilyIndices findQueueFamilies(VkPhysicalDevice physicalDevice);
 };

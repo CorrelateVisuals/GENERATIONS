@@ -2,17 +2,13 @@
 #include "GLFW/glfw3.h"
 #include "vulkan/vulkan.h"
 
+#include "CapitalEngine.h"
+#include "Mechanics.h"
+
 #include <algorithm>
 #include <set>
 #include <stdexcept>
-
-#include "CapitalEngine.h"
-#include "Control.h"
-#include "Mechanics.h"
-#include "Memory.h"
-#include "Pipelines.h"
-#include "Window.h"
-#include "World.h"
+#include <string>
 
 VulkanMechanics::VulkanMechanics()
     : surface(VK_NULL_HANDLE),
@@ -22,36 +18,50 @@ VulkanMechanics::VulkanMechanics()
              VK_NULL_HANDLE,
              VK_NULL_HANDLE,
              {std::nullopt, std::nullopt}},
-      swapChain{VK_NULL_HANDLE, {}, VK_FORMAT_UNDEFINED, {}, {0, 0}, {}, {}} {
-  _log.console("{ VkM }", "constructing Vulkan Mechanics");
-}
+      swapChain{VK_NULL_HANDLE, {}, VK_FORMAT_UNDEFINED, {}, {0, 0}, {}, {}} {}
 
-VulkanMechanics::~VulkanMechanics() {
-  _log.console("{ VkM }", "destructing Vulkan Mechanics");
+VulkanMechanics::~VulkanMechanics() {}
+
+void VulkanMechanics::setupVulkan(Pipelines& _pipelines,
+                                  Resources& _resources) {
+  Log::text(Log::Style::headerGuard);
+  Log::text("{ Vk. }", "setting up Vulkan Mechanics");
+  compileShaders();
+  createInstance();
+  ValidationLayers::setupDebugMessenger(instance);
+  createSurface(Window::get().window);
+
+  pickPhysicalDevice(_pipelines.graphics.msaa);
+  createLogicalDevice();
+
+  createSwapChain();
+  createSwapChainImageViews(_resources);
+
+  createCommandPool(&_resources.buffers.command.pool);
 }
 
 void VulkanMechanics::createInstance() {
-  _log.console("{ VkI }", "creating Vulkan Instance");
-  if (_validation.enableValidationLayers &&
-      !_validation.checkValidationLayerSupport()) {
+  Log::text("{ VkI }", "Vulkan Instance");
+  if (ValidationLayers::isValidationEnabled() &&
+      !ValidationLayers::checkValidationLayerSupport()) {
     throw std::runtime_error(
         "\n!ERROR! validation layers requested, but not available!");
   }
 
   VkApplicationInfo appInfo{.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
-                            .pApplicationName = "CAPITAL",
+                            .pApplicationName = Window::get().display.title,
                             .applicationVersion = VK_MAKE_VERSION(0, 0, 1),
-                            .pEngineName = _control.display.title,
+                            .pEngineName = "CAPITAL Engine",
                             .engineVersion = VK_MAKE_VERSION(0, 0, 1),
                             .apiVersion = VK_API_VERSION_1_3};
-  _log.console(
-      _log.style.charLeader, "Application name:", appInfo.pApplicationName,
-      "\n", _log.style.indentSize, _log.style.charLeader,
+  Log::text(
+      Log::Style::charLeader, "Application name:", appInfo.pApplicationName,
+      "\n", Log::Style::indentSize, Log::Style::charLeader,
       "Application Version:", appInfo.applicationVersion, "\n",
-      _log.style.indentSize, _log.style.charLeader,
-      "Engine Name Version:", appInfo.pEngineName, "\n", _log.style.indentSize,
-      _log.style.charLeader, "Engine Version:", appInfo.engineVersion, "\n",
-      _log.style.indentSize, _log.style.charLeader, "API Version:", 1.3);
+      Log::Style::indentSize, Log::Style::charLeader,
+      "Engine Name Version:", appInfo.pEngineName, "\n", Log::Style::indentSize,
+      Log::Style::charLeader, "Engine Version:", appInfo.engineVersion, "\n",
+      Log::Style::indentSize, Log::Style::charLeader, "API Version:", 1.3);
 
   auto extensions = getRequiredExtensions();
 
@@ -64,26 +74,26 @@ void VulkanMechanics::createInstance() {
       .ppEnabledExtensionNames = extensions.data()};
 
   VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
-  if (_validation.enableValidationLayers) {
+  if (ValidationLayers::isValidationEnabled()) {
     createInfo.enabledLayerCount =
-        static_cast<uint32_t>(_validation.validation.size());
-    createInfo.ppEnabledLayerNames = _validation.validation.data();
+        static_cast<uint32_t>(ValidationLayers::validation.size());
+    createInfo.ppEnabledLayerNames = ValidationLayers::validation.data();
 
-    _validation.populateDebugMessengerCreateInfo(debugCreateInfo);
+    ValidationLayers::populateDebugMessengerCreateInfo(debugCreateInfo);
     createInfo.pNext = &debugCreateInfo;
   }
 
-  _mechanics.result(vkCreateInstance, &createInfo, nullptr, &instance);
+  result(vkCreateInstance, &createInfo, nullptr, &instance);
 }
 
-void VulkanMechanics::createSurface() {
-  _log.console("{ [ ] }", "creating Surface");
-  _mechanics.result(glfwCreateWindowSurface, instance, _window.window, nullptr,
-                    &surface);
+void VulkanMechanics::createSurface(GLFWwindow* window) {
+  Log::text("{ [ ] }", "Surface");
+  result(glfwCreateWindowSurface, instance, window, nullptr, &surface);
 }
 
-void VulkanMechanics::pickPhysicalDevice() {
-  _log.console("{ ### }", "picking Physical Device");
+void VulkanMechanics::pickPhysicalDevice(
+    Pipelines::Graphics::MultiSampling& msaa) {
+  Log::text("{ ### }", "Physical Device");
   uint32_t deviceCount = 0;
   vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
 
@@ -98,7 +108,7 @@ void VulkanMechanics::pickPhysicalDevice() {
   for (const auto& device : devices) {
     if (isDeviceSuitable(device)) {
       mainDevice.physical = device;
-      _pipelines.graphics.msaa.samples = _pipelines.getMaxUsableSampleCount();
+      msaa.samples = getMaxUsableSampleCount();
       break;
     }
   }
@@ -109,7 +119,7 @@ void VulkanMechanics::pickPhysicalDevice() {
 
 VulkanMechanics::Queues::FamilyIndices VulkanMechanics::findQueueFamilies(
     VkPhysicalDevice physicalDevice) {
-  _log.console(_log.style.charLeader, "finding Queue Families");
+  Log::text(Log::Style::charLeader, "finding Queue Families");
 
   VulkanMechanics::Queues::FamilyIndices indices;
 
@@ -148,7 +158,7 @@ VulkanMechanics::Queues::FamilyIndices VulkanMechanics::findQueueFamilies(
 
 VulkanMechanics::SwapChain::SupportDetails
 VulkanMechanics::querySwapChainSupport(VkPhysicalDevice physicalDevice) {
-  _log.console(_log.style.charLeader, "querying Swap Chain Support");
+  Log::text(Log::Style::charLeader, "querying Swap Chain Support");
   {
     SwapChain::SupportDetails details;
 
@@ -182,7 +192,7 @@ VulkanMechanics::querySwapChainSupport(VkPhysicalDevice physicalDevice) {
 
 bool VulkanMechanics::checkDeviceExtensionSupport(
     VkPhysicalDevice physicalDevice) {
-  _log.console(_log.style.charLeader, "checking Device Extension Support");
+  Log::text(Log::Style::charLeader, "checking Device Extension Support");
   uint32_t extensionCount;
   vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &extensionCount,
                                        nullptr);
@@ -201,8 +211,23 @@ bool VulkanMechanics::checkDeviceExtensionSupport(
   return requiredExtensions.empty();
 }
 
+VkSampleCountFlagBits VulkanMechanics::getMaxUsableSampleCount() {
+  VkPhysicalDeviceProperties physicalDeviceProperties;
+  vkGetPhysicalDeviceProperties(mainDevice.physical, &physicalDeviceProperties);
+  VkSampleCountFlags counts =
+      physicalDeviceProperties.limits.framebufferColorSampleCounts &
+      physicalDeviceProperties.limits.framebufferDepthSampleCounts;
+
+  for (size_t i = VK_SAMPLE_COUNT_64_BIT; i >= VK_SAMPLE_COUNT_1_BIT; i >>= 1) {
+    if (counts & i) {
+      return static_cast<VkSampleCountFlagBits>(i);
+    }
+  }
+  return VK_SAMPLE_COUNT_1_BIT;
+}
+
 void VulkanMechanics::createLogicalDevice() {
-  _log.console("{ +++ }", "creating Logical Device");
+  Log::text("{ +++ }", "Logical Device");
   Queues::FamilyIndices indices = findQueueFamilies(mainDevice.physical);
 
   std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
@@ -223,6 +248,7 @@ void VulkanMechanics::createLogicalDevice() {
                                           .sampleRateShading = VK_TRUE,
                                           .depthClamp = VK_TRUE,
                                           .depthBiasClamp = VK_TRUE,
+                                          .samplerAnisotropy = VK_TRUE,
                                           .shaderInt64 = VK_TRUE};
 
   VkDeviceCreateInfo createInfo{
@@ -235,14 +261,14 @@ void VulkanMechanics::createLogicalDevice() {
       .ppEnabledExtensionNames = mainDevice.extensions.data(),
       .pEnabledFeatures = &deviceFeatures};
 
-  if (_validation.enableValidationLayers) {
+  if (ValidationLayers::isValidationEnabled()) {
     createInfo.enabledLayerCount =
-        static_cast<uint32_t>(_validation.validation.size());
-    createInfo.ppEnabledLayerNames = _validation.validation.data();
+        static_cast<uint32_t>(ValidationLayers::validation.size());
+    createInfo.ppEnabledLayerNames = ValidationLayers::validation.data();
   }
 
-  _mechanics.result(vkCreateDevice, mainDevice.physical, &createInfo, nullptr,
-                    &mainDevice.logical);
+  result(vkCreateDevice, mainDevice.physical, &createInfo, nullptr,
+         &mainDevice.logical);
 
   vkGetDeviceQueue(mainDevice.logical, indices.graphicsAndComputeFamily.value(),
                    0, &queues.graphics);
@@ -254,7 +280,7 @@ void VulkanMechanics::createLogicalDevice() {
 
 VkSurfaceFormatKHR VulkanMechanics::chooseSwapSurfaceFormat(
     const std::vector<VkSurfaceFormatKHR>& availableFormats) {
-  _log.console(_log.style.charLeader, "choosing Swap Surface Format");
+  Log::text(Log::Style::charLeader, "choosing Swap Surface Format");
 
   for (const auto& availableFormat : availableFormats) {
     if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB &&
@@ -267,7 +293,7 @@ VkSurfaceFormatKHR VulkanMechanics::chooseSwapSurfaceFormat(
 
 VkPresentModeKHR VulkanMechanics::chooseSwapPresentMode(
     const std::vector<VkPresentModeKHR>& availablePresentModes) {
-  _log.console(_log.style.charLeader, "choosing Swap Present Mode");
+  Log::text(Log::Style::charLeader, "choosing Swap Present Mode");
   for (const auto& availablePresentMode : availablePresentModes) {
     if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
       return availablePresentMode;
@@ -278,14 +304,14 @@ VkPresentModeKHR VulkanMechanics::chooseSwapPresentMode(
 
 VkExtent2D VulkanMechanics::chooseSwapExtent(
     const VkSurfaceCapabilitiesKHR& capabilities) {
-  _log.console(_log.style.charLeader, "choosing Swap Extent");
+  Log::text(Log::Style::charLeader, "choosing Swap Extent");
 
   if (capabilities.currentExtent.width !=
       std::numeric_limits<uint32_t>::max()) {
     return capabilities.currentExtent;
   } else {
     int width, height;
-    glfwGetFramebufferSize(_window.window, &width, &height);
+    glfwGetFramebufferSize(Window::get().window, &width, &height);
 
     VkExtent2D actualExtent{static_cast<uint32_t>(width),
                             static_cast<uint32_t>(height)};
@@ -301,7 +327,7 @@ VkExtent2D VulkanMechanics::chooseSwapExtent(
 }
 
 void VulkanMechanics::createSyncObjects() {
-  _log.console("{ ||| }", "creating Sync Objects");
+  Log::text("{ ||| }", "Sync Objects");
 
   syncObjects.imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
   syncObjects.renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
@@ -316,55 +342,50 @@ void VulkanMechanics::createSyncObjects() {
                               .flags = VK_FENCE_CREATE_SIGNALED_BIT};
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-    _mechanics.result(vkCreateSemaphore, _mechanics.mainDevice.logical,
-                      &semaphoreInfo, nullptr,
-                      &syncObjects.imageAvailableSemaphores[i]);
+    result(vkCreateSemaphore, mainDevice.logical, &semaphoreInfo, nullptr,
+           &syncObjects.imageAvailableSemaphores[i]);
 
-    _mechanics.result(vkCreateSemaphore, _mechanics.mainDevice.logical,
-                      &semaphoreInfo, nullptr,
-                      &syncObjects.renderFinishedSemaphores[i]);
+    result(vkCreateSemaphore, mainDevice.logical, &semaphoreInfo, nullptr,
+           &syncObjects.renderFinishedSemaphores[i]);
 
-    _mechanics.result(vkCreateFence, _mechanics.mainDevice.logical, &fenceInfo,
-                      nullptr, &syncObjects.inFlightFences[i]);
+    result(vkCreateFence, mainDevice.logical, &fenceInfo, nullptr,
+           &syncObjects.inFlightFences[i]);
 
-    _mechanics.result(vkCreateSemaphore, _mechanics.mainDevice.logical,
-                      &semaphoreInfo, nullptr,
-                      &syncObjects.computeFinishedSemaphores[i]);
+    result(vkCreateSemaphore, mainDevice.logical, &semaphoreInfo, nullptr,
+           &syncObjects.computeFinishedSemaphores[i]);
 
-    _mechanics.result(vkCreateFence, _mechanics.mainDevice.logical, &fenceInfo,
-                      nullptr, &syncObjects.computeInFlightFences[i]);
+    result(vkCreateFence, mainDevice.logical, &fenceInfo, nullptr,
+           &syncObjects.computeInFlightFences[i]);
   }
 }
 
-void VulkanMechanics::cleanupSwapChain() {
-  vkDestroyImageView(_mechanics.mainDevice.logical,
-                     _pipelines.graphics.depth.imageView, nullptr);
-  vkDestroyImage(_mechanics.mainDevice.logical, _pipelines.graphics.depth.image,
-                 nullptr);
-  vkFreeMemory(_mechanics.mainDevice.logical,
-               _pipelines.graphics.depth.imageMemory, nullptr);
+void VulkanMechanics::cleanupSwapChain(Pipelines& _pipelines) {
+  vkDestroyImageView(mainDevice.logical, _pipelines.graphics.depth.imageView,
+                     nullptr);
+  vkDestroyImage(mainDevice.logical, _pipelines.graphics.depth.image, nullptr);
+  vkFreeMemory(mainDevice.logical, _pipelines.graphics.depth.imageMemory,
+               nullptr);
 
-  vkDestroyImageView(_mechanics.mainDevice.logical,
+  vkDestroyImageView(mainDevice.logical,
                      _pipelines.graphics.msaa.colorImageView, nullptr);
-  vkDestroyImage(_mechanics.mainDevice.logical,
-                 _pipelines.graphics.msaa.colorImage, nullptr);
-  vkFreeMemory(_mechanics.mainDevice.logical,
-               _pipelines.graphics.msaa.colorImageMemory, nullptr);
+  vkDestroyImage(mainDevice.logical, _pipelines.graphics.msaa.colorImage,
+                 nullptr);
+  vkFreeMemory(mainDevice.logical, _pipelines.graphics.msaa.colorImageMemory,
+               nullptr);
 
   for (auto framebuffer : swapChain.framebuffers) {
-    vkDestroyFramebuffer(_mechanics.mainDevice.logical, framebuffer, nullptr);
+    vkDestroyFramebuffer(mainDevice.logical, framebuffer, nullptr);
   }
 
   for (auto imageView : swapChain.imageViews) {
-    vkDestroyImageView(_mechanics.mainDevice.logical, imageView, nullptr);
+    vkDestroyImageView(mainDevice.logical, imageView, nullptr);
   }
 
-  vkDestroySwapchainKHR(_mechanics.mainDevice.logical, swapChain.swapChain,
-                        nullptr);
+  vkDestroySwapchainKHR(mainDevice.logical, swapChain.swapChain, nullptr);
 }
 
 bool VulkanMechanics::isDeviceSuitable(VkPhysicalDevice physicalDevice) {
-  _log.console(_log.style.charLeader,
+  Log::text(Log::Style::charLeader,
                "checking if Physical Device is suitable");
 
   Queues::FamilyIndices indices = findQueueFamilies(physicalDevice);
@@ -379,11 +400,15 @@ bool VulkanMechanics::isDeviceSuitable(VkPhysicalDevice physicalDevice) {
                         !swapChainSupport.presentModes.empty();
   }
 
+  // VkPhysicalDeviceFeatures supportedFeatures;
+  // vkGetPhysicalDeviceFeatures(mainDevice.physical, &supportedFeatures);
+  //&& supportedFeatures.samplerAnisotropy
+
   return indices.isComplete() && extensionsSupported && swapChainAdequate;
 }
 
 void VulkanMechanics::createSwapChain() {
-  _log.console("{ <-> }", "creating Swap Chain");
+  Log::text("{ <-> }", "Swap Chain");
   SwapChain::SupportDetails swapChainSupport =
       querySwapChainSupport(mainDevice.physical);
 
@@ -426,8 +451,8 @@ void VulkanMechanics::createSwapChain() {
     createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
   }
 
-  _mechanics.result(vkCreateSwapchainKHR, mainDevice.logical, &createInfo,
-                    nullptr, &swapChain.swapChain);
+  result(vkCreateSwapchainKHR, mainDevice.logical, &createInfo, nullptr,
+         &swapChain.swapChain);
 
   vkGetSwapchainImagesKHR(mainDevice.logical, swapChain.swapChain, &imageCount,
                           nullptr);
@@ -439,23 +464,85 @@ void VulkanMechanics::createSwapChain() {
   swapChain.extent = extent;
 }
 
-void VulkanMechanics::recreateSwapChain() {
+void VulkanMechanics::createSwapChainImageViews(Resources& resources) {
+  Log::text("{ <-> }", swapChain.images.size(), "Swap Chain Image Views");
+
+  swapChain.imageViews.resize(swapChain.images.size());
+
+  for (size_t i = 0; i < swapChain.images.size(); i++) {
+    swapChain.imageViews[i] = resources.createImageView(
+        swapChain.images[i], swapChain.imageFormat, VK_IMAGE_ASPECT_COLOR_BIT);
+  }
+}
+
+void VulkanMechanics::createCommandPool(VkCommandPool* commandPool) {
+  Log::text("{ cmd }", "Command Pool");
+
+  VulkanMechanics::Queues::FamilyIndices queueFamilyIndices =
+      findQueueFamilies(mainDevice.physical);
+
+  VkCommandPoolCreateInfo poolInfo{
+      .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+      .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
+      .queueFamilyIndex = queueFamilyIndices.graphicsAndComputeFamily.value()};
+
+  result(vkCreateCommandPool, mainDevice.logical, &poolInfo, nullptr,
+         commandPool);
+}
+
+void VulkanMechanics::recreateSwapChain(Pipelines& _pipelines,
+                                        Resources& _resources) {
   int width = 0, height = 0;
-  glfwGetFramebufferSize(_window.window, &width, &height);
+  glfwGetFramebufferSize(Window::get().window, &width, &height);
   while (width == 0 || height == 0) {
-    glfwGetFramebufferSize(_window.window, &width, &height);
+    glfwGetFramebufferSize(Window::get().window, &width, &height);
     glfwWaitEvents();
   }
 
   vkDeviceWaitIdle(mainDevice.logical);
 
-  cleanupSwapChain();
+  cleanupSwapChain(_pipelines);
 
   createSwapChain();
-  createImageViews();
-  _pipelines.createDepthResources();
-  _pipelines.createColorResources();
-  _memory.createFramebuffers();
+  createSwapChainImageViews(_resources);
+  _pipelines.createDepthResources(_resources);
+  _pipelines.createColorResources(_resources);
+  _resources.createFramebuffers(_pipelines);
+}
+
+#include <cstdlib>  // For std::system
+#include "Log.h"    // Include your Log header
+
+void VulkanMechanics::compileShaders() {
+  Log::text("{ GLSL }", "compiling shaders");
+  std::string command;
+
+#ifdef _WIN32
+  command = "..\\shaders\\compile_shaders.bat";
+#else
+  // Linux-specific code
+  command = "./shaders/compile_shaders.sh";
+#endif
+
+  if (FILE* pipe = _popen(command.c_str(), "r")) {
+    char buffer[128];
+    std::string output;
+
+    while (fgets(buffer, sizeof(buffer), pipe)) {
+      output = buffer;
+      if (!output.empty() && output.back() == '\n') {
+        output.pop_back();
+        Log::text(output);
+        if (output.find(".exe") != std::string::npos) {
+          Log::text(output);
+        }
+      }
+    }
+    _pclose(pipe);
+  } else {
+    Log::text("{ ERROR }", "Failed to execute command:", command);
+  }
+  Log::text("");
 }
 
 std::vector<const char*> VulkanMechanics::getRequiredExtensions() {
@@ -466,55 +553,9 @@ std::vector<const char*> VulkanMechanics::getRequiredExtensions() {
   std::vector<const char*> extensions(glfwExtensions,
                                       glfwExtensions + glfwExtensionCount);
 
-  if (_validation.enableValidationLayers) {
+  if (ValidationLayers::isValidationEnabled()) {
     extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
   }
 
   return extensions;
-}
-
-void VulkanMechanics::createImageViews() {
-  _log.console(_log.style.charLeader, "creating Image Views");
-  swapChain.imageViews.resize(swapChain.images.size());
-
-  for (size_t i = 0; i < swapChain.images.size(); i++) {
-    VkImageViewCreateInfo createInfo{
-        .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-        .image = swapChain.images[i],
-        .viewType = VK_IMAGE_VIEW_TYPE_2D,
-        .format = swapChain.imageFormat,
-        .components = {.r = VK_COMPONENT_SWIZZLE_IDENTITY,
-                       .g = VK_COMPONENT_SWIZZLE_IDENTITY,
-                       .b = VK_COMPONENT_SWIZZLE_IDENTITY,
-                       .a = VK_COMPONENT_SWIZZLE_IDENTITY},
-        .subresourceRange = {.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                             .baseMipLevel = 0,
-                             .levelCount = 1,
-                             .baseArrayLayer = 0,
-                             .layerCount = 1}};
-
-    _mechanics.result(vkCreateImageView, mainDevice.logical, &createInfo,
-                      nullptr, &swapChain.imageViews[i]);
-  }
-}
-
-VkImageView VulkanMechanics::createImageView(VkImage image,
-                                             VkFormat format,
-                                             VkImageAspectFlags aspectFlags) {
-  VkImageViewCreateInfo viewInfo{
-      .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-      .image = image,
-      .viewType = VK_IMAGE_VIEW_TYPE_2D,
-      .format = format,
-      .subresourceRange = {.aspectMask = aspectFlags,
-                           .baseMipLevel = 0,
-                           .levelCount = 1,
-                           .baseArrayLayer = 0,
-                           .layerCount = 1}};
-
-  VkImageView imageView;
-  _mechanics.result(vkCreateImageView, mainDevice.logical, &viewInfo, nullptr,
-                    &imageView);
-
-  return imageView;
 }

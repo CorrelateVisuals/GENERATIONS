@@ -1,53 +1,65 @@
 #include <vulkan/vulkan.h>
 
+#include "CapitalEngine.h"
+#include "Pipelines.h"
+
 #include <array>
 #include <cstring>
 #include <random>
 
-#include "CapitalEngine.h"
-#include "Control.h"
-#include "Mechanics.h"
-#include "Memory.h"
-#include "Pipelines.h"
-#include "World.h"
+Pipelines::Pipelines(VulkanMechanics& mechanics)
+    : graphics{}, compute{}, _mechanics(mechanics) {}
 
-Pipelines::Pipelines() : graphics{}, compute{} {
-  _log.console("{ PIP }", "constructing Pipelines");
+Pipelines::~Pipelines() {}
+
+void Pipelines::createPipelines(Resources& _resources) {
+  Log::text("\n");
+  Log::text(Log::Style::headerGuard);
+  Log::text("{ === }", "Pipelines");
+
+  _resources.createDescriptorSetLayout();
+  createRenderPass();
+  createGraphicsPipeline(_resources.descriptor.setLayout);
+  createComputePipeline(_resources.descriptor.setLayout,
+                        _resources.pushConstants);
+  createColorResources(_resources);
+  createDepthResources(_resources);
 }
 
-Pipelines::~Pipelines() {
-  _log.console("{ PIP }", "destructing Pipelines");
-}
+void Pipelines::createColorResources(Resources& _resources) {
+  Log::text("{ []< }", "Color Resources ");
 
-void Pipelines::createColorResources() {
   VkFormat colorFormat = _mechanics.swapChain.imageFormat;
 
-  _memory.createImage(_mechanics.swapChain.extent.width,
-                      _mechanics.swapChain.extent.height, graphics.msaa.samples,
-                      colorFormat, VK_IMAGE_TILING_OPTIMAL,
-                      VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT |
-                          VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                      graphics.msaa.colorImage, graphics.msaa.colorImageMemory);
-  graphics.msaa.colorImageView = _mechanics.createImageView(
+  _resources.createImage(
+      _mechanics.swapChain.extent.width, _mechanics.swapChain.extent.height,
+      graphics.msaa.samples, colorFormat, VK_IMAGE_TILING_OPTIMAL,
+      VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT |
+          VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, graphics.msaa.colorImage,
+      graphics.msaa.colorImageMemory);
+  graphics.msaa.colorImageView = _resources.createImageView(
       graphics.msaa.colorImage, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT);
 }
 
-void Pipelines::createDepthResources() {
+void Pipelines::createDepthResources(Resources& _resources) {
+  Log::text("{ []< }", "Depth Resources ");
   VkFormat depthFormat = findDepthFormat();
 
-  _memory.createImage(_mechanics.swapChain.extent.width,
-                      _mechanics.swapChain.extent.height, graphics.msaa.samples,
-                      depthFormat, VK_IMAGE_TILING_OPTIMAL,
-                      VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
-                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, graphics.depth.image,
-                      graphics.depth.imageMemory);
-  graphics.depth.imageView = _mechanics.createImageView(
+  _resources.createImage(
+      _mechanics.swapChain.extent.width, _mechanics.swapChain.extent.height,
+      graphics.msaa.samples, depthFormat, VK_IMAGE_TILING_OPTIMAL,
+      VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, graphics.depth.image,
+      graphics.depth.imageMemory);
+  graphics.depth.imageView = _resources.createImageView(
       graphics.depth.image, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
 }
 
 void Pipelines::createRenderPass() {
-  _log.console("{ []< }", "creating Render Pass");
+  Log::text("{ []< }", "Render Pass");
+  Log::text(Log::Style::charLeader, "attachments: msaa, depth");
+
   VkAttachmentDescription colorAttachment{
       .format = _mechanics.swapChain.imageFormat,
       .samples = graphics.msaa.samples,
@@ -122,8 +134,9 @@ void Pipelines::createRenderPass() {
                     &renderPassInfo, nullptr, &graphics.renderPass);
 }
 
-void Pipelines::createGraphicsPipeline() {
-  _log.console("{ PIP }", "creating Graphics Pipeline");
+void Pipelines::createGraphicsPipeline(
+    VkDescriptorSetLayout& descriptorSetLayout) {
+  Log::text("{ === }", "Graphics Pipeline");
 
   std::vector<VkPipelineShaderStageCreateInfo> shaderStages{
       getShaderStageInfo(VK_SHADER_STAGE_VERTEX_BIT, "vert.spv", graphics),
@@ -167,7 +180,7 @@ void Pipelines::createGraphicsPipeline() {
   VkPipelineLayoutCreateInfo pipelineLayoutInfo{
       .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
       .setLayoutCount = 1,
-      .pSetLayouts = &_memory.descriptor.setLayout};
+      .pSetLayouts = &descriptorSetLayout};
 
   _mechanics.result(vkCreatePipelineLayout, _mechanics.mainDevice.logical,
                     &pipelineLayoutInfo, nullptr, &graphics.pipelineLayout);
@@ -232,6 +245,8 @@ VkPipelineShaderStageCreateInfo Pipelines::getShaderStageInfo(
     VkShaderStageFlagBits shaderStage,
     std::string shaderName,
     auto pipeline) {
+  Log::text(Log::Style::charLeader, "Shader Module", shaderName);
+
   std::string directory = "shaders/";
   std::string shaderPath = directory + shaderName;
 
@@ -266,21 +281,23 @@ std::vector<char> Pipelines::readShaderFile(const std::string& filename) {
   return buffer;
 }
 
-void Pipelines::createComputePipeline() {
-  _log.console("{ PIP }", "creating Compute Pipeline");
+void Pipelines::createComputePipeline(
+    VkDescriptorSetLayout& descriptorSetLayout,
+    Resources::PushConstants& pushConstants) {
+  Log::text("{ === }", "Compute Pipeline");
 
   VkPipelineShaderStageCreateInfo computeShaderStageInfo =
       getShaderStageInfo(VK_SHADER_STAGE_COMPUTE_BIT, "comp.spv", compute);
 
   VkPushConstantRange pushConstantRange = {
-      .stageFlags = _memory.pushConstants.shaderStage,
-      .offset = _memory.pushConstants.offset,
-      .size = _memory.pushConstants.size};
+      .stageFlags = pushConstants.shaderStage,
+      .offset = pushConstants.offset,
+      .size = pushConstants.size};
 
   VkPipelineLayoutCreateInfo pipelineLayoutInfo{
       .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
       .setLayoutCount = 1,
-      .pSetLayouts = &_memory.descriptor.setLayout,
+      .pSetLayouts = &descriptorSetLayout,
       .pushConstantRangeCount = 1,
       .pPushConstantRanges = &pushConstantRange};
 
@@ -299,30 +316,13 @@ void Pipelines::createComputePipeline() {
   destroyShaderModules(compute.shaderModules);
 }
 
-VkSampleCountFlagBits Pipelines::getMaxUsableSampleCount() {
-  VkPhysicalDeviceProperties physicalDeviceProperties;
-  vkGetPhysicalDeviceProperties(_mechanics.mainDevice.physical,
-                                &physicalDeviceProperties);
-  VkSampleCountFlags counts =
-      physicalDeviceProperties.limits.framebufferColorSampleCounts &
-      physicalDeviceProperties.limits.framebufferDepthSampleCounts;
-
-  for (size_t i = VK_SAMPLE_COUNT_64_BIT; i >= VK_SAMPLE_COUNT_1_BIT; i >>= 1) {
-    if (counts & i) {
-      return static_cast<VkSampleCountFlagBits>(i);
-    }
-  }
-  return VK_SAMPLE_COUNT_1_BIT;
-}
-
 VkShaderModule Pipelines::createShaderModule(const std::vector<char>& code) {
-  _log.console(_log.style.charLeader, "creating Shader Module");
   VkShaderModuleCreateInfo createInfo{
       .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
       .codeSize = code.size(),
       .pCode = reinterpret_cast<const uint32_t*>(code.data())};
 
-  VkShaderModule shaderModule;
+  VkShaderModule shaderModule{};
 
   _mechanics.result(vkCreateShaderModule, _mechanics.mainDevice.logical,
                     &createInfo, nullptr, &shaderModule);

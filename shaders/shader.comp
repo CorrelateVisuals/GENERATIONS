@@ -8,6 +8,8 @@ struct Cell {
     ivec4 states;   // bool     alive, stage, cycle, passedHours
     vec4 tileSidesHeight;
     vec4 tileCornersHeight;
+
+    vec2 textureCoords;
 } cell;
 
 layout(std430, binding = 1) readonly buffer CellSSBOIn {Cell cellIn[ ]; };
@@ -119,16 +121,16 @@ void simulate(out Cell cell) {
     int neighbours  = cycleNeighbours(1);
 
     if (underWater) {   
-       cell = Cell(pos, grey1, sizeOff, setState(dead, 0), sidesHeight, cornersHeight); 
+       cell = Cell(pos, grey1, sizeOff, setState(dead, 0), sidesHeight, cornersHeight, cellIn[index].textureCoords); 
    } else if (stage(0)) {
-        cell = initialized ?    Cell(pos, white, size, setState(alive, 0), sidesHeight, cornersHeight) :
-               lifeCycle ?      Cell(pos, colorIncrement, size, setState(alive, 0),sidesHeight, cornersHeight) :
-               endOfStage ?     Cell(pos, white, size, setState(alive, 1),sidesHeight, cornersHeight) :
-                                Cell(pos, grey1, sizeOff, setState(dead, 1),sidesHeight, cornersHeight);
+        cell = initialized ?    Cell(pos, white, size, setState(alive, 0), sidesHeight, cornersHeight, cellIn[index].textureCoords) :
+               lifeCycle ?      Cell(pos, colorIncrement, size, setState(alive, 0),sidesHeight, cornersHeight, cellIn[index].textureCoords) :
+               endOfStage ?     Cell(pos, white, size, setState(alive, 1),sidesHeight, cornersHeight, cellIn[index].textureCoords) :
+                                Cell(pos, grey1, sizeOff, setState(dead, 1),sidesHeight, cornersHeight, cellIn[index].textureCoords);
     } else if (stage(1)) {
-        cell = live(neighbours) ?   Cell(pos, white, size, setState(alive, 0),sidesHeight, cornersHeight) :
-               die(neighbours) ?    Cell(pos, grey1, sizeOff, setState(dead, 0),sidesHeight, cornersHeight) :
-                                    Cell(pos, colorIn, sizeOff, setState(dead, 1),sidesHeight, cornersHeight);
+        cell = live(neighbours) ?   Cell(pos, white, size, setState(alive, 0),sidesHeight, cornersHeight, cellIn[index].textureCoords) :
+               die(neighbours) ?    Cell(pos, grey1, sizeOff, setState(dead, 0),sidesHeight, cornersHeight, cellIn[index].textureCoords) :
+                                    Cell(pos, colorIn, sizeOff, setState(dead, 1),sidesHeight, cornersHeight, cellIn[index].textureCoords);
     }
 }
 

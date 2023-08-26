@@ -1,10 +1,13 @@
 #version 450
+
 layout(location = 0) in vec4 inPosition;
 layout(location = 1) in vec4 inColor;
 layout(location = 2) in vec4 inSize;
 layout(location = 3) in ivec4 inStates;
 layout(location = 4) in vec4 inTileSidesHeight;
 layout(location = 5) in vec4 inTileCornersHeight;
+
+layout(location = 6) in vec2 textureCoords;
 
 layout (binding = 0) uniform ParameterUBO {
     vec4 light;
@@ -112,12 +115,12 @@ vec4 setColor() {
     float blendBottomRight = max(normalizedPosition.x + normalizedPosition.y - 0.9, 0.0);
  
     vec4 color = vec4(0.1);
-    color += vec4(0.5, 0.4, 0.0, 0.5) * blendTopRight;        // Red for top left corner
-    color += vec4(0.3, 0.8, 0.2, 0.6) * blendTopLeft;       // Yellow for top right corner
-    color += vec4(0.0, 0.8, 0.4, 0.7) * blendBottomLeft;     // Blue for bottom left corner
-    color += vec4(0.5, 0.2, 0.1, 0.7) * blendBottomRight;    // Green for bottom right corner
+    color += vec4(0.5, 0.4, 0.0, 0.3) * blendTopRight;        // Red for top left corner
+    color += vec4(0.3, 0.8, 0.2, 0.4) * blendTopLeft;       // Yellow for top right corner
+    color += vec4(0.0, 0.8, 0.4, 0.5) * blendBottomLeft;     // Blue for bottom left corner
+    color += vec4(0.5, 0.2, 0.1, 0.4) * blendBottomRight;    // Green for bottom right corner
 
-    color *= clamp(worldPosition.z, 1.5, 3.0);;
+    color *= clamp(worldPosition.z, 1.5, 2.0);;
 
     vec4 waterColor = vec4(0.0, 0.5, 0.8, 1.0);
     float isBelowWater = step(worldPosition.z, waterThreshold);
@@ -136,10 +139,14 @@ float gouraudShading(float brightness, float emit) {
 }
 
 layout(location = 0) out vec4 fragColor;
+layout(location = 6) out vec2 textureCoordinates;
 
 void main() {
-    vec4 color = inColor * setColor() * gouraudShading(2.0f, 0.2f); 
+    vec4 color = inColor * setColor() * gouraudShading(1.5f, 0.2f); 
+
     fragColor = modifyColorContrast(color, 1.3f);
+    textureCoordinates = textureCoords;
+
     gl_Position = projection * viewPosition;
 }
 

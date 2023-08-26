@@ -2,15 +2,22 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 
+#include <array>
 #include <iostream>
 
 class Window {
  public:
-  Window();
-  ~Window();
+  Window(const Window&) = delete;
+  static Window& get() { return mainWindow; }
 
   GLFWwindow* window;
   bool framebufferResized;
+
+  struct DisplayConfiguration {
+    const char* title{"GENERATIONS"};
+    uint16_t width = 3800;
+    uint16_t height = 1080;
+  } display;
 
   struct Mouse {
     float pressDelay = 0.18f;
@@ -27,6 +34,11 @@ class Window {
   void setMouse();
 
  private:
+  Window();
+  ~Window();
+
   void initWindow();
   static void windowResize(GLFWwindow* win, int width, int height);
+
+  static Window mainWindow;
 };
