@@ -13,9 +13,9 @@ Pipelines::Pipelines(VulkanMechanics& mechanics)
 Pipelines::~Pipelines() {}
 
 void Pipelines::createPipelines(Resources& _resources) {
-  Log::console("\n");
-  Log::console(Log::Style::headerGuard);
-  Log::console("{ === }", "Pipelines");
+  Log::text("\n");
+  Log::text(Log::Style::headerGuard);
+  Log::text("{ === }", "Pipelines");
 
   _resources.createDescriptorSetLayout();
   createRenderPass();
@@ -27,7 +27,7 @@ void Pipelines::createPipelines(Resources& _resources) {
 }
 
 void Pipelines::createColorResources(Resources& _resources) {
-  Log::console("{ []< }", "Color Resources ");
+  Log::text("{ []< }", "Color Resources ");
 
   VkFormat colorFormat = _mechanics.swapChain.imageFormat;
 
@@ -43,7 +43,7 @@ void Pipelines::createColorResources(Resources& _resources) {
 }
 
 void Pipelines::createDepthResources(Resources& _resources) {
-  Log::console("{ []< }", "Depth Resources ");
+  Log::text("{ []< }", "Depth Resources ");
   VkFormat depthFormat = findDepthFormat();
 
   _resources.createImage(
@@ -57,8 +57,8 @@ void Pipelines::createDepthResources(Resources& _resources) {
 }
 
 void Pipelines::createRenderPass() {
-  Log::console("{ []< }", "Render Pass");
-  Log::console(Log::Style::charLeader, "attachments: msaa, depth");
+  Log::text("{ []< }", "Render Pass");
+  Log::text(Log::Style::charLeader, "attachments: msaa, depth");
 
   VkAttachmentDescription colorAttachment{
       .format = _mechanics.swapChain.imageFormat,
@@ -136,7 +136,7 @@ void Pipelines::createRenderPass() {
 
 void Pipelines::createGraphicsPipeline(
     VkDescriptorSetLayout& descriptorSetLayout) {
-  Log::console("{ === }", "Graphics Pipeline");
+  Log::text("{ === }", "Graphics Pipeline");
 
   std::vector<VkPipelineShaderStageCreateInfo> shaderStages{
       getShaderStageInfo(VK_SHADER_STAGE_VERTEX_BIT, "vert.spv", graphics),
@@ -245,7 +245,7 @@ VkPipelineShaderStageCreateInfo Pipelines::getShaderStageInfo(
     VkShaderStageFlagBits shaderStage,
     std::string shaderName,
     auto pipeline) {
-  Log::console(Log::Style::charLeader, "Shader Module", shaderName);
+  Log::text(Log::Style::charLeader, "Shader Module", shaderName);
 
   std::string directory = "shaders/";
   std::string shaderPath = directory + shaderName;
@@ -284,7 +284,7 @@ std::vector<char> Pipelines::readShaderFile(const std::string& filename) {
 void Pipelines::createComputePipeline(
     VkDescriptorSetLayout& descriptorSetLayout,
     Resources::PushConstants& pushConstants) {
-  Log::console("{ === }", "Compute Pipeline");
+  Log::text("{ === }", "Compute Pipeline");
 
   VkPipelineShaderStageCreateInfo computeShaderStageInfo =
       getShaderStageInfo(VK_SHADER_STAGE_COMPUTE_BIT, "comp.spv", compute);

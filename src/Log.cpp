@@ -187,7 +187,7 @@ std::string getSampleCountString(VkSampleCountFlags sampleCount) {
 }
 
 std::string getImageUsageString(VkImageUsageFlags usage) {
-  std::string result = "VkImageUsageFlags";
+  std::string result = "VkImageUsageFlags: ";
 #define ADD_FLAG_CASE(flag) \
   if (usage & flag) {       \
     result += #flag " | ";  \

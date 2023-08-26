@@ -21,7 +21,7 @@ void Internal::logValidationMessage(const std::string& string,
   if (string.find(excludeError) != std::string::npos)
     return;
 
-  Log::console("\n\n                     > > > Validation Layer: ", string,
+  Log::text("\n\n                     > > > Validation Layer: ", string,
                "\n");
 }
 
@@ -30,7 +30,7 @@ void Internal::LogValidationMessage(const std::string& string,
   if (string.find(excludeError) != std::string::npos)
     return;
 
-  Log::console("\n\n                     > > > Validation Layer: ", string,
+  Log::text("\n\n                     > > > Validation Layer: ", string,
                "\n");
 }
 

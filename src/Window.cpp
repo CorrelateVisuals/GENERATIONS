@@ -11,7 +11,7 @@ Window::Window() : window{nullptr}, framebufferResized{false}, mouse{} {
 }
 
 Window::~Window() {
-  Log::console("{ [-] }", "Window");
+  Log::text("{ [-] }", "Window");
   glfwDestroyWindow(window);
   glfwTerminate();
 }
@@ -23,8 +23,8 @@ void Window::initWindow() {
                             nullptr, nullptr);
   glfwSetWindowUserPointer(window, this);
   glfwSetFramebufferSizeCallback(window, windowResize);
-  Log::console("{ [*] }", "Window initialized with", display.width, "*",
-               display.height);
+  Log::text("{ [*] }", "Window initialized with", display.width, "*",
+            display.height);
 }
 
 void Window::windowResize(GLFWwindow* win, int width, int height) {
@@ -32,7 +32,7 @@ void Window::windowResize(GLFWwindow* win, int width, int height) {
   app->framebufferResized = true;
   app->display.width = width;
   app->display.height = height;
-  Log::console("{ [*] }", "Window resized to", width, "*", height);
+  Log::text("{ [*] }", "Window resized to", width, "*", height);
 }
 
 void Window::setMouse() {
@@ -74,9 +74,9 @@ void Window::setMouse() {
             const std::string& message = buttonMapping->second;
             mouse.buttonClick[buttonType].position = glm::vec2{x, y};
 
-            Log::console(message + " clicked at",
-                         mouse.buttonClick[buttonType].position.x, ":",
-                         mouse.buttonClick[buttonType].position.y);
+            Log::text(message + " clicked at",
+                      mouse.buttonClick[buttonType].position.x, ":",
+                      mouse.buttonClick[buttonType].position.y);
             timer = 0.0f;
           }
         } else {
@@ -93,7 +93,7 @@ void Window::setMouse() {
               mouse.buttonDown[buttonType].position +=
                   normalizedCoords * mouse.speed;
 
-              // Log::console(message + " moved to",
+              // Log::text(message + " moved to",
               //              mouse.buttonDown[buttonType].position.x, ":",
               //              mouse.buttonDown[buttonType].position.y);
             }

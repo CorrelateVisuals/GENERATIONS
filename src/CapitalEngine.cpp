@@ -7,9 +7,9 @@ Pipelines _pipelines(_mechanics);
 Resources _resources(_mechanics);
 
 CapitalEngine::CapitalEngine() {
-  Log::console("\n");
-  Log::console(Log::Style::headerGuard, "\n", Log::Style::indentSize,
-               "| CAPITAL Engine");
+  Log::text("\n");
+  Log::text(Log::Style::headerGuard, "\n", Log::Style::indentSize,
+            "| CAPITAL Engine");
 
   _mechanics.setupVulkan(_pipelines, _resources);
   _pipelines.createPipelines(_resources);
@@ -17,18 +17,17 @@ CapitalEngine::CapitalEngine() {
 }
 
 CapitalEngine::~CapitalEngine() {
-  Log::console(Log::Style::headerGuard, "\n", Log::Style::indentSize,
-               "| CAPITAL Engine");
-  Log::console(Log::Style::headerGuard, "\n");
+  Log::text(Log::Style::headerGuard, "\n", Log::Style::indentSize,
+            "| CAPITAL Engine");
+  Log::text(Log::Style::headerGuard, "\n");
 
   cleanup();
 }
 
 void CapitalEngine::mainLoop() {
-  Log::console("\n");
-  Log::console(Log::Style::headerGuard);
-  Log::console("{ Main Loop } running ..........");
-  Log::console(Log::Style::headerGuard);
+  Log::text("\n");
+  Log::text(Log::Style::headerGuard);
+  Log::text("{ Main Loop }");
 
   while (!glfwWindowShouldClose(Window::get().window)) {
     glfwPollEvents();
@@ -43,10 +42,8 @@ void CapitalEngine::mainLoop() {
     }
   }
   vkDeviceWaitIdle(_mechanics.mainDevice.logical);
-  Log::console("\n");
-  Log::console(Log::Style::headerGuard);
-  Log::console("{ Main Loop } ....... terminated");
-  Log::console(Log::Style::headerGuard);
+  Log::text("{ Main Loop }");
+  Log::text(Log::Style::headerGuard);
 }
 
 void CapitalEngine::drawFrame() {

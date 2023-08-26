@@ -16,9 +16,9 @@ Resources::Resources(VulkanMechanics& mechanics)
 Resources::~Resources() {}
 
 void Resources::createResources(Pipelines& _pipelines) {
-  Log::console("\n");
-  Log::console(Log::Style::headerGuard);
-  Log::console("{ /// }", "Resources ...");
+  Log::text("\n");
+  Log::text(Log::Style::headerGuard);
+  Log::text("{ /// }", "Resources ...");
 
   createTextureImage("../assets/GenerationsCapture.PNG");
   createTextureImageView();
@@ -36,13 +36,13 @@ void Resources::createResources(Pipelines& _pipelines) {
 }
 
 void Resources::createFramebuffers(Pipelines& _pipelines) {
-  Log::console("{ 101 }",
+  Log::text("{ 101 }",
                "Frame Buffers:", _mechanics.swapChain.imageViews.size());
 
   _mechanics.swapChain.framebuffers.resize(
       _mechanics.swapChain.imageViews.size());
 
-  Log::console(Log::Style::charLeader, "attachments: msaa, depth, imageView*3");
+  Log::text(Log::Style::charLeader, "attachments: msaa, depth, imageView*3");
   for (size_t i = 0; i < _mechanics.swapChain.imageViews.size(); i++) {
     std::vector<VkImageView> attachments{
         _pipelines.graphics.msaa.colorImageView,
@@ -65,7 +65,7 @@ void Resources::createFramebuffers(Pipelines& _pipelines) {
 }
 
 void Resources::createCommandBuffers() {
-  Log::console("{ cmd }", "Command Buffers");
+  Log::text("{ cmd }", "Command Buffers");
 
   buffers.command.graphic.resize(MAX_FRAMES_IN_FLIGHT);
 
@@ -81,7 +81,7 @@ void Resources::createCommandBuffers() {
 }
 
 void Resources::createComputeCommandBuffers() {
-  Log::console("{ cmd }", "Compute Command Buffers");
+  Log::text("{ cmd }", "Compute Command Buffers");
 
   buffers.command.compute.resize(MAX_FRAMES_IN_FLIGHT);
 
@@ -97,7 +97,7 @@ void Resources::createComputeCommandBuffers() {
 }
 
 void Resources::createShaderStorageBuffers() {
-  Log::console("{ 101 }", "Shader Storage Buffers");
+  Log::text("{ 101 }", "Shader Storage Buffers");
 
   std::vector<World::Cell> cells = world.initializeCells();
 
@@ -137,7 +137,7 @@ void Resources::createShaderStorageBuffers() {
 }
 
 void Resources::createUniformBuffers() {
-  Log::console("{ 101 }", MAX_FRAMES_IN_FLIGHT, "Uniform Buffers");
+  Log::text("{ 101 }", MAX_FRAMES_IN_FLIGHT, "Uniform Buffers");
   VkDeviceSize bufferSize = sizeof(World::UniformBufferObject);
 
   buffers.uniforms.resize(MAX_FRAMES_IN_FLIGHT);
@@ -179,12 +179,12 @@ void Resources::createDescriptorSetLayout() {
        .pImmutableSamplers = nullptr},
   };
 
-  Log::console("{ |=| }", "Descriptor Set Layout with", layoutBindings.size(),
+  Log::text("{ |=| }", "Descriptor Set Layout", layoutBindings.size(),
                "bindings");
   for (const VkDescriptorSetLayoutBinding& item : layoutBindings) {
-    Log::console("{ ", item.binding, " }",
+    Log::text("{ ", item.binding, " }",
                  Log::getDescriptorTypeString(item.descriptorType));
-    Log::console(Log::Style::charLeader,
+    Log::text(Log::Style::charLeader,
                  Log::getShaderStageString(item.stageFlags));
   }
 
@@ -206,9 +206,9 @@ void Resources::createDescriptorPool() {
       {.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
        .descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT)}};
 
-  Log::console("{ |=| }", "Descriptor Pool");
+  Log::text("{ |=| }", "Descriptor Pool");
   for (size_t i = 0; i < poolSizes.size(); i++) {
-    Log::console(Log::Style::charLeader,
+    Log::text(Log::Style::charLeader,
                  Log::getDescriptorTypeString(poolSizes[i].type));
   }
 
@@ -231,10 +231,10 @@ void Resources::createImage(uint32_t width,
                             VkMemoryPropertyFlags properties,
                             VkImage& image,
                             VkDeviceMemory& imageMemory) {
-  Log::console("{ img }", "Image", width, height);
-  Log::console(Log::Style::charLeader, Log::getSampleCountString(numSamples));
-  Log::console(Log::Style::charLeader, Log::getImageUsageString(usage));
-  Log::console(Log::Style::charLeader,
+  Log::text("{ img }", "Image", width, height);
+  Log::text(Log::Style::charLeader, Log::getSampleCountString(numSamples));
+  Log::text(Log::Style::charLeader, Log::getImageUsageString(usage));
+  Log::text(Log::Style::charLeader,
                Log::getMemoryPropertyString(properties));
 
   VkImageCreateInfo imageInfo{
@@ -273,7 +273,7 @@ void Resources::createImage(uint32_t width,
 }
 
 void Resources::createTextureImage(std::string imagePath) {
-  Log::console("{ img }", "Image Texture: ", imagePath);
+  Log::text("{ img }", "Image Texture: ", imagePath);
   int texWidth, texHeight, texChannels;
   int rgba = 4;
   stbi_uc* pixels = stbi_load(imagePath.c_str(), &texWidth, &texHeight,
@@ -324,7 +324,7 @@ void Resources::setPushConstants() {
   pushConstants.data = {world.time.passedHours};
 }
 VkCommandBuffer Resources::beginSingleTimeCommands() {
-  Log::console("{ 1.. }", "Begin Single Time Commands");
+  Log::text("{ 1.. }", "Begin Single Time Commands");
 
   VkCommandBufferAllocateInfo allocInfo{};
   allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -346,7 +346,7 @@ VkCommandBuffer Resources::beginSingleTimeCommands() {
 }
 
 void Resources::endSingleTimeCommands(VkCommandBuffer commandBuffer) {
-  Log::console("{ ..1 }", "End Single Time Commands");
+  Log::text("{ ..1 }", "End Single Time Commands");
 
   vkEndCommandBuffer(commandBuffer);
 
@@ -366,7 +366,7 @@ void Resources::transitionImageLayout(VkImage image,
                                       VkFormat format,
                                       VkImageLayout oldLayout,
                                       VkImageLayout newLayout) {
-  Log::console("{ >>> }", "Transition Image Layout");
+  Log::text("{ >>> }", "Transition Image Layout");
 
   VkCommandBuffer commandBuffer = beginSingleTimeCommands();
 
@@ -414,7 +414,7 @@ void Resources::copyBufferToImage(VkBuffer buffer,
                                   VkImage image,
                                   uint32_t width,
                                   uint32_t height) {
-  Log::console("{ >>> }", "Buffer To Image", width, height);
+  Log::text("{ >>> }", "Buffer To Image", width, height);
 
   VkCommandBuffer commandBuffer = beginSingleTimeCommands();
 
@@ -436,13 +436,13 @@ void Resources::copyBufferToImage(VkBuffer buffer,
 }
 
 void Resources::createTextureImageView() {
-  Log::console("{ img }", "Texture Image View");
+  Log::text("{ img }", "Texture Image View");
   image.textureView = createImageView(image.texture, VK_FORMAT_R8G8B8A8_SRGB,
                                       VK_IMAGE_ASPECT_COLOR_BIT);
 }
 
 void Resources::createDescriptorSets() {
-  Log::console("{ |=| }", "Descriptor Sets");
+  Log::text("{ |=| }", "Descriptor Sets");
   std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT,
                                              descriptor.setLayout);
   VkDescriptorSetAllocateInfo allocateInfo{
@@ -618,7 +618,7 @@ void Resources::recordCommandBuffer(VkCommandBuffer commandBuffer,
 VkImageView Resources::createImageView(VkImage image,
                                        VkFormat format,
                                        VkImageAspectFlags aspectFlags) {
-  Log::console("{ img }", "Image View");
+  Log::text("{ img }", "Image View");
 
   VkImageViewCreateInfo viewInfo{
       .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
@@ -639,7 +639,7 @@ VkImageView Resources::createImageView(VkImage image,
 }
 
 void Resources::createTextureSampler() {
-  Log::console("{ img }", "Texture Sampler");
+  Log::text("{ img }", "Texture Sampler");
   VkPhysicalDeviceProperties properties{};
   vkGetPhysicalDeviceProperties(_mechanics.mainDevice.physical, &properties);
 
@@ -674,10 +674,10 @@ void Resources::createBuffer(VkDeviceSize size,
                                 .usage = usage,
                                 .sharingMode = VK_SHARING_MODE_EXCLUSIVE};
 
-  Log::console("{ ... }", Log::getBufferUsageString(usage));
-  Log::console(Log::Style::charLeader,
+  Log::text("{ ... }", Log::getBufferUsageString(usage));
+  Log::text(Log::Style::charLeader,
                Log::getMemoryPropertyString(properties));
-  Log::console(Log::Style::charLeader, size, "bytes");
+  Log::text(Log::Style::charLeader, size, "bytes");
 
   _mechanics.result(vkCreateBuffer, _mechanics.mainDevice.logical, &bufferInfo,
                     nullptr, &buffer);
@@ -701,7 +701,7 @@ void Resources::createBuffer(VkDeviceSize size,
 void Resources::copyBuffer(VkBuffer srcBuffer,
                            VkBuffer dstBuffer,
                            VkDeviceSize size) {
-  Log::console("{ ... }", "copying", size, "bytes");
+  Log::text("{ ... }", "copying", size, "bytes");
 
   VkCommandBuffer commandBuffer = beginSingleTimeCommands();
 

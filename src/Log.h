@@ -20,7 +20,7 @@ extern std::ofstream logFile;
 extern std::string previousTime;
 
 template <class T, class... Ts>
-void console(const T& first, const Ts&... inputs);
+void text(const T& first, const Ts&... inputs);
 
 std::string getBufferUsageString(VkBufferUsageFlags usage);
 std::string getMemoryPropertyString(VkMemoryPropertyFlags properties);
@@ -34,7 +34,7 @@ std::string returnDateAndTime();
 };  // namespace Log
 
 template <class T, class... Ts>
-void Log::console(const T& first, const Ts&... inputs) {
+void Log::text(const T& first, const Ts&... inputs) {
   if (!logFile.is_open()) {
     std::cerr << "\n!ERROR! Could not open logFile for writing" << std::endl;
     return;

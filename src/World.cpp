@@ -11,18 +11,18 @@
 #include <random>
 
 World::World() : time{} {
-  Log::console("\n");
-  Log::console(". - < < { ", "G E N E R A T I O N S", " } > > - .");
-  Log::console("\n");
-  Log::console("{ wWw }", "World");
+  Log::text("\n");
+  Log::text(". - < < { ", "G E N E R A T I O N S", " } > > - .");
+  Log::text("\n");
+  Log::text("{ wWw }", "World");
   time.speed = timelineSpeed;
 }
 
 World::~World() {
-  Log::console("{ wWw }", "World");
-  Log::console("\n");
-  Log::console("© © © ©", "Jakob Povel | Correlate Visuals", "© © © ©");
-  Log::console("\n");
+  Log::text("{ wWw }", "World");
+  Log::text("\n");
+  Log::text("© © © ©", "Jakob Povel | Correlate Visuals", "© © © ©");
+  Log::text("\n");
 }
 
 std::vector<VkVertexInputBindingDescription> World::getBindingDescriptions() {
