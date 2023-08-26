@@ -6,13 +6,14 @@ Currently GENERATIONS is running ![Conway's Game of Life](https://en.wikipedia.o
 ![Cover Image](https://github.com/CorrelateVisuals/GENERATION/blob/main/assets/GenerationsCapture.PNG?raw=true)
 
 ## To do
-- Arcball Camera
+- Multiple pipelines
 - Integration of Dear ImGui
 - Texture manipulation
 - Color picking/Render picking
 - Tesselation shader stages
 - Geometry loading
 - Culling and level-of-detail (LOD)
+- Arcball Camera
 
 [Development enviroment](https://vulkan-tutorial.com/Development_environment)
 
