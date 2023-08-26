@@ -7,13 +7,9 @@
 #include <cmath>
 #include <vector>
 
-Terrain::Terrain(const Config& _config) : config(_config) {
-  Log::text("{ ~~~ }", "Terrain");
-}
+Terrain::Terrain(const Config& _config) : config(_config) {}
 
-Terrain::~Terrain() {
-  Log::text("{ ___ }", "Terrain");
-}
+Terrain::~Terrain() {}
 
 std::vector<float> Terrain::generatePerlinGrid() {
   size_t numPoints = config.width * config.height;
