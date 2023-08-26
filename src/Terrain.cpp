@@ -1,12 +1,19 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/noise.hpp>
 
+#include "CapitalEngine.h"
 #include "Terrain.h"
 
 #include <cmath>
 #include <vector>
 
-Terrain::Terrain(const Config& _config) : config(_config) {}
+Terrain::Terrain(const Config& _config) : config(_config) {
+  Log::text("{ ~~~ }", "Terrain");
+}
+
+Terrain::~Terrain() {
+  Log::text("{ ___ }", "Terrain");
+}
 
 std::vector<float> Terrain::generatePerlinGrid() {
   size_t numPoints = config.width * config.height;
