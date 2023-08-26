@@ -37,7 +37,7 @@ void Resources::createResources(Pipelines& _pipelines) {
 
 void Resources::createFramebuffers(Pipelines& _pipelines) {
   Log::text("{ 101 }",
-               "Frame Buffers:", _mechanics.swapChain.imageViews.size());
+            "Frame Buffers:", _mechanics.swapChain.imageViews.size());
 
   _mechanics.swapChain.framebuffers.resize(
       _mechanics.swapChain.imageViews.size());
@@ -180,12 +180,12 @@ void Resources::createDescriptorSetLayout() {
   };
 
   Log::text("{ |=| }", "Descriptor Set Layout", layoutBindings.size(),
-               "bindings");
+            "bindings");
   for (const VkDescriptorSetLayoutBinding& item : layoutBindings) {
     Log::text("{ ", item.binding, " }",
-                 Log::getDescriptorTypeString(item.descriptorType));
+              Log::getDescriptorTypeString(item.descriptorType));
     Log::text(Log::Style::charLeader,
-                 Log::getShaderStageString(item.stageFlags));
+              Log::getShaderStageString(item.stageFlags));
   }
 
   VkDescriptorSetLayoutCreateInfo layoutInfo{
@@ -209,7 +209,7 @@ void Resources::createDescriptorPool() {
   Log::text("{ |=| }", "Descriptor Pool");
   for (size_t i = 0; i < poolSizes.size(); i++) {
     Log::text(Log::Style::charLeader,
-                 Log::getDescriptorTypeString(poolSizes[i].type));
+              Log::getDescriptorTypeString(poolSizes[i].type));
   }
 
   VkDescriptorPoolCreateInfo poolInfo{
@@ -234,8 +234,7 @@ void Resources::createImage(uint32_t width,
   Log::text("{ img }", "Image", width, height);
   Log::text(Log::Style::charLeader, Log::getSampleCountString(numSamples));
   Log::text(Log::Style::charLeader, Log::getImageUsageString(usage));
-  Log::text(Log::Style::charLeader,
-               Log::getMemoryPropertyString(properties));
+  Log::text(Log::Style::charLeader, Log::getMemoryPropertyString(properties));
 
   VkImageCreateInfo imageInfo{
       .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
@@ -675,8 +674,7 @@ void Resources::createBuffer(VkDeviceSize size,
                                 .sharingMode = VK_SHARING_MODE_EXCLUSIVE};
 
   Log::text("{ ... }", Log::getBufferUsageString(usage));
-  Log::text(Log::Style::charLeader,
-               Log::getMemoryPropertyString(properties));
+  Log::text(Log::Style::charLeader, Log::getMemoryPropertyString(properties));
   Log::text(Log::Style::charLeader, size, "bytes");
 
   _mechanics.result(vkCreateBuffer, _mechanics.mainDevice.logical, &bufferInfo,
