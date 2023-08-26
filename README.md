@@ -5,7 +5,6 @@ Currently GENERATIONS is running ![Conway's Game of Life](https://en.wikipedia.o
 
 ![Cover Image](https://github.com/CorrelateVisuals/GENERATION/blob/main/assets/GenerationsCapture.PNG?raw=true)
 
-## To do
 ### Expanding Vulkan Functionality
 - Multiple pipelines
   - Texture manipulation / Feedback loop
@@ -19,7 +18,7 @@ Currently GENERATIONS is running ![Conway's Game of Life](https://en.wikipedia.o
 
 [Development enviroment](https://vulkan-tutorial.com/Development_environment)
 
-## Windows development
+### Windows development
 Additional Include Directories
 ```
 $(SolutionDir)..\Libraries\glfw-3.3.8\include
@@ -37,7 +36,7 @@ vulkan-1.lib
 glfw3.lib
 ```
 
-## Linux development
+### Linux development
 Build management using CMake
 Go to **build** sub-directory:
 ```bash
