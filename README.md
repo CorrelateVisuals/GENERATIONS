@@ -1,10 +1,8 @@
-
+# GENERATIONS
 GENERATIONS is a civilization simulator build on top of CAPITAL Engine. A cross platform Vulkan engine, built for simulations and algorithms that benefit from parallel computing. Currently tested on Linux and Windows, keeping external libraries to a minimum. GLFW for platform agnostic window and input handeling, GLM for parallel computations. 
 
-
 Currently GENERATIONS is running ![Conway's Game of Life](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life).
-
-![Cover Image](main/assets/GenerationsCapture.PNG)
+![Cover Image](https://github.com/CorrelateVisuals/GENERATION/blob/main/assets/GenerationsCapture.PNG?raw=true)
 
 ## Under development
 - Arcball Camera for improved camera control.
