@@ -18,17 +18,13 @@ VulkanMechanics::VulkanMechanics()
              VK_NULL_HANDLE,
              VK_NULL_HANDLE,
              {std::nullopt, std::nullopt}},
-      swapChain{VK_NULL_HANDLE, {}, VK_FORMAT_UNDEFINED, {}, {0, 0}, {}, {}} {
-  // Log::console("{ VkM }", "constructing Vulkan Mechanics");
-}
+      swapChain{VK_NULL_HANDLE, {}, VK_FORMAT_UNDEFINED, {}, {0, 0}, {}, {}} {}
 
-VulkanMechanics::~VulkanMechanics() {
-  // Log::console("{ VkM }", "destructing Vulkan Mechanics");
-}
+VulkanMechanics::~VulkanMechanics() {}
 
 void VulkanMechanics::setupVulkan(Pipelines& _pipelines,
                                   Resources& _resources) {
-  Log::console("{ Vk. }", "setting up Vulkan");
+  Log::console("{ Vk. }", "setting up Vulkan Mechanics");
   compileShaders();
   createInstance();
   ValidationLayers::setupDebugMessenger(instance);

@@ -8,16 +8,13 @@
 #include <random>
 
 Pipelines::Pipelines(VulkanMechanics& mechanics)
-    : graphics{}, compute{}, _mechanics(mechanics) {
-  // Log::console("{ === }", "constructing Pipelines");
-}
+    : graphics{}, compute{}, _mechanics(mechanics) {}
 
-Pipelines::~Pipelines() {
-  // Log::console("{ === }", "destructing Pipelines");
-}
+Pipelines::~Pipelines() {}
 
 void Pipelines::createPipelines(Resources& _resources) {
-  Log::console("{ === }", "pipelines");
+  Log::console(Log::Style::headerGuard);
+  Log::console("{ === }", "Pipelines");
 
   _resources.createDescriptorSetLayout();
   createRenderPass();
@@ -60,6 +57,8 @@ void Pipelines::createDepthResources(Resources& _resources) {
 
 void Pipelines::createRenderPass() {
   Log::console("{ []< }", "Render Pass");
+  Log::console(Log::Style::charLeader, "attachments: msaa, depth");
+
   VkAttachmentDescription colorAttachment{
       .format = _mechanics.swapChain.imageFormat,
       .samples = graphics.msaa.samples,

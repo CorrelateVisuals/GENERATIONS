@@ -7,14 +7,17 @@
 namespace Log {
 std::ofstream logFile = static_cast<std::ofstream>("log.txt");
 
-std::string Style::charLeader = std::string(8, ' ') + ":";
+std::string Style::charLeader = std::string(8, ' ') + ": ";
 std::string Style::indentSize = std::string(17, ' ');
+std::string Style::headerGuard = std::string(
+    "|-------------------------------------------------------------------------"
+    "----");
 int Style::columnCount = 14;
 
 std::string previousTime;
 
 std::string getBufferUsageString(VkBufferUsageFlags usage) {
-  std::string result;
+  std::string result = "VkBufferUsageFlags: ";
 
   if (usage & VK_BUFFER_USAGE_TRANSFER_SRC_BIT) {
     result += "TRANSFER_SRC | ";
@@ -53,7 +56,7 @@ std::string getBufferUsageString(VkBufferUsageFlags usage) {
 }
 
 std::string getMemoryPropertyString(VkMemoryPropertyFlags properties) {
-  std::string result;
+  std::string result = "VkMemoryPropertyFlags: ";
 #define ADD_FLAG_CASE(flag) \
   if (properties & flag) {  \
     result += #flag " | ";  \
@@ -119,7 +122,7 @@ std::string Log::getDescriptorTypeString(VkDescriptorType type) {
 }
 
 std::string getShaderStageString(VkShaderStageFlags flags) {
-  std::string result;
+  std::string result = "VkShaderStageFlags: ";
 #define ADD_FLAG_CASE(flag) \
   if (flags & flag) {       \
     result += #flag " | ";  \
@@ -160,7 +163,7 @@ std::string getShaderStageString(VkShaderStageFlags flags) {
 }
 
 std::string getSampleCountString(VkSampleCountFlags sampleCount) {
-  std::string result;
+  std::string result = "VkSampleCountFlags: ";
 #define ADD_FLAG_CASE(flag) \
   if (sampleCount & flag) { \
     result += #flag " | ";  \
@@ -184,7 +187,7 @@ std::string getSampleCountString(VkSampleCountFlags sampleCount) {
 }
 
 std::string getImageUsageString(VkImageUsageFlags usage) {
-  std::string result;
+  std::string result = "VkImageUsageFlags";
 #define ADD_FLAG_CASE(flag) \
   if (usage & flag) {       \
     result += #flag " | ";  \
@@ -213,7 +216,7 @@ std::string getImageUsageString(VkImageUsageFlags usage) {
 }
 
 std::string getMemoryPropertyFlags(VkMemoryPropertyFlags memFlags) {
-  std::string result;
+  std::string result = "VkMemoryPropertyFlags: ";
 #define ADD_FLAG_CASE(flag) \
   if (memFlags & flag) {    \
     result += #flag " | ";  \

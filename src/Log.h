@@ -12,6 +12,7 @@ namespace Log {
 struct Style {
   static std::string charLeader;
   static std::string indentSize;
+  static std::string headerGuard;
   static int columnCount;
 };
 

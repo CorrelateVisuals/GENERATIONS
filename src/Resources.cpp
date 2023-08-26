@@ -7,15 +7,16 @@
 World Resources::world;
 
 Resources::Resources(VulkanMechanics& mechanics)
-    : pushConstants{}, image{}, buffers{}, descriptor{}, _mechanics(mechanics) {
-  // Log::console("{ 010 }", "constructing Resources Management");
-}
+    : pushConstants{},
+      image{},
+      buffers{},
+      descriptor{},
+      _mechanics(mechanics) {}
 
-Resources::~Resources() {
-  // Log::console("{ 010 }", "destructing Resources Management");
-}
+Resources::~Resources() {}
 
 void Resources::createResources(Pipelines& _pipelines) {
+  Log::console(Log::Style::headerGuard);
   Log::console("{ /// }", "Resources ...");
 
   createTextureImage("../assets/GenerationsCapture.PNG");
@@ -36,11 +37,11 @@ void Resources::createResources(Pipelines& _pipelines) {
 void Resources::createFramebuffers(Pipelines& _pipelines) {
   Log::console("{ 101 }",
                "Frame Buffers:", _mechanics.swapChain.imageViews.size());
-  Log::console(Log::Style::charLeader, "attachments: msaa, depth, imageView*3");
 
   _mechanics.swapChain.framebuffers.resize(
       _mechanics.swapChain.imageViews.size());
 
+  Log::console(Log::Style::charLeader, "attachments: msaa, depth, imageView*3");
   for (size_t i = 0; i < _mechanics.swapChain.imageViews.size(); i++) {
     std::vector<VkImageView> attachments{
         _pipelines.graphics.msaa.colorImageView,
@@ -177,7 +178,7 @@ void Resources::createDescriptorSetLayout() {
        .pImmutableSamplers = nullptr},
   };
 
-  Log::console("{ /=| }", "Descriptor Set Layout with", layoutBindings.size(),
+  Log::console("{ |=| }", "Descriptor Set Layout with", layoutBindings.size(),
                "bindings");
   for (const VkDescriptorSetLayoutBinding& item : layoutBindings) {
     Log::console("{ ", item.binding, " }",
@@ -204,7 +205,7 @@ void Resources::createDescriptorPool() {
       {.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
        .descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT)}};
 
-  Log::console("{ /=| }", "Descriptor Pool");
+  Log::console("{ |=| }", "Descriptor Pool");
   for (size_t i = 0; i < poolSizes.size(); i++) {
     Log::console(Log::Style::charLeader,
                  Log::getDescriptorTypeString(poolSizes[i].type));
@@ -412,6 +413,8 @@ void Resources::copyBufferToImage(VkBuffer buffer,
                                   VkImage image,
                                   uint32_t width,
                                   uint32_t height) {
+  Log::console("{ >>> }", "Buffer To Image", width, height);
+
   VkCommandBuffer commandBuffer = beginSingleTimeCommands();
 
   VkBufferImageCopy region{};
@@ -438,7 +441,7 @@ void Resources::createTextureImageView() {
 }
 
 void Resources::createDescriptorSets() {
-  Log::console("{ /=| }", "Descriptor Sets");
+  Log::console("{ |=| }", "Descriptor Sets");
   std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT,
                                              descriptor.setLayout);
   VkDescriptorSetAllocateInfo allocateInfo{
@@ -670,8 +673,7 @@ void Resources::createBuffer(VkDeviceSize size,
                                 .usage = usage,
                                 .sharingMode = VK_SHARING_MODE_EXCLUSIVE};
 
-  Log::console("{ ... }", "Buffer:");
-  Log::console(Log::Style::charLeader, Log::getBufferUsageString(usage));
+  Log::console("{ ... }", Log::getBufferUsageString(usage));
   Log::console(Log::Style::charLeader,
                Log::getMemoryPropertyString(properties));
   Log::console(Log::Style::charLeader, size, "bytes");
@@ -698,7 +700,7 @@ void Resources::createBuffer(VkDeviceSize size,
 void Resources::copyBuffer(VkBuffer srcBuffer,
                            VkBuffer dstBuffer,
                            VkDeviceSize size) {
-  Log::console("{ ... }", "copying Buffer with size of", size, "bytes");
+  Log::console("{ ... }", "copying", size, "bytes");
 
   VkCommandBuffer commandBuffer = beginSingleTimeCommands();
 
