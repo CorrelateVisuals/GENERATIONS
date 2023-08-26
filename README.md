@@ -5,13 +5,14 @@ Currently GENERATIONS is running ![Conway's Game of Life](https://en.wikipedia.o
 
 ![Cover Image](https://github.com/CorrelateVisuals/GENERATION/blob/main/assets/GenerationsCapture.PNG?raw=true)
 
-## Under development
-- Arcball Camera for improved camera control.
-- Integration of Dear ImGui UI library for user interfaces.
-- Color picking functionality for screenspace position to vertex ID conversion.
+## To do
+- Arcball Camera
+- Integration of Dear ImGui
+- Texture manipulation
+- Color picking/Render picking
+- Tesselation shader stages
 - Geometry loading
-- Compute shader-based culling and level-of-detail (LOD) techniques for optimized rendering.
-- Addition of a tesselation shader stage for geometry processing and manipulation.
+- Culling and level-of-detail (LOD)
 
 [Development enviroment](https://vulkan-tutorial.com/Development_environment)
 
