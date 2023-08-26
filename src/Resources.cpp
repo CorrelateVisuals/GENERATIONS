@@ -16,6 +16,7 @@ Resources::Resources(VulkanMechanics& mechanics)
 Resources::~Resources() {}
 
 void Resources::createResources(Pipelines& _pipelines) {
+  Log::console("\n");
   Log::console(Log::Style::headerGuard);
   Log::console("{ /// }", "Resources ...");
 

@@ -11,12 +11,15 @@
 #include <random>
 
 World::World() : time{} {
-  Log::console("{ (X) }", "constructing World");
+  Log::console("\n");
+  Log::console(". - < < { ", "G E N E R A T I O N S", " } > > - .");
+  Log::console("\n");
+  Log::console("{ wWw }", "World");
   time.speed = timelineSpeed;
 }
 
 World::~World() {
-  Log::console("{ (X) }", "destructing World");
+  Log::console("{ wWw }", "World");
 }
 
 std::vector<VkVertexInputBindingDescription> World::getBindingDescriptions() {

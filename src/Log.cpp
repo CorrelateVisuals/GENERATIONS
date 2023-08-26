@@ -10,14 +10,14 @@ std::ofstream logFile = static_cast<std::ofstream>("log.txt");
 std::string Style::charLeader = std::string(8, ' ') + ": ";
 std::string Style::indentSize = std::string(17, ' ');
 std::string Style::headerGuard = std::string(
-    "|-------------------------------------------------------------------------"
-    "----");
+    "+-------------------------------------------------------------------------"
+    "----+");
 int Style::columnCount = 14;
 
 std::string previousTime;
 
 std::string getBufferUsageString(VkBufferUsageFlags usage) {
-  std::string result = "VkBufferUsageFlags: ";
+  std::string result;
 
   if (usage & VK_BUFFER_USAGE_TRANSFER_SRC_BIT) {
     result += "TRANSFER_SRC | ";

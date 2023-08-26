@@ -7,8 +7,9 @@ Pipelines _pipelines(_mechanics);
 Resources _resources(_mechanics);
 
 CapitalEngine::CapitalEngine() {
-  Log::console("\n", Log::Style::indentSize, "[ CAPITAL engine ]",
-               "starting...\n");
+  Log::console("\n");
+  Log::console(Log::Style::headerGuard, "\n", Log::Style::indentSize,
+               "| CAPITAL Engine");
 
   _mechanics.setupVulkan(_pipelines, _resources);
   _pipelines.createPipelines(_resources);
@@ -16,8 +17,10 @@ CapitalEngine::CapitalEngine() {
 }
 
 CapitalEngine::~CapitalEngine() {
-  Log::console("\n", Log::Style::indentSize, "[ CAPITAL engine ]",
-               "terminating...\n");
+  Log::console(Log::Style::headerGuard, "\n", Log::Style::indentSize,
+               "| CAPITAL Engine");
+  Log::console(Log::Style::headerGuard, "\n");
+
   cleanup();
 }
 

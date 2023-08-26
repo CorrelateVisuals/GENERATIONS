@@ -14,9 +14,9 @@ class Window {
   bool framebufferResized;
 
   struct DisplayConfiguration {
-      const char* title{ "G E N E R A T I O N S" };
-      uint16_t width = 3800;
-      uint16_t height = 1080;
+    const char* title{"GENERATIONS"};
+    uint16_t width = 3800;
+    uint16_t height = 1080;
   } display;
 
   struct Mouse {

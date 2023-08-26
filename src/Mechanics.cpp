@@ -24,6 +24,7 @@ VulkanMechanics::~VulkanMechanics() {}
 
 void VulkanMechanics::setupVulkan(Pipelines& _pipelines,
                                   Resources& _resources) {
+  Log::console(Log::Style::headerGuard);
   Log::console("{ Vk. }", "setting up Vulkan Mechanics");
   compileShaders();
   createInstance();

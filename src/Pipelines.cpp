@@ -13,6 +13,7 @@ Pipelines::Pipelines(VulkanMechanics& mechanics)
 Pipelines::~Pipelines() {}
 
 void Pipelines::createPipelines(Resources& _resources) {
+  Log::console("\n");
   Log::console(Log::Style::headerGuard);
   Log::console("{ === }", "Pipelines");
 
