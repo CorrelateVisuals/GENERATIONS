@@ -20,6 +20,9 @@ World::World() : time{} {
 
 World::~World() {
   Log::console("{ wWw }", "World");
+  Log::console("\n");
+  Log::console("© © © ©", "Jakob Povel | Correlate Visuals", "© © © ©");
+  Log::console("\n");
 }
 
 std::vector<VkVertexInputBindingDescription> World::getBindingDescriptions() {

@@ -25,8 +25,10 @@ CapitalEngine::~CapitalEngine() {
 }
 
 void CapitalEngine::mainLoop() {
-  Log::console("\n", Log::Style::indentSize,
-               "{ Main Loop } running ..........\n");
+  Log::console("\n");
+  Log::console(Log::Style::headerGuard);
+  Log::console("{ Main Loop } running ..........");
+  Log::console(Log::Style::headerGuard);
 
   while (!glfwWindowShouldClose(Window::get().window)) {
     glfwPollEvents();
@@ -41,8 +43,10 @@ void CapitalEngine::mainLoop() {
     }
   }
   vkDeviceWaitIdle(_mechanics.mainDevice.logical);
-  Log::console("\n", Log::Style::indentSize,
-               "{ Main Loop } ....... terminated");
+  Log::console("\n");
+  Log::console(Log::Style::headerGuard);
+  Log::console("{ Main Loop } ....... terminated");
+  Log::console(Log::Style::headerGuard);
 }
 
 void CapitalEngine::drawFrame() {
