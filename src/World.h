@@ -5,7 +5,6 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "CapitalEngine.h"
 #include "Timer.h"
 
 #include <array>
@@ -62,6 +61,8 @@ class World {
 
  private:
   struct Camera {
+    float zoomSpeed = 0.5f;
+    float panningSpeed = 1.2f;
     const float fieldOfView = 60.0f;
     const float nearClipping = 0.0001f;
     const float farClipping = 200.0f;

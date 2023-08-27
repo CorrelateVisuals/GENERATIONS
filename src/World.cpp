@@ -12,8 +12,9 @@
 
 World::World() : time{} {
   Log::text("\n");
+  Log::text(Log::Style::headerGuard);
   Log::text(". - < < { ", "G E N E R A T I O N S", " } > > - .");
-  Log::text("\n");
+  Log::text(Log::Style::headerGuard);
   Log::text("{ wWw }", "World");
   time.speed = timelineSpeed;
 }
@@ -21,7 +22,7 @@ World::World() : time{} {
 World::~World() {
   Log::text("{ wWw }", "World");
   Log::text("\n");
-  Log::text("© © © ©", "Jakob Povel | Correlate Visuals", "© © © ©");
+  Log::text("©", "Jakob Povel | Correlate Visuals", "©");
   Log::text("\n");
 }
 
@@ -194,13 +195,11 @@ void World::updateCamera() {
     glm::vec2 middleButtonDelta = buttonType[middle];
     glm::vec3 cameraRight = glm::cross(camera.front, camera.up);
 
-    constexpr float panningSpeed = 1.3f;
     glm::vec3 cameraUp = glm::cross(cameraRight, camera.front);
-    camera.position -= panningSpeed * rightButtonDelta.x * cameraRight;
-    camera.position -= panningSpeed * rightButtonDelta.y * cameraUp;
+    camera.position -= camera.panningSpeed * leftButtonDelta.x * cameraRight;
+    camera.position -= camera.panningSpeed * leftButtonDelta.y * cameraUp;
 
-    constexpr float zoomSpeed = 0.5f;
-    camera.position += zoomSpeed * middleButtonDelta.x * camera.front;
+    camera.position += camera.zoomSpeed * rightButtonDelta.x * camera.front;
     camera.position.z = std::max(camera.position.z, 0.0f);
   }
   run = mousePositionChanged;

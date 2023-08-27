@@ -23,7 +23,7 @@ void Window::initWindow() {
                             nullptr, nullptr);
   glfwSetWindowUserPointer(window, this);
   glfwSetFramebufferSizeCallback(window, windowResize);
-  Log::text("{ [*] }", "Window initialized with", display.width, "*",
+  Log::text("{ [*] }", "Window initialized", display.width, "*",
             display.height);
 }
 

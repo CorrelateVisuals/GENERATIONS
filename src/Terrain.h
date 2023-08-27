@@ -15,6 +15,7 @@ class Terrain {
   } config;
 
   Terrain(const Config& _config);
+  ~Terrain();
 
   std::vector<float> generatePerlinGrid();
   float linearInterpolationFunction(float a, float b, float t);
