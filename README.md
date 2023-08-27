@@ -47,12 +47,12 @@ Go to **build** sub-directory:
   make -j
 ```
 The excutable **CapitalEngine** is compiled in the **bin** sub-directory. De .spv files in **shaders** sub-directory.
-Executing: Go to the project root directory **GENERATION**:
+Executing: Go to the project root directory **GENERATIONS**:
 ```bash
 ./bin/CapitalEngine
 ```
 
 
 
-Started from the tutorial series by *Sascha Willems*: [Vulkan tutorial](https://vulkan-tutorial.com/Introduction).
+Build on the tutorial series by *Sascha Willems*: [Vulkan tutorial](https://vulkan-tutorial.com/Introduction).
 
