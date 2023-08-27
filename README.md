@@ -7,16 +7,12 @@ Currently GENERATIONS is running ![Conway's Game of Life](https://en.wikipedia.o
 
 ### Expanding Vulkan Functionality
 - Multiple graphical pipelines
-  - Blending order: over/ontop/under/composite/negate
+  + Blending
 - Tesselation shader stages
-  - Adding vertices between vertices
-- Texture/Image reading and writing from shader stage
-  - Feedback loop
+- Texture/Image reading and writing GPU & CPU
 - Color picking/Render picking
-  - Mouse click to get instance ID
 - Culling and level-of-detail (LOD)
-- Integration Dear ImGui
-  - Or alternative
+- Integration GUI (Dear ImGui)
 - Helper functions for Resource and Pipeline creation
 
 ### Extra additions
