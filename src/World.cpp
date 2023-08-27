@@ -13,7 +13,8 @@
 World::World() : time{} {
   Log::text("\n");
   Log::text(Log::Style::headerGuard);
-  Log::text(". - < < { ", "G E N E R A T I O N S", " } > > - .");
+  Log::text("                 . - < < { ", "G E N E R A T I O N S",
+            " } > > - .");
   Log::text(Log::Style::headerGuard);
   Log::text("{ wWw }", "World");
   time.speed = timelineSpeed;

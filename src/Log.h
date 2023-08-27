@@ -14,6 +14,7 @@ struct Style {
   static std::string indentSize;
   static std::string headerGuard;
   static int columnCount;
+  static int columnCountOffset;
 };
 
 extern std::ofstream logFile;
@@ -40,14 +41,13 @@ void Log::text(const T& first, const Ts&... inputs) {
     return;
   }
   std::string currentTime = returnDateAndTime();
-  int columnCountOffset = 4;
 
   if (currentTime != previousTime) {
     std::cout << ' ' << currentTime;
     logFile << ' ' << currentTime;
   } else {
     std::string padding(
-        static_cast<size_t>(Style::columnCount) + columnCountOffset, ' ');
+        static_cast<size_t>(Style::columnCount) + Style::columnCountOffset, ' ');
     std::cout << padding;
     logFile << padding;
   }
@@ -58,7 +58,7 @@ void Log::text(const T& first, const Ts&... inputs) {
     for (const auto& element : first) {
       if (elementCount % Style::columnCount == 0 && elementCount != 0) {
         std::string spaces(
-            static_cast<size_t>(Style::columnCount) + columnCountOffset, ' ');
+            static_cast<size_t>(Style::columnCount) + Style::columnCountOffset, ' ');
 
         std::cout << '\n' << ' ' << spaces << Style::charLeader << ' ';
         logFile << '\n' << ' ' << spaces << Style::charLeader << ' ';

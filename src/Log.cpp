@@ -13,6 +13,7 @@ std::string Style::headerGuard = std::string(
     "+-------------------------------------------------------------------------"
     "----+");
 int Style::columnCount = 14;
+int Style::columnCountOffset = 4;
 
 std::string previousTime;
 

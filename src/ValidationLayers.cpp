@@ -21,8 +21,7 @@ void Internal::logValidationMessage(const std::string& string,
   if (string.find(excludeError) != std::string::npos)
     return;
 
-  Log::text("\n\n                     > > > Validation Layer: ", string,
-               "\n");
+  Log::text("\n\n                     > > > Validation Layer: ", string, "\n");
 }
 
 void Internal::LogValidationMessage(const std::string& string,
@@ -30,8 +29,7 @@ void Internal::LogValidationMessage(const std::string& string,
   if (string.find(excludeError) != std::string::npos)
     return;
 
-  Log::text("\n\n                     > > > Validation Layer: ", string,
-               "\n");
+  Log::text("\n\n                     > > > Validation Layer: ", string, "\n");
 }
 
 VkResult Internal::CreateDebugUtilsMessengerEXT(
@@ -41,11 +39,10 @@ VkResult Internal::CreateDebugUtilsMessengerEXT(
     VkDebugUtilsMessengerEXT* pDebugMessenger) {
   auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(
       instance, "vkCreateDebugUtilsMessengerEXT");
-  if (func != nullptr) {
-    return func(instance, pCreateInfo, pAllocator, pDebugMessenger);
-  } else {
+  if (func == nullptr) {
     return VK_ERROR_EXTENSION_NOT_PRESENT;
   }
+  return func(instance, pCreateInfo, pAllocator, pDebugMessenger);
 }
 
 void ValidationLayers::destroyDebugUtilsMessengerEXT(
