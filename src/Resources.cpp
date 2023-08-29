@@ -20,9 +20,13 @@ void Resources::createResources(Pipelines& _pipelines) {
   Log::text(Log::Style::headerGuard);
   Log::text("{ /// }", "Resources ...");
 
+#ifdef _WIN32
+  std::string imagePath = "../assets/GenerationsCapture.PNG";
+#else  // Linux-specific code
+  std::string imagePath = = "assets/GenerationsCapture.PNG";
+#endif
 
-  // createTextureImage("../assets/GenerationsCapture.PNG");
-  createTextureImage("assets/GenerationsCapture.PNG");
+  createTextureImage(imagePath);
   createTextureImageView();
   createTextureSampler();
 
