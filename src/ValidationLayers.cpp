@@ -9,23 +9,23 @@ VkDebugUtilsMessengerEXT debugMessenger = VK_NULL_HANDLE;
 VKAPI_ATTR VkBool32 VKAPI_CALL Internal::debugCallback(
     VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
     VkDebugUtilsMessageTypeFlagsEXT messageType,
-    const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-    void* pUserData) {
+    const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData,
+    void *pUserData) {
   const std::string debugMessage = pCallbackData->pMessage;
   logValidationMessage(debugMessage, "Epic Games");
   return VK_FALSE;
 }
 
-void Internal::logValidationMessage(const std::string& string,
-                                    const std::string& excludeError) {
+void Internal::logValidationMessage(const std::string &string,
+                                    const std::string &excludeError) {
   if (string.find(excludeError) != std::string::npos)
     return;
 
   Log::text("\n\n                     > > > Validation Layer: ", string, "\n");
 }
 
-void Internal::LogValidationMessage(const std::string& string,
-                                    const std::string& excludeError) {
+void Internal::LogValidationMessage(const std::string &string,
+                                    const std::string &excludeError) {
   if (string.find(excludeError) != std::string::npos)
     return;
 
@@ -33,10 +33,9 @@ void Internal::LogValidationMessage(const std::string& string,
 }
 
 VkResult Internal::CreateDebugUtilsMessengerEXT(
-    VkInstance instance,
-    const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
-    const VkAllocationCallbacks* pAllocator,
-    VkDebugUtilsMessengerEXT* pDebugMessenger) {
+    VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT *pCreateInfo,
+    const VkAllocationCallbacks *pAllocator,
+    VkDebugUtilsMessengerEXT *pDebugMessenger) {
   auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(
       instance, "vkCreateDebugUtilsMessengerEXT");
   if (func == nullptr) {
@@ -45,10 +44,9 @@ VkResult Internal::CreateDebugUtilsMessengerEXT(
   return func(instance, pCreateInfo, pAllocator, pDebugMessenger);
 }
 
-void ValidationLayers::destroyDebugUtilsMessengerEXT(
-    VkInstance instance,
-    VkDebugUtilsMessengerEXT debugMessenger,
-    const VkAllocationCallbacks* pAllocator) {
+void destroyDebugUtilsMessengerEXT(VkInstance instance,
+                                   VkDebugUtilsMessengerEXT debugMessenger,
+                                   const VkAllocationCallbacks *pAllocator) {
   auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(
       instance, "vkDestroyDebugUtilsMessengerEXT");
   if (func != nullptr) {
@@ -56,8 +54,8 @@ void ValidationLayers::destroyDebugUtilsMessengerEXT(
   }
 }
 
-void ValidationLayers::populateDebugMessengerCreateInfo(
-    VkDebugUtilsMessengerCreateInfoEXT& createInfo) {
+void populateDebugMessengerCreateInfo(
+    VkDebugUtilsMessengerCreateInfoEXT &createInfo) {
   createInfo = {
       .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
       .messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
@@ -68,7 +66,7 @@ void ValidationLayers::populateDebugMessengerCreateInfo(
       .pfnUserCallback = ValidationLayers::Internal::debugCallback};
 }
 
-void ValidationLayers::setupDebugMessenger(VkInstance instance) {
+void setupDebugMessenger(VkInstance instance) {
   if (!isValidationEnabled())
     return;
 
@@ -80,7 +78,7 @@ void ValidationLayers::setupDebugMessenger(VkInstance instance) {
     throw std::runtime_error("\n!ERROR! Failed to set up debug messenger!");
 }
 
-bool ValidationLayers::checkValidationLayerSupport() {
+bool checkValidationLayerSupport() {
   uint32_t layerCount;
   vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
 
@@ -88,11 +86,11 @@ bool ValidationLayers::checkValidationLayerSupport() {
   vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
 
   std::set<std::string> availableLayerNames;
-  for (const auto& layer : availableLayers) {
+  for (const auto &layer : availableLayers) {
     availableLayerNames.insert(layer.layerName);
   }
 
-  for (const auto& layerName : validation) {
+  for (const auto &layerName : validation) {
     if (availableLayerNames.find(layerName) == availableLayerNames.end()) {
       return false;
     }
@@ -100,4 +98,4 @@ bool ValidationLayers::checkValidationLayerSupport() {
   return true;
 }
 
-}  // namespace ValidationLayers
+} // namespace ValidationLayers

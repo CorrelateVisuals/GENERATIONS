@@ -5,7 +5,8 @@
 #include <string>
 
 namespace Log {
-std::ofstream logFile = static_cast<std::ofstream>("log.txt");
+  
+std::ofstream logFile("log.txt");
 
 std::string Style::charLeader = std::string(8, ' ') + ": ";
 std::string Style::indentSize = std::string(17, ' ');
@@ -81,7 +82,7 @@ std::string getMemoryPropertyString(VkMemoryPropertyFlags properties) {
   return result;
 }
 
-std::string Log::getDescriptorTypeString(VkDescriptorType type) {
+std::string getDescriptorTypeString(VkDescriptorType type) {
   switch (type) {
     case VK_DESCRIPTOR_TYPE_SAMPLER:
       return "VK_DESCRIPTOR_TYPE_SAMPLER";

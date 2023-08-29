@@ -20,7 +20,9 @@ void Resources::createResources(Pipelines& _pipelines) {
   Log::text(Log::Style::headerGuard);
   Log::text("{ /// }", "Resources ...");
 
-  createTextureImage("../assets/GenerationsCapture.PNG");
+
+  // createTextureImage("../assets/GenerationsCapture.PNG");
+  createTextureImage("assets/GenerationsCapture.PNG");
   createTextureImageView();
   createTextureSampler();
 

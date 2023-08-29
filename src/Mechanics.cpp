@@ -519,11 +519,6 @@ void VulkanMechanics::compileShaders() {
 
 #ifdef _WIN32
   command = "..\\shaders\\compile_shaders.bat";
-#else
-  // Linux-specific code
-  command = "./shaders/compile_shaders.sh";
-#endif
-
   if (FILE* pipe = _popen(command.c_str(), "r")) {
     char buffer[128];
     std::string output;
@@ -543,6 +538,11 @@ void VulkanMechanics::compileShaders() {
     Log::text("{ ERROR }", "Failed to execute command:", command);
   }
   Log::text("");
+#else
+  // Linux-specific code
+  command = "./shaders/compile_shaders.sh";
+  auto er = system(command.c_str());
+#endif
 }
 
 std::vector<const char*> VulkanMechanics::getRequiredExtensions() {
