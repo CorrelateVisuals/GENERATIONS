@@ -2,8 +2,7 @@
 
 #include <iostream>
 
-ValidationLayers validation;
-VulkanMechanics mechanics(validation);
+VulkanMechanics mechanics;
 Pipelines pipelines(mechanics);
 Resources resources(mechanics);
 
@@ -233,9 +232,9 @@ void CapitalEngine::cleanup() {
 
   vkDestroyDevice(mechanics.mainDevice.logical, nullptr);
 
-  if (validation.enableValidationLayers) {
-    validation.DestroyDebugUtilsMessengerEXT(
-        mechanics.instance, validation.debugMessenger, nullptr);
+  if (mechanics.validation.enableValidationLayers) {
+    mechanics.validation.DestroyDebugUtilsMessengerEXT(
+        mechanics.instance, mechanics.validation.debugMessenger, nullptr);
   }
 
   vkDestroySurfaceKHR(mechanics.instance, mechanics.surface, nullptr);

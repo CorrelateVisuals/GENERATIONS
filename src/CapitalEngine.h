@@ -10,7 +10,6 @@
 #include "Mechanics.h"
 #include "Pipelines.h"
 #include "Resources.h"
-#include "ValidationLayers.h"
 
 class CapitalEngine {
  public:

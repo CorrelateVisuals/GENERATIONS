@@ -15,11 +15,12 @@ constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 
 class VulkanMechanics {
  public:
-  VulkanMechanics(ValidationLayers& validation);
+  VulkanMechanics();
   ~VulkanMechanics();
 
   VkSurfaceKHR surface;
   VkInstance instance;
+  ValidationLayers validation;
 
   struct Device {
     VkPhysicalDevice physical;
@@ -88,7 +89,6 @@ class VulkanMechanics {
   }
 
  private:
-  ValidationLayers _validation;
   void compileShaders();
   void createInstance();
   void createSurface(GLFWwindow* window);
