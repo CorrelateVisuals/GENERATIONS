@@ -16,6 +16,10 @@ class CapitalEngine {
   CapitalEngine();
   ~CapitalEngine();
 
+  VulkanMechanics mechanics;
+  Pipelines pipelines;
+  Resources resources;
+
   void mainLoop();
 
  private:

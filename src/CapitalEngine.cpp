@@ -2,11 +2,7 @@
 
 #include <iostream>
 
-VulkanMechanics mechanics;
-Pipelines pipelines(mechanics);
-Resources resources(mechanics);
-
-CapitalEngine::CapitalEngine() {
+CapitalEngine::CapitalEngine() : pipelines(mechanics), resources(mechanics) {
   Log::text("\n");
   Log::text(Log::Style::headerGuard, "\n", Log::Style::indentSize,
             "| CAPITAL Engine");
@@ -42,6 +38,7 @@ void CapitalEngine::mainLoop() {
     }
   }
   vkDeviceWaitIdle(mechanics.mainDevice.logical);
+
   Log::text("{ Main Loop }");
   Log::text(Log::Style::headerGuard);
 }
@@ -186,6 +183,9 @@ void CapitalEngine::cleanup() {
                     nullptr);
   vkDestroyPipelineLayout(mechanics.mainDevice.logical,
                           pipelines.compute.pipelineLayout, nullptr);
+
+  pipelines.destroyShaderModules(pipelines.compute.shaderModules);
+  pipelines.destroyShaderModules(pipelines.graphics.shaderModules);
 
   vkDestroyRenderPass(mechanics.mainDevice.logical,
                       pipelines.graphics.renderPass, nullptr);
