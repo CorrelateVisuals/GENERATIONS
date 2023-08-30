@@ -24,11 +24,10 @@ VkResult ValidationLayers::CreateDebugUtilsMessengerEXT(
     VkDebugUtilsMessengerEXT* pDebugMessenger) {
   auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(
       instance, "vkCreateDebugUtilsMessengerEXT");
-  if (func != nullptr) {
-    return func(instance, pCreateInfo, pAllocator, pDebugMessenger);
-  } else {
+  if (func == nullptr) {
     return VK_ERROR_EXTENSION_NOT_PRESENT;
   }
+  return func(instance, pCreateInfo, pAllocator, pDebugMessenger);
 }
 
 void ValidationLayers::DestroyDebugUtilsMessengerEXT(
