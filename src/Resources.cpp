@@ -23,7 +23,7 @@ void Resources::createResources(Pipelines& _pipelines) {
 #ifdef _WIN32
   std::string imagePath = "../assets/GenerationsCapture.PNG";
 #else  // Linux-specific code
-  std::string imagePath = = "assets/GenerationsCapture.PNG";
+  std::string imagePath = "assets/GenerationsCapture.PNG";
 #endif
 
   createTextureImage(imagePath);
