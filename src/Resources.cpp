@@ -276,7 +276,9 @@ void Resources::createTextureImage(std::string imagePath) {
   int rgba = 4;
   stbi_uc* pixels = stbi_load(imagePath.c_str(), &texWidth, &texHeight,
                               &texChannels, STBI_rgb_alpha);
-  VkDeviceSize imageSize = texWidth * texHeight * rgba;
+  VkDeviceSize imageSize = static_cast<VkDeviceSize>(texWidth) *
+                           static_cast<VkDeviceSize>(texHeight) *
+                           static_cast<VkDeviceSize>(rgba);
 
   if (!pixels) {
     throw std::runtime_error("failed to load texture image!");
