@@ -4,7 +4,6 @@
 #include "CapitalEngine.h"
 #include "Resources.h"
 
-
 World Resources::world;
 
 Resources::Resources(VulkanMechanics& mechanics)
@@ -21,10 +20,7 @@ void Resources::createResources(Pipelines& _pipelines) {
   Log::text(Log::Style::headerGuard);
   Log::text("{ /// }", "Resources ...");
 
-
-  std::string textureImagePath = Library::path("assets/GenerationsCapture.PNG");
-
-  createTextureImage(textureImagePath);
+  createTextureImage(Lib::path("assets/GenerationsCapture.PNG"));
   createTextureImageView();
   createTextureSampler();
 

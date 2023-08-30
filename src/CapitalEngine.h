@@ -1,8 +1,8 @@
 #pragma once
 // Namespaces
+#include "Library.h"
 #include "Log.h"
 #include "ValidationLayers.h"
-#include "Library.h"
 
 // Singleton classes
 #include "Window.h"

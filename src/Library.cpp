@@ -6,9 +6,7 @@
 #include <numbers>
 #include <random>
 
-std::vector<float> Library::generateRandomValues(int amount,
-                                                 float min,
-                                                 float max) {
+std::vector<float> Lib::generateRandomValues(int amount, float min, float max) {
   std::random_device rd;
   std::mt19937 gen(rd());
   std::uniform_real_distribution<float> dis(min, max);
@@ -19,7 +17,7 @@ std::vector<float> Library::generateRandomValues(int amount,
   return randomValues;
 }
 
-double Library::lowFrequencyOscillator(double frequency) {
+double Lib::lowFrequencyOscillator(double frequency) {
   using namespace std::chrono;
   static const auto start_time = high_resolution_clock::now();
   const auto time_elapsed =
@@ -30,7 +28,7 @@ double Library::lowFrequencyOscillator(double frequency) {
   return 0.5 * (1 + std::sin(angle));
 }
 
-glm::vec2 Library::smoothstep(const glm::vec2 xy) {
+glm::vec2 Lib::smoothstep(const glm::vec2 xy) {
   constexpr float startInput = 0.0f;
   constexpr float endInput = 1.0f;
   constexpr float minIncrease = -0.1f;
@@ -47,7 +45,7 @@ glm::vec2 Library::smoothstep(const glm::vec2 xy) {
   return increase;
 }
 
-std::string Library::path(const std::string& linuxPath) {
+std::string Lib::path(const std::string& linuxPath) {
 #ifdef _WIN32
   std::string convertedWindowsPath = "..\\" + linuxPath;
   for (char& c : convertedWindowsPath) {
@@ -66,10 +64,10 @@ std::string Library::path(const std::string& linuxPath) {
 #endif
 }
 
-std::string Library::shaderPath(std::string path) {
-  if (path.find("shaders") != std::string::npos) {
+std::string Lib::shaderPath(std::string originalPath) {
+  if (originalPath.find("shaders") != std::string::npos) {
     std::string shaderPath;
-    for (char c : path) {
+    for (char c : originalPath) {
       if (c == '\\') {
         shaderPath += "\\\\";
       } else {
@@ -81,9 +79,8 @@ std::string Library::shaderPath(std::string path) {
         dotShPosition + 3 == shaderPath.length()) {
       shaderPath.replace(dotShPosition, 3, ".bat");
     }
-    path = shaderPath;
-    return path;
+    return shaderPath;
   } else {
-    return path;
+    return originalPath;
   }
 }

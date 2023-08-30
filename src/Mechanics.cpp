@@ -513,7 +513,7 @@ void VulkanMechanics::compileShaders() {
   Log::text("{ GLSL }", "compiling shaders");
   std::string command;
 
-  command = Library::path("./shaders/compile_shaders.sh");
+  command = Lib::path("./shaders/compile_shaders.sh");
 
 #ifdef _WIN32
   if (FILE* pipe = _popen(command.c_str(), "r")) {
