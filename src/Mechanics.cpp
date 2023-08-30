@@ -539,7 +539,6 @@ void VulkanMechanics::compileShaders() {
   } else {
     Log::text("{ ERROR }", "Failed to execute command:", command);
   }
-  Log::text("");
 #else
   // Linux-specific code
   auto er = system(command.c_str());

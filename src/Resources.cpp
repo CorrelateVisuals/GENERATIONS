@@ -16,7 +16,6 @@ Resources::~Resources() {
 }
 
 void Resources::createResources(Pipelines& _pipelines) {
-  Log::text("\n");
   Log::text(Log::Style::headerGuard);
   Log::text("{ /// }", "creating Resources");
 

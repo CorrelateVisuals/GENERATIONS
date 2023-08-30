@@ -18,7 +18,6 @@ int Log::Style::columnCountOffset = 4;
 std::string Log::previousTime;
 
 void Log::logTitle() {
-  Log::text("\n");
   Log::text(Log::Style::headerGuard);
   Log::text("                 . - < < { ", "G E N E R A T I O N S",
             " } > > - .");
@@ -27,9 +26,8 @@ void Log::logTitle() {
 }
 
 void Log::logFooter() {
-  Log::text("\n");
-  Log::text("©", "Jakob Povel | Correlate Visuals", "©");
-  Log::text("\n");
+  Log::text(Log::Style::headerGuard);
+  Log::text("© Jakob Povel | Correlate Visuals ©");
 }
 
 std::string Log::getBufferUsageString(VkBufferUsageFlags usage) {

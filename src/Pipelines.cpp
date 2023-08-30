@@ -13,11 +13,10 @@ Pipelines::Pipelines(VulkanMechanics& mechanics)
 }
 
 Pipelines::~Pipelines() {
-    Log::text("{ === }", "destructing Pipelines");
+  Log::text("{ === }", "destructing Pipelines");
 }
 
 void Pipelines::createPipelines(Resources& _resources) {
-  Log::text("\n");
   Log::text(Log::Style::headerGuard);
   Log::text("{ === }", "creating Pipelines");
 

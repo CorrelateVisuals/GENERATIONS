@@ -3,9 +3,8 @@
 #include <iostream>
 
 CapitalEngine::CapitalEngine() : pipelines(mechanics), resources(mechanics) {
-  Log::text("\n");
-  Log::text(Log::Style::headerGuard, "\n", Log::Style::indentSize,
-            "| CAPITAL Engine");
+  Log::text(Log::Style::headerGuard);
+  Log::text(Log::Style::indentSize, "| CAPITAL Engine");
 
   mechanics.setupVulkan(pipelines, resources);
   pipelines.createPipelines(resources);
@@ -13,15 +12,14 @@ CapitalEngine::CapitalEngine() : pipelines(mechanics), resources(mechanics) {
 }
 
 CapitalEngine::~CapitalEngine() {
-  Log::text(Log::Style::headerGuard, "\n", Log::Style::indentSize,
-            "| CAPITAL Engine");
+  Log::text(Log::Style::headerGuard);
+  Log::text(Log::Style::indentSize, "| CAPITAL Engine");
   Log::text(Log::Style::headerGuard, "\n");
 
   cleanup();
 }
 
 void CapitalEngine::mainLoop() {
-  Log::text("\n");
   Log::text(Log::Style::headerGuard);
   Log::text("{ Main Loop }");
 
