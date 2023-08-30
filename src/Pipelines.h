@@ -45,6 +45,8 @@ class Pipelines {
   void createColorResources(Resources& _resources);
   void createDepthResources(Resources& _resources);
 
+  void destroyShaderModules(std::vector<VkShaderModule>& shaderModules);
+
  private:
   VulkanMechanics& _mechanics;
 
@@ -61,7 +63,6 @@ class Pipelines {
 
   static std::vector<char> readShaderFile(const std::string& filename);
   VkShaderModule createShaderModule(const std::vector<char>& code);
-  void destroyShaderModules(std::vector<VkShaderModule>& shaderModules);
   VkPipelineShaderStageCreateInfo getShaderStageInfo(
       VkShaderStageFlagBits shaderStage,
       std::string shaderName,

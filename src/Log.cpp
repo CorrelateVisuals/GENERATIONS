@@ -1,23 +1,38 @@
 #include "Log.h"
 
 #include <chrono>
+#include <filesystem>
 #include <iostream>
 #include <string>
 
-namespace Log {
-std::ofstream logFile = static_cast<std::ofstream>("log.txt");
+std::ofstream Log::logFile("log.txt");
 
-std::string Style::charLeader = std::string(8, ' ') + ": ";
-std::string Style::indentSize = std::string(17, ' ');
-std::string Style::headerGuard = std::string(
+std::string Log::Style::charLeader = std::string(8, ' ') + ": ";
+std::string Log::Style::indentSize = std::string(17, ' ');
+std::string Log::Style::headerGuard = std::string(
     "+-------------------------------------------------------------------------"
     "----+");
-int Style::columnCount = 14;
-int Style::columnCountOffset = 4;
+int Log::Style::columnCount = 14;
+int Log::Style::columnCountOffset = 4;
 
-std::string previousTime;
+std::string Log::previousTime;
 
-std::string getBufferUsageString(VkBufferUsageFlags usage) {
+void Log::logTitle() {
+  Log::text("\n");
+  Log::text(Log::Style::headerGuard);
+  Log::text("                 . - < < { ", "G E N E R A T I O N S",
+            " } > > - .");
+  Log::text(Log::Style::headerGuard);
+  Log::text("{ dir }", std::filesystem::current_path().string());
+}
+
+void Log::logFooter() {
+  Log::text("\n");
+  Log::text("©", "Jakob Povel | Correlate Visuals", "©");
+  Log::text("\n");
+}
+
+std::string Log::getBufferUsageString(VkBufferUsageFlags usage) {
   std::string result;
 
   if (usage & VK_BUFFER_USAGE_TRANSFER_SRC_BIT) {
@@ -56,7 +71,7 @@ std::string getBufferUsageString(VkBufferUsageFlags usage) {
   return result;
 }
 
-std::string getMemoryPropertyString(VkMemoryPropertyFlags properties) {
+std::string Log::getMemoryPropertyString(VkMemoryPropertyFlags properties) {
   std::string result = "VkMemoryPropertyFlags: ";
 #define ADD_FLAG_CASE(flag) \
   if (properties & flag) {  \
@@ -122,7 +137,7 @@ std::string Log::getDescriptorTypeString(VkDescriptorType type) {
   }
 }
 
-std::string getShaderStageString(VkShaderStageFlags flags) {
+std::string Log::getShaderStageString(VkShaderStageFlags flags) {
   std::string result = "VkShaderStageFlags: ";
 #define ADD_FLAG_CASE(flag) \
   if (flags & flag) {       \
@@ -163,7 +178,7 @@ std::string getShaderStageString(VkShaderStageFlags flags) {
   return result;
 }
 
-std::string getSampleCountString(VkSampleCountFlags sampleCount) {
+std::string Log::getSampleCountString(VkSampleCountFlags sampleCount) {
   std::string result = "VkSampleCountFlags: ";
 #define ADD_FLAG_CASE(flag) \
   if (sampleCount & flag) { \
@@ -187,7 +202,7 @@ std::string getSampleCountString(VkSampleCountFlags sampleCount) {
   return result;
 }
 
-std::string getImageUsageString(VkImageUsageFlags usage) {
+std::string Log::getImageUsageString(VkImageUsageFlags usage) {
   std::string result = "VkImageUsageFlags: ";
 #define ADD_FLAG_CASE(flag) \
   if (usage & flag) {       \
@@ -216,32 +231,7 @@ std::string getImageUsageString(VkImageUsageFlags usage) {
   return result;
 }
 
-std::string getMemoryPropertyFlags(VkMemoryPropertyFlags memFlags) {
-  std::string result = "VkMemoryPropertyFlags: ";
-#define ADD_FLAG_CASE(flag) \
-  if (memFlags & flag) {    \
-    result += #flag " | ";  \
-  }
-
-  ADD_FLAG_CASE(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-  ADD_FLAG_CASE(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
-  ADD_FLAG_CASE(VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-  ADD_FLAG_CASE(VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
-  ADD_FLAG_CASE(VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT);
-  ADD_FLAG_CASE(VK_MEMORY_PROPERTY_PROTECTED_BIT);
-  ADD_FLAG_CASE(VK_MEMORY_PROPERTY_DEVICE_COHERENT_BIT_AMD);
-  ADD_FLAG_CASE(VK_MEMORY_PROPERTY_DEVICE_UNCACHED_BIT_AMD);
-  ADD_FLAG_CASE(VK_MEMORY_PROPERTY_RDMA_CAPABLE_BIT_NV);
-
-  if (!result.empty()) {
-    result.erase(result.length() - 3);
-  }
-
-#undef ADD_FLAG_CASE
-  return result;
-}
-
-std::string returnDateAndTime() {
+std::string Log::returnDateAndTime() {
   auto now = std::chrono::system_clock::now();
   std::time_t nowC = std::chrono::system_clock::to_time_t(now);
   std::tm timeInfo;
@@ -258,4 +248,3 @@ std::string returnDateAndTime() {
 
   return std::string(nowStr);
 }
-}  // namespace Log

@@ -7,20 +7,20 @@
 World Resources::world;
 
 Resources::Resources(VulkanMechanics& mechanics)
-    : pushConstants{},
-      image{},
-      buffers{},
-      descriptor{},
-      _mechanics(mechanics) {}
+    : pushConstants{}, image{}, buffers{}, descriptor{}, _mechanics(mechanics) {
+  Log::text("{ /// }", "constructing Resources");
+}
 
-Resources::~Resources() {}
+Resources::~Resources() {
+  Log::text("{ /// }", "destructing Resources");
+}
 
 void Resources::createResources(Pipelines& _pipelines) {
   Log::text("\n");
   Log::text(Log::Style::headerGuard);
-  Log::text("{ /// }", "Resources ...");
+  Log::text("{ /// }", "creating Resources");
 
-  createTextureImage("../assets/GenerationsCapture.PNG");
+  createTextureImage(Lib::path("assets/GenerationsCapture.PNG"));
   createTextureImageView();
   createTextureSampler();
 

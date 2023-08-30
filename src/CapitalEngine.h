@@ -1,7 +1,7 @@
 #pragma once
-// Debug namespaces
+// Namespaces
+#include "Library.h"
 #include "Log.h"
-#include "ValidationLayers.h"
 
 // Singleton classes
 #include "Window.h"
@@ -15,6 +15,10 @@ class CapitalEngine {
  public:
   CapitalEngine();
   ~CapitalEngine();
+
+  VulkanMechanics mechanics;
+  Pipelines pipelines;
+  Resources resources;
 
   void mainLoop();
 

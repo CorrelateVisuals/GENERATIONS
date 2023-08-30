@@ -4,6 +4,7 @@
 #include "CapitalEngine.h"
 #include "Pipelines.h"
 #include "Resources.h"
+#include "ValidationLayers.h"
 
 #include <iostream>
 #include <optional>
@@ -19,6 +20,7 @@ class VulkanMechanics {
 
   VkSurfaceKHR surface;
   VkInstance instance;
+  ValidationLayers validation;
 
   struct Device {
     VkPhysicalDevice physical;

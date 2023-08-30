@@ -8,14 +8,18 @@
 #include <random>
 
 Pipelines::Pipelines(VulkanMechanics& mechanics)
-    : graphics{}, compute{}, _mechanics(mechanics) {}
+    : graphics{}, compute{}, _mechanics(mechanics) {
+  Log::text("{ === }", "constructing Pipelines");
+}
 
-Pipelines::~Pipelines() {}
+Pipelines::~Pipelines() {
+    Log::text("{ === }", "destructing Pipelines");
+}
 
 void Pipelines::createPipelines(Resources& _resources) {
   Log::text("\n");
   Log::text(Log::Style::headerGuard);
-  Log::text("{ === }", "Pipelines");
+  Log::text("{ === }", "creating Pipelines");
 
   _resources.createDescriptorSetLayout();
   createRenderPass();

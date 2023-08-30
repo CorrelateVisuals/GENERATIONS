@@ -23,6 +23,9 @@ extern std::string previousTime;
 template <class T, class... Ts>
 void text(const T& first, const Ts&... inputs);
 
+void logTitle();
+void logFooter();
+
 std::string getBufferUsageString(VkBufferUsageFlags usage);
 std::string getMemoryPropertyString(VkMemoryPropertyFlags properties);
 std::string getDescriptorTypeString(VkDescriptorType type);

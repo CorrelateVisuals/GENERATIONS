@@ -18,17 +18,22 @@ VulkanMechanics::VulkanMechanics()
              VK_NULL_HANDLE,
              VK_NULL_HANDLE,
              {std::nullopt, std::nullopt}},
-      swapChain{VK_NULL_HANDLE, {}, VK_FORMAT_UNDEFINED, {}, {0, 0}, {}, {}} {}
+      swapChain{VK_NULL_HANDLE, {}, VK_FORMAT_UNDEFINED, {}, {0, 0}, {}, {}} {
+  Log::text("{ Vk. }", "constructing Vulkan Mechanics");
+}
 
-VulkanMechanics::~VulkanMechanics() {}
+VulkanMechanics::~VulkanMechanics() {
+  Log::text("{ Vk. }", "destructing Vulkan Mechanics");
+}
 
 void VulkanMechanics::setupVulkan(Pipelines& _pipelines,
                                   Resources& _resources) {
   Log::text(Log::Style::headerGuard);
   Log::text("{ Vk. }", "setting up Vulkan Mechanics");
+
   compileShaders();
   createInstance();
-  ValidationLayers::setupDebugMessenger(instance);
+  validation.setupDebugMessenger(instance);
   createSurface(Window::get().window);
 
   pickPhysicalDevice(_pipelines.graphics.msaa);
@@ -42,8 +47,8 @@ void VulkanMechanics::setupVulkan(Pipelines& _pipelines,
 
 void VulkanMechanics::createInstance() {
   Log::text("{ VkI }", "Vulkan Instance");
-  if (ValidationLayers::isValidationEnabled() &&
-      !ValidationLayers::checkValidationLayerSupport()) {
+  if (validation.enableValidationLayers &&
+      !validation.checkValidationLayerSupport()) {
     throw std::runtime_error(
         "\n!ERROR! validation layers requested, but not available!");
   }
@@ -74,12 +79,12 @@ void VulkanMechanics::createInstance() {
       .ppEnabledExtensionNames = extensions.data()};
 
   VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
-  if (ValidationLayers::isValidationEnabled()) {
+  if (validation.enableValidationLayers) {
     createInfo.enabledLayerCount =
-        static_cast<uint32_t>(ValidationLayers::validation.size());
-    createInfo.ppEnabledLayerNames = ValidationLayers::validation.data();
+        static_cast<uint32_t>(validation.validation.size());
+    createInfo.ppEnabledLayerNames = validation.validation.data();
 
-    ValidationLayers::populateDebugMessengerCreateInfo(debugCreateInfo);
+    validation.populateDebugMessengerCreateInfo(debugCreateInfo);
     createInfo.pNext = &debugCreateInfo;
   }
 
@@ -261,10 +266,10 @@ void VulkanMechanics::createLogicalDevice() {
       .ppEnabledExtensionNames = mainDevice.extensions.data(),
       .pEnabledFeatures = &deviceFeatures};
 
-  if (ValidationLayers::isValidationEnabled()) {
+  if (validation.enableValidationLayers) {
     createInfo.enabledLayerCount =
-        static_cast<uint32_t>(ValidationLayers::validation.size());
-    createInfo.ppEnabledLayerNames = ValidationLayers::validation.data();
+        static_cast<uint32_t>(validation.validation.size());
+    createInfo.ppEnabledLayerNames = validation.validation.data();
   }
 
   result(vkCreateDevice, mainDevice.physical, &createInfo, nullptr,
@@ -385,8 +390,7 @@ void VulkanMechanics::cleanupSwapChain(Pipelines& _pipelines) {
 }
 
 bool VulkanMechanics::isDeviceSuitable(VkPhysicalDevice physicalDevice) {
-  Log::text(Log::Style::charLeader,
-               "checking if Physical Device is suitable");
+  Log::text(Log::Style::charLeader, "checking if Physical Device is suitable");
 
   Queues::FamilyIndices indices = findQueueFamilies(physicalDevice);
 
@@ -510,20 +514,13 @@ void VulkanMechanics::recreateSwapChain(Pipelines& _pipelines,
   _resources.createFramebuffers(_pipelines);
 }
 
-#include <cstdlib>  // For std::system
-#include "Log.h"    // Include your Log header
-
 void VulkanMechanics::compileShaders() {
   Log::text("{ GLSL }", "compiling shaders");
   std::string command;
 
-#ifdef _WIN32
-  command = "..\\shaders\\compile_shaders.bat";
-#else
-  // Linux-specific code
-  command = "./shaders/compile_shaders.sh";
-#endif
+  command = Lib::path("./shaders/compile_shaders.sh");
 
+#ifdef _WIN32
   if (FILE* pipe = _popen(command.c_str(), "r")) {
     char buffer[128];
     std::string output;
@@ -543,6 +540,10 @@ void VulkanMechanics::compileShaders() {
     Log::text("{ ERROR }", "Failed to execute command:", command);
   }
   Log::text("");
+#else
+  // Linux-specific code
+  auto er = system(command.c_str());
+#endif
 }
 
 std::vector<const char*> VulkanMechanics::getRequiredExtensions() {
@@ -553,7 +554,7 @@ std::vector<const char*> VulkanMechanics::getRequiredExtensions() {
   std::vector<const char*> extensions(glfwExtensions,
                                       glfwExtensions + glfwExtensionCount);
 
-  if (ValidationLayers::isValidationEnabled()) {
+  if (validation.enableValidationLayers) {
     extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
   }
 
