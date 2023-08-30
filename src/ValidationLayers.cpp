@@ -13,8 +13,7 @@ void ValidationLayers::logValidationMessage(const std::string& string,
   if (string.find(excludeError) != std::string::npos)
     return;
 
-  Log::text(Log::Style::indentSize, " > > > ", "Validation Layer: ", string,
-            "\n");
+  Log::text("{ !!! }", "Validation Layer: ", string, "\n");
 }
 
 VkResult ValidationLayers::CreateDebugUtilsMessengerEXT(

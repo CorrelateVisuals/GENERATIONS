@@ -88,7 +88,7 @@ class VulkanMechanics {
   }
 
  private:
-     ValidationLayers _validation;
+  ValidationLayers _validation;
   void compileShaders();
   void createInstance();
   void createSurface(GLFWwindow* window);
