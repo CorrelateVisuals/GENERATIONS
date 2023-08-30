@@ -1,7 +1,8 @@
 #pragma once
-// Debug namespaces
+// Namespaces
 #include "Log.h"
 #include "ValidationLayers.h"
+#include "Library.h"
 
 // Singleton classes
 #include "Window.h"

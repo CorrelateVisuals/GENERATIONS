@@ -46,3 +46,40 @@ glm::vec2 Library::smoothstep(const glm::vec2 xy) {
                                 glm::vec2(smoothX, smoothY));
   return increase;
 }
+
+std::string Library::linuxToWindowsPath(const std::string& linuxImagePath) {
+  std::string windowsImagePathResult = "..\\" + linuxImagePath;
+  // Replace forward slashes with backslashes
+  for (char& c : windowsImagePathResult) {
+    if (c == '/') {
+      c = '\\';
+    }
+  }
+
+  // Check if the path contains the word "shaders" and double backslashes if
+  // true
+  if (windowsImagePathResult.find("shaders") != std::string::npos) {
+    std::string commandLine;
+    for (char c : windowsImagePathResult) {
+      if (c == '\\') {
+        commandLine += "\\\\";
+      } else {
+        commandLine += c;
+      }
+    }
+    // Change file extension to .bat if it ends with .sh
+    size_t dotShPosition = commandLine.rfind(".sh");
+    if (dotShPosition != std::string::npos &&
+        dotShPosition + 3 == commandLine.length()) {
+      commandLine.replace(dotShPosition, 3, ".bat");
+    }
+    windowsImagePathResult = commandLine;
+  }
+
+  // Remove leading ".\\" if present
+  if (windowsImagePathResult.substr(0, 3) == "..\\.") {
+    windowsImagePathResult = windowsImagePathResult.substr(3);
+  }
+
+  return windowsImagePathResult;
+}

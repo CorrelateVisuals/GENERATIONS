@@ -385,8 +385,7 @@ void VulkanMechanics::cleanupSwapChain(Pipelines& _pipelines) {
 }
 
 bool VulkanMechanics::isDeviceSuitable(VkPhysicalDevice physicalDevice) {
-  Log::text(Log::Style::charLeader,
-               "checking if Physical Device is suitable");
+  Log::text(Log::Style::charLeader, "checking if Physical Device is suitable");
 
   Queues::FamilyIndices indices = findQueueFamilies(physicalDevice);
 
@@ -510,15 +509,14 @@ void VulkanMechanics::recreateSwapChain(Pipelines& _pipelines,
   _resources.createFramebuffers(_pipelines);
 }
 
-#include <cstdlib>  // For std::system
-#include "Log.h"    // Include your Log header
-
 void VulkanMechanics::compileShaders() {
   Log::text("{ GLSL }", "compiling shaders");
   std::string command;
 
+  command = "./shaders/compile_shaders.sh";
+
 #ifdef _WIN32
-  command = "..\\shaders\\compile_shaders.bat";
+  command = Library::linuxToWindowsPath(command);
   if (FILE* pipe = _popen(command.c_str(), "r")) {
     char buffer[128];
     std::string output;
@@ -540,7 +538,6 @@ void VulkanMechanics::compileShaders() {
   Log::text("");
 #else
   // Linux-specific code
-  command = "./shaders/compile_shaders.sh";
   auto er = system(command.c_str());
 #endif
 }

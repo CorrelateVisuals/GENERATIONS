@@ -4,6 +4,7 @@
 #include "CapitalEngine.h"
 #include "Resources.h"
 
+
 World Resources::world;
 
 Resources::Resources(VulkanMechanics& mechanics)
@@ -20,13 +21,12 @@ void Resources::createResources(Pipelines& _pipelines) {
   Log::text(Log::Style::headerGuard);
   Log::text("{ /// }", "Resources ...");
 
+  std::string textureImagePath = "assets/GenerationsCapture.PNG";
 #ifdef _WIN32
-  std::string imagePath = "../assets/GenerationsCapture.PNG";
-#else  // Linux-specific code
-  std::string imagePath = "assets/GenerationsCapture.PNG";
+  textureImagePath = Library::linuxToWindowsPath(textureImagePath);
 #endif
 
-  createTextureImage(imagePath);
+  createTextureImage(textureImagePath);
   createTextureImageView();
   createTextureSampler();
 
