@@ -21,10 +21,8 @@ void Resources::createResources(Pipelines& _pipelines) {
   Log::text(Log::Style::headerGuard);
   Log::text("{ /// }", "Resources ...");
 
-  std::string textureImagePath = "assets/GenerationsCapture.PNG";
-#ifdef _WIN32
-  textureImagePath = Library::linuxToWindowsPath(textureImagePath);
-#endif
+
+  std::string textureImagePath = Library::path("assets/GenerationsCapture.PNG");
 
   createTextureImage(textureImagePath);
   createTextureImageView();

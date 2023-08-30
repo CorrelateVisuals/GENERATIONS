@@ -47,39 +47,43 @@ glm::vec2 Library::smoothstep(const glm::vec2 xy) {
   return increase;
 }
 
-std::string Library::linuxToWindowsPath(const std::string& linuxImagePath) {
-  std::string windowsImagePathResult = "..\\" + linuxImagePath;
-  // Replace forward slashes with backslashes
-  for (char& c : windowsImagePathResult) {
+std::string Library::path(const std::string& linuxPath) {
+#ifdef _WIN32
+  std::string convertedWindowsPath = "..\\" + linuxPath;
+  for (char& c : convertedWindowsPath) {
     if (c == '/') {
       c = '\\';
     }
   }
+  if (convertedWindowsPath.substr(0, 3) == "..\\.") {
+    convertedWindowsPath = convertedWindowsPath.substr(3);
+  }
 
-  // Check if the path contains the word "shaders" and double backslashes if
-  // true
-  if (windowsImagePathResult.find("shaders") != std::string::npos) {
-    std::string commandLine;
-    for (char c : windowsImagePathResult) {
+  convertedWindowsPath = shaderPath(convertedWindowsPath);
+  return convertedWindowsPath;
+#else
+  return linuxPath;
+#endif
+}
+
+std::string Library::shaderPath(std::string path) {
+  if (path.find("shaders") != std::string::npos) {
+    std::string shaderPath;
+    for (char c : path) {
       if (c == '\\') {
-        commandLine += "\\\\";
+        shaderPath += "\\\\";
       } else {
-        commandLine += c;
+        shaderPath += c;
       }
     }
-    // Change file extension to .bat if it ends with .sh
-    size_t dotShPosition = commandLine.rfind(".sh");
+    size_t dotShPosition = shaderPath.rfind(".sh");
     if (dotShPosition != std::string::npos &&
-        dotShPosition + 3 == commandLine.length()) {
-      commandLine.replace(dotShPosition, 3, ".bat");
+        dotShPosition + 3 == shaderPath.length()) {
+      shaderPath.replace(dotShPosition, 3, ".bat");
     }
-    windowsImagePathResult = commandLine;
+    path = shaderPath;
+    return path;
+  } else {
+    return path;
   }
-
-  // Remove leading ".\\" if present
-  if (windowsImagePathResult.substr(0, 3) == "..\\.") {
-    windowsImagePathResult = windowsImagePathResult.substr(3);
-  }
-
-  return windowsImagePathResult;
 }

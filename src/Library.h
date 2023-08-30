@@ -1,16 +1,15 @@
 #pragma once
 #include <glm/glm.hpp>
 
-#include <vector>
 #include <string>
+#include <vector>
 
 namespace Library {
-  std::vector<float> generateRandomValues(int amount, float min, float max);
+std::vector<float> generateRandomValues(int amount, float min, float max);
 
-  double lowFrequencyOscillator(double frequency);
-  glm::vec2 smoothstep(const glm::vec2 xy);
+double lowFrequencyOscillator(double frequency);
+glm::vec2 smoothstep(const glm::vec2 xy);
 
-  std::string linuxToWindowsPath(const std::string& linuxImagePath);
-
-};
-
+std::string path(const std::string& linuxPath);
+std::string shaderPath(std::string linuxPath);
+};  // namespace Library
