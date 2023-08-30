@@ -3,10 +3,10 @@
 #include "Library.h"
 #include "Log.h"
 
-// Singleton classes
+// Singletons
 #include "Window.h"
 
-// Vulkan modules
+// Engine modules
 #include "Mechanics.h"
 #include "Pipelines.h"
 #include "Resources.h"
@@ -16,13 +16,13 @@ class CapitalEngine {
   CapitalEngine();
   ~CapitalEngine();
 
+  void mainLoop();
+
+ private:
   VulkanMechanics mechanics;
   Pipelines pipelines;
   Resources resources;
 
-  void mainLoop();
-
- private:
   void drawFrame();
   void cleanup();
 };

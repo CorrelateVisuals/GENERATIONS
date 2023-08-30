@@ -4,7 +4,7 @@
 
 CapitalEngine::CapitalEngine() : pipelines(mechanics), resources(mechanics) {
   Log::text(Log::Style::headerGuard);
-  Log::text(Log::Style::indentSize, "| CAPITAL Engine");
+  Log::text("| CAPITAL Engine");
 
   mechanics.setupVulkan(pipelines, resources);
   pipelines.createPipelines(resources);
@@ -13,7 +13,7 @@ CapitalEngine::CapitalEngine() : pipelines(mechanics), resources(mechanics) {
 
 CapitalEngine::~CapitalEngine() {
   Log::text(Log::Style::headerGuard);
-  Log::text(Log::Style::indentSize, "| CAPITAL Engine");
+  Log::text("| CAPITAL Engine");
   Log::text(Log::Style::headerGuard, "\n");
 
   cleanup();
@@ -181,9 +181,6 @@ void CapitalEngine::cleanup() {
                     nullptr);
   vkDestroyPipelineLayout(mechanics.mainDevice.logical,
                           pipelines.compute.pipelineLayout, nullptr);
-
-  pipelines.destroyShaderModules(pipelines.compute.shaderModules);
-  pipelines.destroyShaderModules(pipelines.graphics.shaderModules);
 
   vkDestroyRenderPass(mechanics.mainDevice.logical,
                       pipelines.graphics.renderPass, nullptr);
