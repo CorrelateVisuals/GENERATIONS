@@ -4,6 +4,7 @@
 #include "CapitalEngine.h"
 #include "Pipelines.h"
 #include "Resources.h"
+#include "ValidationLayers.h"
 
 #include <iostream>
 #include <optional>
@@ -14,7 +15,7 @@ constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 
 class VulkanMechanics {
  public:
-  VulkanMechanics();
+  VulkanMechanics(ValidationLayers& validation);
   ~VulkanMechanics();
 
   VkSurfaceKHR surface;
@@ -87,6 +88,7 @@ class VulkanMechanics {
   }
 
  private:
+     ValidationLayers _validation;
   void compileShaders();
   void createInstance();
   void createSurface(GLFWwindow* window);

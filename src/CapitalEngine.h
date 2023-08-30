@@ -2,7 +2,6 @@
 // Namespaces
 #include "Library.h"
 #include "Log.h"
-#include "ValidationLayers.h"
 
 // Singleton classes
 #include "Window.h"
@@ -11,6 +10,7 @@
 #include "Mechanics.h"
 #include "Pipelines.h"
 #include "Resources.h"
+#include "ValidationLayers.h"
 
 class CapitalEngine {
  public:
