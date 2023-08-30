@@ -11,20 +11,14 @@
 #include <random>
 
 World::World() : time{} {
-  Log::text("\n");
-  Log::text(Log::Style::headerGuard);
-  Log::text("                 . - < < { ", "G E N E R A T I O N S",
-            " } > > - .");
-  Log::text(Log::Style::headerGuard);
-  Log::text("{ wWw }", "World");
+  Log::logTitle();
+  Log::text("{ wWw }", "constructing World");
   time.speed = timelineSpeed;
 }
 
 World::~World() {
-  Log::text("{ wWw }", "World");
-  Log::text("\n");
-  Log::text("©", "Jakob Povel | Correlate Visuals", "©");
-  Log::text("\n");
+  Log::text("{ wWw }", "destructing World");
+  Log::logFooter();
 }
 
 std::vector<VkVertexInputBindingDescription> World::getBindingDescriptions() {
