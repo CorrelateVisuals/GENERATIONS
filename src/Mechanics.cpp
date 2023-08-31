@@ -385,7 +385,7 @@ void VulkanMechanics::cleanupSwapChain(Pipelines& _pipelines) {
 }
 
 bool VulkanMechanics::isDeviceSuitable(VkPhysicalDevice physicalDevice) {
-  Log::text(Log::Style::charLeader, "Is Device Suitable?");
+  Log::text(Log::Style::charLeader, "Is Device Suitable");
 
   Queues::FamilyIndices indices = findQueueFamilies(physicalDevice);
 
