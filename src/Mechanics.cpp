@@ -59,14 +59,10 @@ void VulkanMechanics::createInstance() {
                             .pEngineName = "CAPITAL Engine",
                             .engineVersion = VK_MAKE_VERSION(0, 0, 1),
                             .apiVersion = VK_API_VERSION_1_3};
-  Log::text(
-      Log::Style::charLeader, "Application name:", appInfo.pApplicationName,
-      "\n", Log::Style::indentSize, Log::Style::charLeader,
-      "Application Version:", appInfo.applicationVersion, "\n",
-      Log::Style::indentSize, Log::Style::charLeader,
-      "Engine Name Version:", appInfo.pEngineName, "\n", Log::Style::indentSize,
-      Log::Style::charLeader, "Engine Version:", appInfo.engineVersion, "\n",
-      Log::Style::indentSize, Log::Style::charLeader, "API Version:", 1.3);
+  Log::text(Log::Style::charLeader, appInfo.pApplicationName,
+            appInfo.applicationVersion);
+  Log::text(Log::Style::charLeader, appInfo.pEngineName, appInfo.engineVersion);
+  Log::text(Log::Style::charLeader, "Vulkan", 1.3);
 
   auto extensions = getRequiredExtensions();
 
