@@ -39,6 +39,11 @@ class Pipelines {
     std::vector<VkShaderModule> shaderModules;
   } compute;
 
+  std::vector<std::string> shaderPaths{
+      Lib::path("shaders/shader.vert -o shaders/vert.spv"),
+      Lib::path("shaders/shader.frag -o shaders/frag.spv"),
+      Lib::path("shaders/shader.comp -o shaders/comp.spv")};
+
  public:
   void createPipelines(Resources& _resources);
 

@@ -89,7 +89,7 @@ class VulkanMechanics {
   }
 
  private:
-  void compileShaders();
+  void compileShaders(const std::vector<std::string>& shaderPaths);
   void createInstance();
   void createSurface(GLFWwindow* window);
   void pickPhysicalDevice(Pipelines::Graphics::MultiSampling& msaa);
