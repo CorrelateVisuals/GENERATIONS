@@ -65,7 +65,7 @@ class Pipelines {
   VkPipelineShaderStageCreateInfo getShaderStageInfo(
       VkShaderStageFlagBits shaderStage,
       std::string shaderName,
-      auto pipeline);
+      auto& pipeline);
 
   VkPipelineVertexInputStateCreateInfo getVertexInputInfo();
   VkPipelineColorBlendStateCreateInfo getColorBlendingInfo();

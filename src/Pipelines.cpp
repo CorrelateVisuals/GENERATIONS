@@ -249,7 +249,7 @@ bool Pipelines::hasStencilComponent(VkFormat format) {
 VkPipelineShaderStageCreateInfo Pipelines::getShaderStageInfo(
     VkShaderStageFlagBits shaderStage,
     std::string shaderName,
-    auto pipeline) {
+    auto& pipeline) {
   Log::text(Log::Style::charLeader, "Shader Module", shaderName);
 
   std::string directory = "shaders/";
@@ -337,6 +337,7 @@ VkShaderModule Pipelines::createShaderModule(const std::vector<char>& code) {
 
 void Pipelines::destroyShaderModules(
     std::vector<VkShaderModule>& shaderModules) {
+  Log::text("Destroying", shaderModules.size(), "shader modules");
   for (size_t i = 0; i < shaderModules.size(); i++) {
     vkDestroyShaderModule(_mechanics.mainDevice.logical, shaderModules[i],
                           nullptr);
