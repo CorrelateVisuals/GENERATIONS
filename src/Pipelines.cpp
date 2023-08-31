@@ -211,6 +211,12 @@ void Pipelines::createGraphicsPipeline(
                     &graphics.pipeline);
 
   destroyShaderModules(graphics.shaderModules);
+
+  shaderStages[0] = getShaderStageInfo(VK_SHADER_STAGE_VERTEX_BIT, "vert.spv", graphics);
+  shaderStages[1] = getShaderStageInfo(VK_SHADER_STAGE_FRAGMENT_BIT, "frag2.spv", graphics);
+  _mechanics.result(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
+      VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
+      &graphics.pipeline2);
 }
 
 VkFormat Pipelines::findSupportedFormat(const std::vector<VkFormat>& candidates,
@@ -362,7 +368,7 @@ VkPipelineVertexInputStateCreateInfo Pipelines::getVertexInputInfo() {
 
 VkPipelineColorBlendStateCreateInfo Pipelines::getColorBlendingInfo() {
   static VkPipelineColorBlendAttachmentState colorBlendAttachment{
-      .blendEnable = VK_FALSE,
+      .blendEnable = VK_TRUE,
       .srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA,
       .dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
       .colorBlendOp = VK_BLEND_OP_ADD,

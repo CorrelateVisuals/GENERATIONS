@@ -20,7 +20,7 @@ void main() {
     vec4 color = (inColor - 0.5) * contrast + 0.5;
     
     // Apply gamma correction
-    color.rgb = pow(color.rgb, vec3(1.0 / gamma));
+    color.rgb = pow(color.rgb, vec3(1.0 / gamma)) * vec3(1.0, 0.0, 0.0);
     color.a = 0.5;
     
     outColor = color;

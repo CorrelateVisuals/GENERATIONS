@@ -17,6 +17,7 @@ class Pipelines {
 
     VkPipelineLayout pipelineLayout;
     VkPipeline pipeline;
+    VkPipeline pipeline2;
     std::vector<VkShaderModule> shaderModules;
 
     struct Depth {
