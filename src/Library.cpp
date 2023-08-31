@@ -63,15 +63,15 @@ std::string Lib::path(const std::string& linuxPath) {
 }
 
 std::string Lib::shaderPath(std::string& shaderPath) {
-  if (shaderPath.find("shaders") != std::string::npos) {
+  if (shaderPath.find("shaders") == std::string::npos) {
+    return shaderPath;
+  } else {
 #ifdef _WIN32
     std::string glslangValidator = "glslangValidator.exe -V ";
 #else
     std::string glslangValidator = "glslc ";
 #endif
     shaderPath.insert(0, glslangValidator);
-    return shaderPath;
-  } else {
     return shaderPath;
   }
 }
