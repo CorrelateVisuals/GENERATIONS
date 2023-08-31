@@ -30,7 +30,7 @@ void Log::logFooter() {
   Log::text("© Jakob Povel | Correlate Visuals ©");
 }
 
-std::string Log::getBufferUsageString(VkBufferUsageFlags usage) {
+std::string Log::getBufferUsageString(const VkBufferUsageFlags& usage) {
   std::string result;
 
   if (usage & VK_BUFFER_USAGE_TRANSFER_SRC_BIT) {
@@ -69,7 +69,8 @@ std::string Log::getBufferUsageString(VkBufferUsageFlags usage) {
   return result;
 }
 
-std::string Log::getMemoryPropertyString(VkMemoryPropertyFlags properties) {
+std::string Log::getMemoryPropertyString(
+    const VkMemoryPropertyFlags& properties) {
   std::string result = "VkMemoryPropertyFlags: ";
 #define ADD_FLAG_CASE(flag) \
   if (properties & flag) {  \
@@ -94,7 +95,7 @@ std::string Log::getMemoryPropertyString(VkMemoryPropertyFlags properties) {
   return result;
 }
 
-std::string Log::getDescriptorTypeString(VkDescriptorType type) {
+std::string Log::getDescriptorTypeString(const VkDescriptorType& type) {
   switch (type) {
     case VK_DESCRIPTOR_TYPE_SAMPLER:
       return "VK_DESCRIPTOR_TYPE_SAMPLER";
@@ -135,7 +136,7 @@ std::string Log::getDescriptorTypeString(VkDescriptorType type) {
   }
 }
 
-std::string Log::getShaderStageString(VkShaderStageFlags flags) {
+std::string Log::getShaderStageString(const VkShaderStageFlags& flags) {
   std::string result = "VkShaderStageFlags: ";
 #define ADD_FLAG_CASE(flag) \
   if (flags & flag) {       \
@@ -176,7 +177,7 @@ std::string Log::getShaderStageString(VkShaderStageFlags flags) {
   return result;
 }
 
-std::string Log::getSampleCountString(VkSampleCountFlags sampleCount) {
+std::string Log::getSampleCountString(const VkSampleCountFlags& sampleCount) {
   std::string result = "VkSampleCountFlags: ";
 #define ADD_FLAG_CASE(flag) \
   if (sampleCount & flag) { \
@@ -200,7 +201,7 @@ std::string Log::getSampleCountString(VkSampleCountFlags sampleCount) {
   return result;
 }
 
-std::string Log::getImageUsageString(VkImageUsageFlags usage) {
+std::string Log::getImageUsageString(const VkImageUsageFlags& usage) {
   std::string result = "VkImageUsageFlags: ";
 #define ADD_FLAG_CASE(flag) \
   if (usage & flag) {       \

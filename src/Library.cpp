@@ -28,7 +28,7 @@ double Lib::lowFrequencyOscillator(double frequency) {
   return 0.5 * (1 + std::sin(angle));
 }
 
-glm::vec2 Lib::smoothstep(const glm::vec2 xy) {
+glm::vec2 Lib::smoothstep(const glm::vec2& xy) {
   constexpr float startInput = 0.0f;
   constexpr float endInput = 1.0f;
   constexpr float minIncrease = -0.1f;
