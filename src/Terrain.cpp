@@ -12,16 +12,16 @@ Terrain::Terrain(const Config& _config) : config(_config) {}
 Terrain::~Terrain() {}
 
 std::vector<float> Terrain::generatePerlinGrid() {
-  size_t numPoints = config.width * config.height;
+  uint_fast16_t numPoints = config.width * config.height;
   std::vector<float> randomValues(numPoints);
 
-  for (size_t i = 0; i < numPoints; i++) {
+  for (uint_fast16_t i = 0; i < numPoints; i++) {
     glm::vec2 position(i % config.width, i / config.width);
     glm::vec2 scaledPosition =
         position / glm::vec2(config.width, config.height);
 
     float totalNoise = 0.0f;
-    float frequency = config.frequency;  // Use the provided frequency
+    float frequency = config.frequency;
     float amplitude = config.amplitude;
 
     for (int octave = 0; octave < config.octaves; octave++) {
