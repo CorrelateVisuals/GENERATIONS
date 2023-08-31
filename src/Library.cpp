@@ -56,31 +56,22 @@ std::string Lib::path(const std::string& linuxPath) {
   if (convertedWindowsPath.substr(0, 3) == "..\\.") {
     convertedWindowsPath = convertedWindowsPath.substr(3);
   }
-
-  convertedWindowsPath = shaderPath(convertedWindowsPath);
-  return convertedWindowsPath;
+  return shaderPath(convertedWindowsPath);
 #else
-  return linuxPath;
+  return shaderPath(linuxPath);
 #endif
 }
 
-std::string Lib::shaderPath(const std::string& linuxPath) {
-  if (linuxPath.find("shaders") != std::string::npos) {
-    std::string shaderPath;
-    for (char c : linuxPath) {
-      if (c == '\\') {
-        shaderPath += "\\\\";
-      } else {
-        shaderPath += c;
-      }
-    }
-    size_t dotShPosition = shaderPath.rfind(".sh");
-    if (dotShPosition != std::string::npos &&
-        dotShPosition + 3 == shaderPath.length()) {
-      shaderPath.replace(dotShPosition, 3, ".bat");
-    }
+std::string Lib::shaderPath(std::string& shaderPath) {
+  if (shaderPath.find("shaders") != std::string::npos) {
+#ifdef _WIN32
+    std::string glslangValidator = "glslangValidator.exe -V ";
+#else
+    std::string glslangValidator = "glslc ";
+#endif
+    shaderPath.insert(0, glslangValidator);
     return shaderPath;
   } else {
-    return linuxPath;
+    return shaderPath;
   }
 }

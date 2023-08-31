@@ -511,34 +511,15 @@ void VulkanMechanics::recreateSwapChain(Pipelines& _pipelines,
 
 void VulkanMechanics::compileShaders() {
   Log::text("{ GLSL }", "Compile Shaders");
-  std::string command;
 
-  command = Lib::path("./shaders/compile_shaders.sh");
+  std::vector<std::string> shaderPaths{
+      Lib::path("shaders/shader.vert -o shaders/vert.spv"),
+      Lib::path("shaders/shader.frag -o shaders/frag.spv"),
+      Lib::path("shaders/shader.comp -o shaders/comp.spv")};
 
-#ifdef _WIN32
-  if (FILE* pipe = _popen(command.c_str(), "r")) {
-    char buffer[128];
-    std::string output;
-
-    while (fgets(buffer, sizeof(buffer), pipe)) {
-      output = buffer;
-      if (!output.empty() && output.back() == '\n') {
-        output.pop_back();
-        Log::text(output);
-        if (output.find(".exe") != std::string::npos) {
-          Log::text(output);
-        }
-      }
-    }
-    _pclose(pipe);
-  } else {
-    Log::text("{ ERROR }", "Failed to execute command:", command);
+  for (std::string shader : shaderPaths) {
+    system(shader.c_str());
   }
-  Log::text("");
-#else
-  // Linux-specific code
-  auto er = system(command.c_str());
-#endif
 }
 
 std::vector<const char*> VulkanMechanics::getRequiredExtensions() {
