@@ -337,7 +337,6 @@ VkShaderModule Pipelines::createShaderModule(const std::vector<char>& code) {
 
 void Pipelines::destroyShaderModules(
     std::vector<VkShaderModule>& shaderModules) {
-  Log::text("Destroying", shaderModules.size(), "shader modules");
   for (size_t i = 0; i < shaderModules.size(); i++) {
     vkDestroyShaderModule(_mechanics.mainDevice.logical, shaderModules[i],
                           nullptr);

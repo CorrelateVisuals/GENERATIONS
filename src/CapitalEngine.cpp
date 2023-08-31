@@ -14,7 +14,7 @@ CapitalEngine::CapitalEngine() : pipelines(mechanics), resources(mechanics) {
 CapitalEngine::~CapitalEngine() {
   Log::text(Log::Style::headerGuard);
   Log::text("| CAPITAL Engine");
-  Log::text(Log::Style::headerGuard, "\n");
+  Log::text(Log::Style::headerGuard);
 
   cleanup();
 }
