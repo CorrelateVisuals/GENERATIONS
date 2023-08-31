@@ -21,6 +21,9 @@ Currently GENERATIONS is running ![Conway's Game of Life](https://en.wikipedia.o
 
 [Development enviroment](https://vulkan-tutorial.com/Development_environment)
 
+## Dependencies
+You will need glslangValidator installed and added to your systempaths. So that it can be ran from the command line.
+
 ### Windows development
 Additional Include Directories
 ```
