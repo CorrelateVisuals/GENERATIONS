@@ -212,11 +212,13 @@ void Pipelines::createGraphicsPipeline(
 
   destroyShaderModules(graphics.shaderModules);
 
-  shaderStages[0] = getShaderStageInfo(VK_SHADER_STAGE_VERTEX_BIT, "vert.spv", graphics);
-  shaderStages[1] = getShaderStageInfo(VK_SHADER_STAGE_FRAGMENT_BIT, "frag2.spv", graphics);
+  shaderStages[0] =
+      getShaderStageInfo(VK_SHADER_STAGE_VERTEX_BIT, "vert2.spv", graphics);
+  shaderStages[1] =
+      getShaderStageInfo(VK_SHADER_STAGE_FRAGMENT_BIT, "frag2.spv", graphics);
   _mechanics.result(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
-      VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
-      &graphics.pipeline2);
+                    VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
+                    &graphics.pipeline2);
 }
 
 VkFormat Pipelines::findSupportedFormat(const std::vector<VkFormat>& candidates,

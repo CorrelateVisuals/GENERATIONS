@@ -37,14 +37,14 @@ vec4 side = matchHeight(inTileSidesHeight, 0.5f);
 vec4 corner = matchHeight(inTileCornersHeight, 1.0f);
 vec3 tileVertices[20] = {
     // Cube
-    {20, 20, 20},    // 0 right front top
-    {-20, 20, 20},   // 20 left front top
-    {-20, -20, 20},  // 2 left back top
-    {20, -20, 20},   // 3 right back top
-    {20, 20, -20},   // 4 right front bottom
-    {-20, 20, -20},  // 5 left front bottom
-    {-20, -20, -20}, // 6 left back bottom
-    {20, -20, -20},  // 7 right back bottom
+    {1, 1, 1},    // 0 right front top
+    {-1, 1, 1},   // 1 left front top
+    {-1, -1, 1},  // 2 left back top
+    {1, -1, 1},   // 3 right back top
+    {1, 1, -1},   // 4 right front bottom
+    {-1, 1, -1},  // 5 left front bottom
+    {-1, -1, -1}, // 6 left back bottom
+    {1, -1, -1},  // 7 right back bottom
 
     // Grid
     {3, -1, side.x},    // 8 right back bottom extension center right

@@ -21,7 +21,7 @@ void main() {
     
     // Apply gamma correction
     color.rgb = pow(color.rgb, vec3(1.0 / gamma)) * vec3(1.0, 0.0, 0.0);
-    color.a = 0.5;
+    color = vec4(1.0, 1.0, 1.0, 1.0);
     
     outColor = color;
 }
