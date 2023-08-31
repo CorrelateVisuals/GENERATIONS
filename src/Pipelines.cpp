@@ -143,8 +143,10 @@ void Pipelines::createGraphicsPipeline(
   Log::text("{ === }", "Graphics Pipeline");
 
   std::vector<VkPipelineShaderStageCreateInfo> shaderStages{
-      getShaderStageInfo(VK_SHADER_STAGE_VERTEX_BIT, "vert.spv", graphics),
-      getShaderStageInfo(VK_SHADER_STAGE_FRAGMENT_BIT, "frag.spv", graphics)};
+      getShaderStageInfo(VK_SHADER_STAGE_VERTEX_BIT, "Graphics1Vertex.spv",
+                         graphics),
+      getShaderStageInfo(VK_SHADER_STAGE_FRAGMENT_BIT, "Graphics1Fragment.spv",
+                         graphics)};
 
   VkPipelineVertexInputStateCreateInfo vertexInputInfo = getVertexInputInfo();
 
@@ -210,6 +212,15 @@ void Pipelines::createGraphicsPipeline(
                     VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
                     &graphics.pipeline);
 
+  destroyShaderModules(graphics.shaderModules);
+
+  shaderStages[0] = getShaderStageInfo(VK_SHADER_STAGE_VERTEX_BIT,
+                                       "Graphics2Vertex.spv", graphics);
+  shaderStages[1] = getShaderStageInfo(VK_SHADER_STAGE_FRAGMENT_BIT,
+                                       "Graphics2Fragment.spv", graphics);
+  _mechanics.result(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
+                    VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
+                    &graphics.pipeline2);
   destroyShaderModules(graphics.shaderModules);
 }
 
@@ -291,7 +302,7 @@ void Pipelines::createComputePipeline(
   Log::text("{ === }", "Compute Pipeline");
 
   VkPipelineShaderStageCreateInfo computeShaderStageInfo =
-      getShaderStageInfo(VK_SHADER_STAGE_COMPUTE_BIT, "comp.spv", compute);
+      getShaderStageInfo(VK_SHADER_STAGE_COMPUTE_BIT, "Compute1.spv", compute);
 
   VkPushConstantRange pushConstantRange = {
       .stageFlags = pushConstants.shaderStage,
@@ -340,6 +351,7 @@ void Pipelines::destroyShaderModules(
     vkDestroyShaderModule(_mechanics.mainDevice.logical, shaderModules[i],
                           nullptr);
   }
+  shaderModules.resize(0);
 };
 
 VkPipelineVertexInputStateCreateInfo Pipelines::getVertexInputInfo() {

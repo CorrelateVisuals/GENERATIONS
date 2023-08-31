@@ -31,7 +31,7 @@ void VulkanMechanics::setupVulkan(Pipelines& _pipelines,
   Log::text(Log::Style::headerGuard);
   Log::text("{ Vk. }", "Setup Vulkan");
 
-  compileShaders(_pipelines.shaderPaths);
+  compileShaders(_pipelines.shaders);
   createInstance();
   validation.setupDebugMessenger(instance);
   createSurface(Window::get().window);

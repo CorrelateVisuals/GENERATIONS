@@ -610,6 +610,14 @@ void Resources::recordCommandBuffer(VkCommandBuffer commandBuffer,
   vkCmdDraw(commandBuffer, world.tile.vertexCount,
             world.grid.dimensions[0] * world.grid.dimensions[1], 0, 0);
 
+  vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                    _pipelines.graphics.pipeline2);
+  vkCmdBindVertexBuffers(
+      commandBuffer, 0, 1,
+      &buffers.shaderStorage[_mechanics.syncObjects.currentFrame], offsets);
+  vkCmdDraw(commandBuffer, world.tile.vertexCount,  // 200x100
+            world.grid.dimensions[0] * world.grid.dimensions[1], 0, 0);
+
   vkCmdEndRenderPass(commandBuffer);
 
   _mechanics.result(vkEndCommandBuffer, commandBuffer);

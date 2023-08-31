@@ -174,6 +174,9 @@ void CapitalEngine::cleanup() {
 
   vkDestroyPipeline(mechanics.mainDevice.logical, pipelines.graphics.pipeline,
                     nullptr);
+  vkDestroyPipeline(mechanics.mainDevice.logical, pipelines.graphics.pipeline2,
+                    nullptr);
+
   vkDestroyPipelineLayout(mechanics.mainDevice.logical,
                           pipelines.graphics.pipelineLayout, nullptr);
 

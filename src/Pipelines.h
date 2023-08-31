@@ -17,6 +17,7 @@ class Pipelines {
 
     VkPipelineLayout pipelineLayout;
     VkPipeline pipeline;
+    VkPipeline pipeline2;
     std::vector<VkShaderModule> shaderModules;
 
     struct Depth {
@@ -39,10 +40,14 @@ class Pipelines {
     std::vector<VkShaderModule> shaderModules;
   } compute;
 
-  std::vector<std::string> shaderPaths{
-      Lib::path("shaders/shader.vert -o shaders/vert.spv"),
-      Lib::path("shaders/shader.frag -o shaders/frag.spv"),
-      Lib::path("shaders/shader.comp -o shaders/comp.spv")};
+  std::vector<std::string> shaders{
+      Lib::path("shaders/Graphics1.vert -o shaders/Graphics1Vertex.spv"),
+      Lib::path("shaders/Graphics1.frag -o shaders/Graphics1Fragment.spv"),
+      Lib::path("shaders/Compute1.comp -o shaders/Compute1.spv"),
+
+      Lib::path("shaders/Graphics2.vert -o shaders/Graphics2Vertex.spv"),
+      Lib::path("shaders/Graphics2.frag -o shaders/Graphics2Fragment.spv"),
+  };
 
  public:
   void createPipelines(Resources& _resources);
