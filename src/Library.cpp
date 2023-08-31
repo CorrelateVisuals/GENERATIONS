@@ -64,10 +64,10 @@ std::string Lib::path(const std::string& linuxPath) {
 #endif
 }
 
-std::string Lib::shaderPath(const std::string& originalPath) {
-  if (originalPath.find("shaders") != std::string::npos) {
+std::string Lib::shaderPath(const std::string& linuxPath) {
+  if (linuxPath.find("shaders") != std::string::npos) {
     std::string shaderPath;
-    for (char c : originalPath) {
+    for (char c : linuxPath) {
       if (c == '\\') {
         shaderPath += "\\\\";
       } else {
@@ -81,6 +81,6 @@ std::string Lib::shaderPath(const std::string& originalPath) {
     }
     return shaderPath;
   } else {
-    return originalPath;
+    return linuxPath;
   }
 }

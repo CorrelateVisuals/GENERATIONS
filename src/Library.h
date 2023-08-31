@@ -11,5 +11,5 @@ double lowFrequencyOscillator(double frequency);
 glm::vec2 smoothstep(const glm::vec2 xy);
 
 std::string path(const std::string& linuxPath);
-std::string shaderPath(const std::string& originalPath);
+std::string shaderPath(const std::string& linuxPath);
 };  // namespace Lib
