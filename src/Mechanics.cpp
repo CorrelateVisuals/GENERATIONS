@@ -60,9 +60,8 @@ void VulkanMechanics::createInstance() {
                             .engineVersion = VK_MAKE_VERSION(0, 0, 1),
                             .apiVersion = VK_API_VERSION_1_3};
   Log::text(Log::Style::charLeader, appInfo.pApplicationName,
-            appInfo.applicationVersion);
-  Log::text(Log::Style::charLeader, appInfo.pEngineName, appInfo.engineVersion);
-  Log::text(Log::Style::charLeader, "Vulkan", 1.3);
+            appInfo.applicationVersion, "-", appInfo.pEngineName,
+            appInfo.engineVersion, "-", "Vulkan", 1.3);
 
   auto extensions = getRequiredExtensions();
 

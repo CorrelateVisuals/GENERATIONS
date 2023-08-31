@@ -7,6 +7,8 @@
 #include <unordered_map>
 #include <vector>
 
+#define STRINGIFICATION(x) #x
+
 namespace Log {
 
 struct Style {

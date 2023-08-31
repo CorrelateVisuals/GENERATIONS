@@ -61,9 +61,8 @@ void Pipelines::createDepthResources(Resources& _resources) {
 
 void Pipelines::createRenderPass() {
   Log::text("{ []< }", "Render Pass");
-  Log::text(
-      Log::Style::charLeader,
-      "attachments: colorAttachment, depthAttachment, colorAttachmentResolve");
+  Log::text(Log::Style::charLeader,
+            "colorAttachment, depthAttachment, colorAttachmentResolve");
 
   VkAttachmentDescription colorAttachment{
       .format = _mechanics.swapChain.imageFormat,

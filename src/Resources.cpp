@@ -178,7 +178,7 @@ void Resources::createDescriptorSetLayout() {
        .pImmutableSamplers = nullptr},
   };
 
-  Log::text("{ |=| }", "Descriptor Set Layout", layoutBindings.size(),
+  Log::text("{ |=| }", "Descriptor Set Layout:", layoutBindings.size(),
             "bindings");
   for (const VkDescriptorSetLayoutBinding& item : layoutBindings) {
     Log::text("{ ", item.binding, " }",
