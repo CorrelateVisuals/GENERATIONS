@@ -29,7 +29,7 @@ VulkanMechanics::~VulkanMechanics() {
 void VulkanMechanics::setupVulkan(Pipelines& _pipelines,
                                   Resources& _resources) {
   Log::text(Log::Style::headerGuard);
-  Log::text("{ Vk. }", "setting up Vulkan Mechanics");
+  Log::text("{ Vk. }", "Setup Vulkan");
 
   compileShaders();
   createInstance();
@@ -120,7 +120,7 @@ void VulkanMechanics::pickPhysicalDevice(
 
 VulkanMechanics::Queues::FamilyIndices VulkanMechanics::findQueueFamilies(
     VkPhysicalDevice physicalDevice) {
-  Log::text(Log::Style::charLeader, "finding Queue Families");
+  Log::text(Log::Style::charLeader, "Find Queue Families");
 
   VulkanMechanics::Queues::FamilyIndices indices;
 
@@ -159,7 +159,7 @@ VulkanMechanics::Queues::FamilyIndices VulkanMechanics::findQueueFamilies(
 
 VulkanMechanics::SwapChain::SupportDetails
 VulkanMechanics::querySwapChainSupport(VkPhysicalDevice physicalDevice) {
-  Log::text(Log::Style::charLeader, "querying Swap Chain Support");
+  Log::text(Log::Style::charLeader, "Query Swap Chain Support");
   {
     SwapChain::SupportDetails details;
 
@@ -193,7 +193,7 @@ VulkanMechanics::querySwapChainSupport(VkPhysicalDevice physicalDevice) {
 
 bool VulkanMechanics::checkDeviceExtensionSupport(
     VkPhysicalDevice physicalDevice) {
-  Log::text(Log::Style::charLeader, "checking Device Extension Support");
+  Log::text(Log::Style::charLeader, "Check Device Extension Support");
   uint32_t extensionCount;
   vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &extensionCount,
                                        nullptr);
@@ -281,7 +281,7 @@ void VulkanMechanics::createLogicalDevice() {
 
 VkSurfaceFormatKHR VulkanMechanics::chooseSwapSurfaceFormat(
     const std::vector<VkSurfaceFormatKHR>& availableFormats) {
-  Log::text(Log::Style::charLeader, "choosing Swap Surface Format");
+  Log::text(Log::Style::charLeader, "Choose Swap Surface Format");
 
   for (const auto& availableFormat : availableFormats) {
     if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB &&
@@ -294,7 +294,7 @@ VkSurfaceFormatKHR VulkanMechanics::chooseSwapSurfaceFormat(
 
 VkPresentModeKHR VulkanMechanics::chooseSwapPresentMode(
     const std::vector<VkPresentModeKHR>& availablePresentModes) {
-  Log::text(Log::Style::charLeader, "choosing Swap Present Mode");
+  Log::text(Log::Style::charLeader, "Choose Swap Present Mode");
   for (const auto& availablePresentMode : availablePresentModes) {
     if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
       return availablePresentMode;
@@ -305,7 +305,7 @@ VkPresentModeKHR VulkanMechanics::chooseSwapPresentMode(
 
 VkExtent2D VulkanMechanics::chooseSwapExtent(
     const VkSurfaceCapabilitiesKHR& capabilities) {
-  Log::text(Log::Style::charLeader, "choosing Swap Extent");
+  Log::text(Log::Style::charLeader, "Choose Swap Extent");
 
   if (capabilities.currentExtent.width !=
       std::numeric_limits<uint32_t>::max()) {
@@ -386,7 +386,7 @@ void VulkanMechanics::cleanupSwapChain(Pipelines& _pipelines) {
 }
 
 bool VulkanMechanics::isDeviceSuitable(VkPhysicalDevice physicalDevice) {
-  Log::text(Log::Style::charLeader, "checking if Physical Device is suitable");
+  Log::text(Log::Style::charLeader, "Is Device Suitable?");
 
   Queues::FamilyIndices indices = findQueueFamilies(physicalDevice);
 
@@ -511,7 +511,7 @@ void VulkanMechanics::recreateSwapChain(Pipelines& _pipelines,
 }
 
 void VulkanMechanics::compileShaders() {
-  Log::text("{ GLSL }", "compiling shaders");
+  Log::text("{ GLSL }", "Compile Shaders");
   std::string command;
 
   command = Lib::path("./shaders/compile_shaders.sh");
