@@ -50,6 +50,16 @@ class World {
     const float cubeSize{0.1f};
   } tile;
 
+  struct Geometry {
+    struct Cube {
+      const uint32_t vertexCount{24};
+      const float size{0.1f};
+    };
+    struct Tile {
+      const uint32_t vertexCount{74};
+    };
+  };
+
  public:
   UniformBufferObject updateUniforms(VkExtent2D& _swapChain);
 

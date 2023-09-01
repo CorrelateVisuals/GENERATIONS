@@ -59,7 +59,7 @@ class Pipelines {
   VulkanMechanics& _mechanics;
 
   void createRenderPass();
-  void createGraphicsPipeline(VkDescriptorSetLayout& descriptorSetLayout);
+  void createGraphicsPipelines(VkDescriptorSetLayout& descriptorSetLayout);
   void createComputePipeline(VkDescriptorSetLayout& descriptorSetLayout,
                              Resources::PushConstants& _pushConstants);
 
@@ -77,8 +77,16 @@ class Pipelines {
       std::string shaderName,
       auto& pipeline);
 
-  VkPipelineVertexInputStateCreateInfo getVertexInputInfo();
-  VkPipelineColorBlendStateCreateInfo getColorBlendingInfo();
-  VkPipelineDynamicStateCreateInfo getDynamicStateInfo();
-  VkPipelineDepthStencilStateCreateInfo getDepthStencilInfo();
+  VkPipelineVertexInputStateCreateInfo getPipelineVertexInputState();
+  VkPipelineColorBlendStateCreateInfo getPipelineColorBlendingState();
+  VkPipelineDynamicStateCreateInfo getPipelineDynamicState();
+  VkPipelineDepthStencilStateCreateInfo getPipelineDepthStencilState();
+  VkPipelineInputAssemblyStateCreateInfo getPipelineInputAssemblyState(
+      VkPrimitiveTopology topology);
+  VkPipelineViewportStateCreateInfo getPipelineViewportState();
+  VkPipelineRasterizationStateCreateInfo getPipelineRasterizationState();
+  VkPipelineMultisampleStateCreateInfo getPipelineMultisampleState();
+  VkPipelineLayoutCreateInfo getPipelineLayoutState(
+      VkDescriptorSetLayout& descriptorSetLayout,
+      VkPipelineLayoutCreateInfo& pipelineLayoutInfo);
 };
