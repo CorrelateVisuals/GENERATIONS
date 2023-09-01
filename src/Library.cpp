@@ -62,7 +62,7 @@ std::string Lib::path(const std::string& linuxPath) {
 #endif
 }
 
-std::string Lib::ifShaderAdaptation(std::string& shaderPath) {
+std::string Lib::ifShaderAdaptation(std::string shaderPath) {
   if (shaderPath.find("shaders") == std::string::npos) {
     return shaderPath;
   } else {
