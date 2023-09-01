@@ -13,26 +13,26 @@ class Pipelines {
   ~Pipelines();
 
   struct Graphics {
-      struct Pipelines {
-          VkPipeline cells;
-          VkPipeline tiles;
-      } pipelines;
+    struct Pipelines {
+      VkPipeline cells;
+      VkPipeline tiles;
+    } pipelines;
 
     VkRenderPass renderPass;
     VkPipelineLayout pipelineLayout;
     std::vector<VkShaderModule> shaderModules;
 
     struct Config {
-          std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
-          VkPipelineVertexInputStateCreateInfo vertexInputState;
-          VkPipelineInputAssemblyStateCreateInfo inputAssemblyState;
-          VkPipelineViewportStateCreateInfo viewportState;
-          VkPipelineRasterizationStateCreateInfo rasterizationState;
-          VkPipelineMultisampleStateCreateInfo multisampleState;
-          VkPipelineDepthStencilStateCreateInfo depthStencilState;
-          VkPipelineColorBlendStateCreateInfo colorBlendingState;
-          VkPipelineDynamicStateCreateInfo dynamicState;
-          VkPipelineLayoutCreateInfo pipelineLayoutState;
+      std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
+      VkPipelineVertexInputStateCreateInfo vertexInputState;
+      VkPipelineInputAssemblyStateCreateInfo inputAssemblyState;
+      VkPipelineViewportStateCreateInfo viewportState;
+      VkPipelineRasterizationStateCreateInfo rasterizationState;
+      VkPipelineMultisampleStateCreateInfo multisampleState;
+      VkPipelineDepthStencilStateCreateInfo depthStencilState;
+      VkPipelineColorBlendStateCreateInfo colorBlendingState;
+      VkPipelineDynamicStateCreateInfo dynamicState;
+      VkPipelineLayoutCreateInfo pipelineLayoutState;
     };
 
     struct Depth {
@@ -79,13 +79,12 @@ class Pipelines {
 
  private:
   VulkanMechanics& _mechanics;
+  void createRenderPass();
   VkGraphicsPipelineCreateInfo getPipelineCreateInfo(
       Pipelines::Graphics::Config& pipelineConfig,
       const VkDescriptorSetLayout& descriptorSetLayout,
       const std::string& vertexShader,
       const std::string& fragmentShader);
-
-  void createRenderPass();
   void createGraphicsPipelines(VkDescriptorSetLayout& descriptorSetLayout);
   void createComputePipeline(VkDescriptorSetLayout& descriptorSetLayout,
                              Resources::PushConstants& _pushConstants);
