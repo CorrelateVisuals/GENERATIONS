@@ -16,7 +16,7 @@ Pipelines::~Pipelines() {
   Log::text("{ === }", "destructing Pipelines");
 }
 
-VkGraphicsPipelineCreateInfo Pipelines::configPipeline(
+VkGraphicsPipelineCreateInfo Pipelines::getPipelineCreateInfo(
     Pipelines::Graphics::ConfigPipeline& config,
     const VkDescriptorSetLayout& descriptorSetLayout,
     const std::string& vertexShader,
@@ -33,7 +33,7 @@ VkGraphicsPipelineCreateInfo Pipelines::configPipeline(
   config.depthStencilState = getDepthStencilState();
   config.colorBlendingState = getColorBlendingState();
   config.dynamicState = getDynamicState();
-  config.pipelineLayoutState = getLayoutState(descriptorSetLayout);
+  config.pipelineLayoutState = setLayoutState(descriptorSetLayout);
 
   VkGraphicsPipelineCreateInfo pipelineInfo{
       .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
@@ -183,8 +183,8 @@ void Pipelines::createGraphicsPipelines(
 
   Graphics::ConfigPipeline pipelineConfig;
   VkGraphicsPipelineCreateInfo pipelineInfo =
-      configPipeline(pipelineConfig, descriptorSetLayout, "Graphics1Vertex.spv",
-                     "Graphics1Fragment.spv");
+      getPipelineCreateInfo(pipelineConfig, descriptorSetLayout,
+                            "Graphics1Vertex.spv", "Graphics1Fragment.spv");
 
   // First pipeline
   _mechanics.result(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
@@ -193,8 +193,9 @@ void Pipelines::createGraphicsPipelines(
   destroyShaderModules(graphics.shaderModules);
 
   // Second pipeline
-  pipelineInfo = configPipeline(pipelineConfig, descriptorSetLayout,
-                                "Graphics2Vertex.spv", "Graphics2Fragment.spv");
+  pipelineInfo =
+      getPipelineCreateInfo(pipelineConfig, descriptorSetLayout,
+                            "Graphics2Vertex.spv", "Graphics2Fragment.spv");
   _mechanics.result(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
                     VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
                     &graphics.pipeline2);
@@ -434,14 +435,17 @@ VkPipelineMultisampleStateCreateInfo Pipelines::getMultisampleState() {
   return createStateInfo;
 }
 
-VkPipelineLayoutCreateInfo Pipelines::getLayoutState(
+VkPipelineLayoutCreateInfo Pipelines::setLayoutState(
     const VkDescriptorSetLayout& descriptorSetLayout) {
   VkPipelineLayoutCreateInfo createStateInfo{
       .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
       .setLayoutCount = 1,
       .pSetLayouts = &descriptorSetLayout};
 
-  _mechanics.result(vkCreatePipelineLayout, _mechanics.mainDevice.logical,
-                    &createStateInfo, nullptr, &graphics.pipelineLayout);
+  if (graphics.pipelineLayout == VK_NULL_HANDLE) {
+    _mechanics.result(vkCreatePipelineLayout, _mechanics.mainDevice.logical,
+                      &createStateInfo, nullptr, &graphics.pipelineLayout);
+  }
+
   return createStateInfo;
 }

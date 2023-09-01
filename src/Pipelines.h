@@ -70,9 +70,11 @@ class Pipelines {
 
  private:
   VulkanMechanics& _mechanics;
-  VkGraphicsPipelineCreateInfo configPipeline(
+  VkGraphicsPipelineCreateInfo getPipelineCreateInfo(
       Pipelines::Graphics::ConfigPipeline& pipelineConfig,
-      const VkDescriptorSetLayout& descriptorSetLayout, const std::string& vertexShader, const std::string& fragmentShader);
+      const VkDescriptorSetLayout& descriptorSetLayout,
+      const std::string& vertexShader,
+      const std::string& fragmentShader);
 
   void createRenderPass();
   void createGraphicsPipelines(VkDescriptorSetLayout& descriptorSetLayout);
@@ -102,6 +104,6 @@ class Pipelines {
   VkPipelineViewportStateCreateInfo getViewportState();
   VkPipelineRasterizationStateCreateInfo getRasterizationState();
   VkPipelineMultisampleStateCreateInfo getMultisampleState();
-  VkPipelineLayoutCreateInfo getLayoutState(
+  VkPipelineLayoutCreateInfo setLayoutState(
       const VkDescriptorSetLayout& descriptorSetLayout);
 };
