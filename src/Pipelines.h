@@ -55,29 +55,17 @@ class Pipelines {
 
 
   struct Shaders {
-
-      std::vector<std::string> name{
+    std::vector<std::string> name{
           "Engine", "Cells", "Tiles"
     };
     std::vector<std::string> path{
     Lib::path("shaders/" + name[0] + ".comp -o shaders/" + name[0] + "Comp.spv"),
     Lib::path("shaders/" + name[1] + ".vert -o shaders/" + name[1] + "Vert.spv"),
     Lib::path("shaders/" + name[1] +  ".frag -o shaders/" + name[1] + "Frag.spv"),
-    
-
     Lib::path("shaders/" + name[2] + ".vert -o shaders/" + name[2] + "Vert.spv"),
     Lib::path("shaders/" + name[2] + ".frag -o shaders/" + name[2] + "Frag.spv"),
       };
   } shaders;
-
-  //std::vector<std::string> shaders{
-  //    Lib::path("shaders/Cells.vert -o shaders/CellsVert.spv"),
-  //    Lib::path("shaders/Cells.frag -o shaders/CellsFrag.spv"),
-  //    Lib::path("shaders/Engine.comp -o shaders/EngineComp.spv"),
-
-  //    Lib::path("shaders/Tiles.vert -o shaders/TilesVert.spv"),
-  //    Lib::path("shaders/Tiles.frag -o shaders/TilesFrag.spv"),
-  //};
 
  public:
   void createPipelines(Resources& _resources);

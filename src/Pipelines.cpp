@@ -182,21 +182,19 @@ void Pipelines::createGraphicsPipelines(
     Log::text("{ === }", "Graphics Pipelines");
 
     Graphics::ConfigPipeline pipelineConfig{};
-    VkGraphicsPipelineCreateInfo pipelineInfo{
-        getPipelineCreateInfo(pipelineConfig, descriptorSetLayout,
-           shaders.name[1] + "Vert.spv", shaders.name[1] + "Frag.spv")
-    };
+    VkGraphicsPipelineCreateInfo pipelineInfo{};
 
-  // First pipeline
+    uint8_t NUMBER = 1;
+    pipelineInfo = getPipelineCreateInfo(pipelineConfig, descriptorSetLayout,
+                   shaders.name[NUMBER] + "Vert.spv", shaders.name[NUMBER] + "Frag.spv");
   _mechanics.result(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
                     VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
                     &graphics.pipeline);
   destroyShaderModules(graphics.shaderModules);
 
-  // Second pipeline
-  pipelineInfo =
-      getPipelineCreateInfo(pipelineConfig, descriptorSetLayout,
-          shaders.name[2] + "Vert.spv", shaders.name[2] + "Frag.spv");
+  NUMBER = 2;
+  pipelineInfo = getPipelineCreateInfo(pipelineConfig, descriptorSetLayout,
+                 shaders.name[NUMBER] + "Vert.spv", shaders.name[NUMBER] + "Frag.spv");
   _mechanics.result(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
                     VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
                     &graphics.pipeline2);
@@ -280,8 +278,9 @@ void Pipelines::createComputePipeline(
     Resources::PushConstants& pushConstants) {
   Log::text("{ === }", "Compute Pipeline");
 
+  uint8_t NUMBER = 0;
   VkPipelineShaderStageCreateInfo computeShaderStageInfo =
-      setShaderStage(VK_SHADER_STAGE_COMPUTE_BIT, shaders.name[0] + "Comp.spv", compute);
+      setShaderStage(VK_SHADER_STAGE_COMPUTE_BIT, shaders.name[NUMBER] + "Comp.spv", compute);
 
   VkPushConstantRange pushConstantRange = {
       .stageFlags = pushConstants.shaderStage,
