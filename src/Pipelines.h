@@ -105,5 +105,5 @@ class Pipelines {
   VkPipelineRasterizationStateCreateInfo getRasterizationState();
   VkPipelineMultisampleStateCreateInfo getMultisampleState();
   VkPipelineLayoutCreateInfo setLayoutState(
-      const VkDescriptorSetLayout& descriptorSetLayout);
+      const VkDescriptorSetLayout& descriptorSetLayout, VkPipelineLayout& pipelineLayout);
 };

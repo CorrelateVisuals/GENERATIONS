@@ -33,7 +33,7 @@ VkGraphicsPipelineCreateInfo Pipelines::getPipelineCreateInfo(
   config.depthStencilState = getDepthStencilState();
   config.colorBlendingState = getColorBlendingState();
   config.dynamicState = getDynamicState();
-  config.pipelineLayoutState = setLayoutState(descriptorSetLayout);
+  config.pipelineLayoutState = setLayoutState(descriptorSetLayout, graphics.pipelineLayout);
 
   VkGraphicsPipelineCreateInfo pipelineInfo{
       .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
@@ -181,7 +181,7 @@ void Pipelines::createGraphicsPipelines(
     VkDescriptorSetLayout& descriptorSetLayout) {
   Log::text("{ === }", "Graphics Pipelines");
 
-  Graphics::ConfigPipeline pipelineConfig;
+  Graphics::ConfigPipeline pipelineConfig{};
   VkGraphicsPipelineCreateInfo pipelineInfo =
       getPipelineCreateInfo(pipelineConfig, descriptorSetLayout,
                             "Graphics1Vertex.spv", "Graphics1Fragment.spv");
@@ -436,15 +436,15 @@ VkPipelineMultisampleStateCreateInfo Pipelines::getMultisampleState() {
 }
 
 VkPipelineLayoutCreateInfo Pipelines::setLayoutState(
-    const VkDescriptorSetLayout& descriptorSetLayout) {
+    const VkDescriptorSetLayout& descriptorSetLayout, VkPipelineLayout& pipelineLayout) {
   VkPipelineLayoutCreateInfo createStateInfo{
       .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
       .setLayoutCount = 1,
       .pSetLayouts = &descriptorSetLayout};
 
-  if (graphics.pipelineLayout == VK_NULL_HANDLE) {
+  if (pipelineLayout == VK_NULL_HANDLE) {
     _mechanics.result(vkCreatePipelineLayout, _mechanics.mainDevice.logical,
-                      &createStateInfo, nullptr, &graphics.pipelineLayout);
+                      &createStateInfo, nullptr, &pipelineLayout);
   }
 
   return createStateInfo;
