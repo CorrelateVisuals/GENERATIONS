@@ -172,9 +172,9 @@ void CapitalEngine::cleanup() {
   vkFreeMemory(mechanics.mainDevice.logical, resources.image.textureMemory,
                nullptr);
 
-  vkDestroyPipeline(mechanics.mainDevice.logical, pipelines.graphics.pipeline,
-                    nullptr);
-  vkDestroyPipeline(mechanics.mainDevice.logical, pipelines.graphics.pipeline2,
+  vkDestroyPipeline(mechanics.mainDevice.logical,
+                    pipelines.graphics.pipelines.cells, nullptr);
+  vkDestroyPipeline(mechanics.mainDevice.logical, pipelines.graphics.pipelines.tiles,
                     nullptr);
 
   vkDestroyPipelineLayout(mechanics.mainDevice.logical,

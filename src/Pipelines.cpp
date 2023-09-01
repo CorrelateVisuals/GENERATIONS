@@ -17,7 +17,7 @@ Pipelines::~Pipelines() {
 }
 
 VkGraphicsPipelineCreateInfo Pipelines::getPipelineCreateInfo(
-    Pipelines::Graphics::ConfigPipeline& config,
+    Pipelines::Graphics::Config& config,
     const VkDescriptorSetLayout& descriptorSetLayout,
     const std::string& vertexShader,
     const std::string& fragmentShader) {
@@ -184,7 +184,7 @@ void Pipelines::createGraphicsPipelines(
     VkDescriptorSetLayout& descriptorSetLayout) {
   Log::text("{ === }", "Graphics Pipelines");
 
-  Graphics::ConfigPipeline pipelineConfig{};
+  Graphics::Config pipelineConfig{};
   VkGraphicsPipelineCreateInfo pipelineInfo{};
 
   uint8_t NUMBER = 1;
@@ -193,7 +193,7 @@ void Pipelines::createGraphicsPipelines(
                                        shaders.name[NUMBER] + "Frag.spv");
   _mechanics.result(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
                     VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
-                    &graphics.pipeline);
+                    &graphics.pipelines.cells);
   destroyShaderModules(graphics.shaderModules);
 
   NUMBER = 2;
@@ -202,7 +202,7 @@ void Pipelines::createGraphicsPipelines(
                                        shaders.name[NUMBER] + "Frag.spv");
   _mechanics.result(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
                     VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
-                    &graphics.pipeline2);
+                    &graphics.pipelines.tiles);
   destroyShaderModules(graphics.shaderModules);
 }
 

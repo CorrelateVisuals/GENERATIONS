@@ -13,24 +13,26 @@ class Pipelines {
   ~Pipelines();
 
   struct Graphics {
-    VkRenderPass renderPass;
+      struct Pipelines {
+          VkPipeline cells;
+          VkPipeline tiles;
+      } pipelines;
 
+    VkRenderPass renderPass;
     VkPipelineLayout pipelineLayout;
-    VkPipeline pipeline;
-    VkPipeline pipeline2;
     std::vector<VkShaderModule> shaderModules;
 
-    struct ConfigPipeline {
-      std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
-      VkPipelineVertexInputStateCreateInfo vertexInputState;
-      VkPipelineInputAssemblyStateCreateInfo inputAssemblyState;
-      VkPipelineViewportStateCreateInfo viewportState;
-      VkPipelineRasterizationStateCreateInfo rasterizationState;
-      VkPipelineMultisampleStateCreateInfo multisampleState;
-      VkPipelineDepthStencilStateCreateInfo depthStencilState;
-      VkPipelineColorBlendStateCreateInfo colorBlendingState;
-      VkPipelineDynamicStateCreateInfo dynamicState;
-      VkPipelineLayoutCreateInfo pipelineLayoutState;
+    struct Config {
+          std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
+          VkPipelineVertexInputStateCreateInfo vertexInputState;
+          VkPipelineInputAssemblyStateCreateInfo inputAssemblyState;
+          VkPipelineViewportStateCreateInfo viewportState;
+          VkPipelineRasterizationStateCreateInfo rasterizationState;
+          VkPipelineMultisampleStateCreateInfo multisampleState;
+          VkPipelineDepthStencilStateCreateInfo depthStencilState;
+          VkPipelineColorBlendStateCreateInfo colorBlendingState;
+          VkPipelineDynamicStateCreateInfo dynamicState;
+          VkPipelineLayoutCreateInfo pipelineLayoutState;
     };
 
     struct Depth {
@@ -78,7 +80,7 @@ class Pipelines {
  private:
   VulkanMechanics& _mechanics;
   VkGraphicsPipelineCreateInfo getPipelineCreateInfo(
-      Pipelines::Graphics::ConfigPipeline& pipelineConfig,
+      Pipelines::Graphics::Config& pipelineConfig,
       const VkDescriptorSetLayout& descriptorSetLayout,
       const std::string& vertexShader,
       const std::string& fragmentShader);

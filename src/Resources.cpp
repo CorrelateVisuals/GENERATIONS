@@ -581,10 +581,6 @@ void Resources::recordCommandBuffer(VkCommandBuffer commandBuffer,
 
   vkCmdBeginRenderPass(commandBuffer, &renderPassInfo,
                        VK_SUBPASS_CONTENTS_INLINE);
-
-  vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                    _pipelines.graphics.pipeline);
-
   VkViewport viewport{
       .x = 0.0f,
       .y = 0.0f,
@@ -597,21 +593,24 @@ void Resources::recordCommandBuffer(VkCommandBuffer commandBuffer,
   VkRect2D scissor{.offset = {0, 0}, .extent = _mechanics.swapChain.extent};
   vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-  VkDeviceSize offsets[]{0};
-  vkCmdBindVertexBuffers(
-      commandBuffer, 0, 1,
-      &buffers.shaderStorage[_mechanics.syncObjects.currentFrame], offsets);
-
   vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                           _pipelines.graphics.pipelineLayout, 0, 1,
                           &descriptor.sets[_mechanics.syncObjects.currentFrame],
                           0, nullptr);
 
+  // Pipeline 1
+  vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                    _pipelines.graphics.pipelines.cells);
+  VkDeviceSize offsets[]{0};
+  vkCmdBindVertexBuffers(
+      commandBuffer, 0, 1,
+      &buffers.shaderStorage[_mechanics.syncObjects.currentFrame], offsets);
   vkCmdDraw(commandBuffer, world.geo.cube.vertexCount,
             world.grid.dimensions[0] * world.grid.dimensions[1], 0, 0);
 
+  // Pipeline 2
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                    _pipelines.graphics.pipeline2);
+                    _pipelines.graphics.pipelines.tiles);
   // vkCmdBindVertexBuffers(
   //     commandBuffer, 0, 1,
   //     &buffers.shaderStorage[_mechanics.syncObjects.currentFrame], offsets);
