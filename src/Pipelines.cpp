@@ -21,7 +21,7 @@ VkGraphicsPipelineCreateInfo Pipelines::getPipelineCreateInfo(
     const VkDescriptorSetLayout& descriptorSetLayout,
     const std::string& vertexShader,
     const std::string& fragmentShader) {
-    Log::text("{ === }", "Pipeline Config", vertexShader, fragmentShader);
+  Log::text("{ === }", "Pipeline Config", vertexShader, fragmentShader);
 
   config.shaderStages = {
       setShaderStage(VK_SHADER_STAGE_VERTEX_BIT, vertexShader, graphics),
@@ -35,7 +35,8 @@ VkGraphicsPipelineCreateInfo Pipelines::getPipelineCreateInfo(
   config.depthStencilState = getDepthStencilState();
   config.colorBlendingState = getColorBlendingState();
   config.dynamicState = getDynamicState();
-  config.pipelineLayoutState = setLayoutState(descriptorSetLayout, graphics.pipelineLayout);
+  config.pipelineLayoutState =
+      setLayoutState(descriptorSetLayout, graphics.pipelineLayout);
 
   VkGraphicsPipelineCreateInfo pipelineInfo{
       .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
@@ -181,14 +182,15 @@ void Pipelines::createRenderPass() {
 
 void Pipelines::createGraphicsPipelines(
     VkDescriptorSetLayout& descriptorSetLayout) {
-    Log::text("{ === }", "Graphics Pipelines");
+  Log::text("{ === }", "Graphics Pipelines");
 
-    Graphics::ConfigPipeline pipelineConfig{};
-    VkGraphicsPipelineCreateInfo pipelineInfo{};
+  Graphics::ConfigPipeline pipelineConfig{};
+  VkGraphicsPipelineCreateInfo pipelineInfo{};
 
   uint8_t NUMBER = 1;
   pipelineInfo = getPipelineCreateInfo(pipelineConfig, descriptorSetLayout,
-                   shaders.name[NUMBER] + "Vert.spv", shaders.name[NUMBER] + "Frag.spv");
+                                       shaders.name[NUMBER] + "Vert.spv",
+                                       shaders.name[NUMBER] + "Frag.spv");
   _mechanics.result(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
                     VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
                     &graphics.pipeline);
@@ -196,7 +198,8 @@ void Pipelines::createGraphicsPipelines(
 
   NUMBER = 2;
   pipelineInfo = getPipelineCreateInfo(pipelineConfig, descriptorSetLayout,
-                 shaders.name[NUMBER] + "Vert.spv", shaders.name[NUMBER] + "Frag.spv");
+                                       shaders.name[NUMBER] + "Vert.spv",
+                                       shaders.name[NUMBER] + "Frag.spv");
   _mechanics.result(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
                     VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
                     &graphics.pipeline2);
@@ -281,8 +284,8 @@ void Pipelines::createComputePipeline(
   Log::text("{ === }", "Compute Pipeline");
 
   uint8_t NUMBER = 0;
-  VkPipelineShaderStageCreateInfo computeShaderStageInfo =
-      setShaderStage(VK_SHADER_STAGE_COMPUTE_BIT, shaders.name[NUMBER] + "Comp.spv", compute);
+  VkPipelineShaderStageCreateInfo computeShaderStageInfo = setShaderStage(
+      VK_SHADER_STAGE_COMPUTE_BIT, shaders.name[NUMBER] + "Comp.spv", compute);
 
   VkPushConstantRange pushConstantRange = {
       .stageFlags = pushConstants.shaderStage,
@@ -438,7 +441,8 @@ VkPipelineMultisampleStateCreateInfo Pipelines::getMultisampleState() {
 }
 
 VkPipelineLayoutCreateInfo Pipelines::setLayoutState(
-    const VkDescriptorSetLayout& descriptorSetLayout, VkPipelineLayout& pipelineLayout) {
+    const VkDescriptorSetLayout& descriptorSetLayout,
+    VkPipelineLayout& pipelineLayout) {
   VkPipelineLayoutCreateInfo createStateInfo{
       .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
       .setLayoutCount = 1,

@@ -53,18 +53,20 @@ class Pipelines {
     std::vector<VkShaderModule> shaderModules;
   } compute;
 
-
   struct Shaders {
-    std::vector<std::string> name{
-          "Engine", "Cells", "Tiles"
-    };
+    std::vector<std::string> name{"Engine", "Cells", "Tiles"};
     std::vector<std::string> path{
-    Lib::path("shaders/" + name[0] + ".comp -o shaders/" + name[0] + "Comp.spv"),
-    Lib::path("shaders/" + name[1] + ".vert -o shaders/" + name[1] + "Vert.spv"),
-    Lib::path("shaders/" + name[1] +  ".frag -o shaders/" + name[1] + "Frag.spv"),
-    Lib::path("shaders/" + name[2] + ".vert -o shaders/" + name[2] + "Vert.spv"),
-    Lib::path("shaders/" + name[2] + ".frag -o shaders/" + name[2] + "Frag.spv"),
-      };
+        Lib::path("shaders/" + name[0] + ".comp -o shaders/" + name[0] +
+                  "Comp.spv"),
+        Lib::path("shaders/" + name[1] + ".vert -o shaders/" + name[1] +
+                  "Vert.spv"),
+        Lib::path("shaders/" + name[1] + ".frag -o shaders/" + name[1] +
+                  "Frag.spv"),
+        Lib::path("shaders/" + name[2] + ".vert -o shaders/" + name[2] +
+                  "Vert.spv"),
+        Lib::path("shaders/" + name[2] + ".frag -o shaders/" + name[2] +
+                  "Frag.spv"),
+    };
   } shaders;
 
  public:
@@ -110,5 +112,6 @@ class Pipelines {
   VkPipelineRasterizationStateCreateInfo getRasterizationState();
   VkPipelineMultisampleStateCreateInfo getMultisampleState();
   VkPipelineLayoutCreateInfo setLayoutState(
-      const VkDescriptorSetLayout& descriptorSetLayout, VkPipelineLayout& pipelineLayout);
+      const VkDescriptorSetLayout& descriptorSetLayout,
+      VkPipelineLayout& pipelineLayout);
 };
