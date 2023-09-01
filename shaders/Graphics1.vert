@@ -50,7 +50,7 @@ vec3 vertex = tileVertices[tileIndices[gl_VertexIndex]];
 
 vec4 constructCube() {
     vec4 position = inPosition;
-    position.xyz += vertex.xyz * 0.1; // Adjust the x, y, and z coordinates
+    position.xyz += vertex.xyz * inSize.x; // Adjust the x, y, and z coordinates
     return position;
 }
 
