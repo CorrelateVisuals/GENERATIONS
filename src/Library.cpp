@@ -56,13 +56,13 @@ std::string Lib::path(const std::string& linuxPath) {
   if (convertedWindowsPath.substr(0, 3) == "..\\.") {
     convertedWindowsPath = convertedWindowsPath.substr(3);
   }
-  return shaderPath(convertedWindowsPath);
+  return ifShaderAdaptation(convertedWindowsPath);
 #else
-  return shaderPath(linuxPath);
+  return ifShaderAdaptation(linuxPath);
 #endif
 }
 
-std::string Lib::shaderPath(std::string& shaderPath) {
+std::string Lib::ifShaderAdaptation(std::string& shaderPath) {
   if (shaderPath.find("shaders") == std::string::npos) {
     return shaderPath;
   } else {

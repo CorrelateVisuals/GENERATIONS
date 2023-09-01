@@ -513,7 +513,7 @@ void VulkanMechanics::compileShaders(
     const std::vector<std::string>& shaderPaths) {
   Log::text("{ GLSL }", "Compile Shaders");
 
-  for (std::string shader : shaderPaths) {
+  for (const std::string& shader : shaderPaths) {
     system(shader.c_str());
   }
 }
