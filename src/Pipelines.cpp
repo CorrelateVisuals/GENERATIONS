@@ -141,13 +141,12 @@ void Pipelines::createRenderPass() {
 void Pipelines::createGraphicsPipelines(
     VkDescriptorSetLayout& descriptorSetLayout) {
   Log::text("{ === }", "Graphics Pipelines");
-
+  // Pipeline info
   std::vector<VkPipelineShaderStageCreateInfo> shaderStages{
-      getShaderStageInfo(VK_SHADER_STAGE_VERTEX_BIT, "Graphics1Vertex.spv",
-                         graphics),
-      getShaderStageInfo(VK_SHADER_STAGE_FRAGMENT_BIT, "Graphics1Fragment.spv",
-                         graphics)};
-
+      setShaderStage(VK_SHADER_STAGE_VERTEX_BIT, "Graphics1Vertex.spv",
+                     graphics),
+      setShaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, "Graphics1Fragment.spv",
+                     graphics)};
   VkPipelineVertexInputStateCreateInfo vertexInputState =
       getPipelineVertexInputState();
   VkPipelineInputAssemblyStateCreateInfo inputAssemblyState =
@@ -182,16 +181,17 @@ void Pipelines::createGraphicsPipelines(
       .subpass = 0,
       .basePipelineHandle = VK_NULL_HANDLE};
 
+  // First pipeline
   _mechanics.result(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
                     VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
                     &graphics.pipeline);
-
   destroyShaderModules(graphics.shaderModules);
 
-  shaderStages[0] = getShaderStageInfo(VK_SHADER_STAGE_VERTEX_BIT,
-                                       "Graphics2Vertex.spv", graphics);
-  shaderStages[1] = getShaderStageInfo(VK_SHADER_STAGE_FRAGMENT_BIT,
-                                       "Graphics2Fragment.spv", graphics);
+  // Second pipeline
+  shaderStages[0] = setShaderStage(VK_SHADER_STAGE_VERTEX_BIT,
+                                   "Graphics2Vertex.spv", graphics);
+  shaderStages[1] = setShaderStage(VK_SHADER_STAGE_FRAGMENT_BIT,
+                                   "Graphics2Fragment.spv", graphics);
   _mechanics.result(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
                     VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
                     &graphics.pipeline2);
@@ -230,7 +230,7 @@ bool Pipelines::hasStencilComponent(VkFormat format) {
          format == VK_FORMAT_D24_UNORM_S8_UINT;
 }
 
-VkPipelineShaderStageCreateInfo Pipelines::getShaderStageInfo(
+VkPipelineShaderStageCreateInfo Pipelines::setShaderStage(
     VkShaderStageFlagBits shaderStage,
     std::string shaderName,
     auto& pipeline) {
@@ -276,7 +276,7 @@ void Pipelines::createComputePipeline(
   Log::text("{ === }", "Compute Pipeline");
 
   VkPipelineShaderStageCreateInfo computeShaderStageInfo =
-      getShaderStageInfo(VK_SHADER_STAGE_COMPUTE_BIT, "Compute1.spv", compute);
+      setShaderStage(VK_SHADER_STAGE_COMPUTE_BIT, "Compute1.spv", compute);
 
   VkPushConstantRange pushConstantRange = {
       .stageFlags = pushConstants.shaderStage,
