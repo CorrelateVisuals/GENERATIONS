@@ -10,7 +10,6 @@
 #define STRINGIFICATION(x) #x
 
 namespace Log {
-
 static uint8_t logLevel = 0;
 
 struct Style {
@@ -20,15 +19,14 @@ struct Style {
   static int columnCount;
   static int columnCountOffset;
 };
+void logTitle();
+void logFooter();
 
 extern std::ofstream logFile;
 extern std::string previousTime;
 
 template <class T, class... Ts>
 void text(const T& first, const Ts&... inputs);
-
-void logTitle();
-void logFooter();
 
 std::string getBufferUsageString(const VkBufferUsageFlags& usage);
 std::string getMemoryPropertyString(const VkMemoryPropertyFlags& properties);
@@ -38,7 +36,6 @@ std::string getSampleCountString(const VkSampleCountFlags& sampleCount);
 std::string getImageUsageString(const VkImageUsageFlags& usage);
 
 std::string returnDateAndTime();
-
 };  // namespace Log
 
 template <class T, class... Ts>
@@ -48,10 +45,7 @@ void Log::text(const T& first, const Ts&... inputs) {
     return;
   }
 
-
-
   std::string currentTime = returnDateAndTime();
-
   if (currentTime != previousTime) {
     std::cout << ' ' << currentTime;
     logFile << ' ' << currentTime;
@@ -71,10 +65,8 @@ void Log::text(const T& first, const Ts&... inputs) {
         std::string spaces(
             static_cast<size_t>(Style::columnCount) + Style::columnCountOffset,
             ' ');
-
         std::cout << '\n' << ' ' << spaces << Style::charLeader << ' ';
         logFile << '\n' << ' ' << spaces << Style::charLeader << ' ';
-
         elementCount = 0;
       }
       std::cout << element << ' ';

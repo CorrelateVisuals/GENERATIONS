@@ -73,7 +73,6 @@ class Pipelines {
 
  public:
   void createPipelines(Resources& _resources);
-
   void createColorResources(Resources& _resources);
   void createDepthResources(Resources& _resources);
 
@@ -89,11 +88,11 @@ class Pipelines {
   void createComputePipeline(VkDescriptorSetLayout& descriptorSetLayout,
                              Resources::PushConstants& _pushConstants);
 
+  VkFormat findDepthFormat();
+  bool hasStencilComponent(VkFormat format);
   VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates,
                                VkImageTiling tiling,
                                VkFormatFeatureFlags features);
-  VkFormat findDepthFormat();
-  bool hasStencilComponent(VkFormat format);
 
   static std::vector<char> readShaderFile(const std::string& filename);
   VkShaderModule createShaderModule(const std::vector<char>& code);

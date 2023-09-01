@@ -99,11 +99,9 @@ class VulkanMechanics {
   void createCommandPool(VkCommandPool* commandPool);
 
   std::vector<const char*> getRequiredExtensions();
-
   bool isDeviceSuitable(VkPhysicalDevice physicalDevice);
   bool checkDeviceExtensionSupport(VkPhysicalDevice physicalDevice);
   VkSampleCountFlagBits getMaxUsableSampleCount();
-
   SwapChain::SupportDetails querySwapChainSupport(
       VkPhysicalDevice physicalDevice);
   VkSurfaceFormatKHR chooseSwapSurfaceFormat(
@@ -111,6 +109,5 @@ class VulkanMechanics {
   VkPresentModeKHR chooseSwapPresentMode(
       const std::vector<VkPresentModeKHR>& availablePresentModes);
   VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
-
   Queues::FamilyIndices findQueueFamilies(VkPhysicalDevice physicalDevice);
 };

@@ -25,6 +25,16 @@ class World {
     std::array<uint_fast16_t, 2> dimensions = {200, 100};
   } grid;
 
+  struct Geometry {
+    struct Cube {
+      const uint32_t vertexCount{36};
+      const float size{0.1f};
+    } cube;
+    struct Tile {
+      const uint32_t vertexCount{54};
+    } tile;
+  } geo;
+
   struct Cell {
     std::array<float, 4> position;
     std::array<float, 4> color;
@@ -45,21 +55,9 @@ class World {
     alignas(16) glm::mat4 proj;
   };
 
-  struct Geometry {
-    struct Cube {
-      const uint32_t vertexCount{36};
-      const float size{0.1f};
-    } cube;
-    struct Tile {
-      const uint32_t vertexCount{54};
-    } tile;
-  } geo;
-
  public:
-  UniformBufferObject updateUniforms(VkExtent2D& _swapChain);
-
   std::vector<World::Cell> initializeCells();
-
+  UniformBufferObject updateUniforms(VkExtent2D& _swapChain);
   static std::vector<VkVertexInputAttributeDescription>
   getAttributeDescriptions();
   static std::vector<VkVertexInputBindingDescription> getBindingDescriptions();
@@ -82,7 +80,6 @@ class World {
 
   inline static const std::array<float, 4> red{1.0f, 0.0f, 0.0f, 1.0f};
   inline static const std::array<float, 4> blue{0.0f, 0.0f, 1.0f, 1.0f};
-
   inline static const std::array<int, 4> alive{1, 0, 0, 0};
   inline static const std::array<int, 4> dead{-1, 0, 0, 0};
 

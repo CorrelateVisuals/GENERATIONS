@@ -57,18 +57,14 @@ class Resources {
 
  public:
   void createResources(Pipelines& _pipelines);
-
   void createFramebuffers(Pipelines& _pipelines);
   void createDescriptorSetLayout();
-
   void recordCommandBuffer(VkCommandBuffer commandBuffer,
                            uint32_t imageIndex,
                            Pipelines& _pipelines);
   void recordComputeCommandBuffer(VkCommandBuffer commandBuffer,
                                   Pipelines& _pipelines);
-
   void updateUniformBuffer(uint32_t currentImage);
-
   void createImage(uint32_t width,
                    uint32_t height,
                    VkSampleCountFlagBits numSamples,
@@ -92,17 +88,14 @@ class Resources {
   } compute;
 
   void setPushConstants();
-
   VkCommandBuffer beginSingleTimeCommands();
   void endSingleTimeCommands(VkCommandBuffer commandBuffer);
   void createCommandBuffers();
   void createComputeCommandBuffers();
   void createDescriptorPool();
-
   void createDescriptorSets();
   void createShaderStorageBuffers();
   void createUniformBuffers();
-
   void createBuffer(VkDeviceSize size,
                     VkBufferUsageFlags usage,
                     VkMemoryPropertyFlags properties,

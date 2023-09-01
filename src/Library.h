@@ -12,5 +12,5 @@ glm::vec2 smoothstep(const glm::vec2& xy);
 
 // Cross platform functions
 std::string path(const std::string& linuxPath);
-std::string ifShaderAdaptation(std::string linuxPath);
-};  // namespace Lib
+std::string ifShaderCompile(std::string linuxPath);
+}
