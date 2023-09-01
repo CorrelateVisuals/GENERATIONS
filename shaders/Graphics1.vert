@@ -25,7 +25,7 @@ mat4 view = ubo.view;
 mat4 projection = ubo.projection;
 float waterThreshold = ubo.waterThreshold;
 
-vec3 tileVertices[8] = {
+vec3 cubeVertices[8] = {
     // Cube
     {1, 1, 1},    // 0 right front top
     {-1, 1, 1},   // 1 left front top
@@ -37,7 +37,7 @@ vec3 tileVertices[8] = {
     {1, -1, -1},  // 7 right back bottom
 };
 
-const int tileIndices[36] = {
+const int cubeIndices[36] = {
     0, 1, 2, 0, 2, 3,       // Top face
     0, 3, 7, 0, 7, 4,       // Right face
     0, 4, 5, 0, 5, 1,       // Front face
@@ -45,7 +45,7 @@ const int tileIndices[36] = {
     2, 6, 7, 2, 7, 3,       // Back face
     4, 7, 6, 4, 6, 5,       // Bottom face
 };
-vec3 vertex = tileVertices[tileIndices[gl_VertexIndex]];
+vec3 vertex = cubeVertices[cubeIndices[gl_VertexIndex]];
 
 
 vec4 constructCube() {
@@ -57,9 +57,9 @@ vec4 constructCube() {
 vec3 getNormal(){   
     int vertexPerFace = 3;      
     int faceIndex = gl_VertexIndex / vertexPerFace;
-    vec3 v0 = tileVertices[tileIndices[faceIndex * vertexPerFace]];
-    vec3 v1 = tileVertices[tileIndices[faceIndex * vertexPerFace + 1]];
-    vec3 v2 = tileVertices[tileIndices[faceIndex * vertexPerFace + 2]];
+    vec3 v0 = cubeVertices[cubeIndices[faceIndex * vertexPerFace]];
+    vec3 v1 = cubeVertices[cubeIndices[faceIndex * vertexPerFace + 1]];
+    vec3 v2 = cubeVertices[cubeIndices[faceIndex * vertexPerFace + 2]];
     vec3 normal = normalize(cross(v1 - v0, v2 - v0));
     return normal; 
 }

@@ -25,6 +25,8 @@ mat4 view = ubo.view;
 mat4 projection = ubo.projection;
 float waterThreshold = ubo.waterThreshold;
 
+const float GEO_TILE_SIZE = 0.1f;
+
 vec4 matchHeight(vec4 targetHeight, float multiplyBy ){
     vec4 myHeight = vec4(inPosition.z);
     int toVertexScale = 10;  
@@ -36,11 +38,7 @@ vec4 matchHeight(vec4 targetHeight, float multiplyBy ){
 vec4 side = matchHeight(inTileSidesHeight, 0.5f);
 vec4 corner = matchHeight(inTileCornersHeight, 1.0f);
 vec3 tileVertices[16] = {
-    // Cube
-/*    {1, 1, 1},    // 0 right front top
-    {-1, 1, 1},   // 1 left front top
-    {-1, -1, 1},  // 2 left back top
-    {1, -1, 1},   // 3 right back top*/
+    // Cube 
     {1, 1, -1},   // 4 right front bottom
     {-1, 1, -1},  // 5 left front bottom
     {-1, -1, -1}, // 6 left back bottom
@@ -62,13 +60,6 @@ vec3 tileVertices[16] = {
 };
 
 const int tileIndices[54] = {
-/*    0, 1, 2, 0, 2, 3,       // Top face
-    0, 3, 7, 0, 7, 4,       // Right face
-    0, 4, 5, 0, 5, 1,       // Front face
-    1, 5, 6, 1, 6, 2,       // Left face
-    2, 6, 7, 2, 7, 3,       // Back face
-    4, 7, 6, 4, 6, 5,       // Bottom face*/
-
     0, 3, 4, 0, 4, 5,       // Right rectangle center
     6, 4, 3, 6, 3, 7,    // Right rectangle up
     0, 5, 8, 8, 9, 0,    // Right rectangle down
@@ -78,34 +69,14 @@ const int tileIndices[54] = {
     14, 2, 13, 14, 15, 2,   // Left rectangle up
     15, 7, 2, 7, 3, 2,    // Center rectangle up
     0, 1, 2, 0, 2, 3,       // Bottom face
-
-/*    4, 7, 8, 4, 8, 9,       // Right rectangle center
-    10, 8, 7, 10, 7, 11,    // Right rectangle up
-    4, 9, 12, 12, 13, 4,    // Right rectangle down
-    4, 13, 14, 14, 5, 4,    // Center rectangle down
-    5, 14, 16, 15, 5, 16,   // Left rectangle down
-    17, 5, 15, 17, 6, 5,    // Left rectangle center
-
-    18, 6, 17, 18, 19, 6,   // Left rectangle up
-    19, 11, 6, 11, 7, 6,    // Center rectangle up
-    4, 5, 6, 4, 6, 7,       // Bottom face*/
 };
 vec3 vertex = tileVertices[tileIndices[gl_VertexIndex]];
 
 vec4 constructTile() {
     vec4 position = inPosition;
-    position.xyz += vertex.xyz * 0.1; // Adjust the x, y, and z coordinates
+    position.xyz += vertex.xyz * GEO_TILE_SIZE; // Adjust the x, y, and z coordinates
     return position;
 }
-
-/*vec4 constructTile() {
-    float cubeIndices = float(gl_VertexIndex < 36);
-    float adjustSize = cubeIndices * inSize.x + (1.0 - cubeIndices) * 0.1;
-    float floorOffset = adjustSize - inSize.x; // Calculate the floor offset
-    vec4 position = inPosition;
-    position.xyz += vertex.xyz * adjustSize; // Adjust the x, y, and z coordinates
-    return position;
-}*/
 
 vec3 getNormal(){   
     int vertexPerFace = 3;      
