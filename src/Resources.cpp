@@ -607,7 +607,7 @@ void Resources::recordCommandBuffer(VkCommandBuffer commandBuffer,
                           &descriptor.sets[_mechanics.syncObjects.currentFrame],
                           0, nullptr);
 
-  vkCmdDraw(commandBuffer, world.tile.vertexCount,
+  vkCmdDraw(commandBuffer, world.geo.cube.vertexCount,
             world.grid.dimensions[0] * world.grid.dimensions[1], 0, 0);
 
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -615,7 +615,7 @@ void Resources::recordCommandBuffer(VkCommandBuffer commandBuffer,
   // vkCmdBindVertexBuffers(
   //     commandBuffer, 0, 1,
   //     &buffers.shaderStorage[_mechanics.syncObjects.currentFrame], offsets);
-  vkCmdDraw(commandBuffer, world.tile.vertexCount,  // 200x100
+  vkCmdDraw(commandBuffer, world.geo.tile.vertexCount,  // 200x100
             world.grid.dimensions[0] * world.grid.dimensions[1], 0, 0);
 
   vkCmdEndRenderPass(commandBuffer);

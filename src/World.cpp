@@ -47,7 +47,7 @@ std::vector<World::Cell> World::initializeCells() {
   const uint_fast32_t numGridPoints = width * height;
   const uint_fast32_t numAliveCells = grid.totalAliveCells;
   const float gap = 0.6f;
-  std::array<float, 4> size = {tile.cubeSize};
+  std::array<float, 4> size = {geo.cube.size};
 
   if (numAliveCells > numGridPoints) {
     throw std::runtime_error(
@@ -154,7 +154,7 @@ World::UniformBufferObject World::updateUniforms(VkExtent2D& _swapChainExtent) {
       .gridDimensions = {static_cast<uint32_t>(grid.dimensions[0]),
                          static_cast<uint32_t>(grid.dimensions[1])},
       .waterThreshold = 0.1f,
-      .cellSize = tile.cubeSize,
+      .cellSize = geo.cube.size,
       .model = setModel(),
       .view = setView(),
       .proj = setProjection(_swapChainExtent)};

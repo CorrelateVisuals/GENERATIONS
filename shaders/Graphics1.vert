@@ -25,17 +25,7 @@ mat4 view = ubo.view;
 mat4 projection = ubo.projection;
 float waterThreshold = ubo.waterThreshold;
 
-vec4 matchHeight(vec4 targetHeight, float multiplyBy ){
-    vec4 myHeight = vec4(inPosition.z);
-    int toVertexScale = 10;  
-    int offsetFromCenter = -1; 
-    vec4 matchedHeight = ((targetHeight - myHeight) * toVertexScale + offsetFromCenter) * multiplyBy;
-    return matchedHeight;
-}
-
-vec4 side = matchHeight(inTileSidesHeight, 0.5f);
-vec4 corner = matchHeight(inTileCornersHeight, 1.0f);
-vec3 tileVertices[20] = {
+vec3 tileVertices[8] = {
     // Cube
     {1, 1, 1},    // 0 right front top
     {-1, 1, 1},   // 1 left front top
@@ -45,49 +35,22 @@ vec3 tileVertices[20] = {
     {-1, 1, -1},  // 5 left front bottom
     {-1, -1, -1}, // 6 left back bottom
     {1, -1, -1},  // 7 right back bottom
-
-    // Grid
-    {3, -1, side.x},    // 8 right back bottom extension center right
-    {3, 1, side.x},     // 9 right front bottom extension center right
-    {3, -3, corner.x},  // 10 right front bottom extension up right   . . . CORNER UP RIGHT
-    {1, -3, side.w},    // 11 right back bottom extension up right
-    {3, 3, corner.y},   // 12 right front bottom extension down right . . . CORNER DOWN RIGHT
-    {1, 3, side.y},     // 13 left front bottom extension down right
-    {-1, 3, side.y},    // 14 left front bottom extension down center
-    {-3, 1, side.z},    // 15 left front bottom extension down left
-    {-3, 3, corner.z},  // 16 left front bottom extension down left   . . . CORNDER DOWN LEFT
-    {-3, -1, side.z},   // 17 left back bottom extension center left
-    {-3, -3, corner.w}, // 18 left back bottom extension up left    . . . . CORNER UP LEFT
-    {-1, -3, side.w}    // 19 left back bottom extension up right
 };
 
-const int tileIndices[90] = {
+const int tileIndices[36] = {
     0, 1, 2, 0, 2, 3,       // Top face
     0, 3, 7, 0, 7, 4,       // Right face
     0, 4, 5, 0, 5, 1,       // Front face
     1, 5, 6, 1, 6, 2,       // Left face
     2, 6, 7, 2, 7, 3,       // Back face
     4, 7, 6, 4, 6, 5,       // Bottom face
-
-    4, 7, 8, 4, 8, 9,       // Right rectangle center
-    10, 8, 7, 10, 7, 11,    // Right rectangle up
-    4, 9, 12, 12, 13, 4,    // Right rectangle down
-    4, 13, 14, 14, 5, 4,    // Center rectangle down
-    5, 14, 16, 15, 5, 16,   // Left rectangle down
-    17, 5, 15, 17, 6, 5,    // Left rectangle center
-    18, 6, 17, 18, 19, 6,   // Left rectangle up
-    19, 11, 6, 11, 7, 6,    // Center rectangle up
-    4, 5, 6, 4, 6, 7,       // Bottom face
 };
 vec3 vertex = tileVertices[tileIndices[gl_VertexIndex]];
 
 
-vec4 constructTile() {
-    float cubeIndices = float(gl_VertexIndex < 36);
-    float adjustSize = cubeIndices * inSize.x + (1.0 - cubeIndices) * 0.1;
-    float floorOffset = adjustSize - inSize.x; // Calculate the floor offset
+vec4 constructCube() {
     vec4 position = inPosition;
-    position.xyz += vertex.xyz * adjustSize; // Adjust the x, y, and z coordinates
+    position.xyz += vertex.xyz * 0.1; // Adjust the x, y, and z coordinates
     return position;
 }
 
@@ -101,7 +64,7 @@ vec3 getNormal(){
     return normal; 
 }
 
-vec4 worldPosition = model * constructTile();
+vec4 worldPosition = model * constructCube();
 vec4 viewPosition =  view * worldPosition;
 vec3 worldNormal =   mat3(model) * getNormal();
 

@@ -45,20 +45,15 @@ class World {
     alignas(16) glm::mat4 proj;
   };
 
-  struct Tile {
-    const uint32_t vertexCount{90};
-    const float cubeSize{0.1f};
-  } tile;
-
   struct Geometry {
     struct Cube {
-      const uint32_t vertexCount{24};
+      const uint32_t vertexCount{36};
       const float size{0.1f};
-    };
+    } cube;
     struct Tile {
-      const uint32_t vertexCount{74};
-    };
-  };
+      const uint32_t vertexCount{54};
+    } tile;
+  } geo;
 
  public:
   UniformBufferObject updateUniforms(VkExtent2D& _swapChain);
