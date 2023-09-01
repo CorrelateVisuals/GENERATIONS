@@ -194,10 +194,11 @@
     <ClInclude Include="World.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\shaders\compile_shaders.bat" />
-    <None Include="..\shaders\shader.comp" />
-    <None Include="..\shaders\shader.frag" />
-    <None Include="..\shaders\shader.vert" />
+    <None Include="..\shaders\Engine.comp" />
+    <None Include="..\shaders\Cells.frag" />
+    <None Include="..\shaders\Cells.vert" />
+    <None Include="..\shaders\Tiles.frag" />
+    <None Include="..\shaders\Tiles.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

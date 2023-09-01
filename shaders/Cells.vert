@@ -69,26 +69,7 @@ vec4 viewPosition =  view * worldPosition;
 vec3 worldNormal =   mat3(model) * getNormal();
 
 vec4 setColor() {
-    vec2 normalizedPosition = (worldPosition.xy + gridDimensions.xy * 0.5) / gridDimensions.xy;
-    vec2 invNormalizedPosition = vec2(1.0) - normalizedPosition;
-
-    float blendTopLeft = max(invNormalizedPosition.x + invNormalizedPosition.y - 0.9, 0.0);
-    float blendTopRight = max(normalizedPosition.x + invNormalizedPosition.y - 0.9, 0.0);
-    float blendBottomLeft = max(invNormalizedPosition.x + normalizedPosition.y - 0.9, 0.0);
-    float blendBottomRight = max(normalizedPosition.x + normalizedPosition.y - 0.9, 0.0);
- 
-    vec4 color = vec4(0.1);
-    color += vec4(0.5, 0.4, 0.0, 0.3) * blendTopRight;        // Red for top left corner
-    color += vec4(0.3, 0.8, 0.2, 0.4) * blendTopLeft;       // Yellow for top right corner
-    color += vec4(0.0, 0.8, 0.4, 0.5) * blendBottomLeft;     // Blue for bottom left corner
-    color += vec4(0.5, 0.2, 0.1, 0.4) * blendBottomRight;    // Green for bottom right corner
-
-    color *= clamp(worldPosition.z, 1.5, 2.0);;
-
-    vec4 waterColor = vec4(0.0, 0.5, 0.8, 1.0);
-    float isBelowWater = step(worldPosition.z, waterThreshold);
-    color = mix(color, waterColor, isBelowWater);
-
+    vec4 color = vec4(0.7f, 0.8f, 0.7f, 1.0f);
     return color;
 }
 
@@ -105,7 +86,7 @@ layout(location = 0) out vec4 fragColor;
 layout(location = 6) out vec2 textureCoordinates;
 
 void main() {
-    vec4 color = inColor * setColor() * gouraudShading(1.5f, 0.2f); 
+    vec4 color = inColor * setColor() * gouraudShading(1.0f, 0.4f); 
 
     fragColor = modifyColorContrast(color, 1.3f);
     textureCoordinates = textureCoords;
