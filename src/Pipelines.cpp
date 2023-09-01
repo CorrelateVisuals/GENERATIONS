@@ -21,6 +21,8 @@ VkGraphicsPipelineCreateInfo Pipelines::getPipelineCreateInfo(
     const VkDescriptorSetLayout& descriptorSetLayout,
     const std::string& vertexShader,
     const std::string& fragmentShader) {
+    Log::text("{ === }", "Pipeline Config", vertexShader, fragmentShader);
+
   config.shaderStages = {
       setShaderStage(VK_SHADER_STAGE_VERTEX_BIT, vertexShader, graphics),
       setShaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, fragmentShader, graphics)};
@@ -184,8 +186,8 @@ void Pipelines::createGraphicsPipelines(
     Graphics::ConfigPipeline pipelineConfig{};
     VkGraphicsPipelineCreateInfo pipelineInfo{};
 
-    uint8_t NUMBER = 1;
-    pipelineInfo = getPipelineCreateInfo(pipelineConfig, descriptorSetLayout,
+  uint8_t NUMBER = 1;
+  pipelineInfo = getPipelineCreateInfo(pipelineConfig, descriptorSetLayout,
                    shaders.name[NUMBER] + "Vert.spv", shaders.name[NUMBER] + "Frag.spv");
   _mechanics.result(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
                     VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
@@ -237,7 +239,7 @@ VkPipelineShaderStageCreateInfo Pipelines::setShaderStage(
     VkShaderStageFlagBits shaderStage,
     std::string shaderName,
     auto& pipeline) {
-  Log::text(Log::Style::charLeader, "Shader Module", shaderName);
+  // Log::text(Log::Style::charLeader, "Shader Module", shaderName);
 
   std::string directory = "shaders/";
   std::string shaderPath = directory + shaderName;

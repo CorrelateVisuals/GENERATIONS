@@ -11,6 +11,8 @@
 
 namespace Log {
 
+static uint8_t logLevel = 0;
+
 struct Style {
   static std::string charLeader;
   static std::string indentSize;
@@ -45,6 +47,9 @@ void Log::text(const T& first, const Ts&... inputs) {
     std::cerr << "\n!ERROR! Could not open logFile for writing" << std::endl;
     return;
   }
+
+
+
   std::string currentTime = returnDateAndTime();
 
   if (currentTime != previousTime) {
