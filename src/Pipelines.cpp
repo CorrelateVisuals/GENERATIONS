@@ -179,12 +179,13 @@ void Pipelines::createRenderPass() {
 
 void Pipelines::createGraphicsPipelines(
     VkDescriptorSetLayout& descriptorSetLayout) {
-  Log::text("{ === }", "Graphics Pipelines");
+    Log::text("{ === }", "Graphics Pipelines");
 
-  Graphics::ConfigPipeline pipelineConfig{};
-  VkGraphicsPipelineCreateInfo pipelineInfo =
-      getPipelineCreateInfo(pipelineConfig, descriptorSetLayout,
-                            "Graphics1Vertex.spv", "Graphics1Fragment.spv");
+    Graphics::ConfigPipeline pipelineConfig{};
+    VkGraphicsPipelineCreateInfo pipelineInfo{
+        getPipelineCreateInfo(pipelineConfig, descriptorSetLayout,
+            "CellsVert.spv", "CellsFrag.spv")
+    };
 
   // First pipeline
   _mechanics.result(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
@@ -195,7 +196,7 @@ void Pipelines::createGraphicsPipelines(
   // Second pipeline
   pipelineInfo =
       getPipelineCreateInfo(pipelineConfig, descriptorSetLayout,
-                            "Graphics2Vertex.spv", "Graphics2Fragment.spv");
+                            "TilesVert.spv", "TilesFrag.spv");
   _mechanics.result(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
                     VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
                     &graphics.pipeline2);
@@ -280,7 +281,7 @@ void Pipelines::createComputePipeline(
   Log::text("{ === }", "Compute Pipeline");
 
   VkPipelineShaderStageCreateInfo computeShaderStageInfo =
-      setShaderStage(VK_SHADER_STAGE_COMPUTE_BIT, "Compute1.spv", compute);
+      setShaderStage(VK_SHADER_STAGE_COMPUTE_BIT, "EngineComp.spv", compute);
 
   VkPushConstantRange pushConstantRange = {
       .stageFlags = pushConstants.shaderStage,

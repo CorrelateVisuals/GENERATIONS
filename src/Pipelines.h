@@ -54,12 +54,12 @@ class Pipelines {
   } compute;
 
   std::vector<std::string> shaders{
-      Lib::path("shaders/Graphics1.vert -o shaders/Graphics1Vertex.spv"),
-      Lib::path("shaders/Graphics1.frag -o shaders/Graphics1Fragment.spv"),
-      Lib::path("shaders/Compute1.comp -o shaders/Compute1.spv"),
+      Lib::path("shaders/Cells.vert -o shaders/CellsVert.spv"),
+      Lib::path("shaders/Cells.frag -o shaders/CellsFrag.spv"),
+      Lib::path("shaders/Engine.comp -o shaders/EngineComp.spv"),
 
-      Lib::path("shaders/Graphics2.vert -o shaders/Graphics2Vertex.spv"),
-      Lib::path("shaders/Graphics2.frag -o shaders/Graphics2Fragment.spv"),
+      Lib::path("shaders/Tiles.vert -o shaders/TilesVert.spv"),
+      Lib::path("shaders/Tiles.frag -o shaders/TilesFrag.spv"),
   };
 
  public:
