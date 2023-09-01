@@ -16,6 +16,29 @@ Pipelines::~Pipelines() {
   Log::text("{ === }", "destructing Pipelines");
 }
 
+Pipelines::Graphics::ConfigPipeline Pipelines::configPipeline(
+    Pipelines::Graphics::ConfigPipeline& pipelineConfig,
+    const VkDescriptorSetLayout& descriptorSetLayout) {
+  pipelineConfig.shaderStages = {
+      setShaderStage(VK_SHADER_STAGE_VERTEX_BIT, "Graphics1Vertex.spv",
+                     graphics),
+      setShaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, "Graphics1Fragment.spv",
+                     graphics)};
+  pipelineConfig.vertexInputState = getPipelineVertexInputState();
+  pipelineConfig.inputAssemblyState =
+      getPipelineInputAssemblyState(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+  pipelineConfig.viewportState = getPipelineViewportState();
+  pipelineConfig.rasterizationState = getPipelineRasterizationState();
+  pipelineConfig.multisampleState = getPipelineMultisampleState();
+  pipelineConfig.depthStencilState = getPipelineDepthStencilState();
+  pipelineConfig.colorBlendingState = getPipelineColorBlendingState();
+  pipelineConfig.dynamicState = getPipelineDynamicState();
+  pipelineConfig.pipelineLayoutState =
+      getPipelineLayoutState(descriptorSetLayout);
+
+  return Graphics::ConfigPipeline();
+}
+
 void Pipelines::createPipelines(Resources& _resources) {
   Log::text(Log::Style::headerGuard);
   Log::text("{ === }", "creating Pipelines");
@@ -141,41 +164,22 @@ void Pipelines::createRenderPass() {
 void Pipelines::createGraphicsPipelines(
     VkDescriptorSetLayout& descriptorSetLayout) {
   Log::text("{ === }", "Graphics Pipelines");
-  // Pipeline info
-  std::vector<VkPipelineShaderStageCreateInfo> shaderStages{
-      setShaderStage(VK_SHADER_STAGE_VERTEX_BIT, "Graphics1Vertex.spv",
-                     graphics),
-      setShaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, "Graphics1Fragment.spv",
-                     graphics)};
-  VkPipelineVertexInputStateCreateInfo vertexInputState =
-      getPipelineVertexInputState();
-  VkPipelineInputAssemblyStateCreateInfo inputAssemblyState =
-      getPipelineInputAssemblyState(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
-  VkPipelineViewportStateCreateInfo viewportState = getPipelineViewportState();
-  VkPipelineRasterizationStateCreateInfo rasterizationState =
-      getPipelineRasterizationState();
-  VkPipelineMultisampleStateCreateInfo multisampleState =
-      getPipelineMultisampleState();
-  VkPipelineDepthStencilStateCreateInfo depthStencilState =
-      getPipelineDepthStencilState();
-  VkPipelineColorBlendStateCreateInfo colorBlendingState =
-      getPipelineColorBlendingState();
-  VkPipelineDynamicStateCreateInfo dynamicState = getPipelineDynamicState();
-  VkPipelineLayoutCreateInfo pipelineLayoutState =
-      getPipelineLayoutState(descriptorSetLayout, pipelineLayoutState);
+
+  Graphics::ConfigPipeline pipelineConfig;
+  configPipeline(pipelineConfig, descriptorSetLayout);
 
   VkGraphicsPipelineCreateInfo pipelineInfo{
       .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
-      .stageCount = static_cast<uint32_t>(shaderStages.size()),
-      .pStages = shaderStages.data(),
-      .pVertexInputState = &vertexInputState,
-      .pInputAssemblyState = &inputAssemblyState,
-      .pViewportState = &viewportState,
-      .pRasterizationState = &rasterizationState,
-      .pMultisampleState = &multisampleState,
-      .pDepthStencilState = &depthStencilState,
-      .pColorBlendState = &colorBlendingState,
-      .pDynamicState = &dynamicState,
+      .stageCount = static_cast<uint32_t>(pipelineConfig.shaderStages.size()),
+      .pStages = pipelineConfig.shaderStages.data(),
+      .pVertexInputState = &pipelineConfig.vertexInputState,
+      .pInputAssemblyState = &pipelineConfig.inputAssemblyState,
+      .pViewportState = &pipelineConfig.viewportState,
+      .pRasterizationState = &pipelineConfig.rasterizationState,
+      .pMultisampleState = &pipelineConfig.multisampleState,
+      .pDepthStencilState = &pipelineConfig.depthStencilState,
+      .pColorBlendState = &pipelineConfig.colorBlendingState,
+      .pDynamicState = &pipelineConfig.dynamicState,
       .layout = graphics.pipelineLayout,
       .renderPass = graphics.renderPass,
       .subpass = 0,
@@ -188,10 +192,10 @@ void Pipelines::createGraphicsPipelines(
   destroyShaderModules(graphics.shaderModules);
 
   // Second pipeline
-  shaderStages[0] = setShaderStage(VK_SHADER_STAGE_VERTEX_BIT,
-                                   "Graphics2Vertex.spv", graphics);
-  shaderStages[1] = setShaderStage(VK_SHADER_STAGE_FRAGMENT_BIT,
-                                   "Graphics2Fragment.spv", graphics);
+  pipelineConfig.shaderStages[0] = setShaderStage(
+      VK_SHADER_STAGE_VERTEX_BIT, "Graphics2Vertex.spv", graphics);
+  pipelineConfig.shaderStages[1] = setShaderStage(
+      VK_SHADER_STAGE_FRAGMENT_BIT, "Graphics2Fragment.spv", graphics);
   _mechanics.result(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
                     VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
                     &graphics.pipeline2);
@@ -434,14 +438,13 @@ VkPipelineMultisampleStateCreateInfo Pipelines::getPipelineMultisampleState() {
 }
 
 VkPipelineLayoutCreateInfo Pipelines::getPipelineLayoutState(
-    VkDescriptorSetLayout& descriptorSetLayout,
-    VkPipelineLayoutCreateInfo& pipelineLayoutInfo) {
+    const VkDescriptorSetLayout& descriptorSetLayout) {
   VkPipelineLayoutCreateInfo createStateInfo{
       .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
       .setLayoutCount = 1,
       .pSetLayouts = &descriptorSetLayout};
 
   _mechanics.result(vkCreatePipelineLayout, _mechanics.mainDevice.logical,
-                    &pipelineLayoutInfo, nullptr, &graphics.pipelineLayout);
+                    &createStateInfo, nullptr, &graphics.pipelineLayout);
   return createStateInfo;
 }
