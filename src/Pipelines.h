@@ -70,9 +70,9 @@ class Pipelines {
 
  private:
   VulkanMechanics& _mechanics;
-  Graphics::ConfigPipeline configPipeline(
+  VkGraphicsPipelineCreateInfo configPipeline(
       Pipelines::Graphics::ConfigPipeline& pipelineConfig,
-      const VkDescriptorSetLayout& descriptorSetLayout);
+      const VkDescriptorSetLayout& descriptorSetLayout, const std::string& vertexShader, const std::string& fragmentShader);
 
   void createRenderPass();
   void createGraphicsPipelines(VkDescriptorSetLayout& descriptorSetLayout);
@@ -93,15 +93,15 @@ class Pipelines {
       std::string shaderName,
       auto& pipeline);
 
-  VkPipelineVertexInputStateCreateInfo getPipelineVertexInputState();
-  VkPipelineColorBlendStateCreateInfo getPipelineColorBlendingState();
-  VkPipelineDynamicStateCreateInfo getPipelineDynamicState();
-  VkPipelineDepthStencilStateCreateInfo getPipelineDepthStencilState();
-  VkPipelineInputAssemblyStateCreateInfo getPipelineInputAssemblyState(
+  VkPipelineVertexInputStateCreateInfo getVertexInputState();
+  VkPipelineColorBlendStateCreateInfo getColorBlendingState();
+  VkPipelineDynamicStateCreateInfo getDynamicState();
+  VkPipelineDepthStencilStateCreateInfo getDepthStencilState();
+  VkPipelineInputAssemblyStateCreateInfo getInputAssemblyState(
       VkPrimitiveTopology topology);
-  VkPipelineViewportStateCreateInfo getPipelineViewportState();
-  VkPipelineRasterizationStateCreateInfo getPipelineRasterizationState();
-  VkPipelineMultisampleStateCreateInfo getPipelineMultisampleState();
-  VkPipelineLayoutCreateInfo getPipelineLayoutState(
+  VkPipelineViewportStateCreateInfo getViewportState();
+  VkPipelineRasterizationStateCreateInfo getRasterizationState();
+  VkPipelineMultisampleStateCreateInfo getMultisampleState();
+  VkPipelineLayoutCreateInfo getLayoutState(
       const VkDescriptorSetLayout& descriptorSetLayout);
 };
