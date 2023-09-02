@@ -1,10 +1,9 @@
 #pragma once
 #include <glm/glm.hpp>
+#include <map>
 
 #include "Mechanics.h"
 #include "Resources.h"
-
-#include <map>
 
 class VulkanMechanics;
 class Resources;
@@ -18,6 +17,12 @@ class Pipelines {
       {"Engine", {"Comp"}},
       {"Cells", {"Vert", "Frag"}},
       {"Tiles", {"Vert", "Frag"}}};
+
+  struct Compute {
+    VkPipelineLayout pipelineLayout;
+    VkPipeline engine;
+    std::vector<VkShaderModule> shaderModules;
+  } compute;
 
   struct Graphics {
     VkPipeline cells;
@@ -40,12 +45,6 @@ class Pipelines {
       VkImageView colorImageView;
     } msaa;
   } graphics;
-
-  struct Compute {
-    VkPipelineLayout pipelineLayout;
-    VkPipeline engine;
-    std::vector<VkShaderModule> shaderModules;
-  } compute;
 
  public:
   void createPipelines(Resources& _resources);
