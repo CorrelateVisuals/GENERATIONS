@@ -4,6 +4,8 @@
 #include "Mechanics.h"
 #include "Resources.h"
 
+#include <map>
+
 class VulkanMechanics;
 class Resources;
 
@@ -11,6 +13,11 @@ class Pipelines {
  public:
   Pipelines(VulkanMechanics& mechanics);
   ~Pipelines();
+
+  std::map<std::string, std::vector<std::string>> shaders = {
+      {"Engine", {"Comp"}},
+      {"Cells", {"Vert", "Frag"}},
+      {"Tiles", {"Vert", "Frag"}}};
 
   struct Graphics {
     struct Pipelines {
@@ -54,22 +61,6 @@ class Pipelines {
     VkPipeline pipeline;
     std::vector<VkShaderModule> shaderModules;
   } compute;
-
-  struct Shaders {
-    std::vector<std::string> name{"Engine", "Cells", "Tiles"};
-    std::vector<std::string> path{
-        Lib::path("shaders/" + name[0] + ".comp -o shaders/" + name[0] +
-                  "Comp.spv"),
-        Lib::path("shaders/" + name[1] + ".vert -o shaders/" + name[1] +
-                  "Vert.spv"),
-        Lib::path("shaders/" + name[1] + ".frag -o shaders/" + name[1] +
-                  "Frag.spv"),
-        Lib::path("shaders/" + name[2] + ".vert -o shaders/" + name[2] +
-                  "Vert.spv"),
-        Lib::path("shaders/" + name[2] + ".frag -o shaders/" + name[2] +
-                  "Frag.spv"),
-    };
-  } shaders;
 
  public:
   void createPipelines(Resources& _resources);

@@ -272,7 +272,7 @@ void Resources::createImage(uint32_t width,
 
 void Resources::createTextureImage(std::string imagePath) {
   Log::text("{ img }", "Image Texture: ", imagePath);
-  int texWidth, texHeight, texChannels;
+  int texWidth{0}, texHeight{0}, texChannels{0};
   int rgba = 4;
   stbi_uc* pixels = stbi_load(imagePath.c_str(), &texWidth, &texHeight,
                               &texChannels, STBI_rgb_alpha);

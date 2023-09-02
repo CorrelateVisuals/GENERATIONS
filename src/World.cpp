@@ -30,13 +30,20 @@ std::vector<VkVertexInputBindingDescription> World::getBindingDescriptions() {
 std::vector<VkVertexInputAttributeDescription>
 World::getAttributeDescriptions() {
   std::vector<VkVertexInputAttributeDescription> attributeDescriptions{
-      {0, 0, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(Cell, position)},
-      {1, 0, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(Cell, color)},
-      {2, 0, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(Cell, size)},
-      {3, 0, VK_FORMAT_R32G32B32A32_SINT, offsetof(Cell, states)},
-      {4, 0, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(Cell, tileSidesHeight)},
-      {5, 0, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(Cell, tileCornersHeight)},
-      {6, 0, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(Cell, textureCoords)},
+      {0, 0, VK_FORMAT_R32G32B32A32_SFLOAT,
+       static_cast<uint32_t>(offsetof(Cell, position))},
+      {1, 0, VK_FORMAT_R32G32B32A32_SFLOAT,
+       static_cast<uint32_t>(offsetof(Cell, color))},
+      {2, 0, VK_FORMAT_R32G32B32A32_SFLOAT,
+       static_cast<uint32_t>(offsetof(Cell, size))},
+      {3, 0, VK_FORMAT_R32G32B32A32_SINT,
+       static_cast<uint32_t>(offsetof(Cell, states))},
+      {4, 0, VK_FORMAT_R32G32B32A32_SFLOAT,
+       static_cast<uint32_t>(offsetof(Cell, tileSidesHeight))},
+      {5, 0, VK_FORMAT_R32G32B32A32_SFLOAT,
+       static_cast<uint32_t>(offsetof(Cell, tileCornersHeight))},
+      {6, 0, VK_FORMAT_R32G32B32A32_SFLOAT,
+       static_cast<uint32_t>(offsetof(Cell, textureCoords))},
   };
   return attributeDescriptions;
 }
