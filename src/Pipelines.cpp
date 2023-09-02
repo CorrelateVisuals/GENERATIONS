@@ -16,7 +16,7 @@ Pipelines::~Pipelines() {
   Log::text("{ === }", "destructing Pipelines");
 }
 
-VkGraphicsPipelineCreateInfo Pipelines::getPipelineCreateInfo(
+VkGraphicsPipelineCreateInfo Pipelines::setGraphicsPipelineInfo(
     Pipelines::Graphics::Config& config,
     const VkDescriptorSetLayout& descriptorSetLayout,
     const std::string& vertexShader,
@@ -187,15 +187,17 @@ void Pipelines::createGraphicsPipelines(
   Graphics::Config pipelineConfig{};
   VkGraphicsPipelineCreateInfo pipelineInfo{};
 
-  pipelineInfo = getPipelineCreateInfo(pipelineConfig, descriptorSetLayout,
-                                       "CellsVert.spv", "CellsFrag.spv");
+  // Cells pipeline
+  pipelineInfo = setGraphicsPipelineInfo(pipelineConfig, descriptorSetLayout,
+                                         "CellsVert.spv", "CellsFrag.spv");
   _mechanics.result(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
                     VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
                     &graphics.pipelines.cells);
   destroyShaderModules(graphics.shaderModules);
 
-  pipelineInfo = getPipelineCreateInfo(pipelineConfig, descriptorSetLayout,
-                                       "TilesVert.spv", "TilesFrag.spv");
+  // Tiles pipeline
+  pipelineInfo = setGraphicsPipelineInfo(pipelineConfig, descriptorSetLayout,
+                                         "TilesVert.spv", "TilesFrag.spv");
   _mechanics.result(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
                     VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
                     &graphics.pipelines.tiles);

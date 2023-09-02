@@ -70,7 +70,7 @@ class Pipelines {
  private:
   VulkanMechanics& _mechanics;
   void createRenderPass();
-  VkGraphicsPipelineCreateInfo getPipelineCreateInfo(
+  VkGraphicsPipelineCreateInfo setGraphicsPipelineInfo(
       Pipelines::Graphics::Config& pipelineConfig,
       const VkDescriptorSetLayout& descriptorSetLayout,
       const std::string& vertexShader,
