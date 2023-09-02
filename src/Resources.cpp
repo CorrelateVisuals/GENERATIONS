@@ -536,7 +536,7 @@ void Resources::recordComputeCommandBuffer(VkCommandBuffer commandBuffer,
   }
 
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
-                    _pipelines.compute.pipeline);
+                    _pipelines.compute.engine);
 
   vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
                           _pipelines.compute.pipelineLayout, 0, 1,
@@ -600,7 +600,7 @@ void Resources::recordCommandBuffer(VkCommandBuffer commandBuffer,
 
   // Pipeline 1
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                    _pipelines.graphics.pipelines.cells);
+                    _pipelines.graphics.cells);
   VkDeviceSize offsets[]{0};
   vkCmdBindVertexBuffers(
       commandBuffer, 0, 1,
@@ -610,7 +610,7 @@ void Resources::recordCommandBuffer(VkCommandBuffer commandBuffer,
 
   // Pipeline 2
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                    _pipelines.graphics.pipelines.tiles);
+                    _pipelines.graphics.tiles);
   // vkCmdBindVertexBuffers(
   //     commandBuffer, 0, 1,
   //     &buffers.shaderStorage[_mechanics.syncObjects.currentFrame], offsets);

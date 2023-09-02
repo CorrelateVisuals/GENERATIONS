@@ -20,27 +20,12 @@ class Pipelines {
       {"Tiles", {"Vert", "Frag"}}};
 
   struct Graphics {
-    struct Pipelines {
-      VkPipeline cells;
-      VkPipeline tiles;
-    } pipelines;
+    VkPipeline cells;
+    VkPipeline tiles;
 
     VkRenderPass renderPass;
     VkPipelineLayout pipelineLayout;
     std::vector<VkShaderModule> shaderModules;
-
-    struct Config {
-      std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
-      VkPipelineVertexInputStateCreateInfo vertexInputState;
-      VkPipelineInputAssemblyStateCreateInfo inputAssemblyState;
-      VkPipelineViewportStateCreateInfo viewportState;
-      VkPipelineRasterizationStateCreateInfo rasterizationState;
-      VkPipelineMultisampleStateCreateInfo multisampleState;
-      VkPipelineDepthStencilStateCreateInfo depthStencilState;
-      VkPipelineColorBlendStateCreateInfo colorBlendingState;
-      VkPipelineDynamicStateCreateInfo dynamicState;
-      VkPipelineLayoutCreateInfo pipelineLayoutState;
-    };
 
     struct Depth {
       VkImage image;
@@ -58,7 +43,7 @@ class Pipelines {
 
   struct Compute {
     VkPipelineLayout pipelineLayout;
-    VkPipeline pipeline;
+    VkPipeline engine;
     std::vector<VkShaderModule> shaderModules;
   } compute;
 
@@ -69,9 +54,24 @@ class Pipelines {
 
  private:
   VulkanMechanics& _mechanics;
+
+  struct GraphicsConfig {
+    std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
+    VkPipelineVertexInputStateCreateInfo vertexInputState;
+    VkPipelineInputAssemblyStateCreateInfo inputAssemblyState;
+    VkPipelineViewportStateCreateInfo viewportState;
+    VkPipelineRasterizationStateCreateInfo rasterizationState;
+    VkPipelineMultisampleStateCreateInfo multisampleState;
+    VkPipelineDepthStencilStateCreateInfo depthStencilState;
+    VkPipelineColorBlendStateCreateInfo colorBlendingState;
+    VkPipelineDynamicStateCreateInfo dynamicState;
+    VkPipelineLayoutCreateInfo pipelineLayoutState;
+  };
+
+ private:
   void createRenderPass();
   VkGraphicsPipelineCreateInfo setGraphicsPipelineInfo(
-      Pipelines::Graphics::Config& pipelineConfig,
+      Pipelines::GraphicsConfig& pipelineConfig,
       const VkDescriptorSetLayout& descriptorSetLayout,
       const std::string& vertexShader,
       const std::string& fragmentShader);

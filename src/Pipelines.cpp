@@ -16,12 +16,25 @@ Pipelines::~Pipelines() {
   Log::text("{ === }", "destructing Pipelines");
 }
 
+void Pipelines::createPipelines(Resources& _resources) {
+  Log::text(Log::Style::headerGuard);
+  Log::text("{ === }", "creating Pipelines");
+
+  _resources.createDescriptorSetLayout();
+  createRenderPass();
+  createGraphicsPipelines(_resources.descriptor.setLayout);
+  createComputePipeline(_resources.descriptor.setLayout,
+                        _resources.pushConstants);
+  createColorResources(_resources);
+  createDepthResources(_resources);
+}
+
 VkGraphicsPipelineCreateInfo Pipelines::setGraphicsPipelineInfo(
-    Pipelines::Graphics::Config& config,
+    Pipelines::GraphicsConfig& config,
     const VkDescriptorSetLayout& descriptorSetLayout,
     const std::string& vertexShader,
     const std::string& fragmentShader) {
-  Log::text("{ === }", "Pipeline Config", vertexShader, fragmentShader);
+  Log::text("{ ... }", "Pipeline Config", vertexShader, fragmentShader);
 
   config.shaderStages = {
       setShaderStage(VK_SHADER_STAGE_VERTEX_BIT, vertexShader, graphics),
@@ -56,19 +69,6 @@ VkGraphicsPipelineCreateInfo Pipelines::setGraphicsPipelineInfo(
       .basePipelineHandle = VK_NULL_HANDLE};
 
   return pipelineInfo;
-}
-
-void Pipelines::createPipelines(Resources& _resources) {
-  Log::text(Log::Style::headerGuard);
-  Log::text("{ === }", "creating Pipelines");
-
-  _resources.createDescriptorSetLayout();
-  createRenderPass();
-  createGraphicsPipelines(_resources.descriptor.setLayout);
-  createComputePipeline(_resources.descriptor.setLayout,
-                        _resources.pushConstants);
-  createColorResources(_resources);
-  createDepthResources(_resources);
 }
 
 void Pipelines::createColorResources(Resources& _resources) {
@@ -184,23 +184,21 @@ void Pipelines::createGraphicsPipelines(
     VkDescriptorSetLayout& descriptorSetLayout) {
   Log::text("{ === }", "Graphics Pipelines");
 
-  Graphics::Config pipelineConfig{};
+  GraphicsConfig pipelineConfig{};
   VkGraphicsPipelineCreateInfo pipelineInfo{};
 
   // Cells pipeline
   pipelineInfo = setGraphicsPipelineInfo(pipelineConfig, descriptorSetLayout,
                                          "CellsVert.spv", "CellsFrag.spv");
   _mechanics.result(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
-                    VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
-                    &graphics.pipelines.cells);
+                    VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphics.cells);
   destroyShaderModules(graphics.shaderModules);
 
   // Tiles pipeline
   pipelineInfo = setGraphicsPipelineInfo(pipelineConfig, descriptorSetLayout,
                                          "TilesVert.spv", "TilesFrag.spv");
   _mechanics.result(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
-                    VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
-                    &graphics.pipelines.tiles);
+                    VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphics.tiles);
   destroyShaderModules(graphics.shaderModules);
 }
 
@@ -305,8 +303,7 @@ void Pipelines::createComputePipeline(
       .layout = compute.pipelineLayout};
 
   _mechanics.result(vkCreateComputePipelines, _mechanics.mainDevice.logical,
-                    VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
-                    &compute.pipeline);
+                    VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &compute.engine);
 
   destroyShaderModules(compute.shaderModules);
 }
