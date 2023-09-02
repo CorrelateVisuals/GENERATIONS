@@ -28,7 +28,7 @@ double Lib::lowFrequencyOscillator(double frequency) {
   return 0.5 * (1 + std::sin(angle));
 }
 
-glm::vec2 Lib::smoothstep(const glm::vec2 xy) {
+glm::vec2 Lib::smoothstep(const glm::vec2& xy) {
   constexpr float startInput = 0.0f;
   constexpr float endInput = 1.0f;
   constexpr float minIncrease = -0.1f;
@@ -56,31 +56,22 @@ std::string Lib::path(const std::string& linuxPath) {
   if (convertedWindowsPath.substr(0, 3) == "..\\.") {
     convertedWindowsPath = convertedWindowsPath.substr(3);
   }
-
-  convertedWindowsPath = shaderPath(convertedWindowsPath);
-  return convertedWindowsPath;
+  return ifShaderCompile(convertedWindowsPath);
 #else
-  return linuxPath;
+  return ifShaderCompile(linuxPath);
 #endif
 }
 
-std::string Lib::shaderPath(const std::string& originalPath) {
-  if (originalPath.find("shaders") != std::string::npos) {
-    std::string shaderPath;
-    for (char c : originalPath) {
-      if (c == '\\') {
-        shaderPath += "\\\\";
-      } else {
-        shaderPath += c;
-      }
-    }
-    size_t dotShPosition = shaderPath.rfind(".sh");
-    if (dotShPosition != std::string::npos &&
-        dotShPosition + 3 == shaderPath.length()) {
-      shaderPath.replace(dotShPosition, 3, ".bat");
-    }
+std::string Lib::ifShaderCompile(std::string shaderPath) {
+  if (shaderPath.find("shaders") == std::string::npos) {
     return shaderPath;
   } else {
-    return originalPath;
+#ifdef _WIN32
+    std::string glslangValidator = "glslangValidator.exe -V ";
+#else
+    std::string glslangValidator = "glslc ";
+#endif
+    shaderPath.insert(0, glslangValidator);
+    return shaderPath;
   }
 }

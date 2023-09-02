@@ -7,7 +7,10 @@
 #include <unordered_map>
 #include <vector>
 
+#define STRINGIFICATION(x) #x
+
 namespace Log {
+static uint8_t logLevel = 0;
 
 struct Style {
   static std::string charLeader;
@@ -16,6 +19,8 @@ struct Style {
   static int columnCount;
   static int columnCountOffset;
 };
+void logTitle();
+void logFooter();
 
 extern std::ofstream logFile;
 extern std::string previousTime;
@@ -23,18 +28,14 @@ extern std::string previousTime;
 template <class T, class... Ts>
 void text(const T& first, const Ts&... inputs);
 
-void logTitle();
-void logFooter();
-
-std::string getBufferUsageString(VkBufferUsageFlags usage);
-std::string getMemoryPropertyString(VkMemoryPropertyFlags properties);
-std::string getDescriptorTypeString(VkDescriptorType type);
-std::string getShaderStageString(VkShaderStageFlags flags);
-std::string getSampleCountString(VkSampleCountFlags sampleCount);
-std::string getImageUsageString(VkImageUsageFlags usage);
+std::string getBufferUsageString(const VkBufferUsageFlags& usage);
+std::string getMemoryPropertyString(const VkMemoryPropertyFlags& properties);
+std::string getDescriptorTypeString(const VkDescriptorType& type);
+std::string getShaderStageString(const VkShaderStageFlags& flags);
+std::string getSampleCountString(const VkSampleCountFlags& sampleCount);
+std::string getImageUsageString(const VkImageUsageFlags& usage);
 
 std::string returnDateAndTime();
-
 };  // namespace Log
 
 template <class T, class... Ts>
@@ -43,14 +44,15 @@ void Log::text(const T& first, const Ts&... inputs) {
     std::cerr << "\n!ERROR! Could not open logFile for writing" << std::endl;
     return;
   }
-  std::string currentTime = returnDateAndTime();
 
+  std::string currentTime = returnDateAndTime();
   if (currentTime != previousTime) {
     std::cout << ' ' << currentTime;
     logFile << ' ' << currentTime;
   } else {
     std::string padding(
-        static_cast<size_t>(Style::columnCount) + Style::columnCountOffset, ' ');
+        static_cast<size_t>(Style::columnCount) + Style::columnCountOffset,
+        ' ');
     std::cout << padding;
     logFile << padding;
   }
@@ -61,11 +63,10 @@ void Log::text(const T& first, const Ts&... inputs) {
     for (const auto& element : first) {
       if (elementCount % Style::columnCount == 0 && elementCount != 0) {
         std::string spaces(
-            static_cast<size_t>(Style::columnCount) + Style::columnCountOffset, ' ');
-
+            static_cast<size_t>(Style::columnCount) + Style::columnCountOffset,
+            ' ');
         std::cout << '\n' << ' ' << spaces << Style::charLeader << ' ';
         logFile << '\n' << ' ' << spaces << Style::charLeader << ' ';
-
         elementCount = 0;
       }
       std::cout << element << ' ';

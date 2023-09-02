@@ -8,8 +8,9 @@ namespace Lib {
 std::vector<float> generateRandomValues(int amount, float min, float max);
 
 double lowFrequencyOscillator(double frequency);
-glm::vec2 smoothstep(const glm::vec2 xy);
+glm::vec2 smoothstep(const glm::vec2& xy);
 
+// Cross platform functions
 std::string path(const std::string& linuxPath);
-std::string shaderPath(const std::string& originalPath);
-};  // namespace Lib
+std::string ifShaderCompile(std::string linuxPath);
+}

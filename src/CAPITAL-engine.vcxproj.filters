@@ -88,16 +88,19 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\shaders\compile_shaders.bat">
+    <None Include="..\shaders\Engine.comp">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="..\shaders\shader.comp">
+    <None Include="..\shaders\Cells.frag">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="..\shaders\shader.frag">
+    <None Include="..\shaders\Cells.vert">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="..\shaders\shader.vert">
+    <None Include="..\shaders\Tiles.frag">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\shaders\Tiles.vert">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>
