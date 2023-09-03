@@ -19,15 +19,14 @@ class Pipelines {
       {"Tiles", {"Vert", "Frag"}}};
 
   struct Compute {
-    VkPipelineLayout pipelineLayout;
     VkPipeline engine;
+    VkPipelineLayout pipelineLayout;
     std::vector<VkShaderModule> shaderModules;
   } compute;
 
   struct Graphics {
     VkPipeline cells;
     VkPipeline tiles;
-
     VkRenderPass renderPass;
     VkPipelineLayout pipelineLayout;
     std::vector<VkShaderModule> shaderModules;
@@ -69,7 +68,7 @@ class Pipelines {
 
  private:
   void createRenderPass();
-  VkGraphicsPipelineCreateInfo setGraphicsPipelineInfo(
+  VkGraphicsPipelineCreateInfo setGraphicsConfig(
       Pipelines::GraphicsConfig& pipelineConfig,
       const VkDescriptorSetLayout& descriptorSetLayout,
       const std::string& vertexShader,

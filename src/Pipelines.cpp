@@ -8,7 +8,7 @@
 #include <random>
 
 Pipelines::Pipelines(VulkanMechanics& mechanics)
-    : graphics{}, compute{}, _mechanics(mechanics) {
+    : compute{}, graphics{}, _mechanics(mechanics) {
   Log::text("{ === }", "constructing Pipelines");
 }
 
@@ -29,7 +29,7 @@ void Pipelines::createPipelines(Resources& _resources) {
   createDepthResources(_resources);
 }
 
-VkGraphicsPipelineCreateInfo Pipelines::setGraphicsPipelineInfo(
+VkGraphicsPipelineCreateInfo Pipelines::setGraphicsConfig(
     Pipelines::GraphicsConfig& config,
     const VkDescriptorSetLayout& descriptorSetLayout,
     const std::string& vertexShader,
@@ -42,11 +42,13 @@ VkGraphicsPipelineCreateInfo Pipelines::setGraphicsPipelineInfo(
   config.vertexInputState = getVertexInputState();
   config.inputAssemblyState =
       getInputAssemblyState(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
-  config.viewportState = getViewportState();
+
   config.rasterizationState = getRasterizationState();
   config.multisampleState = getMultisampleState();
   config.depthStencilState = getDepthStencilState();
   config.colorBlendingState = getColorBlendingState();
+
+  config.viewportState = getViewportState();
   config.dynamicState = getDynamicState();
   config.pipelineLayoutState =
       setLayoutState(descriptorSetLayout, graphics.pipelineLayout);
@@ -188,15 +190,15 @@ void Pipelines::createGraphicsPipelines(
   VkGraphicsPipelineCreateInfo pipelineInfo{};
 
   // Cells pipeline
-  pipelineInfo = setGraphicsPipelineInfo(pipelineConfig, descriptorSetLayout,
-                                         "CellsVert.spv", "CellsFrag.spv");
+  pipelineInfo = setGraphicsConfig(pipelineConfig, descriptorSetLayout,
+                                   "CellsVert.spv", "CellsFrag.spv");
   _mechanics.result(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
                     VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphics.cells);
   destroyShaderModules(graphics.shaderModules);
 
   // Tiles pipeline
-  pipelineInfo = setGraphicsPipelineInfo(pipelineConfig, descriptorSetLayout,
-                                         "TilesVert.spv", "TilesFrag.spv");
+  pipelineInfo = setGraphicsConfig(pipelineConfig, descriptorSetLayout,
+                                   "TilesVert.spv", "TilesFrag.spv");
   _mechanics.result(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
                     VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphics.tiles);
   destroyShaderModules(graphics.shaderModules);

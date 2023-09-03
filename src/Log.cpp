@@ -30,6 +30,22 @@ void Log::logFooter() {
   Log::text("© Jakob Povel | Correlate Visuals ©");
 }
 
+bool Log::skipLogging(uint8_t logLevel, std::string icon) {
+  if (!logFile.is_open()) {
+    std::cerr << "\n!ERROR! Could not open logFile for writing" << std::endl;
+    return false;
+  }
+  if (logLevel == LOG_LEVEL_OFF ||
+      (logLevel == LOG_LEVEL_MINIMAL &&
+       (icon == std::string("{ ... }") ||
+        icon == std::string(Style::charLeader))) ||
+      (logLevel == LOG_LEVEL_MODERATE &&
+       icon == std::string(Style::charLeader))) {
+    return true;
+  }
+  return false;
+}
+
 std::string Log::getBufferUsageString(const VkBufferUsageFlags& usage) {
   std::string result;
 

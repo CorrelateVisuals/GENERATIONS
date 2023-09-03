@@ -9,8 +9,13 @@
 
 #define STRINGIFICATION(x) #x
 
+constexpr uint8_t LOG_LEVEL_OFF = 0;
+constexpr uint8_t LOG_LEVEL_MINIMAL = 1;
+constexpr uint8_t LOG_LEVEL_MODERATE = 2;
+constexpr uint8_t LOG_LEVEL_DETAILED = 3;
+
 namespace Log {
-static uint8_t logLevel = 0;
+static uint8_t logLevel = LOG_LEVEL_DETAILED;
 
 struct Style {
   static std::string charLeader;
@@ -27,6 +32,7 @@ extern std::string previousTime;
 
 template <class T, class... Ts>
 void text(const T& first, const Ts&... inputs);
+bool skipLogging(uint8_t logLevel, std::string icon);
 
 std::string getBufferUsageString(const VkBufferUsageFlags& usage);
 std::string getMemoryPropertyString(const VkMemoryPropertyFlags& properties);
@@ -40,8 +46,7 @@ std::string returnDateAndTime();
 
 template <class T, class... Ts>
 void Log::text(const T& first, const Ts&... inputs) {
-  if (!logFile.is_open()) {
-    std::cerr << "\n!ERROR! Could not open logFile for writing" << std::endl;
+  if (Log::skipLogging(logLevel, first)) {
     return;
   }
 

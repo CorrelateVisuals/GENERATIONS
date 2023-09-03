@@ -436,7 +436,7 @@ void Resources::copyBufferToImage(VkBuffer buffer,
 }
 
 void Resources::createTextureImageView() {
-  Log::text("{ img }", ":  Texture Image View");
+  Log::text("{ ... }", ":  Texture Image View");
   image.textureView = createImageView(image.texture, VK_FORMAT_R8G8B8A8_SRGB,
                                       VK_IMAGE_ASPECT_COLOR_BIT);
 }
@@ -625,7 +625,7 @@ void Resources::recordCommandBuffer(VkCommandBuffer commandBuffer,
 VkImageView Resources::createImageView(VkImage image,
                                        VkFormat format,
                                        VkImageAspectFlags aspectFlags) {
-  Log::text("{ img }", ":  Image View");
+  Log::text("{ ... }", ":  Image View");
 
   VkImageViewCreateInfo viewInfo{
       .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
