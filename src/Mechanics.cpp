@@ -514,17 +514,13 @@ void VulkanMechanics::compileShaders(
   Log::text("{ GLSL }", "Compile Shaders");
 
   std::string shaderPath = "";
-  size_t index = 0;
   for (const auto& name : shaders) {
     for (const auto& shader : name.second) {
-      std::string lowerCaseShaderName = Lib::upperToLowerCase(shader);
-      shaderPath =
-          Lib::path("shaders/" + name.first + "." + lowerCaseShaderName +
-                    " -o shaders/" + name.first + shader + ".spv");
+      std::string shaderExtension = Lib::upperToLowerCase(shader);
+      shaderPath = Lib::path("shaders/" + name.first + "." + shaderExtension +
+                             " -o shaders/" + name.first + shader + ".spv");
       system(shaderPath.c_str());
     }
-    std::cout << index << std::endl;
-    index++;
   }
 }
 
