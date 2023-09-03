@@ -1,6 +1,5 @@
 #pragma once
 #include <glm/glm.hpp>
-#include <map>
 
 #include "Mechanics.h"
 #include "Resources.h"
@@ -69,7 +68,7 @@ class Pipelines {
 
  private:
   void createRenderPass();
-  VkGraphicsPipelineCreateInfo configPipeline(
+  VkGraphicsPipelineCreateInfo configGraphicsPipeline(
       Pipelines::GraphicsPipelineConfiguration& pipelineConfig,
       const VkDescriptorSetLayout& descriptorSetLayout,
       const std::string& vertexShader,

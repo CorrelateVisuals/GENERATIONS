@@ -70,10 +70,8 @@ class VulkanMechanics {
 
  public:
   void setupVulkan(Pipelines& _pipelines, Resources& _resources);
-
   void recreateSwapChain(Pipelines& _pipelines, Resources& _resources);
   void cleanupSwapChain(Pipelines& _pipelines);
-
   void createSyncObjects();
 
   template <typename Checkresult, typename... Args>

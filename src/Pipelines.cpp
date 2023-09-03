@@ -29,7 +29,7 @@ void Pipelines::createPipelines(Resources& _resources) {
   createDepthResources(_resources);
 }
 
-VkGraphicsPipelineCreateInfo Pipelines::configPipeline(
+VkGraphicsPipelineCreateInfo Pipelines::configGraphicsPipeline(
     Pipelines::GraphicsPipelineConfiguration& config,
     const VkDescriptorSetLayout& descriptorSetLayout,
     const std::string& vertexShader,
@@ -42,11 +42,6 @@ VkGraphicsPipelineCreateInfo Pipelines::configPipeline(
   config.vertexInputState = getVertexInputState();
   config.inputAssemblyState =
       getInputAssemblyState(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
-  config.viewportState = getViewportState();
-  config.dynamicState = getDynamicState();
-  config.pipelineLayoutState =
-      setLayoutState(descriptorSetLayout, graphics.pipelineLayout);
-
   config.rasterizationState = {
       .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
       .depthClampEnable = VK_TRUE,
@@ -90,6 +85,10 @@ VkGraphicsPipelineCreateInfo Pipelines::configPipeline(
       .attachmentCount = 1,
       .pAttachments = &colorBlendAttachmentState,
       .blendConstants = {0.0f, 0.0f, 0.0f, 0.0f}};
+  config.viewportState = getViewportState();
+  config.dynamicState = getDynamicState();
+  config.pipelineLayoutState =
+      setLayoutState(descriptorSetLayout, graphics.pipelineLayout);
 
   VkGraphicsPipelineCreateInfo pipelineInfo = setGraphicsPipelineInfo(config);
 
@@ -213,16 +212,16 @@ void Pipelines::createGraphicsPipelines(
   VkGraphicsPipelineCreateInfo graphicsPipelineInfo{};
 
   // Cells pipeline
-  graphicsPipelineInfo = configPipeline(pipelineConfig, descriptorSetLayout,
-                                        "CellsVert.spv", "CellsFrag.spv");
+  graphicsPipelineInfo = configGraphicsPipeline(
+      pipelineConfig, descriptorSetLayout, "CellsVert.spv", "CellsFrag.spv");
   _mechanics.result(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
                     VK_NULL_HANDLE, 1, &graphicsPipelineInfo, nullptr,
                     &graphics.cells);
   destroyShaderModules(graphics.shaderModules);
 
   // Tiles pipeline
-  graphicsPipelineInfo = configPipeline(pipelineConfig, descriptorSetLayout,
-                                        "TilesVert.spv", "TilesFrag.spv");
+  graphicsPipelineInfo = configGraphicsPipeline(
+      pipelineConfig, descriptorSetLayout, "TilesVert.spv", "TilesFrag.spv");
   _mechanics.result(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
                     VK_NULL_HANDLE, 1, &graphicsPipelineInfo, nullptr,
                     &graphics.tiles);
@@ -293,7 +292,6 @@ std::vector<char> Pipelines::readShaderFile(const std::string& filename) {
 
   file.seekg(0);
   file.read(buffer.data(), fileSize);
-
   file.close();
 
   return buffer;
@@ -318,7 +316,6 @@ void Pipelines::createComputePipeline(
       .pSetLayouts = &descriptorSetLayout,
       .pushConstantRangeCount = 1,
       .pPushConstantRanges = &pushConstantRange};
-
   _mechanics.result(vkCreatePipelineLayout, _mechanics.mainDevice.logical,
                     &pipelineLayoutInfo, nullptr, &compute.pipelineLayout);
 
