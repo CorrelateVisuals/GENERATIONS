@@ -29,12 +29,12 @@ void Pipelines::createPipelines(Resources& _resources) {
   createDepthResources(_resources);
 }
 
-VkGraphicsPipelineCreateInfo Pipelines::setGraphicsConfig(
+VkGraphicsPipelineCreateInfo Pipelines::configPipeline(
     Pipelines::GraphicsConfig& config,
     const VkDescriptorSetLayout& descriptorSetLayout,
     const std::string& vertexShader,
     const std::string& fragmentShader) {
-  Log::text("{ ... }", "Pipeline Config", vertexShader, fragmentShader);
+  Log::text("{ ... }", "Pipeline Config");
 
   uint8_t pipelineIndex = 1;
   std::vector<std::string> SPIRV = getShaderSPIRV(pipelineIndex, shaders);
@@ -192,20 +192,16 @@ void Pipelines::createGraphicsPipelines(
   GraphicsConfig pipelineConfig{};
   VkGraphicsPipelineCreateInfo pipelineInfo{};
 
-  uint8_t pipelineIndex = 1;
-  getShaderSPIRV(pipelineIndex, shaders);
-
   // Cells pipeline
-
-  pipelineInfo = setGraphicsConfig(pipelineConfig, descriptorSetLayout,
-                                   "CellsVert.spv", "CellsFrag.spv");
+  pipelineInfo = configPipeline(pipelineConfig, descriptorSetLayout,
+                                "CellsVert.spv", "CellsFrag.spv");
   _mechanics.result(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
                     VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphics.cells);
   destroyShaderModules(graphics.shaderModules);
 
   // Tiles pipeline
-  pipelineInfo = setGraphicsConfig(pipelineConfig, descriptorSetLayout,
-                                   "TilesVert.spv", "TilesFrag.spv");
+  pipelineInfo = configPipeline(pipelineConfig, descriptorSetLayout,
+                                "TilesVert.spv", "TilesFrag.spv");
   _mechanics.result(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
                     VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphics.tiles);
   destroyShaderModules(graphics.shaderModules);

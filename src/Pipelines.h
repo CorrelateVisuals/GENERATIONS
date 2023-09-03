@@ -68,7 +68,7 @@ class Pipelines {
 
  private:
   void createRenderPass();
-  VkGraphicsPipelineCreateInfo setGraphicsConfig(
+  VkGraphicsPipelineCreateInfo configPipeline(
       Pipelines::GraphicsConfig& pipelineConfig,
       const VkDescriptorSetLayout& descriptorSetLayout,
       const std::string& vertexShader,
