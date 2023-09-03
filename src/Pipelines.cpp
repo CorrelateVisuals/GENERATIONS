@@ -30,7 +30,7 @@ void Pipelines::createPipelines(Resources& _resources) {
 }
 
 VkGraphicsPipelineCreateInfo Pipelines::configPipeline(
-    Pipelines::GraphicsConfig& config,
+    Pipelines::GraphicsPipelineConfiguration& config,
     const VkDescriptorSetLayout& descriptorSetLayout,
     const std::string& vertexShader,
     const std::string& fragmentShader) {
@@ -209,21 +209,23 @@ void Pipelines::createGraphicsPipelines(
     VkDescriptorSetLayout& descriptorSetLayout) {
   Log::text("{ === }", "Graphics Pipelines");
 
-  GraphicsConfig pipelineConfig{};
-  VkGraphicsPipelineCreateInfo pipelineInfo{};
+  GraphicsPipelineConfiguration pipelineConfig{};
+  VkGraphicsPipelineCreateInfo graphicsPipelineInfo{};
 
   // Cells pipeline
-  pipelineInfo = configPipeline(pipelineConfig, descriptorSetLayout,
-                                "CellsVert.spv", "CellsFrag.spv");
+  graphicsPipelineInfo = configPipeline(pipelineConfig, descriptorSetLayout,
+                                        "CellsVert.spv", "CellsFrag.spv");
   _mechanics.result(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
-                    VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphics.cells);
+                    VK_NULL_HANDLE, 1, &graphicsPipelineInfo, nullptr,
+                    &graphics.cells);
   destroyShaderModules(graphics.shaderModules);
 
   // Tiles pipeline
-  pipelineInfo = configPipeline(pipelineConfig, descriptorSetLayout,
-                                "TilesVert.spv", "TilesFrag.spv");
+  graphicsPipelineInfo = configPipeline(pipelineConfig, descriptorSetLayout,
+                                        "TilesVert.spv", "TilesFrag.spv");
   _mechanics.result(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
-                    VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphics.tiles);
+                    VK_NULL_HANDLE, 1, &graphicsPipelineInfo, nullptr,
+                    &graphics.tiles);
   destroyShaderModules(graphics.shaderModules);
 }
 
@@ -265,7 +267,7 @@ VkPipelineShaderStageCreateInfo Pipelines::setShaderStage(
     auto& pipeline) {
   Log::text(Log::Style::charLeader, "Shader Module", shaderName);
 
-  std::string directory = "shaders/";
+  std::string directory = shaderDir;
   std::string shaderPath = directory + shaderName;
 
   auto shaderCode = readShaderFile(shaderPath);
@@ -322,13 +324,14 @@ void Pipelines::createComputePipeline(
   _mechanics.result(vkCreatePipelineLayout, _mechanics.mainDevice.logical,
                     &pipelineLayoutInfo, nullptr, &compute.pipelineLayout);
 
-  VkComputePipelineCreateInfo pipelineInfo{
+  VkComputePipelineCreateInfo computePipelineInfo{
       .sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
       .stage = computeShaderStageInfo,
       .layout = compute.pipelineLayout};
 
   _mechanics.result(vkCreateComputePipelines, _mechanics.mainDevice.logical,
-                    VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &compute.engine);
+                    VK_NULL_HANDLE, 1, &computePipelineInfo, nullptr,
+                    &compute.engine);
 
   destroyShaderModules(compute.shaderModules);
 }
@@ -417,7 +420,7 @@ VkPipelineLayoutCreateInfo Pipelines::setLayoutState(
 }
 
 VkGraphicsPipelineCreateInfo Pipelines::setGraphicsPipelineInfo(
-    Pipelines::GraphicsConfig& config) {
+    Pipelines::GraphicsPipelineConfiguration& config) {
   VkGraphicsPipelineCreateInfo graphicsPipelineInfo{
       .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
       .stageCount = static_cast<uint32_t>(config.shaderStages.size()),

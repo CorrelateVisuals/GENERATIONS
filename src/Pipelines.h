@@ -17,6 +17,7 @@ class Pipelines {
       {"Engine", {"Comp"}},
       {"Cells", {"Vert", "Frag"}},
       {"Tiles", {"Vert", "Frag"}}};
+  std::string shaderDir = "shaders/";
 
   struct Compute {
     VkPipeline engine;
@@ -53,7 +54,7 @@ class Pipelines {
  private:
   VulkanMechanics& _mechanics;
 
-  struct GraphicsConfig {
+  struct GraphicsPipelineConfiguration {
     std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
     VkPipelineVertexInputStateCreateInfo vertexInputState;
     VkPipelineInputAssemblyStateCreateInfo inputAssemblyState;
@@ -69,7 +70,7 @@ class Pipelines {
  private:
   void createRenderPass();
   VkGraphicsPipelineCreateInfo configPipeline(
-      Pipelines::GraphicsConfig& pipelineConfig,
+      Pipelines::GraphicsPipelineConfiguration& pipelineConfig,
       const VkDescriptorSetLayout& descriptorSetLayout,
       const std::string& vertexShader,
       const std::string& fragmentShader);
@@ -100,5 +101,5 @@ class Pipelines {
       const VkDescriptorSetLayout& descriptorSetLayout,
       VkPipelineLayout& pipelineLayout);
   VkGraphicsPipelineCreateInfo setGraphicsPipelineInfo(
-      Pipelines::GraphicsConfig& config);
+      Pipelines::GraphicsPipelineConfiguration& config);
 };

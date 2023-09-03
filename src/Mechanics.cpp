@@ -31,7 +31,7 @@ void VulkanMechanics::setupVulkan(Pipelines& _pipelines,
   Log::text(Log::Style::headerGuard);
   Log::text("{ Vk. }", "Setup Vulkan");
 
-  compileShaders(_pipelines.shaders);
+  compileShaders(_pipelines);
   createInstance();
   validation.setupDebugMessenger(instance);
   createSurface(Window::get().window);
@@ -509,17 +509,16 @@ void VulkanMechanics::recreateSwapChain(Pipelines& _pipelines,
   _resources.createFramebuffers(_pipelines);
 }
 
-void VulkanMechanics::compileShaders(
-    const std::unordered_map<std::string, std::vector<std::string>>& shaders) {
+void VulkanMechanics::compileShaders(const Pipelines& _pipelines) {
   Log::text("{ GLSL }", "Compile Shaders");
 
   std::string systemCommand = "";
-  for (const auto& name : shaders) {
+  for (const auto& name : _pipelines.shaders) {
     for (const auto& shader : name.second) {
       std::string shaderExtension = Lib::upperToLowerCase(shader);
-      systemCommand =
-          Lib::path("shaders/" + name.first + "." + shaderExtension +
-                    " -o shaders/" + name.first + shader + ".spv");
+      systemCommand = Lib::path(
+          _pipelines.shaderDir + name.first + "." + shaderExtension + " -o " +
+          _pipelines.shaderDir + name.first + shader + ".spv");
       system(systemCommand.c_str());
     }
   }
