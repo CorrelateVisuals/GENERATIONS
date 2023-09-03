@@ -511,7 +511,9 @@ void VulkanMechanics::recreateSwapChain(Pipelines& _pipelines,
 
 void VulkanMechanics::compileShaders(const Pipelines& _pipelines) {
   Log::text("{ GLSL }", "Compile Shaders");
-
+#ifdef NDEBUG
+  return;
+#else
   std::string systemCommand = "";
   for (const auto& name : _pipelines.shaders) {
     for (const auto& shader : name.second) {
@@ -522,6 +524,7 @@ void VulkanMechanics::compileShaders(const Pipelines& _pipelines) {
       system(systemCommand.c_str());
     }
   }
+#endif
 }
 
 std::vector<const char*> VulkanMechanics::getRequiredExtensions() {
