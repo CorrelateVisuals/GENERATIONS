@@ -45,6 +45,17 @@ glm::vec2 Lib::smoothstep(const glm::vec2& xy) {
   return increase;
 }
 
+std::string Lib::upperToLowerCase(std::string string) {
+  std::string lowerCaseString = "";
+  for (char c : string) {
+    if (std::isupper(c)) {
+      c = std::tolower(c);
+    }
+    lowerCaseString += c;
+  }
+  return lowerCaseString;
+}
+
 std::string Lib::path(const std::string& linuxPath) {
 #ifdef _WIN32
   std::string convertedWindowsPath = "..\\" + linuxPath;

@@ -36,6 +36,9 @@ VkGraphicsPipelineCreateInfo Pipelines::setGraphicsConfig(
     const std::string& fragmentShader) {
   Log::text("{ ... }", "Pipeline Config", vertexShader, fragmentShader);
 
+  uint8_t pipelineIndex = 1;
+  std::vector<std::string> SPIRV = getShaderSPIRV(pipelineIndex, shaders);
+
   config.shaderStages = {
       setShaderStage(VK_SHADER_STAGE_VERTEX_BIT, vertexShader, graphics),
       setShaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, fragmentShader, graphics)};
@@ -189,7 +192,11 @@ void Pipelines::createGraphicsPipelines(
   GraphicsConfig pipelineConfig{};
   VkGraphicsPipelineCreateInfo pipelineInfo{};
 
+  uint8_t pipelineIndex = 1;
+  getShaderSPIRV(pipelineIndex, shaders);
+
   // Cells pipeline
+
   pipelineInfo = setGraphicsConfig(pipelineConfig, descriptorSetLayout,
                                    "CellsVert.spv", "CellsFrag.spv");
   _mechanics.result(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
@@ -240,7 +247,7 @@ VkPipelineShaderStageCreateInfo Pipelines::setShaderStage(
     VkShaderStageFlagBits shaderStage,
     std::string shaderName,
     auto& pipeline) {
-  // Log::text(Log::Style::charLeader, "Shader Module", shaderName);
+  Log::text(Log::Style::charLeader, "Shader Module", shaderName);
 
   std::string directory = "shaders/";
   std::string shaderPath = directory + shaderName;
@@ -450,4 +457,21 @@ VkPipelineLayoutCreateInfo Pipelines::setLayoutState(
   }
 
   return createStateInfo;
+}
+
+std::vector<std::string> Pipelines::getShaderSPIRV(
+    uint8_t pipelineIndex,
+    std::unordered_map<std::string, std::vector<std::string>> shaders) {
+  std::vector<std::string> shaderSPIRVextension{};
+
+  size_t index = 0;
+  for (const auto& name : shaders) {
+    for (const auto& shader : name.second) {
+      if (index == pipelineIndex) {
+        shaderSPIRVextension.push_back(name.first + shader + ".spv");
+      }
+    }
+    index++;
+  }
+  return shaderSPIRVextension;
 }

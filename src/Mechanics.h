@@ -89,7 +89,8 @@ class VulkanMechanics {
   }
 
  private:
-  void compileShaders(const std::map<std::string, std::vector<std::string>>& shaders);
+  void compileShaders(
+      const std::unordered_map<std::string, std::vector<std::string>>& shaders);
   void createInstance();
   void createSurface(GLFWwindow* window);
   void pickPhysicalDevice(Pipelines::Graphics::MultiSampling& msaa);

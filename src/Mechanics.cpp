@@ -510,23 +510,21 @@ void VulkanMechanics::recreateSwapChain(Pipelines& _pipelines,
 }
 
 void VulkanMechanics::compileShaders(
-    const std::map<std::string, std::vector<std::string>>& shaders) {
+    const std::unordered_map<std::string, std::vector<std::string>>& shaders) {
   Log::text("{ GLSL }", "Compile Shaders");
 
+  std::string shaderPath = "";
+  size_t index = 0;
   for (const auto& name : shaders) {
     for (const auto& shader : name.second) {
-      std::string lowerCaseShaderName = "";
-      for (char c : shader) {
-        if (std::isupper(c)) {
-          c = std::tolower(c);
-        }
-        lowerCaseShaderName += c;
-      }
-      std::string shaderPath =
+      std::string lowerCaseShaderName = Lib::upperToLowerCase(shader);
+      shaderPath =
           Lib::path("shaders/" + name.first + "." + lowerCaseShaderName +
                     " -o shaders/" + name.first + shader + ".spv");
       system(shaderPath.c_str());
     }
+    std::cout << index << std::endl;
+    index++;
   }
 }
 

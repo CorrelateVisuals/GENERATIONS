@@ -13,7 +13,7 @@ class Pipelines {
   Pipelines(VulkanMechanics& mechanics);
   ~Pipelines();
 
-  std::map<std::string, std::vector<std::string>> shaders = {
+  std::unordered_map<std::string, std::vector<std::string>> shaders = {
       {"Engine", {"Comp"}},
       {"Cells", {"Vert", "Frag"}},
       {"Tiles", {"Vert", "Frag"}}};
@@ -103,4 +103,7 @@ class Pipelines {
   VkPipelineLayoutCreateInfo setLayoutState(
       const VkDescriptorSetLayout& descriptorSetLayout,
       VkPipelineLayout& pipelineLayout);
+  std::vector<std::string> getShaderSPIRV(
+      uint8_t pipelineIndex,
+      std::unordered_map<std::string, std::vector<std::string>> shaders);
 };
