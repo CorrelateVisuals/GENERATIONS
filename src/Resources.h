@@ -59,7 +59,7 @@ class Resources {
   void createResources(Pipelines& _pipelines);
   void createFramebuffers(Pipelines& _pipelines);
   void createDescriptorSetLayout();
-  void recordCommandBuffer(VkCommandBuffer commandBuffer,
+  void recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
                            uint32_t imageIndex,
                            Pipelines& _pipelines);
   void recordComputeCommandBuffer(VkCommandBuffer commandBuffer,

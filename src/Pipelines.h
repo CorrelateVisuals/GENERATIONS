@@ -92,18 +92,13 @@ class Pipelines {
       auto& pipeline);
 
   VkPipelineVertexInputStateCreateInfo getVertexInputState();
-  VkPipelineColorBlendStateCreateInfo getColorBlendingState();
   VkPipelineDynamicStateCreateInfo getDynamicState();
-  VkPipelineDepthStencilStateCreateInfo getDepthStencilState();
   VkPipelineInputAssemblyStateCreateInfo getInputAssemblyState(
       VkPrimitiveTopology topology);
   VkPipelineViewportStateCreateInfo getViewportState();
-  VkPipelineRasterizationStateCreateInfo getRasterizationState();
-  VkPipelineMultisampleStateCreateInfo getMultisampleState();
   VkPipelineLayoutCreateInfo setLayoutState(
       const VkDescriptorSetLayout& descriptorSetLayout,
       VkPipelineLayout& pipelineLayout);
-  std::vector<std::string> getShaderSPIRV(
-      uint8_t pipelineIndex,
-      std::unordered_map<std::string, std::vector<std::string>> shaders);
+  VkGraphicsPipelineCreateInfo setGraphicsPipelineInfo(
+      Pipelines::GraphicsConfig& config);
 };

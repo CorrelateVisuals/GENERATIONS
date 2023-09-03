@@ -559,9 +559,9 @@ void Resources::recordComputeCommandBuffer(VkCommandBuffer commandBuffer,
   _mechanics.result(vkEndCommandBuffer, commandBuffer);
 }
 
-void Resources::recordCommandBuffer(VkCommandBuffer commandBuffer,
-                                    uint32_t imageIndex,
-                                    Pipelines& _pipelines) {
+void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
+                                            uint32_t imageIndex,
+                                            Pipelines& _pipelines) {
   VkCommandBufferBeginInfo beginInfo{
       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO};
 

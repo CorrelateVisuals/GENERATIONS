@@ -46,8 +46,10 @@ std::string returnDateAndTime();
 
 template <class T, class... Ts>
 void Log::text(const T& first, const Ts&... inputs) {
-  if (Log::skipLogging(logLevel, first)) {
-    return;
+  if (typeid(first) == typeid(std::string)) {
+    if (Log::skipLogging(logLevel, first)) {
+      return;
+    }
   }
 
   std::string currentTime = returnDateAndTime();

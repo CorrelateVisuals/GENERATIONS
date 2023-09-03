@@ -104,7 +104,7 @@ void CapitalEngine::drawFrame() {
   vkResetCommandBuffer(
       resources.buffers.command.graphic[mechanics.syncObjects.currentFrame], 0);
 
-  resources.recordCommandBuffer(
+  resources.recordGraphicsCommandBuffer(
       resources.buffers.command.graphic[mechanics.syncObjects.currentFrame],
       imageIndex, pipelines);
 
