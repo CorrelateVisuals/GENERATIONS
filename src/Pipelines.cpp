@@ -267,9 +267,7 @@ VkPipelineShaderStageCreateInfo Pipelines::setShaderStage(
     auto& pipeline) {
   Log::text(Log::Style::charLeader, "Shader Module", shaderName);
 
-  std::string directory = shaderDir;
-  std::string shaderPath = directory + shaderName;
-
+  std::string shaderPath = shaderDir + shaderName;
   auto shaderCode = readShaderFile(shaderPath);
   VkShaderModule shaderModule = createShaderModule(shaderCode);
   pipeline.shaderModules.push_back(shaderModule);
