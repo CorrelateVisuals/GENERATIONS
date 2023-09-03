@@ -21,14 +21,15 @@ World::~World() {
   Log::logFooter();
 }
 
-std::vector<VkVertexInputBindingDescription> World::getBindingDescriptions() {
+std::vector<VkVertexInputBindingDescription>
+World::getCellBindingDescriptions() {
   std::vector<VkVertexInputBindingDescription> bindingDescriptions{
       {0, sizeof(Cell), VK_VERTEX_INPUT_RATE_INSTANCE}};
   return bindingDescriptions;
 }
 
 std::vector<VkVertexInputAttributeDescription>
-World::getAttributeDescriptions() {
+World::getCellAttributeDescriptions() {
   std::vector<VkVertexInputAttributeDescription> attributeDescriptions{
       {0, 0, VK_FORMAT_R32G32B32A32_SFLOAT,
        static_cast<uint32_t>(offsetof(Cell, position))},
@@ -48,13 +49,28 @@ World::getAttributeDescriptions() {
   return attributeDescriptions;
 }
 
+std::vector<VkVertexInputBindingDescription>
+World::getTerrainBindingDescriptions() {
+  std::vector<VkVertexInputBindingDescription> bindingDescriptions{
+      {0, sizeof(Cell), VK_VERTEX_INPUT_RATE_VERTEX}};
+  return bindingDescriptions;
+}
+
+std::vector<VkVertexInputAttributeDescription>
+World::getTerrainAttributeDescriptions() {
+  std::vector<VkVertexInputAttributeDescription> attributeDescriptions{
+      {0, 0, VK_FORMAT_R32G32B32A32_SFLOAT,
+       static_cast<uint32_t>(offsetof(Cell, position))}};
+  return attributeDescriptions;
+}
+
 std::vector<World::Cell> World::initializeCells() {
-  const uint_fast16_t width = grid.dimensions[0];
-  const uint_fast16_t height = grid.dimensions[1];
-  const uint_fast32_t numGridPoints = width * height;
-  const uint_fast32_t numAliveCells = grid.totalAliveCells;
-  const float gap = 0.6f;
-  std::array<float, 4> size = {geo.cube.size};
+  const uint_fast16_t width{grid.dimensions[0]};
+  const uint_fast16_t height{grid.dimensions[1]};
+  const uint_fast32_t numGridPoints{width * height};
+  const uint_fast32_t numAliveCells{grid.totalAliveCells};
+  const float gap{0.6f};
+  std::array<float, 4> size{geo.cube.size};
 
   if (numAliveCells > numGridPoints) {
     throw std::runtime_error(

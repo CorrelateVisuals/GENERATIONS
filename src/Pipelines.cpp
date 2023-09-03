@@ -39,7 +39,11 @@ VkGraphicsPipelineCreateInfo Pipelines::configGraphicsPipeline(
   config.shaderStages = {
       setShaderStage(VK_SHADER_STAGE_VERTEX_BIT, vertexShader, graphics),
       setShaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, fragmentShader, graphics)};
-  config.vertexInputState = getVertexInputState();
+
+  static auto bindings = World::getCellBindingDescriptions();
+  static auto attributes = World::getCellAttributeDescriptions();
+  config.vertexInputState = getVertexInputState(bindings, attributes);
+
   config.inputAssemblyState =
       getInputAssemblyState(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
   config.rasterizationState = {
@@ -90,7 +94,7 @@ VkGraphicsPipelineCreateInfo Pipelines::configGraphicsPipeline(
   config.pipelineLayoutState =
       setLayoutState(descriptorSetLayout, graphics.pipelineLayout);
 
-  VkGraphicsPipelineCreateInfo pipelineInfo = setGraphicsPipelineInfo(config);
+  VkGraphicsPipelineCreateInfo pipelineInfo = getGraphicsPipelineInfo(config);
 
   return pipelineInfo;
 }
@@ -354,10 +358,10 @@ void Pipelines::destroyShaderModules(
   shaderModules.resize(0);
 };
 
-VkPipelineVertexInputStateCreateInfo Pipelines::getVertexInputState() {
-  static auto bindingDescriptions = World::getBindingDescriptions();
-  static auto attributeDescriptions = World::getAttributeDescriptions();
-
+VkPipelineVertexInputStateCreateInfo Pipelines::getVertexInputState(
+    const std::vector<VkVertexInputBindingDescription>& bindingDescriptions,
+    const std::vector<VkVertexInputAttributeDescription>&
+        attributeDescriptions) {
   VkPipelineVertexInputStateCreateInfo createStateInfo{
       .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
       .pNext = nullptr,
@@ -414,7 +418,7 @@ VkPipelineLayoutCreateInfo Pipelines::setLayoutState(
   return createStateInfo;
 }
 
-VkGraphicsPipelineCreateInfo Pipelines::setGraphicsPipelineInfo(
+VkGraphicsPipelineCreateInfo Pipelines::getGraphicsPipelineInfo(
     Pipelines::GraphicsPipelineConfiguration& config) {
   VkGraphicsPipelineCreateInfo graphicsPipelineInfo{
       .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,

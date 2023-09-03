@@ -59,8 +59,13 @@ class World {
   std::vector<World::Cell> initializeCells();
   UniformBufferObject updateUniforms(VkExtent2D& _swapChain);
   static std::vector<VkVertexInputAttributeDescription>
-  getAttributeDescriptions();
-  static std::vector<VkVertexInputBindingDescription> getBindingDescriptions();
+  getCellAttributeDescriptions();
+  static std::vector<VkVertexInputBindingDescription>
+  getCellBindingDescriptions();
+  static std::vector<VkVertexInputBindingDescription>
+  getTerrainBindingDescriptions();
+  static std::vector<VkVertexInputAttributeDescription>
+  getTerrainAttributeDescriptions();
 
  private:
   struct Camera {

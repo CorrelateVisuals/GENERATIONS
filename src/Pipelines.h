@@ -91,7 +91,10 @@ class Pipelines {
       std::string shaderName,
       auto& pipeline);
 
-  VkPipelineVertexInputStateCreateInfo getVertexInputState();
+  VkPipelineVertexInputStateCreateInfo getVertexInputState(
+      const std::vector<VkVertexInputBindingDescription>& bindingDescriptions,
+      const std::vector<VkVertexInputAttributeDescription>&
+          attributeDescriptions);
   VkPipelineDynamicStateCreateInfo getDynamicState();
   VkPipelineInputAssemblyStateCreateInfo getInputAssemblyState(
       VkPrimitiveTopology topology);
@@ -99,6 +102,6 @@ class Pipelines {
   VkPipelineLayoutCreateInfo setLayoutState(
       const VkDescriptorSetLayout& descriptorSetLayout,
       VkPipelineLayout& pipelineLayout);
-  VkGraphicsPipelineCreateInfo setGraphicsPipelineInfo(
+  VkGraphicsPipelineCreateInfo getGraphicsPipelineInfo(
       Pipelines::GraphicsPipelineConfiguration& config);
 };
