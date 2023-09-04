@@ -209,7 +209,7 @@ void Pipelines::createRenderPass() {
 }
 
 void Pipelines::createGraphicsPipelines(
-    VkDescriptorSetLayout& descriptorSetLayout) {
+    const VkDescriptorSetLayout& descriptorSetLayout) {
   Log::text("{ === }", "Graphics Pipelines");
 
   GraphicsPipelineConfiguration pipelineConfig{};

@@ -73,7 +73,8 @@ class Pipelines {
       const VkDescriptorSetLayout& descriptorSetLayout,
       const std::string& vertexShader,
       const std::string& fragmentShader);
-  void createGraphicsPipelines(VkDescriptorSetLayout& descriptorSetLayout);
+  void createGraphicsPipelines(
+      const VkDescriptorSetLayout& descriptorSetLayout);
   void createComputePipeline(VkDescriptorSetLayout& descriptorSetLayout,
                              Resources::PushConstants& _pushConstants);
 
