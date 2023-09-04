@@ -546,13 +546,13 @@ void Resources::recordComputeCommandBuffer(VkCommandBuffer commandBuffer,
                      pushConstants.shaderStage, pushConstants.offset,
                      pushConstants.size, pushConstants.data.data());
 
-  uint32_t numberOfWorkgroupsX =
-      (world.grid.XY[0] + compute.localSizeX - 1) / compute.localSizeX;
-  uint32_t numberOfWorkgroupsY =
-      (world.grid.XY[1] + compute.localSizeY - 1) / compute.localSizeY;
+  uint32_t workgroupSizeX = (world.grid.XY[0] + _pipelines.compute.XYZ[0] - 1) /
+                            _pipelines.compute.XYZ[0];
+  uint32_t workgroupSizeY = (world.grid.XY[1] + _pipelines.compute.XYZ[1] - 1) /
+                            _pipelines.compute.XYZ[1];
 
-  vkCmdDispatch(commandBuffer, numberOfWorkgroupsX, numberOfWorkgroupsY,
-                compute.localSizeZ);
+  vkCmdDispatch(commandBuffer, workgroupSizeX, workgroupSizeY,
+                _pipelines.compute.XYZ[2]);
 
   _mechanics.result(vkEndCommandBuffer, commandBuffer);
 }

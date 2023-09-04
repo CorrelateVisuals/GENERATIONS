@@ -22,6 +22,7 @@ class Pipelines {
     VkPipeline engine;
     VkPipelineLayout pipelineLayout;
     std::vector<VkShaderModule> shaderModules;
+    const std::array<uint32_t, 3> XYZ{32, 32, 1};
   } compute;
 
   struct Graphics {
