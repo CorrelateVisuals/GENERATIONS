@@ -11,7 +11,7 @@ layout(location = 6) in vec2 textureCoords;
 
 layout (binding = 0) uniform ParameterUBO {
     vec4 light;
-    ivec2 gridDimensions;
+    ivec2 gridxy;
     float waterThreshold;
     float cellSize;
     mat4 model;
@@ -19,7 +19,7 @@ layout (binding = 0) uniform ParameterUBO {
     mat4 projection;
 } ubo;
 vec4 light = ubo.light;
-ivec2 gridDimensions = ubo.gridDimensions;
+ivec2 gridxy = ubo.gridxy;
 mat4 model = ubo.model;
 mat4 view = ubo.view;
 mat4 projection = ubo.projection;
