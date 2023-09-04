@@ -424,23 +424,3 @@ VkPipelineLayoutCreateInfo Pipelines::setLayoutState(
 
   return createStateInfo;
 }
-
-VkGraphicsPipelineCreateInfo Pipelines::getGraphicsPipelineInfo(auto& config) {
-  VkGraphicsPipelineCreateInfo graphicsPipelineInfo{
-      .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
-      .stageCount = static_cast<uint32_t>(config.shaderStages.size()),
-      .pStages = config.shaderStages.data(),
-      .pVertexInputState = &config.vertexInputState,
-      .pInputAssemblyState = &config.inputAssemblyState,
-      .pViewportState = &config.viewportState,
-      .pRasterizationState = &config.rasterizationState,
-      .pMultisampleState = &config.multisampleState,
-      .pDepthStencilState = &config.depthStencilState,
-      .pColorBlendState = &config.colorBlendingState,
-      .pDynamicState = &config.dynamicState,
-      .layout = graphics.pipelineLayout,
-      .renderPass = graphics.renderPass,
-      .subpass = 0,
-      .basePipelineHandle = VK_NULL_HANDLE};
-  return graphicsPipelineInfo;
-}

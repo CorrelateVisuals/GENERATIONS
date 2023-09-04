@@ -86,5 +86,4 @@ class Pipelines {
   VkPipelineLayoutCreateInfo setLayoutState(
       const VkDescriptorSetLayout& descriptorSetLayout,
       VkPipelineLayout& pipelineLayout);
-  VkGraphicsPipelineCreateInfo getGraphicsPipelineInfo(auto& config);
 };
