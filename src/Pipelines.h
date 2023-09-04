@@ -54,26 +54,8 @@ class Pipelines {
  private:
   VulkanMechanics& _mechanics;
 
-  struct GraphicsPipelineConfiguration {
-    std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
-    VkPipelineVertexInputStateCreateInfo vertexInputState;
-    VkPipelineInputAssemblyStateCreateInfo inputAssemblyState;
-    VkPipelineViewportStateCreateInfo viewportState;
-    VkPipelineRasterizationStateCreateInfo rasterizationState;
-    VkPipelineMultisampleStateCreateInfo multisampleState;
-    VkPipelineDepthStencilStateCreateInfo depthStencilState;
-    VkPipelineColorBlendStateCreateInfo colorBlendingState;
-    VkPipelineDynamicStateCreateInfo dynamicState;
-    VkPipelineLayoutCreateInfo pipelineLayoutState;
-  };
-
  private:
   void createRenderPass();
-  VkGraphicsPipelineCreateInfo configGraphicsPipeline(
-      Pipelines::GraphicsPipelineConfiguration& pipelineConfig,
-      const VkDescriptorSetLayout& descriptorSetLayout,
-      const std::string& vertexShader,
-      const std::string& fragmentShader);
   void createGraphicsPipelines(
       const VkDescriptorSetLayout& descriptorSetLayout);
   void createComputePipeline(VkDescriptorSetLayout& descriptorSetLayout,
@@ -104,6 +86,5 @@ class Pipelines {
   VkPipelineLayoutCreateInfo setLayoutState(
       const VkDescriptorSetLayout& descriptorSetLayout,
       VkPipelineLayout& pipelineLayout);
-  VkGraphicsPipelineCreateInfo getGraphicsPipelineInfo(
-      Pipelines::GraphicsPipelineConfiguration& config);
+  VkGraphicsPipelineCreateInfo getGraphicsPipelineInfo(auto& config);
 };
