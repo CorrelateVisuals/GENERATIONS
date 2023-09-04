@@ -101,7 +101,7 @@ void Resources::createShaderStorageBuffers() {
   std::vector<World::Cell> cells = world.initializeCells();
 
   VkDeviceSize bufferSize =
-      sizeof(World::Cell) * world.grid.xy[0] * world.grid.xy[1];
+      sizeof(World::Cell) * world.grid.XY[0] * world.grid.XY[1];
 
   // Create a staging buffer used to upload data to the gpu
   VkBuffer stagingBuffer;
@@ -464,12 +464,12 @@ void Resources::createDescriptorSets() {
     VkDescriptorBufferInfo storageBufferInfoLastFrame{
         .buffer = buffers.shaderStorage[(i - 1) % MAX_FRAMES_IN_FLIGHT],
         .offset = 0,
-        .range = sizeof(World::Cell) * world.grid.xy[0] * world.grid.xy[1]};
+        .range = sizeof(World::Cell) * world.grid.XY[0] * world.grid.XY[1]};
 
     VkDescriptorBufferInfo storageBufferInfoCurrentFrame{
         .buffer = buffers.shaderStorage[i],
         .offset = 0,
-        .range = sizeof(World::Cell) * world.grid.xy[0] * world.grid.xy[1]};
+        .range = sizeof(World::Cell) * world.grid.XY[0] * world.grid.XY[1]};
 
     VkDescriptorImageInfo imageInfo{
         .sampler = image.textureSampler,
@@ -547,9 +547,9 @@ void Resources::recordComputeCommandBuffer(VkCommandBuffer commandBuffer,
                      pushConstants.size, pushConstants.data.data());
 
   uint32_t numberOfWorkgroupsX =
-      (world.grid.xy[0] + compute.localSizeX - 1) / compute.localSizeX;
+      (world.grid.XY[0] + compute.localSizeX - 1) / compute.localSizeX;
   uint32_t numberOfWorkgroupsY =
-      (world.grid.xy[1] + compute.localSizeY - 1) / compute.localSizeY;
+      (world.grid.XY[1] + compute.localSizeY - 1) / compute.localSizeY;
 
   vkCmdDispatch(commandBuffer, numberOfWorkgroupsX, numberOfWorkgroupsY,
                 compute.localSizeZ);
@@ -604,13 +604,13 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
       commandBuffer, 0, 1,
       &buffers.shaderStorage[_mechanics.syncObjects.currentFrame], offsets);
   vkCmdDraw(commandBuffer, world.geo.cube.vertexCount,
-            world.grid.xy[0] * world.grid.xy[1], 0, 0);
+            world.grid.XY[0] * world.grid.XY[1], 0, 0);
 
   // Pipeline 2
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                     _pipelines.graphics.tiles);
   vkCmdDraw(commandBuffer, world.geo.tile.vertexCount,
-            world.grid.xy[0] * world.grid.xy[1], 0, 0);
+            world.grid.XY[0] * world.grid.XY[1], 0, 0);
 
   vkCmdEndRenderPass(commandBuffer);
 

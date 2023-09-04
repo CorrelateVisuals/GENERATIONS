@@ -22,7 +22,7 @@ class World {
 
   struct Grid {
     uint_fast32_t cellsAlive = 5000;
-    std::array<uint_fast16_t, 2> xy = {200, 100};
+    std::array<uint_fast16_t, 2> XY = {200, 100};
   } grid;
 
   struct Geometry {
@@ -47,7 +47,7 @@ class World {
 
   struct UniformBufferObject {
     std::array<float, 4> light;
-    std::array<uint32_t, 2> gridxy;
+    std::array<uint32_t, 2> gridXY;
     float waterThreshold;
     float cellSize;
     alignas(16) glm::mat4 model;

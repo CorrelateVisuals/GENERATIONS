@@ -65,8 +65,8 @@ World::getTerrainAttributeDescriptions() {
 }
 
 std::vector<World::Cell> World::initializeCells() {
-  const uint_fast16_t width{grid.xy[0]};
-  const uint_fast16_t height{grid.xy[1]};
+  const uint_fast16_t width{grid.XY[0]};
+  const uint_fast16_t height{grid.XY[1]};
   const uint_fast32_t numGridPoints{width * height};
   const uint_fast32_t numAliveCells{grid.cellsAlive};
   const float gap{0.6f};
@@ -91,8 +91,8 @@ std::vector<World::Cell> World::initializeCells() {
     isAliveIndices[aliveIndex] = true;
   }
 
-  Terrain::Config terrainLayer1 = {.width = grid.xy[0],
-                                   .height = grid.xy[1],
+  Terrain::Config terrainLayer1 = {.width = grid.XY[0],
+                                   .height = grid.XY[1],
                                    .roughness = 0.4f,
                                    .octaves = 10,
                                    .scale = 1.1f,
@@ -102,8 +102,8 @@ std::vector<World::Cell> World::initializeCells() {
                                    .heightOffset = 0.0f};
   Terrain terrain(terrainLayer1);
 
-  Terrain::Config terrainLayer2 = {.width = grid.xy[0],
-                                   .height = grid.xy[1],
+  Terrain::Config terrainLayer2 = {.width = grid.XY[0],
+                                   .height = grid.XY[1],
                                    .roughness = 1.0f,
                                    .octaves = 10,
                                    .scale = 1.1f,
@@ -154,7 +154,7 @@ std::vector<uint_fast32_t> World::setCellsAliveRandomly(
   std::random_device random;
   std::mt19937 generate(random());
   std::uniform_int_distribution<int> distribution(0,
-                                                  grid.xy[0] * grid.xy[1] - 1);
+                                                  grid.XY[0] * grid.XY[1] - 1);
 
   while (CellIDs.size() < numberOfCells) {
     int CellID = distribution(generate);
@@ -174,8 +174,8 @@ bool World::isIndexAlive(const std::vector<int>& aliveCells, int index) {
 World::UniformBufferObject World::updateUniforms(VkExtent2D& _swapChainExtent) {
   UniformBufferObject uniformObject{
       .light = light.position,
-      .gridxy = {static_cast<uint32_t>(grid.xy[0]),
-                 static_cast<uint32_t>(grid.xy[1])},
+      .gridXY = {static_cast<uint32_t>(grid.XY[0]),
+                 static_cast<uint32_t>(grid.XY[1])},
       .waterThreshold = 0.1f,
       .cellSize = geo.cube.size,
       .model = setModel(),
