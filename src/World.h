@@ -17,8 +17,7 @@ class World {
   World();
   ~World();
 
-  Timer time;
-  float timerSpeed = 100.0f;
+  Timer time{30.0f};
 
   struct Grid {
     uint_fast32_t cellsAlive = 5000;

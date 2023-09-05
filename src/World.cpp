@@ -10,10 +10,9 @@
 #include <ctime>
 #include <random>
 
-World::World() : time{} {
+World::World() {
   Log::logTitle();
   Log::text("{ wWw }", "constructing World");
-  time.speed = timerSpeed;
 }
 
 World::~World() {

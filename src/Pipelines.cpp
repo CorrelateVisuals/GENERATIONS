@@ -145,16 +145,12 @@ void Pipelines::createGraphicsPipelines(
   std::vector<VkPipelineShaderStageCreateInfo> shaderStages{
       setShaderStage(VK_SHADER_STAGE_VERTEX_BIT, "CellsVert.spv", graphics),
       setShaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, "CellsFrag.spv", graphics)};
-
   static auto bindings = World::getCellBindingDescriptions();
   static auto attributes = World::getCellAttributeDescriptions();
   VkPipelineVertexInputStateCreateInfo vertexInputInfo{
       getVertexInputState(bindings, attributes)};
-
   VkPipelineInputAssemblyStateCreateInfo inputAssembly{
       getInputAssemblyState(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST)};
-
-  VkPipelineViewportStateCreateInfo viewportState{getViewportState()};
 
   VkPipelineRasterizationStateCreateInfo rasterizer{
       .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
@@ -168,13 +164,11 @@ void Pipelines::createGraphicsPipelines(
       .depthBiasClamp = 0.01f,
       .depthBiasSlopeFactor = 0.02f,
       .lineWidth = 1.0f};
-
   VkPipelineMultisampleStateCreateInfo multisampling{
       .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
       .rasterizationSamples = graphics.msaa.samples,
       .sampleShadingEnable = VK_TRUE,
       .minSampleShading = 1.0f};
-
   VkPipelineDepthStencilStateCreateInfo depthStencil{
       .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
       .depthTestEnable = VK_TRUE,
@@ -182,7 +176,6 @@ void Pipelines::createGraphicsPipelines(
       .depthCompareOp = VK_COMPARE_OP_LESS,
       .depthBoundsTestEnable = VK_FALSE,
       .stencilTestEnable = VK_FALSE};
-
   static VkPipelineColorBlendAttachmentState colorBlendAttachmentState{
       .blendEnable = VK_FALSE,
       .srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA,
@@ -203,11 +196,10 @@ void Pipelines::createGraphicsPipelines(
       .pAttachments = &colorBlendAttachmentState,
       .blendConstants = {0.0f, 0.0f, 0.0f, 0.0f}};
 
+  VkPipelineViewportStateCreateInfo viewportState{ getViewportState() };
   VkPipelineDynamicStateCreateInfo dynamicState{getDynamicState()};
-
   VkPipelineLayoutCreateInfo pipelineLayoutInfo{
       setLayoutState(descriptorSetLayout, graphics.pipelineLayout)};
-
   VkGraphicsPipelineCreateInfo pipelineInfo{
       .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
       .stageCount = static_cast<uint32_t>(shaderStages.size()),
