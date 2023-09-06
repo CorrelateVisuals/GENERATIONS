@@ -4,7 +4,7 @@
 #include <iostream>
 #include <thread>
 
-Timer::Timer() {}
+Timer::Timer(float initSpeed) : speed{initSpeed} {}
 
 Timer::~Timer() {}
 

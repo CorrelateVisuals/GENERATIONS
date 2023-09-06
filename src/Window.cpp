@@ -43,7 +43,7 @@ void Window::setMouse() {
                                                       GLFW_MOUSE_BUTTON_RIGHT,
                                                       GLFW_MOUSE_BUTTON_MIDDLE};
 
-  for (const int& mouseButtonType : mouseButtonTypes) {
+  for (const int mouseButtonType : mouseButtonTypes) {
     if (glfwGetMouseButton(window, mouseButtonType) == GLFW_PRESS) {
       newState = GLFW_PRESS;
       buttonType = mouseButtonType;
@@ -54,7 +54,6 @@ void Window::setMouse() {
   if (buttonType != -1) {
     static int oldState = GLFW_RELEASE;
     double xpos, ypos;
-    static float timer = 0.0f;
     static float pressTime = 0.0f;
 
     glfwGetCursorPos(window, &xpos, &ypos);
@@ -78,7 +77,6 @@ void Window::setMouse() {
             Log::text(message + " clicked at",
                       mouse.buttonClick[buttonType].position.x, ":",
                       mouse.buttonClick[buttonType].position.y);
-            timer = 0.0f;
           }
         } else {
           const float currentTime = static_cast<float>(glfwGetTime());

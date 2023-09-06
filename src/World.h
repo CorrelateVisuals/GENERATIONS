@@ -17,12 +17,11 @@ class World {
   World();
   ~World();
 
-  Timer time;
-  float timelineSpeed = 100.0f;
+  Timer time{30.0f};
 
   struct Grid {
-    uint_fast32_t totalAliveCells = 5000;
-    std::array<uint_fast16_t, 2> dimensions = {200, 100};
+    uint_fast32_t cellsAlive = 5000;
+    std::array<uint_fast16_t, 2> XY = {200, 100};
   } grid;
 
   struct Geometry {
@@ -47,7 +46,7 @@ class World {
 
   struct UniformBufferObject {
     std::array<float, 4> light;
-    std::array<uint32_t, 2> gridDimensions;
+    std::array<uint32_t, 2> gridXY;
     float waterThreshold;
     float cellSize;
     alignas(16) glm::mat4 model;
@@ -59,8 +58,13 @@ class World {
   std::vector<World::Cell> initializeCells();
   UniformBufferObject updateUniforms(VkExtent2D& _swapChain);
   static std::vector<VkVertexInputAttributeDescription>
-  getAttributeDescriptions();
-  static std::vector<VkVertexInputBindingDescription> getBindingDescriptions();
+  getCellAttributeDescriptions();
+  static std::vector<VkVertexInputBindingDescription>
+  getCellBindingDescriptions();
+  static std::vector<VkVertexInputBindingDescription>
+  getTerrainBindingDescriptions();
+  static std::vector<VkVertexInputAttributeDescription>
+  getTerrainAttributeDescriptions();
 
  private:
   struct Camera {

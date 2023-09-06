@@ -59,9 +59,9 @@ class Resources {
   void createResources(Pipelines& _pipelines);
   void createFramebuffers(Pipelines& _pipelines);
   void createDescriptorSetLayout();
-  void recordCommandBuffer(VkCommandBuffer commandBuffer,
-                           uint32_t imageIndex,
-                           Pipelines& _pipelines);
+  void recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
+                                   uint32_t imageIndex,
+                                   Pipelines& _pipelines);
   void recordComputeCommandBuffer(VkCommandBuffer commandBuffer,
                                   Pipelines& _pipelines);
   void updateUniformBuffer(uint32_t currentImage);
@@ -80,12 +80,6 @@ class Resources {
 
  private:
   VulkanMechanics& _mechanics;
-
-  struct Compute {
-    const uint8_t localSizeX{32};
-    const uint8_t localSizeY{32};
-    const uint8_t localSizeZ{1};
-  } compute;
 
   void setPushConstants();
   VkCommandBuffer beginSingleTimeCommands();

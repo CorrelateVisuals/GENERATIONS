@@ -104,7 +104,7 @@ void CapitalEngine::drawFrame() {
   vkResetCommandBuffer(
       resources.buffers.command.graphic[mechanics.syncObjects.currentFrame], 0);
 
-  resources.recordCommandBuffer(
+  resources.recordGraphicsCommandBuffer(
       resources.buffers.command.graphic[mechanics.syncObjects.currentFrame],
       imageIndex, pipelines);
 
@@ -172,15 +172,15 @@ void CapitalEngine::cleanup() {
   vkFreeMemory(mechanics.mainDevice.logical, resources.image.textureMemory,
                nullptr);
 
-  vkDestroyPipeline(mechanics.mainDevice.logical,
-                    pipelines.graphics.pipelines.cells, nullptr);
-  vkDestroyPipeline(mechanics.mainDevice.logical, pipelines.graphics.pipelines.tiles,
+  vkDestroyPipeline(mechanics.mainDevice.logical, pipelines.graphics.cells,
+                    nullptr);
+  vkDestroyPipeline(mechanics.mainDevice.logical, pipelines.graphics.tiles,
                     nullptr);
 
   vkDestroyPipelineLayout(mechanics.mainDevice.logical,
                           pipelines.graphics.pipelineLayout, nullptr);
 
-  vkDestroyPipeline(mechanics.mainDevice.logical, pipelines.compute.pipeline,
+  vkDestroyPipeline(mechanics.mainDevice.logical, pipelines.compute.engine,
                     nullptr);
   vkDestroyPipelineLayout(mechanics.mainDevice.logical,
                           pipelines.compute.pipelineLayout, nullptr);

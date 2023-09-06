@@ -101,7 +101,7 @@ void Resources::createShaderStorageBuffers() {
   std::vector<World::Cell> cells = world.initializeCells();
 
   VkDeviceSize bufferSize =
-      sizeof(World::Cell) * world.grid.dimensions[0] * world.grid.dimensions[1];
+      sizeof(World::Cell) * world.grid.XY[0] * world.grid.XY[1];
 
   // Create a staging buffer used to upload data to the gpu
   VkBuffer stagingBuffer;
@@ -272,7 +272,7 @@ void Resources::createImage(uint32_t width,
 
 void Resources::createTextureImage(std::string imagePath) {
   Log::text("{ img }", "Image Texture: ", imagePath);
-  int texWidth, texHeight, texChannels;
+  int texWidth{0}, texHeight{0}, texChannels{0};
   int rgba = 4;
   stbi_uc* pixels = stbi_load(imagePath.c_str(), &texWidth, &texHeight,
                               &texChannels, STBI_rgb_alpha);
@@ -436,7 +436,7 @@ void Resources::copyBufferToImage(VkBuffer buffer,
 }
 
 void Resources::createTextureImageView() {
-  Log::text("{ img }", ":  Texture Image View");
+  Log::text("{ ... }", ":  Texture Image View");
   image.textureView = createImageView(image.texture, VK_FORMAT_R8G8B8A8_SRGB,
                                       VK_IMAGE_ASPECT_COLOR_BIT);
 }
@@ -464,14 +464,12 @@ void Resources::createDescriptorSets() {
     VkDescriptorBufferInfo storageBufferInfoLastFrame{
         .buffer = buffers.shaderStorage[(i - 1) % MAX_FRAMES_IN_FLIGHT],
         .offset = 0,
-        .range = sizeof(World::Cell) * world.grid.dimensions[0] *
-                 world.grid.dimensions[1]};
+        .range = sizeof(World::Cell) * world.grid.XY[0] * world.grid.XY[1]};
 
     VkDescriptorBufferInfo storageBufferInfoCurrentFrame{
         .buffer = buffers.shaderStorage[i],
         .offset = 0,
-        .range = sizeof(World::Cell) * world.grid.dimensions[0] *
-                 world.grid.dimensions[1]};
+        .range = sizeof(World::Cell) * world.grid.XY[0] * world.grid.XY[1]};
 
     VkDescriptorImageInfo imageInfo{
         .sampler = image.textureSampler,
@@ -536,7 +534,7 @@ void Resources::recordComputeCommandBuffer(VkCommandBuffer commandBuffer,
   }
 
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
-                    _pipelines.compute.pipeline);
+                    _pipelines.compute.engine);
 
   vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
                           _pipelines.compute.pipelineLayout, 0, 1,
@@ -548,20 +546,20 @@ void Resources::recordComputeCommandBuffer(VkCommandBuffer commandBuffer,
                      pushConstants.shaderStage, pushConstants.offset,
                      pushConstants.size, pushConstants.data.data());
 
-  uint32_t numberOfWorkgroupsX =
-      (world.grid.dimensions[0] + compute.localSizeX - 1) / compute.localSizeX;
-  uint32_t numberOfWorkgroupsY =
-      (world.grid.dimensions[1] + compute.localSizeY - 1) / compute.localSizeY;
+  uint32_t workgroupSizeX = (world.grid.XY[0] + _pipelines.compute.XYZ[0] - 1) /
+                            _pipelines.compute.XYZ[0];
+  uint32_t workgroupSizeY = (world.grid.XY[1] + _pipelines.compute.XYZ[1] - 1) /
+                            _pipelines.compute.XYZ[1];
 
-  vkCmdDispatch(commandBuffer, numberOfWorkgroupsX, numberOfWorkgroupsY,
-                compute.localSizeZ);
+  vkCmdDispatch(commandBuffer, workgroupSizeX, workgroupSizeY,
+                _pipelines.compute.XYZ[2]);
 
   _mechanics.result(vkEndCommandBuffer, commandBuffer);
 }
 
-void Resources::recordCommandBuffer(VkCommandBuffer commandBuffer,
-                                    uint32_t imageIndex,
-                                    Pipelines& _pipelines) {
+void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
+                                            uint32_t imageIndex,
+                                            Pipelines& _pipelines) {
   VkCommandBufferBeginInfo beginInfo{
       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO};
 
@@ -600,22 +598,19 @@ void Resources::recordCommandBuffer(VkCommandBuffer commandBuffer,
 
   // Pipeline 1
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                    _pipelines.graphics.pipelines.cells);
+                    _pipelines.graphics.cells);
   VkDeviceSize offsets[]{0};
   vkCmdBindVertexBuffers(
       commandBuffer, 0, 1,
       &buffers.shaderStorage[_mechanics.syncObjects.currentFrame], offsets);
   vkCmdDraw(commandBuffer, world.geo.cube.vertexCount,
-            world.grid.dimensions[0] * world.grid.dimensions[1], 0, 0);
+            world.grid.XY[0] * world.grid.XY[1], 0, 0);
 
   // Pipeline 2
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                    _pipelines.graphics.pipelines.tiles);
-  // vkCmdBindVertexBuffers(
-  //     commandBuffer, 0, 1,
-  //     &buffers.shaderStorage[_mechanics.syncObjects.currentFrame], offsets);
-  vkCmdDraw(commandBuffer, world.geo.tile.vertexCount,  // 200x100
-            world.grid.dimensions[0] * world.grid.dimensions[1], 0, 0);
+                    _pipelines.graphics.tiles);
+  vkCmdDraw(commandBuffer, world.geo.tile.vertexCount,
+            world.grid.XY[0] * world.grid.XY[1], 0, 0);
 
   vkCmdEndRenderPass(commandBuffer);
 
@@ -625,7 +620,7 @@ void Resources::recordCommandBuffer(VkCommandBuffer commandBuffer,
 VkImageView Resources::createImageView(VkImage image,
                                        VkFormat format,
                                        VkImageAspectFlags aspectFlags) {
-  Log::text("{ img }", ":  Image View");
+  Log::text("{ ... }", ":  Image View");
 
   VkImageViewCreateInfo viewInfo{
       .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,

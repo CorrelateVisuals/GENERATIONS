@@ -18,18 +18,18 @@ layout (local_size_x = 32, local_size_y = 32, local_size_z = 1) in;
 layout(push_constant, std430) uniform pushConstant { uint64_t passedHours; };
 layout (binding = 0) uniform ParameterUBO {
     vec4 lightDirection;
-    ivec2 gridDimensions;
+    ivec2 gridXY;
     float waterThreshold;
     float cellSize;
     mat4 model;
     mat4 view;
     mat4 projection;
 } ubo;
-ivec2 gridDimensions = ubo.gridDimensions;
+ivec2 gridXY = ubo.gridXY;
 
 uint globalID_x = gl_GlobalInvocationID.x;
 uint globalID_y = gl_GlobalInvocationID.y;
-uint index = globalID_y * gridDimensions.x + globalID_x % gridDimensions.x + (globalID_x / gridDimensions.x) * gridDimensions.y;
+uint index = globalID_y * gridXY.x + globalID_x % gridXY.x + (globalID_x / gridXY.x) * gridXY.y;
 
 const int alive       =  1;
 const int dead        = -1;
@@ -57,9 +57,9 @@ ivec4 setState(int _alive, int stage){
 }
 
 int getNeighbourIndex(ivec2 offset) {
-    ivec2 indexPos = ivec2(index % gridDimensions.x, index / gridDimensions.x);
-    ivec2 neighbourPos = (indexPos + offset + gridDimensions) % gridDimensions;
-    int neighbourIndex = neighbourPos.y * gridDimensions.x + neighbourPos.x;
+    ivec2 indexPos = ivec2(index % gridXY.x, index / gridXY.x);
+    ivec2 neighbourPos = (indexPos + offset + gridXY) % gridXY;
+    int neighbourIndex = neighbourPos.y * gridXY.x + neighbourPos.x;
     return neighbourIndex;
 }
 

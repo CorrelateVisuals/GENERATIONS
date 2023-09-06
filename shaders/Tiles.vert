@@ -11,7 +11,7 @@ layout(location = 6) in vec2 textureCoords;
 
 layout (binding = 0) uniform ParameterUBO {
     vec4 light;
-    ivec2 gridDimensions;
+    ivec2 gridXY;
     float waterThreshold;
     float cellSize;
     mat4 model;
@@ -19,7 +19,7 @@ layout (binding = 0) uniform ParameterUBO {
     mat4 projection;
 } ubo;
 vec4 light = ubo.light;
-ivec2 gridDimensions = ubo.gridDimensions;
+ivec2 gridXY = ubo.gridXY;
 mat4 model = ubo.model;
 mat4 view = ubo.view;
 mat4 projection = ubo.projection;
@@ -93,7 +93,7 @@ vec4 viewPosition =  view * worldPosition;
 vec3 worldNormal =   mat3(model) * getNormal();
 
 vec4 setColor() {
-    vec2 normalizedPosition = (worldPosition.xy + gridDimensions.xy * 0.5) / gridDimensions.xy;
+    vec2 normalizedPosition = (worldPosition.xy + gridXY.xy * 0.5) / gridXY.xy;
     vec2 invNormalizedPosition = vec2(1.0) - normalizedPosition;
 
     float blendTopLeft = max(invNormalizedPosition.x + invNormalizedPosition.y - 0.9, 0.0);

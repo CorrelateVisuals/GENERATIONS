@@ -12,28 +12,25 @@ class Pipelines {
   Pipelines(VulkanMechanics& mechanics);
   ~Pipelines();
 
-  struct Graphics {
-    struct Pipelines {
-      VkPipeline cells;
-      VkPipeline tiles;
-    } pipelines;
+  std::unordered_map<std::string, std::vector<std::string>> shaders = {
+      {"Engine", {"Comp"}},
+      {"Cells", {"Vert", "Frag"}},
+      {"Tiles", {"Vert", "Frag"}}};
+  std::string shaderDir = "shaders/";
 
+  struct Compute {
+    VkPipeline engine;
+    VkPipelineLayout pipelineLayout;
+    std::vector<VkShaderModule> shaderModules;
+    const std::array<uint32_t, 3> XYZ{32, 32, 1};
+  } compute;
+
+  struct Graphics {
+    VkPipeline cells;
+    VkPipeline tiles;
     VkRenderPass renderPass;
     VkPipelineLayout pipelineLayout;
     std::vector<VkShaderModule> shaderModules;
-
-    struct Config {
-      std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
-      VkPipelineVertexInputStateCreateInfo vertexInputState;
-      VkPipelineInputAssemblyStateCreateInfo inputAssemblyState;
-      VkPipelineViewportStateCreateInfo viewportState;
-      VkPipelineRasterizationStateCreateInfo rasterizationState;
-      VkPipelineMultisampleStateCreateInfo multisampleState;
-      VkPipelineDepthStencilStateCreateInfo depthStencilState;
-      VkPipelineColorBlendStateCreateInfo colorBlendingState;
-      VkPipelineDynamicStateCreateInfo dynamicState;
-      VkPipelineLayoutCreateInfo pipelineLayoutState;
-    };
 
     struct Depth {
       VkImage image;
@@ -49,28 +46,6 @@ class Pipelines {
     } msaa;
   } graphics;
 
-  struct Compute {
-    VkPipelineLayout pipelineLayout;
-    VkPipeline pipeline;
-    std::vector<VkShaderModule> shaderModules;
-  } compute;
-
-  struct Shaders {
-    std::vector<std::string> name{"Engine", "Cells", "Tiles"};
-    std::vector<std::string> path{
-        Lib::path("shaders/" + name[0] + ".comp -o shaders/" + name[0] +
-                  "Comp.spv"),
-        Lib::path("shaders/" + name[1] + ".vert -o shaders/" + name[1] +
-                  "Vert.spv"),
-        Lib::path("shaders/" + name[1] + ".frag -o shaders/" + name[1] +
-                  "Frag.spv"),
-        Lib::path("shaders/" + name[2] + ".vert -o shaders/" + name[2] +
-                  "Vert.spv"),
-        Lib::path("shaders/" + name[2] + ".frag -o shaders/" + name[2] +
-                  "Frag.spv"),
-    };
-  } shaders;
-
  public:
   void createPipelines(Resources& _resources);
   void createColorResources(Resources& _resources);
@@ -78,13 +53,11 @@ class Pipelines {
 
  private:
   VulkanMechanics& _mechanics;
+
+ private:
   void createRenderPass();
-  VkGraphicsPipelineCreateInfo getPipelineCreateInfo(
-      Pipelines::Graphics::Config& pipelineConfig,
-      const VkDescriptorSetLayout& descriptorSetLayout,
-      const std::string& vertexShader,
-      const std::string& fragmentShader);
-  void createGraphicsPipelines(VkDescriptorSetLayout& descriptorSetLayout);
+  void createGraphicsPipelines(
+      const VkDescriptorSetLayout& descriptorSetLayout);
   void createComputePipeline(VkDescriptorSetLayout& descriptorSetLayout,
                              Resources::PushConstants& _pushConstants);
 
@@ -102,16 +75,7 @@ class Pipelines {
       std::string shaderName,
       auto& pipeline);
 
-  VkPipelineVertexInputStateCreateInfo getVertexInputState();
-  VkPipelineColorBlendStateCreateInfo getColorBlendingState();
-  VkPipelineDynamicStateCreateInfo getDynamicState();
-  VkPipelineDepthStencilStateCreateInfo getDepthStencilState();
-  VkPipelineInputAssemblyStateCreateInfo getInputAssemblyState(
-      VkPrimitiveTopology topology);
-  VkPipelineViewportStateCreateInfo getViewportState();
-  VkPipelineRasterizationStateCreateInfo getRasterizationState();
-  VkPipelineMultisampleStateCreateInfo getMultisampleState();
-  VkPipelineLayoutCreateInfo setLayoutState(
+  VkPipelineLayoutCreateInfo createPipelineLayout(
       const VkDescriptorSetLayout& descriptorSetLayout,
       VkPipelineLayout& pipelineLayout);
 };

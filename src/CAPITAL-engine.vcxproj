@@ -187,6 +187,7 @@
     <ClInclude Include="Resources.h" />
     <ClInclude Include="Pipelines.h" />
     <ClInclude Include="Mechanics.h" />
+    <ClInclude Include="Structs.h" />
     <ClInclude Include="Terrain.h" />
     <ClInclude Include="Timer.h" />
     <ClInclude Include="ValidationLayers.h" />
