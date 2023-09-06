@@ -32,6 +32,9 @@ class World {
     struct Tile {
       const uint32_t vertexCount{54};
     } tile;
+    struct Water {
+      const uint32_t vertexCount{ 6 };
+    } water;
   } geo;
 
   struct Cell {
@@ -62,9 +65,9 @@ class World {
   static std::vector<VkVertexInputBindingDescription>
   getCellBindingDescriptions();
   static std::vector<VkVertexInputBindingDescription>
-  getTerrainBindingDescriptions();
+  getWaterBindingDescriptions();
   static std::vector<VkVertexInputAttributeDescription>
-  getTerrainAttributeDescriptions();
+  getWaterAttributeDescriptions();
 
  private:
   struct Camera {

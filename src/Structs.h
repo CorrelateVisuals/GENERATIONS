@@ -18,20 +18,23 @@ namespace Structs {
         VkPipelineVertexInputStateCreateInfo createStateInfo;
 
         PipelineVertexInputState(
-            const std::vector<VkVertexInputBindingDescription>& bindingDescriptions,
-            const std::vector<VkVertexInputAttributeDescription>& attributeDescriptions)
+            const std::vector<VkVertexInputBindingDescription>& bindingDescriptions = {},
+            const std::vector<VkVertexInputAttributeDescription>& attributeDescriptions = {})
             : createStateInfo{
                   .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
                   .pNext = nullptr,
                   .flags = 0,
                   .vertexBindingDescriptionCount =
                       static_cast<uint32_t>(bindingDescriptions.size()),
-                  .pVertexBindingDescriptions = bindingDescriptions.data(),
+                  .pVertexBindingDescriptions =
+                      bindingDescriptions.empty() ? nullptr : bindingDescriptions.data(),
                   .vertexAttributeDescriptionCount =
                       static_cast<uint32_t>(attributeDescriptions.size()),
-                  .pVertexAttributeDescriptions = attributeDescriptions.data()
+                  .pVertexAttributeDescriptions =
+                      attributeDescriptions.empty() ? nullptr : attributeDescriptions.data()
             } {}
     };
+
 
     struct PipelineDynamicState {
         VkPipelineDynamicStateCreateInfo createStateInfo;

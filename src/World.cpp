@@ -49,14 +49,14 @@ World::getCellAttributeDescriptions() {
 }
 
 std::vector<VkVertexInputBindingDescription>
-World::getTerrainBindingDescriptions() {
+World::getWaterBindingDescriptions() {
   std::vector<VkVertexInputBindingDescription> bindingDescriptions{
       {0, sizeof(Cell), VK_VERTEX_INPUT_RATE_VERTEX}};
   return bindingDescriptions;
 }
 
 std::vector<VkVertexInputAttributeDescription>
-World::getTerrainAttributeDescriptions() {
+World::getWaterAttributeDescriptions() {
   std::vector<VkVertexInputAttributeDescription> attributeDescriptions{
       {0, 0, VK_FORMAT_R32G32B32A32_SFLOAT,
        static_cast<uint32_t>(offsetof(Cell, position))}};

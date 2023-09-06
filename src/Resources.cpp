@@ -612,6 +612,12 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
   vkCmdDraw(commandBuffer, world.geo.tile.vertexCount,
             world.grid.XY[0] * world.grid.XY[1], 0, 0);
 
+  // Pipeline 3
+  vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+      _pipelines.graphics.water);
+  vkCmdDraw(commandBuffer, world.geo.water.vertexCount,
+      1, 0, 0);
+
   vkCmdEndRenderPass(commandBuffer);
 
   _mechanics.result(vkEndCommandBuffer, commandBuffer);

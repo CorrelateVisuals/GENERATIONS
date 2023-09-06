@@ -162,9 +162,7 @@ void Pipelines::createGraphicsPipelines(
       .depthBiasClamp = 0.01f,
       .depthBiasSlopeFactor = 0.02f,
       .lineWidth = 1.0f};
-
   Structs::MultisampleState multisample{ VK_TRUE, graphics.msaa.samples };
-
   VkPipelineDepthStencilStateCreateInfo depthStencil{
       .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
       .depthTestEnable = VK_TRUE,
@@ -223,9 +221,27 @@ void Pipelines::createGraphicsPipelines(
   shaderStages = {
     setShaderStage(VK_SHADER_STAGE_VERTEX_BIT, "TilesVert.spv", graphics),
     setShaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, "TilesFrag.spv", graphics) };
+  pipelineInfo.stageCount = static_cast<uint32_t>(shaderStages.size());
+  pipelineInfo.pStages = shaderStages.data();
+
   _mechanics.result(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
                     VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
                     &graphics.tiles);
+  destroyShaderModules(graphics.shaderModules);
+
+  // Water pipeline
+  shaderStages = {
+  setShaderStage(VK_SHADER_STAGE_VERTEX_BIT, "WaterVert.spv", graphics),
+  setShaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, "WaterFrag.spv", graphics) };
+  pipelineInfo.stageCount = static_cast<uint32_t>(shaderStages.size());
+  pipelineInfo.pStages = shaderStages.data();
+
+  Structs::PipelineVertexInputState noVertexInput{};
+  pipelineInfo.pVertexInputState = &noVertexInput.createStateInfo;
+
+  _mechanics.result(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
+      VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
+      &graphics.water);
   destroyShaderModules(graphics.shaderModules);
 }
 

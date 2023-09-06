@@ -12,11 +12,12 @@ class Pipelines {
   Pipelines(VulkanMechanics& mechanics);
   ~Pipelines();
 
-  std::unordered_map<std::string, std::vector<std::string>> shaders = {
+  const std::string shaderDir = "shaders/";
+  const std::unordered_map<std::string, std::vector<std::string>> shaders = {
       {"Engine", {"Comp"}},
       {"Cells", {"Vert", "Frag"}},
-      {"Tiles", {"Vert", "Frag"}}};
-  std::string shaderDir = "shaders/";
+      {"Tiles", {"Vert", "Frag"}},
+      {"Water", {"Vert", "Frag"}}};
 
   struct Compute {
     VkPipeline engine;
@@ -28,6 +29,7 @@ class Pipelines {
   struct Graphics {
     VkPipeline cells;
     VkPipeline tiles;
+    VkPipeline water;
     VkRenderPass renderPass;
     VkPipelineLayout pipelineLayout;
     std::vector<VkShaderModule> shaderModules;
