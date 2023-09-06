@@ -147,10 +147,8 @@ void Pipelines::createGraphicsPipelines(
       setShaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, "CellsFrag.spv", graphics)};
   static auto bindings = World::getCellBindingDescriptions();
   static auto attributes = World::getCellAttributeDescriptions();
-  VkPipelineVertexInputStateCreateInfo vertexInputInfo{
-      getVertexInputState(bindings, attributes)};
-  VkPipelineInputAssemblyStateCreateInfo inputAssembly{
-      getInputAssemblyState(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST)};
+  Structs::PipelineVertexInputState vertexInput{ bindings, attributes };
+  Structs::PipelineInputAssemblyState inputAssembly{ VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST };
 
   VkPipelineRasterizationStateCreateInfo rasterizer{
       .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
@@ -196,22 +194,24 @@ void Pipelines::createGraphicsPipelines(
       .pAttachments = &colorBlendAttachmentState,
       .blendConstants = {0.0f, 0.0f, 0.0f, 0.0f}};
 
-  VkPipelineViewportStateCreateInfo viewportState{ getViewportState() };
-  VkPipelineDynamicStateCreateInfo dynamicState{getDynamicState()};
-  VkPipelineLayoutCreateInfo pipelineLayoutInfo{
-      setLayoutState(descriptorSetLayout, graphics.pipelineLayout)};
+  Structs::PipelineViewportState viewport{};
+  Structs::PipelineDynamicState dynamic{};
+  Structs::PipelineLayoutState layoutState{descriptorSetLayout};
+  _mechanics.result(vkCreatePipelineLayout, _mechanics.mainDevice.logical,
+      &layoutState.createStateInfo, nullptr, &graphics.pipelineLayout);
+
   VkGraphicsPipelineCreateInfo pipelineInfo{
       .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
       .stageCount = static_cast<uint32_t>(shaderStages.size()),
       .pStages = shaderStages.data(),
-      .pVertexInputState = &vertexInputInfo,
-      .pInputAssemblyState = &inputAssembly,
-      .pViewportState = &viewportState,
+      .pVertexInputState = &vertexInput.createStateInfo,
+      .pInputAssemblyState = &inputAssembly.createStateInfo,
+      .pViewportState = &viewport.createStateInfo,
       .pRasterizationState = &rasterizer,
       .pMultisampleState = &multisampling,
       .pDepthStencilState = &depthStencil,
       .pColorBlendState = &colorBlending,
-      .pDynamicState = &dynamicState,
+      .pDynamicState = &dynamic.createStateInfo,
       .layout = graphics.pipelineLayout,
       .renderPass = graphics.renderPass,
       .subpass = 0,
@@ -357,51 +357,7 @@ void Pipelines::destroyShaderModules(
   shaderModules.resize(0);
 };
 
-VkPipelineVertexInputStateCreateInfo Pipelines::getVertexInputState(
-    const std::vector<VkVertexInputBindingDescription>& bindingDescriptions,
-    const std::vector<VkVertexInputAttributeDescription>&
-        attributeDescriptions) {
-  VkPipelineVertexInputStateCreateInfo createStateInfo{
-      .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
-      .pNext = nullptr,
-      .flags = 0,
-      .vertexBindingDescriptionCount =
-          static_cast<uint32_t>(bindingDescriptions.size()),
-      .pVertexBindingDescriptions = bindingDescriptions.data(),
-      .vertexAttributeDescriptionCount =
-          static_cast<uint32_t>(attributeDescriptions.size()),
-      .pVertexAttributeDescriptions = attributeDescriptions.data()};
-
-  return createStateInfo;
-}
-
-VkPipelineDynamicStateCreateInfo Pipelines::getDynamicState() {
-  static std::vector<VkDynamicState> dynamicStates = {VK_DYNAMIC_STATE_VIEWPORT,
-                                                      VK_DYNAMIC_STATE_SCISSOR};
-  VkPipelineDynamicStateCreateInfo createStateInfo{
-      .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
-      .dynamicStateCount = static_cast<uint32_t>(dynamicStates.size()),
-      .pDynamicStates = dynamicStates.data()};
-  return createStateInfo;
-}
-
-VkPipelineInputAssemblyStateCreateInfo Pipelines::getInputAssemblyState(
-    VkPrimitiveTopology topology) {
-  VkPipelineInputAssemblyStateCreateInfo createStateInfo{
-      .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
-      .topology = topology,
-      .primitiveRestartEnable = VK_FALSE};
-  return createStateInfo;
-}
-VkPipelineViewportStateCreateInfo Pipelines::getViewportState() {
-  VkPipelineViewportStateCreateInfo createStateInfo{
-      .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
-      .viewportCount = 1,
-      .scissorCount = 1};
-  return createStateInfo;
-}
-
-VkPipelineLayoutCreateInfo Pipelines::setLayoutState(
+VkPipelineLayoutCreateInfo Pipelines::createPipelineLayout(
     const VkDescriptorSetLayout& descriptorSetLayout,
     VkPipelineLayout& pipelineLayout) {
   VkPipelineLayoutCreateInfo createStateInfo{
@@ -409,10 +365,8 @@ VkPipelineLayoutCreateInfo Pipelines::setLayoutState(
       .setLayoutCount = 1,
       .pSetLayouts = &descriptorSetLayout};
 
-  if (pipelineLayout == VK_NULL_HANDLE) {
     _mechanics.result(vkCreatePipelineLayout, _mechanics.mainDevice.logical,
                       &createStateInfo, nullptr, &pipelineLayout);
-  }
 
   return createStateInfo;
 }
