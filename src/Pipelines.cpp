@@ -162,11 +162,9 @@ void Pipelines::createGraphicsPipelines(
       .depthBiasClamp = 0.01f,
       .depthBiasSlopeFactor = 0.02f,
       .lineWidth = 1.0f};
-  VkPipelineMultisampleStateCreateInfo multisampling{
-      .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
-      .rasterizationSamples = graphics.msaa.samples,
-      .sampleShadingEnable = VK_TRUE,
-      .minSampleShading = 1.0f};
+
+  Structs::MultisampleState multisample{ VK_TRUE, graphics.msaa.samples };
+
   VkPipelineDepthStencilStateCreateInfo depthStencil{
       .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
       .depthTestEnable = VK_TRUE,
@@ -208,7 +206,7 @@ void Pipelines::createGraphicsPipelines(
       .pInputAssemblyState = &inputAssembly.createStateInfo,
       .pViewportState = &viewport.createStateInfo,
       .pRasterizationState = &rasterizer,
-      .pMultisampleState = &multisampling,
+      .pMultisampleState = &multisample.createStateInfo,
       .pDepthStencilState = &depthStencil,
       .pColorBlendState = &colorBlending,
       .pDynamicState = &dynamic.createStateInfo,
