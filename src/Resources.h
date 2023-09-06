@@ -22,6 +22,7 @@ class Resources {
 
   struct PushConstants {
     VkShaderStageFlags shaderStage = {VK_SHADER_STAGE_COMPUTE_BIT};
+    uint32_t count = 1;
     uint32_t offset = 0;
     uint32_t size = 128;
     std::array<uint64_t, 32> data;
