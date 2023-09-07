@@ -148,9 +148,10 @@ void Pipelines::createGraphicsPipelines(
   static auto bindings =
       World::getCellBindingDescriptions(VK_VERTEX_INPUT_RATE_INSTANCE);
   static auto attributes = World::getCellAttributeDescriptions();
-  Structs::PipelineVertexInputState vertexInput{bindings, attributes};
-  Structs::PipelineInputAssemblyState inputAssembly{
-      VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST};
+  VkPipelineVertexInputStateCreateInfo vertexInput =
+      Structs::pipelineVertexInputState(bindings, attributes);
+  VkPipelineInputAssemblyStateCreateInfo inputAssembly =
+      Structs::pipelineInputAssemblyState(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
 
   VkPipelineRasterizationStateCreateInfo rasterizer{
       .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
@@ -164,7 +165,10 @@ void Pipelines::createGraphicsPipelines(
       .depthBiasClamp = 0.01f,
       .depthBiasSlopeFactor = 0.02f,
       .lineWidth = 1.0f};
-  Structs::MultisampleState multisampler{VK_TRUE, graphics.msaa.samples};
+
+  VkPipelineMultisampleStateCreateInfo multisampler =
+      Structs::multisampleState(VK_TRUE, graphics.msaa.samples);
+
   VkPipelineDepthStencilStateCreateInfo depthStencil{
       .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
       .depthTestEnable = VK_TRUE,
@@ -192,24 +196,25 @@ void Pipelines::createGraphicsPipelines(
       .pAttachments = &colorBlendAttachmentState,
       .blendConstants = {0.0f, 0.0f, 0.0f, 0.0f}};
 
-  Structs::PipelineViewportState viewport{};
-  Structs::PipelineDynamicState dynamic{};
-  Structs::PipelineLayoutState layoutState{descriptorSetLayout};
+  VkPipelineViewportStateCreateInfo viewport = Structs::pipelineViewportState();
+  VkPipelineDynamicStateCreateInfo dynamic = Structs::pipelineDynamicState();
+  VkPipelineLayoutCreateInfo layoutState =
+      Structs::pipelineLayout(descriptorSetLayout);
   _mechanics.result(vkCreatePipelineLayout, _mechanics.mainDevice.logical,
-                    &layoutState.createInfo, nullptr, &graphics.pipelineLayout);
+                    &layoutState, nullptr, &graphics.pipelineLayout);
 
   VkGraphicsPipelineCreateInfo pipelineInfo{
       .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
       .stageCount = static_cast<uint32_t>(shaderStages.size()),
       .pStages = shaderStages.data(),
-      .pVertexInputState = &vertexInput.createInfo,
-      .pInputAssemblyState = &inputAssembly.createInfo,
-      .pViewportState = &viewport.createInfo,
+      .pVertexInputState = &vertexInput,
+      .pInputAssemblyState = &inputAssembly,
+      .pViewportState = &viewport,
       .pRasterizationState = &rasterizer,
-      .pMultisampleState = &multisampler.createInfo,
+      .pMultisampleState = &multisampler,
       .pDepthStencilState = &depthStencil,
       .pColorBlendState = &colorBlender,
-      .pDynamicState = &dynamic.createInfo,
+      .pDynamicState = &dynamic,
       .layout = graphics.pipelineLayout,
       .renderPass = graphics.renderPass,
       .subpass = 0,
@@ -237,8 +242,8 @@ void Pipelines::createGraphicsPipelines(
   pipelineInfo.stageCount = static_cast<uint32_t>(shaderStages.size());
   pipelineInfo.pStages = shaderStages.data();
 
-  Structs::PipelineVertexInputState noVertexInput{};
-  pipelineInfo.pVertexInputState = &noVertexInput.createInfo;
+  vertexInput = Structs::pipelineVertexInputState();
+  pipelineInfo.pVertexInputState = &vertexInput;
 
   _mechanics.result(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
                     VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphics.water);
@@ -321,14 +326,15 @@ void Pipelines::createComputePipeline(
 
   VkPipelineShaderStageCreateInfo shaderStage{
       setShaderStage(VK_SHADER_STAGE_COMPUTE_BIT, "EngineComp.spv", compute)};
-  Structs::PushConstantRange constants{
-      pushConstants.shaderStage, pushConstants.offset, pushConstants.size};
-  Structs::PipelineLayoutState pipelineState{
-      descriptorSetLayout, pushConstants.count, constants.info};
+
+  VkPushConstantRange constants = Structs::pushConstantRange(
+      pushConstants.shaderStage, pushConstants.offset, pushConstants.size);
+
+  VkPipelineLayoutCreateInfo pipelineState = Structs::pipelineLayout(
+      descriptorSetLayout, pushConstants.count, constants);
 
   _mechanics.result(vkCreatePipelineLayout, _mechanics.mainDevice.logical,
-                    &pipelineState.createInfo, nullptr,
-                    &compute.pipelineLayout);
+                    &pipelineState, nullptr, &compute.pipelineLayout);
 
   VkComputePipelineCreateInfo pipelineInfo{
       .sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
