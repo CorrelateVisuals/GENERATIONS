@@ -1,4 +1,5 @@
 #include <vulkan/vulkan.h>
+#include <vulkan/vulkan.hpp>
 
 #include "CapitalEngine.h"
 #include "Pipelines.h"
@@ -198,10 +199,10 @@ void Pipelines::createGraphicsPipelines(
 
   VkPipelineViewportStateCreateInfo viewport = Structs::pipelineViewportState();
   VkPipelineDynamicStateCreateInfo dynamic = Structs::pipelineDynamicState();
-  VkPipelineLayoutCreateInfo layoutState =
+  VkPipelineLayoutCreateInfo layout =
       Structs::pipelineLayout(descriptorSetLayout);
   _mechanics.result(vkCreatePipelineLayout, _mechanics.mainDevice.logical,
-                    &layoutState, nullptr, &graphics.pipelineLayout);
+                    &layout, nullptr, &graphics.pipelineLayout);
 
   VkGraphicsPipelineCreateInfo pipelineInfo{
       .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
@@ -244,6 +245,10 @@ void Pipelines::createGraphicsPipelines(
 
   vertexInput = Structs::pipelineVertexInputState();
   pipelineInfo.pVertexInputState = &vertexInput;
+
+  colorBlendAttachmentState.blendEnable = VK_TRUE;
+  colorBlender.pAttachments = &colorBlendAttachmentState;
+  pipelineInfo.pColorBlendState = &colorBlender;
 
   _mechanics.result(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
                     VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphics.water);
