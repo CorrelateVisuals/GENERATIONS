@@ -145,7 +145,8 @@ void Pipelines::createGraphicsPipelines(
   std::vector<VkPipelineShaderStageCreateInfo> shaderStages{
       setShaderStage(VK_SHADER_STAGE_VERTEX_BIT, "CellsVert.spv", graphics),
       setShaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, "CellsFrag.spv", graphics)};
-  static auto bindings = World::getCellBindingDescriptions();
+  static auto bindings =
+      World::getCellBindingDescriptions(VK_VERTEX_INPUT_RATE_INSTANCE);
   static auto attributes = World::getCellAttributeDescriptions();
   Structs::PipelineVertexInputState vertexInput{bindings, attributes};
   Structs::PipelineInputAssemblyState inputAssembly{

@@ -20,10 +20,10 @@ World::~World() {
   Log::logFooter();
 }
 
-std::vector<VkVertexInputBindingDescription>
-World::getCellBindingDescriptions() {
+std::vector<VkVertexInputBindingDescription> World::getCellBindingDescriptions(
+    VkVertexInputRate inputRate) {
   std::vector<VkVertexInputBindingDescription> bindingDescriptions{
-      {0, sizeof(Cell), VK_VERTEX_INPUT_RATE_INSTANCE}};
+      {0, sizeof(Cell), inputRate}};
   return bindingDescriptions;
 }
 
@@ -45,21 +45,6 @@ World::getCellAttributeDescriptions() {
       {6, 0, VK_FORMAT_R32G32B32A32_SFLOAT,
        static_cast<uint32_t>(offsetof(Cell, textureCoords))},
   };
-  return attributeDescriptions;
-}
-
-std::vector<VkVertexInputBindingDescription>
-World::getWaterBindingDescriptions() {
-  std::vector<VkVertexInputBindingDescription> bindingDescriptions{
-      {0, sizeof(Cell), VK_VERTEX_INPUT_RATE_VERTEX}};
-  return bindingDescriptions;
-}
-
-std::vector<VkVertexInputAttributeDescription>
-World::getWaterAttributeDescriptions() {
-  std::vector<VkVertexInputAttributeDescription> attributeDescriptions{
-      {0, 0, VK_FORMAT_R32G32B32A32_SFLOAT,
-       static_cast<uint32_t>(offsetof(Cell, position))}};
   return attributeDescriptions;
 }
 
