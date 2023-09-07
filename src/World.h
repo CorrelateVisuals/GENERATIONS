@@ -70,7 +70,7 @@ class World {
     float zoomSpeed = 0.5f;
     float panningSpeed = 1.2f;
     const float fieldOfView = 60.0f;
-    const float nearClipping = 0.1f;
+    const float nearClipping = 0.0001f;
     const float farClipping = 200.0f;
     glm::vec3 position{0.0f, 0.0f, 30.0f};
     glm::vec3 front{0.0f, 0.0f, -1.0f};
