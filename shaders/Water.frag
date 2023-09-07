@@ -13,6 +13,6 @@ void main() {
     
     // Apply gamma correction
     color.rgb = pow(color.rgb, vec3(1.0 / gamma));
-    
+    color.a = 0.5;
     outColor = color;
 }
