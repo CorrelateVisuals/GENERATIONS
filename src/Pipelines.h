@@ -21,7 +21,7 @@ class Pipelines {
 
   struct Compute {
     VkPipeline engine;
-    VkPipelineLayout pipelineLayout;
+    VkPipelineLayout layoutState;
     std::vector<VkShaderModule> shaderModules;
     const std::array<uint32_t, 3> XYZ{32, 32, 1};
   } compute;
@@ -31,7 +31,7 @@ class Pipelines {
     VkPipeline tiles;
     VkPipeline water;
     VkRenderPass renderPass;
-    VkPipelineLayout pipelineLayout;
+    VkPipelineLayout layoutState;
     std::vector<VkShaderModule> shaderModules;
 
     struct Depth {
@@ -54,9 +54,6 @@ class Pipelines {
   void createDepthResources(Resources& _resources);
 
  private:
-  VulkanMechanics& _mechanics;
-
- private:
   void createRenderPass();
   void createGraphicsPipelines(
       const VkDescriptorSetLayout& descriptorSetLayout);
@@ -77,7 +74,28 @@ class Pipelines {
       std::string shaderName,
       auto& pipeline);
 
-  VkPipelineLayoutCreateInfo createPipelineLayout(
+ private:
+  VulkanMechanics& _mechanics;
+
+  VkPipelineInputAssemblyStateCreateInfo inputAssemblyState(
+      const VkPrimitiveTopology& topology);
+  VkPipelineVertexInputStateCreateInfo vertexInputState();
+  VkPipelineVertexInputStateCreateInfo vertexInputState(
+      const std::vector<VkVertexInputBindingDescription>& bindingDescriptions,
+      const std::vector<VkVertexInputAttributeDescription>&
+          attributeDescriptions);
+  VkPipelineDynamicStateCreateInfo dynamicState();
+  VkPipelineViewportStateCreateInfo viewportState();
+  VkPipelineLayoutCreateInfo layoutState(
+      const VkDescriptorSetLayout& descriptorSetLayout);
+  VkPipelineLayoutCreateInfo layoutState(
       const VkDescriptorSetLayout& descriptorSetLayout,
-      VkPipelineLayout& pipelineLayout);
+      const uint32_t& pushConstantCount,
+      const VkPushConstantRange& pushConstants);
+  VkPipelineMultisampleStateCreateInfo multisampleState(
+      uint32_t enable,
+      const VkSampleCountFlagBits& sampleCount);
+  VkPushConstantRange pushConstantRange(const VkShaderStageFlags& flags,
+                                        uint32_t offset,
+                                        uint32_t size);
 };

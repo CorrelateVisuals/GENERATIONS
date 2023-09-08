@@ -537,12 +537,12 @@ void Resources::recordComputeCommandBuffer(VkCommandBuffer commandBuffer,
                     _pipelines.compute.engine);
 
   vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
-                          _pipelines.compute.pipelineLayout, 0, 1,
+                          _pipelines.compute.layoutState, 0, 1,
                           &descriptor.sets[_mechanics.syncObjects.currentFrame],
                           0, nullptr);
 
   setPushConstants();
-  vkCmdPushConstants(commandBuffer, _pipelines.compute.pipelineLayout,
+  vkCmdPushConstants(commandBuffer, _pipelines.compute.layoutState,
                      pushConstants.shaderStage, pushConstants.offset,
                      pushConstants.size, pushConstants.data.data());
 
@@ -592,7 +592,7 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
   vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
   vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                          _pipelines.graphics.pipelineLayout, 0, 1,
+                          _pipelines.graphics.layoutState, 0, 1,
                           &descriptor.sets[_mechanics.syncObjects.currentFrame],
                           0, nullptr);
 
