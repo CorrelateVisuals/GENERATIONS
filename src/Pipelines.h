@@ -12,12 +12,12 @@ class Pipelines {
   Pipelines(VulkanMechanics& mechanics);
   ~Pipelines();
 
-  const std::string shaderDir = "shaders/";
   const std::unordered_map<std::string, std::vector<std::string>> shaders = {
       {"Engine", {"Comp"}},
       {"Cells", {"Vert", "Frag"}},
       {"Tiles", {"Vert", "Frag"}},
       {"Water", {"Vert", "Frag"}}};
+  const std::string shaderDir = "shaders/";
   std::vector<VkShaderModule> shaderModules;
 
   struct Compute {
@@ -41,9 +41,9 @@ class Pipelines {
 
     struct MultiSampling {
       VkSampleCountFlagBits samples = VK_SAMPLE_COUNT_1_BIT;
-      VkImage colorImage;
-      VkDeviceMemory colorImageMemory;
-      VkImageView colorImageView;
+      VkImage image;
+      VkDeviceMemory imageMemory;
+      VkImageView imageView;
     } msaa;
   } graphics;
 

@@ -43,10 +43,9 @@ void Resources::createFramebuffers(Pipelines& _pipelines) {
 
   Log::text(Log::Style::charLeader, "attachments: msaa, depth, imageView*3");
   for (size_t i = 0; i < _mechanics.swapChain.imageViews.size(); i++) {
-    std::vector<VkImageView> attachments{
-        _pipelines.graphics.msaa.colorImageView,
-        _pipelines.graphics.depth.imageView,
-        _mechanics.swapChain.imageViews[i]};
+    std::vector<VkImageView> attachments{_pipelines.graphics.msaa.imageView,
+                                         _pipelines.graphics.depth.imageView,
+                                         _mechanics.swapChain.imageViews[i]};
 
     VkFramebufferCreateInfo framebufferInfo{
         .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,

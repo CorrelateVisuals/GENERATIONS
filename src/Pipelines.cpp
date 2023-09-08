@@ -40,10 +40,10 @@ void Pipelines::createColorResources(Resources& _resources) {
       graphics.msaa.samples, colorFormat, VK_IMAGE_TILING_OPTIMAL,
       VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT |
           VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, graphics.msaa.colorImage,
-      graphics.msaa.colorImageMemory);
-  graphics.msaa.colorImageView = _resources.createImageView(
-      graphics.msaa.colorImage, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT);
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, graphics.msaa.image,
+      graphics.msaa.imageMemory);
+  graphics.msaa.imageView = _resources.createImageView(
+      graphics.msaa.image, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT);
 }
 
 void Pipelines::createDepthResources(Resources& _resources) {
