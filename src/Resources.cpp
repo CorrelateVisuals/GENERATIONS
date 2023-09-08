@@ -536,23 +536,24 @@ void Resources::recordComputeCommandBuffer(VkCommandBuffer commandBuffer,
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
                     _pipelines.compute.engine);
 
-  vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
-                          _pipelines.compute.layoutState, 0, 1,
-                          &descriptor.sets[_mechanics.syncObjects.currentFrame],
-                          0, nullptr);
+  vkCmdBindDescriptorSets(
+      commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, _pipelines.compute.layout,
+      0, 1, &descriptor.sets[_mechanics.syncObjects.currentFrame], 0, nullptr);
 
   setPushConstants();
-  vkCmdPushConstants(commandBuffer, _pipelines.compute.layoutState,
+  vkCmdPushConstants(commandBuffer, _pipelines.compute.layout,
                      pushConstants.shaderStage, pushConstants.offset,
                      pushConstants.size, pushConstants.data.data());
 
-  uint32_t workgroupSizeX = (world.grid.XY[0] + _pipelines.compute.XYZ[0] - 1) /
-                            _pipelines.compute.XYZ[0];
-  uint32_t workgroupSizeY = (world.grid.XY[1] + _pipelines.compute.XYZ[1] - 1) /
-                            _pipelines.compute.XYZ[1];
+  uint32_t workgroupSizeX =
+      (world.grid.XY[0] + _pipelines.compute.workGroups[0] - 1) /
+      _pipelines.compute.workGroups[0];
+  uint32_t workgroupSizeY =
+      (world.grid.XY[1] + _pipelines.compute.workGroups[1] - 1) /
+      _pipelines.compute.workGroups[1];
 
   vkCmdDispatch(commandBuffer, workgroupSizeX, workgroupSizeY,
-                _pipelines.compute.XYZ[2]);
+                _pipelines.compute.workGroups[2]);
 
   _mechanics.result(vkEndCommandBuffer, commandBuffer);
 }
@@ -592,7 +593,7 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
   vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
   vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                          _pipelines.graphics.layoutState, 0, 1,
+                          _pipelines.graphics.layout, 0, 1,
                           &descriptor.sets[_mechanics.syncObjects.currentFrame],
                           0, nullptr);
 
@@ -614,9 +615,8 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
 
   // Pipeline 3
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-      _pipelines.graphics.water);
-  vkCmdDraw(commandBuffer, world.geo.water.vertexCount,
-      1, 0, 0);
+                    _pipelines.graphics.water);
+  vkCmdDraw(commandBuffer, world.geo.water.vertexCount, 1, 0, 0);
 
   vkCmdEndRenderPass(commandBuffer);
 

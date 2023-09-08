@@ -18,21 +18,20 @@ class Pipelines {
       {"Cells", {"Vert", "Frag"}},
       {"Tiles", {"Vert", "Frag"}},
       {"Water", {"Vert", "Frag"}}};
+  std::vector<VkShaderModule> shaderModules;
 
   struct Compute {
     VkPipeline engine;
-    VkPipelineLayout layoutState;
-    std::vector<VkShaderModule> shaderModules;
-    const std::array<uint32_t, 3> XYZ{32, 32, 1};
+    VkPipelineLayout layout;
+    const std::array<uint32_t, 3> workGroups{32, 32, 1};
   } compute;
 
   struct Graphics {
     VkPipeline cells;
     VkPipeline tiles;
     VkPipeline water;
+    VkPipelineLayout layout;
     VkRenderPass renderPass;
-    VkPipelineLayout layoutState;
-    std::vector<VkShaderModule> shaderModules;
 
     struct Depth {
       VkImage image;
@@ -71,8 +70,7 @@ class Pipelines {
   void destroyShaderModules(std::vector<VkShaderModule>& shaderModules);
   VkPipelineShaderStageCreateInfo setShaderStage(
       VkShaderStageFlagBits shaderStage,
-      std::string shaderName,
-      auto& pipeline);
+      std::string shaderName);
 
  private:
   VulkanMechanics& _mechanics;
