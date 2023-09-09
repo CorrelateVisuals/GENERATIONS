@@ -149,57 +149,36 @@ void Pipelines::createGraphicsPipelines(
   static auto bindings =
       World::getCellBindingDescriptions(VK_VERTEX_INPUT_RATE_INSTANCE);
   static auto attributes = World::getCellAttributeDescriptions();
-  VkPipelineVertexInputStateCreateInfo vertexInput =
-      vertexInputState(bindings, attributes);
+
+  VkPipelineVertexInputStateCreateInfo vertexInput = vertexInputStateDefault;
+  vertexInput.vertexBindingDescriptionCount =
+      static_cast<uint32_t>(bindings.size());
+  vertexInput.pVertexBindingDescriptions = bindings.data();
+  vertexInput.vertexAttributeDescriptionCount =
+      static_cast<uint32_t>(attributes.size());
+  vertexInput.pVertexAttributeDescriptions = attributes.data();
+
   VkPipelineInputAssemblyStateCreateInfo inputAssembly =
-      inputAssemblyState(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+      inputAssemblyStateTriangleList;
 
-  VkPipelineRasterizationStateCreateInfo rasterization{
-      .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
-      .depthClampEnable = VK_TRUE,
-      .rasterizerDiscardEnable = VK_FALSE,
-      .polygonMode = VK_POLYGON_MODE_FILL,
-      .cullMode = VK_CULL_MODE_BACK_BIT,
-      .frontFace = VK_FRONT_FACE_CLOCKWISE,
-      .depthBiasEnable = VK_TRUE,
-      .depthBiasConstantFactor = 0.1f,
-      .depthBiasClamp = 0.01f,
-      .depthBiasSlopeFactor = 0.02f,
-      .lineWidth = 1.0f};
+  VkPipelineRasterizationStateCreateInfo rasterization = rasterizationDefault;
 
-  VkPipelineMultisampleStateCreateInfo multisample =
-      multisampleState(VK_TRUE, graphics.msaa.samples);
+  VkPipelineMultisampleStateCreateInfo multisample = multisampleStateDefault;
+  multisample.rasterizationSamples = graphics.msaa.samples;
 
-  VkPipelineDepthStencilStateCreateInfo depthStencil{
-      .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
-      .depthTestEnable = VK_TRUE,
-      .depthWriteEnable = VK_TRUE,
-      .depthCompareOp = VK_COMPARE_OP_LESS,
-      .depthBoundsTestEnable = VK_FALSE,
-      .stencilTestEnable = VK_FALSE};
-  static VkPipelineColorBlendAttachmentState colorBlendAttachment{
-      .blendEnable = VK_FALSE,
-      .srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA,
-      .dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
-      .colorBlendOp = VK_BLEND_OP_ADD,
-      .srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
-      .dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO,
-      .alphaBlendOp = VK_BLEND_OP_ADD,
-      .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
-                        VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT};
-  VkPipelineColorBlendStateCreateInfo colorBlend{
-      .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
-      .pNext = nullptr,
-      .flags = 0,
-      .logicOpEnable = VK_FALSE,
-      .logicOp = VK_LOGIC_OP_COPY,
-      .attachmentCount = 1,
-      .pAttachments = &colorBlendAttachment,
-      .blendConstants = {0.0f, 0.0f, 0.0f, 0.0f}};
+  VkPipelineDepthStencilStateCreateInfo depthStencil = depthStencilStateDefault;
 
-  VkPipelineViewportStateCreateInfo viewport = viewportState();
-  VkPipelineDynamicStateCreateInfo dynamic = dynamicState();
-  VkPipelineLayoutCreateInfo layout = layoutState(descriptorSetLayout);
+  static VkPipelineColorBlendAttachmentState colorBlendAttachment =
+      colorBlendAttachmentStateFalse;
+  VkPipelineColorBlendStateCreateInfo colorBlend = colorBlendStateDefault;
+  colorBlend.pAttachments = &colorBlendAttachment;
+
+  VkPipelineViewportStateCreateInfo viewport = viewportStateDefault;
+  VkPipelineDynamicStateCreateInfo dynamic = dynamicStateDefault;
+
+  VkPipelineLayoutCreateInfo layout = layoutDefault;
+  layout.pSetLayouts = &descriptorSetLayout;
+
   _mechanics.result(vkCreatePipelineLayout, _mechanics.mainDevice.logical,
                     &layout, nullptr, &graphics.layout);
 
@@ -241,8 +220,7 @@ void Pipelines::createGraphicsPipelines(
       setShaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, "WaterFrag.spv")};
   pipelineInfo.stageCount = static_cast<uint32_t>(shaderStages.size());
   pipelineInfo.pStages = shaderStages.data();
-
-  vertexInput = vertexInputState();
+  vertexInput = vertexInputStateDefault;
   pipelineInfo.pVertexInputState = &vertexInput;
 
   colorBlendAttachment.blendEnable = VK_TRUE;
