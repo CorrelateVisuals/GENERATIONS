@@ -150,7 +150,7 @@ void Pipelines::createGraphicsPipelines(
       World::getCellBindingDescriptions(VK_VERTEX_INPUT_RATE_INSTANCE);
   static auto attributes = World::getCellAttributeDescriptions();
 
-  VkPipelineVertexInputStateCreateInfo vertexInput = vertexInputStateDefault;
+  VkPipelineVertexInputStateCreateInfo vertexInput{vertexInputStateDefault};
   vertexInput.vertexBindingDescriptionCount =
       static_cast<uint32_t>(bindings.size());
   vertexInput.pVertexBindingDescriptions = bindings.data();
@@ -158,25 +158,22 @@ void Pipelines::createGraphicsPipelines(
       static_cast<uint32_t>(attributes.size());
   vertexInput.pVertexAttributeDescriptions = attributes.data();
 
-  VkPipelineInputAssemblyStateCreateInfo inputAssembly =
-      inputAssemblyStateTriangleList;
+  VkPipelineInputAssemblyStateCreateInfo inputAssembly{
+      inputAssemblyStateTriangleList};
 
-  VkPipelineRasterizationStateCreateInfo rasterization = rasterizationDefault;
-
-  VkPipelineMultisampleStateCreateInfo multisample = multisampleStateDefault;
+  VkPipelineRasterizationStateCreateInfo rasterization{rasterizationDefault};
+  VkPipelineMultisampleStateCreateInfo multisample{multisampleStateDefault};
   multisample.rasterizationSamples = graphics.msaa.samples;
+  VkPipelineDepthStencilStateCreateInfo depthStencil{depthStencilStateDefault};
 
-  VkPipelineDepthStencilStateCreateInfo depthStencil = depthStencilStateDefault;
-
-  static VkPipelineColorBlendAttachmentState colorBlendAttachment =
-      colorBlendAttachmentStateFalse;
-  VkPipelineColorBlendStateCreateInfo colorBlend = colorBlendStateDefault;
+  static VkPipelineColorBlendAttachmentState colorBlendAttachment{
+      colorBlendAttachmentStateFalse};
+  VkPipelineColorBlendStateCreateInfo colorBlend{colorBlendStateDefault};
   colorBlend.pAttachments = &colorBlendAttachment;
 
-  VkPipelineViewportStateCreateInfo viewport = viewportStateDefault;
-  VkPipelineDynamicStateCreateInfo dynamic = dynamicStateDefault;
-
-  VkPipelineLayoutCreateInfo layout = layoutDefault;
+  VkPipelineViewportStateCreateInfo viewport{viewportStateDefault};
+  VkPipelineDynamicStateCreateInfo dynamic{dynamicStateDefault};
+  VkPipelineLayoutCreateInfo layout{layoutDefault};
   layout.pSetLayouts = &descriptorSetLayout;
 
   _mechanics.result(vkCreatePipelineLayout, _mechanics.mainDevice.logical,
@@ -312,7 +309,7 @@ void Pipelines::createComputePipeline(
                                 .offset = pushConstants.offset,
                                 .size = pushConstants.size};
 
-  VkPipelineLayoutCreateInfo layout = layoutDefault;
+  VkPipelineLayoutCreateInfo layout{layoutDefault};
   layout.pSetLayouts = &descriptorSetLayout;
   layout.pushConstantRangeCount = pushConstants.count;
   layout.pPushConstantRanges = &constants;

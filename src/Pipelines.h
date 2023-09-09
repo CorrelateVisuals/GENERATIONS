@@ -75,6 +75,7 @@ class Pipelines {
  private:
   VulkanMechanics& _mechanics;
 
+  // Presets
   constexpr static inline VkPipelineRasterizationStateCreateInfo
       rasterizationDefault{
           .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
