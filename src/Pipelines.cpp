@@ -149,13 +149,13 @@ void Pipelines::createGraphicsPipelines(
   static auto bindings =
       World::getCellBindingDescriptions(VK_VERTEX_INPUT_RATE_INSTANCE);
   static auto attributes = World::getCellAttributeDescriptions();
+  uint32_t bindingsSize = static_cast<uint32_t>(bindings.size());
+  uint32_t attributeSize = static_cast<uint32_t>(attributes.size());
 
   VkPipelineVertexInputStateCreateInfo vertexInput{vertexInputStateDefault};
-  vertexInput.vertexBindingDescriptionCount =
-      static_cast<uint32_t>(bindings.size());
+  vertexInput.vertexBindingDescriptionCount = bindingsSize;
+  vertexInput.vertexAttributeDescriptionCount = attributeSize;
   vertexInput.pVertexBindingDescriptions = bindings.data();
-  vertexInput.vertexAttributeDescriptionCount =
-      static_cast<uint32_t>(attributes.size());
   vertexInput.pVertexAttributeDescriptions = attributes.data();
 
   VkPipelineInputAssemblyStateCreateInfo inputAssembly{
