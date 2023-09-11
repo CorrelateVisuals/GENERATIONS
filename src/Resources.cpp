@@ -43,10 +43,9 @@ void Resources::createFramebuffers(Pipelines& _pipelines) {
 
   Log::text(Log::Style::charLeader, "attachments: msaa, depth, imageView*3");
   for (size_t i = 0; i < _mechanics.swapChain.imageViews.size(); i++) {
-    std::vector<VkImageView> attachments{
-        _pipelines.graphics.msaa.colorImageView,
-        _pipelines.graphics.depth.imageView,
-        _mechanics.swapChain.imageViews[i]};
+    std::vector<VkImageView> attachments{_pipelines.graphics.msaa.imageView,
+                                         _pipelines.graphics.depth.imageView,
+                                         _mechanics.swapChain.imageViews[i]};
 
     VkFramebufferCreateInfo framebufferInfo{
         .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
@@ -326,19 +325,19 @@ void Resources::setPushConstants() {
 VkCommandBuffer Resources::beginSingleTimeCommands() {
   Log::text("{ 1.. }", "Begin Single Time Commands");
 
-  VkCommandBufferAllocateInfo allocInfo{};
-  allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-  allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-  allocInfo.commandPool = buffers.command.pool;
-  allocInfo.commandBufferCount = 1;
+  VkCommandBufferAllocateInfo allocInfo{
+      .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+      .commandPool = buffers.command.pool,
+      .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+      .commandBufferCount = 1};
 
   VkCommandBuffer commandBuffer;
   vkAllocateCommandBuffers(_mechanics.mainDevice.logical, &allocInfo,
                            &commandBuffer);
 
-  VkCommandBufferBeginInfo beginInfo{};
-  beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-  beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+  VkCommandBufferBeginInfo beginInfo{
+      .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+      .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT};
 
   vkBeginCommandBuffer(commandBuffer, &beginInfo);
 
@@ -350,10 +349,9 @@ void Resources::endSingleTimeCommands(VkCommandBuffer commandBuffer) {
 
   vkEndCommandBuffer(commandBuffer);
 
-  VkSubmitInfo submitInfo{};
-  submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-  submitInfo.commandBufferCount = 1;
-  submitInfo.pCommandBuffers = &commandBuffer;
+  VkSubmitInfo submitInfo{.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+                          .commandBufferCount = 1,
+                          .pCommandBuffers = &commandBuffer};
 
   vkQueueSubmit(_mechanics.queues.graphics, 1, &submitInfo, VK_NULL_HANDLE);
   vkQueueWaitIdle(_mechanics.queues.graphics);
@@ -370,13 +368,12 @@ void Resources::transitionImageLayout(VkImage image,
 
   VkCommandBuffer commandBuffer = beginSingleTimeCommands();
 
-  VkImageMemoryBarrier barrier{};
-  barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-  barrier.oldLayout = oldLayout;
-  barrier.newLayout = newLayout;
-  barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-  barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-  barrier.image = image;
+  VkImageMemoryBarrier barrier{.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+                               .oldLayout = oldLayout,
+                               .newLayout = newLayout,
+                               .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                               .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                               .image = image};
   barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
   barrier.subresourceRange.baseMipLevel = 0;
   barrier.subresourceRange.levelCount = 1;
@@ -418,16 +415,15 @@ void Resources::copyBufferToImage(VkBuffer buffer,
 
   VkCommandBuffer commandBuffer = beginSingleTimeCommands();
 
-  VkBufferImageCopy region{};
-  region.bufferOffset = 0;
-  region.bufferRowLength = 0;
-  region.bufferImageHeight = 0;
-  region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-  region.imageSubresource.mipLevel = 0;
-  region.imageSubresource.baseArrayLayer = 0;
-  region.imageSubresource.layerCount = 1;
-  region.imageOffset = {0, 0, 0};
-  region.imageExtent = {width, height, 1};
+  VkBufferImageCopy region{.bufferOffset = 0,
+                           .bufferRowLength = 0,
+                           .bufferImageHeight = 0,
+                           .imageOffset = {0, 0, 0},
+                           .imageExtent = {width, height, 1}};
+  region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+  region.imageSubresource.mipLevel = 0,
+  region.imageSubresource.baseArrayLayer = 0,
+  region.imageSubresource.layerCount = 1,
 
   vkCmdCopyBufferToImage(commandBuffer, buffer, image,
                          VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
@@ -536,23 +532,24 @@ void Resources::recordComputeCommandBuffer(VkCommandBuffer commandBuffer,
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
                     _pipelines.compute.engine);
 
-  vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
-                          _pipelines.compute.pipelineLayout, 0, 1,
-                          &descriptor.sets[_mechanics.syncObjects.currentFrame],
-                          0, nullptr);
+  vkCmdBindDescriptorSets(
+      commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, _pipelines.compute.layout,
+      0, 1, &descriptor.sets[_mechanics.syncObjects.currentFrame], 0, nullptr);
 
   setPushConstants();
-  vkCmdPushConstants(commandBuffer, _pipelines.compute.pipelineLayout,
+  vkCmdPushConstants(commandBuffer, _pipelines.compute.layout,
                      pushConstants.shaderStage, pushConstants.offset,
                      pushConstants.size, pushConstants.data.data());
 
-  uint32_t workgroupSizeX = (world.grid.XY[0] + _pipelines.compute.XYZ[0] - 1) /
-                            _pipelines.compute.XYZ[0];
-  uint32_t workgroupSizeY = (world.grid.XY[1] + _pipelines.compute.XYZ[1] - 1) /
-                            _pipelines.compute.XYZ[1];
+  uint32_t workgroupSizeX =
+      (world.grid.XY[0] + _pipelines.compute.workGroups[0] - 1) /
+      _pipelines.compute.workGroups[0];
+  uint32_t workgroupSizeY =
+      (world.grid.XY[1] + _pipelines.compute.workGroups[1] - 1) /
+      _pipelines.compute.workGroups[1];
 
   vkCmdDispatch(commandBuffer, workgroupSizeX, workgroupSizeY,
-                _pipelines.compute.XYZ[2]);
+                _pipelines.compute.workGroups[2]);
 
   _mechanics.result(vkEndCommandBuffer, commandBuffer);
 }
@@ -592,7 +589,7 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
   vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
   vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                          _pipelines.graphics.pipelineLayout, 0, 1,
+                          _pipelines.graphics.layout, 0, 1,
                           &descriptor.sets[_mechanics.syncObjects.currentFrame],
                           0, nullptr);
 
@@ -611,6 +608,11 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
                     _pipelines.graphics.tiles);
   vkCmdDraw(commandBuffer, world.geo.tile.vertexCount,
             world.grid.XY[0] * world.grid.XY[1], 0, 0);
+
+  // Pipeline 3
+  vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                    _pipelines.graphics.water);
+  vkCmdDraw(commandBuffer, world.geo.water.vertexCount, 1, 0, 0);
 
   vkCmdEndRenderPass(commandBuffer);
 
@@ -645,20 +647,20 @@ void Resources::createTextureSampler() {
   VkPhysicalDeviceProperties properties{};
   vkGetPhysicalDeviceProperties(_mechanics.mainDevice.physical, &properties);
 
-  VkSamplerCreateInfo samplerInfo{};
-  samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-  samplerInfo.magFilter = VK_FILTER_LINEAR;
-  samplerInfo.minFilter = VK_FILTER_LINEAR;
-  samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-  samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-  samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-  samplerInfo.anisotropyEnable = VK_TRUE;
-  samplerInfo.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
-  samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
-  samplerInfo.unnormalizedCoordinates = VK_FALSE;
-  samplerInfo.compareEnable = VK_FALSE;
-  samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
-  samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+  VkSamplerCreateInfo samplerInfo{
+      .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
+      .magFilter = VK_FILTER_LINEAR,
+      .minFilter = VK_FILTER_LINEAR,
+      .mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR,
+      .addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+      .addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+      .addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+      .anisotropyEnable = VK_TRUE,
+      .maxAnisotropy = properties.limits.maxSamplerAnisotropy,
+      .compareEnable = VK_FALSE,
+      .compareOp = VK_COMPARE_OP_ALWAYS,
+      .borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK,
+      .unnormalizedCoordinates = VK_FALSE};
 
   if (vkCreateSampler(_mechanics.mainDevice.logical, &samplerInfo, nullptr,
                       &image.textureSampler) != VK_SUCCESS) {

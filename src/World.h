@@ -32,6 +32,9 @@ class World {
     struct Tile {
       const uint32_t vertexCount{54};
     } tile;
+    struct Water {
+      const uint32_t vertexCount{6};
+    } water;
   } geo;
 
   struct Cell {
@@ -60,18 +63,14 @@ class World {
   static std::vector<VkVertexInputAttributeDescription>
   getCellAttributeDescriptions();
   static std::vector<VkVertexInputBindingDescription>
-  getCellBindingDescriptions();
-  static std::vector<VkVertexInputBindingDescription>
-  getTerrainBindingDescriptions();
-  static std::vector<VkVertexInputAttributeDescription>
-  getTerrainAttributeDescriptions();
+  getCellBindingDescriptions(VkVertexInputRate inputRate);
 
  private:
   struct Camera {
     float zoomSpeed = 0.5f;
     float panningSpeed = 1.2f;
     const float fieldOfView = 60.0f;
-    const float nearClipping = 0.0001f;
+    const float nearClipping = 0.1f;
     const float farClipping = 200.0f;
     glm::vec3 position{0.0f, 0.0f, 30.0f};
     glm::vec3 front{0.0f, 0.0f, -1.0f};

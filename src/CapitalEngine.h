@@ -2,7 +2,6 @@
 // Namespaces
 #include "Library.h"
 #include "Log.h"
-#include "Structs.h"
 
 // Singletons
 #include "Window.h"

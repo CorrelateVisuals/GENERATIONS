@@ -366,11 +366,10 @@ void VulkanMechanics::cleanupSwapChain(Pipelines& _pipelines) {
   vkFreeMemory(mainDevice.logical, _pipelines.graphics.depth.imageMemory,
                nullptr);
 
-  vkDestroyImageView(mainDevice.logical,
-                     _pipelines.graphics.msaa.colorImageView, nullptr);
-  vkDestroyImage(mainDevice.logical, _pipelines.graphics.msaa.colorImage,
-                 nullptr);
-  vkFreeMemory(mainDevice.logical, _pipelines.graphics.msaa.colorImageMemory,
+  vkDestroyImageView(mainDevice.logical, _pipelines.graphics.msaa.imageView,
+                     nullptr);
+  vkDestroyImage(mainDevice.logical, _pipelines.graphics.msaa.image, nullptr);
+  vkFreeMemory(mainDevice.logical, _pipelines.graphics.msaa.imageMemory,
                nullptr);
 
   for (auto framebuffer : swapChain.framebuffers) {
