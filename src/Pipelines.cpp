@@ -161,9 +161,10 @@ void Pipelines::createGraphicsPipelines(
   VkPipelineInputAssemblyStateCreateInfo inputAssembly{
       inputAssemblyStateTriangleList};
 
-  VkPipelineRasterizationStateCreateInfo rasterization{rasterizationDefault};
-  VkPipelineMultisampleStateCreateInfo multisample{multisampleStateDefault};
-  multisample.rasterizationSamples = graphics.msaa.samples;
+  VkPipelineRasterizationStateCreateInfo rasterization{
+      rasterizationCullBackBit};
+  VkPipelineMultisampleStateCreateInfo multisampling{multisampleStateDefault};
+  multisampling.rasterizationSamples = graphics.msaa.samples;
   VkPipelineDepthStencilStateCreateInfo depthStencil{depthStencilStateDefault};
 
   static VkPipelineColorBlendAttachmentState colorBlendAttachment{
@@ -187,7 +188,7 @@ void Pipelines::createGraphicsPipelines(
       .pInputAssemblyState = &inputAssembly,
       .pViewportState = &viewport,
       .pRasterizationState = &rasterization,
-      .pMultisampleState = &multisample,
+      .pMultisampleState = &multisampling,
       .pDepthStencilState = &depthStencil,
       .pColorBlendState = &colorBlend,
       .pDynamicState = &dynamic,

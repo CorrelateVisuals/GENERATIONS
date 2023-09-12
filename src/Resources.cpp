@@ -27,6 +27,9 @@ void Resources::createResources(Pipelines& _pipelines) {
   createShaderStorageBuffers();
   createUniformBuffers();
 
+  createVertexBuffer();
+  createIndexBuffer();
+
   createDescriptorPool();
   createDescriptorSets();
 
@@ -315,6 +318,59 @@ void Resources::createTextureImage(std::string imagePath) {
   transitionImageLayout(image.texture, VK_FORMAT_R8G8B8A8_SRGB,
                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                         VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+  vkDestroyBuffer(_mechanics.mainDevice.logical, stagingBuffer, nullptr);
+  vkFreeMemory(_mechanics.mainDevice.logical, stagingBufferMemory, nullptr);
+}
+
+void Resources::createVertexBuffer() {
+  VkDeviceSize bufferSize = sizeof(world.vertices[0]) * world.vertices.size();
+
+  VkBuffer stagingBuffer;
+  VkDeviceMemory stagingBufferMemory;
+  createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+               VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                   VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+               stagingBuffer, stagingBufferMemory);
+
+  void* data;
+  vkMapMemory(_mechanics.mainDevice.logical, stagingBufferMemory, 0, bufferSize,
+              0, &data);
+  memcpy(data, world.vertices.data(), (size_t)bufferSize);
+  vkUnmapMemory(_mechanics.mainDevice.logical, stagingBufferMemory);
+
+  createBuffer(
+      bufferSize,
+      VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffer, vertexBufferMemory);
+
+  copyBuffer(stagingBuffer, vertexBuffer, bufferSize);
+
+  vkDestroyBuffer(_mechanics.mainDevice.logical, stagingBuffer, nullptr);
+  vkFreeMemory(_mechanics.mainDevice.logical, stagingBufferMemory, nullptr);
+}
+void Resources::createIndexBuffer() {
+  VkDeviceSize bufferSize = sizeof(world.indices[0]) * world.indices.size();
+
+  VkBuffer stagingBuffer;
+  VkDeviceMemory stagingBufferMemory;
+  createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+               VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                   VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+               stagingBuffer, stagingBufferMemory);
+
+  void* data;
+  vkMapMemory(_mechanics.mainDevice.logical, stagingBufferMemory, 0, bufferSize,
+              0, &data);
+  memcpy(data, world.indices.data(), (size_t)bufferSize);
+  vkUnmapMemory(_mechanics.mainDevice.logical, stagingBufferMemory);
+
+  createBuffer(
+      bufferSize,
+      VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, indexBuffer, indexBufferMemory);
+
+  copyBuffer(stagingBuffer, indexBuffer, bufferSize);
 
   vkDestroyBuffer(_mechanics.mainDevice.logical, stagingBuffer, nullptr);
   vkFreeMemory(_mechanics.mainDevice.logical, stagingBufferMemory, nullptr);
@@ -618,7 +674,10 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
   // Pipeline 4
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                     _pipelines.graphics.texture);
-  vkCmdDraw(commandBuffer, world.geo.texture.vertexCount, 1, 0, 0);
+  VkBuffer vertexBuffers[] = {vertexBuffer};
+  vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+  vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT16);
+  vkCmdDrawIndexed(commandBuffer, world.geo.texture.vertexCount, 1, 0, 0, 0);
 
   vkCmdEndRenderPass(commandBuffer);
 

@@ -23,19 +23,18 @@ const float GEO_TILE_SIZE = 0.3f;
 vec2 gridXYsize = vec2(gridXY.x, gridXY.y) * GEO_TILE_SIZE;
 
 vec3 waterVertices[4] = {
-        {-gridXYsize.x, -gridXYsize.y, 5},
-            {gridXYsize.x, -gridXYsize.y, 5}, 
+    {-gridXYsize.x, -gridXYsize.y, 5},
+    {gridXYsize.x, -gridXYsize.y, 5}, 
     {gridXYsize.x, gridXYsize.y, 5},
     {-gridXYsize.x, gridXYsize.y, 5},
-
-
 };
 const int waterIndices[6] = {
     0, 1, 2, 2, 3, 0       // Bottom face
 };
 
-vec4 vertex = vec4(vec3(waterVertices[waterIndices[gl_VertexIndex]]), 1.0f);
-vec4 worldPosition = model * vertex;
+//vec4 vertex = vec4(vec3(waterVertices[waterIndices[gl_VertexIndex]]), 1.0f);
+//vec4 worldPosition = model * vertex;
+vec4 worldPosition = model * vec4(inPosition, 20.0, 1.0);
 vec4 viewPosition = view * worldPosition;
 
 layout(location = 0) out vec4 fragColor;

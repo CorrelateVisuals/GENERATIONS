@@ -65,6 +65,14 @@ class World {
     }
   };
 
+  const std::vector<Vertex> vertices = {
+      {{-5.0f, -5.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
+      {{5.0f, -5.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
+      {{5.0f, 5.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
+      {{-5.0f, 5.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}}};
+
+  const std::vector<uint16_t> indices = {0, 1, 2, 2, 3, 0};
+
   struct Cell {
     std::array<float, 4> position;
     std::array<float, 4> color;

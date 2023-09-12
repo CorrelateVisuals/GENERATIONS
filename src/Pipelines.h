@@ -79,7 +79,7 @@ class Pipelines {
 
   // Presets
   constexpr static inline VkPipelineRasterizationStateCreateInfo
-      rasterizationDefault{
+      rasterizationCullBackBit{
           .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
           .depthClampEnable = VK_TRUE,
           .rasterizerDiscardEnable = VK_FALSE,

@@ -20,6 +20,11 @@ class Resources {
 
   static World world;
 
+  VkBuffer vertexBuffer;
+  VkDeviceMemory vertexBufferMemory;
+  VkBuffer indexBuffer;
+  VkDeviceMemory indexBufferMemory;
+
   struct PushConstants {
     VkShaderStageFlags shaderStage = {VK_SHADER_STAGE_COMPUTE_BIT};
     uint32_t count = 1;
@@ -81,6 +86,9 @@ class Resources {
 
  private:
   VulkanMechanics& _mechanics;
+
+  void createVertexBuffer();
+  void createIndexBuffer();
 
   void setPushConstants();
   VkCommandBuffer beginSingleTimeCommands();
