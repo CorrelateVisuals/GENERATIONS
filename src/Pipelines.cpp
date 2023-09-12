@@ -211,6 +211,30 @@ void Pipelines::createGraphicsPipelines(
                     VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphics.tiles);
   destroyShaderModules(shaderModules);
 
+  // Texture pipeline
+  shaderStages = {
+      setShaderStage(VK_SHADER_STAGE_VERTEX_BIT, "TextureVert.spv"),
+      setShaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, "TextureFrag.spv")};
+  pipelineInfo.stageCount = static_cast<uint32_t>(shaderStages.size());
+  pipelineInfo.pStages = shaderStages.data();
+
+  bindings = World::Vertex::getBindingDescription();
+  attributes = World::Vertex::getAttributeDescriptions();
+  bindingsSize = static_cast<uint32_t>(bindings.size());
+  attributeSize = static_cast<uint32_t>(attributes.size());
+
+  vertexInput = vertexInputStateDefault;
+  vertexInput.vertexBindingDescriptionCount = bindingsSize;
+  vertexInput.vertexAttributeDescriptionCount = attributeSize;
+  vertexInput.pVertexBindingDescriptions = bindings.data();
+  vertexInput.pVertexAttributeDescriptions = attributes.data();
+  pipelineInfo.pVertexInputState = &vertexInput;
+
+  _mechanics.result(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
+                    VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
+                    &graphics.texture);
+  destroyShaderModules(shaderModules);
+
   // Water pipeline
   shaderStages = {
       setShaderStage(VK_SHADER_STAGE_VERTEX_BIT, "WaterVert.spv"),

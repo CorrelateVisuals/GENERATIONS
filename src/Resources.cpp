@@ -19,7 +19,7 @@ void Resources::createResources(Pipelines& _pipelines) {
   Log::text(Log::Style::headerGuard);
   Log::text("{ /// }", "creating Resources");
 
-  createTextureImage(Lib::path("assets/GenerationsCapture.PNG"));
+  createTextureImage(Lib::path("assets/Avatar.PNG"));
   createTextureImageView();
   createTextureSampler();
 
@@ -29,6 +29,7 @@ void Resources::createResources(Pipelines& _pipelines) {
 
   createDescriptorPool();
   createDescriptorSets();
+
   createCommandBuffers();
   createComputeCommandBuffers();
   _mechanics.createSyncObjects();
@@ -613,6 +614,11 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                     _pipelines.graphics.water);
   vkCmdDraw(commandBuffer, world.geo.water.vertexCount, 1, 0, 0);
+
+  // Pipeline 4
+  vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                    _pipelines.graphics.texture);
+  vkCmdDraw(commandBuffer, world.geo.texture.vertexCount, 1, 0, 0);
 
   vkCmdEndRenderPass(commandBuffer);
 

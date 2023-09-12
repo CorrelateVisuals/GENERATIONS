@@ -35,7 +35,35 @@ class World {
     struct Water {
       const uint32_t vertexCount{6};
     } water;
+    struct Texture {
+      const uint32_t vertexCount{6};
+    } texture;
   } geo;
+
+  struct Vertex {
+    glm::vec2 pos;
+    glm::vec3 color;
+    glm::vec2 texCoord;
+
+    static std::vector<VkVertexInputBindingDescription>
+    getBindingDescription() {
+      std::vector<VkVertexInputBindingDescription> bindingDescriptions{
+          {0, sizeof(Vertex), VK_VERTEX_INPUT_RATE_VERTEX}};
+      return bindingDescriptions;
+    }
+
+    static std::vector<VkVertexInputAttributeDescription>
+    getAttributeDescriptions() {
+      std::vector<VkVertexInputAttributeDescription> attributeDescriptions{
+          {0, 0, VK_FORMAT_R32G32_SFLOAT,
+           static_cast<uint32_t>(offsetof(Vertex, pos))},
+          {1, 0, VK_FORMAT_R32G32B32_SFLOAT,
+           static_cast<uint32_t>(offsetof(Vertex, color))},
+          {2, 0, VK_FORMAT_R32G32_SFLOAT,
+           static_cast<uint32_t>(offsetof(Vertex, texCoord))}};
+      return attributeDescriptions;
+    }
+  };
 
   struct Cell {
     std::array<float, 4> position;
