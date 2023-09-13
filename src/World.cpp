@@ -319,3 +319,20 @@ glm::mat4 World::setProjection(VkExtent2D& swapChainExtent) {
 //   }
 //   return forwardMovement;
 // }
+
+std::vector<VkVertexInputBindingDescription>
+World::Vertex::getBindingDescription() {
+  std::vector<VkVertexInputBindingDescription> bindingDescriptions{
+      {0, sizeof(Vertex), VK_VERTEX_INPUT_RATE_VERTEX}};
+  return bindingDescriptions;
+}
+
+std::vector<VkVertexInputAttributeDescription>
+World::Vertex::getAttributeDescriptions() {
+  std::vector<VkVertexInputAttributeDescription> attributeDescriptions{
+      {0, 0, VK_FORMAT_R32G32_SFLOAT,
+       static_cast<uint32_t>(offsetof(Vertex, pos))},
+      {2, 0, VK_FORMAT_R32G32_SFLOAT,
+       static_cast<uint32_t>(offsetof(Vertex, texCoord))}};
+  return attributeDescriptions;
+}
