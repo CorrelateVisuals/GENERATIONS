@@ -168,10 +168,6 @@ std::vector<World::Cell> World::initializeCells() {
   landscapeIndices =
       Lib::createGridPolygons(tempIndices, static_cast<int>(grid.XY[0]));
 
-  for (auto item : landscapeIndices) {
-    std::cout << item << std::endl;
-  }
-
   return cells;
 }
 

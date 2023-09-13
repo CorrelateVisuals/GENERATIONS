@@ -409,7 +409,34 @@ void Resources::createVertexBufferLandscape() {
   vkFreeMemory(_mechanics.mainDevice.logical, stagingBufferMemory, nullptr);
 }
 
-void Resources::createIndexBufferLandscape() {}
+void Resources::createIndexBufferLandscape() {
+  VkDeviceSize bufferSize =
+      sizeof(world.landscapeIndices[0]) * world.landscapeIndices.size();
+
+  VkBuffer stagingBuffer;
+  VkDeviceMemory stagingBufferMemory;
+  createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+               VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                   VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+               stagingBuffer, stagingBufferMemory);
+
+  void* data;
+  vkMapMemory(_mechanics.mainDevice.logical, stagingBufferMemory, 0, bufferSize,
+              0, &data);
+  memcpy(data, world.landscapeIndices.data(), (size_t)bufferSize);
+  vkUnmapMemory(_mechanics.mainDevice.logical, stagingBufferMemory);
+
+  createBuffer(
+      bufferSize,
+      VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, indexBufferLandscape,
+      indexBufferMemoryLandscape);
+
+  copyBuffer(stagingBuffer, indexBufferLandscape, bufferSize);
+
+  vkDestroyBuffer(_mechanics.mainDevice.logical, stagingBuffer, nullptr);
+  vkFreeMemory(_mechanics.mainDevice.logical, stagingBufferMemory, nullptr);
+}
 
 void Resources::setPushConstants() {
   pushConstants.data = {world.time.passedHours};
@@ -700,7 +727,9 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
                     _pipelines.graphics.tiles);
   VkBuffer vertexBuffers1[] = {vertexBufferLandscape};
   vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers1, offsets);
-  vkCmdDraw(commandBuffer, world.grid.XY[0] * world.grid.XY[1], 1, 0, 0);
+  vkCmdBindIndexBuffer(commandBuffer, indexBufferLandscape, 0,
+                       VK_INDEX_TYPE_UINT16);
+  vkCmdDrawIndexed(commandBuffer, world.landscapeIndices.size(), 1, 0, 0, 0);
 
   // Pipeline 3
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,

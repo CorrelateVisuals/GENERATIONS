@@ -218,9 +218,6 @@ void Pipelines::createGraphicsPipelines(
   vertexInput.pVertexAttributeDescriptions = attributes.data();
   pipelineInfo.pVertexInputState = &vertexInput;
 
-  inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
-  pipelineInfo.pInputAssemblyState = &inputAssembly;
-
   _mechanics.result(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
                     VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphics.tiles);
   destroyShaderModules(shaderModules);

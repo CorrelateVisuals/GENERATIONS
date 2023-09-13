@@ -27,6 +27,8 @@ class Resources {
 
   VkBuffer vertexBufferLandscape;
   VkDeviceMemory vertexBufferMemoryLandscape;
+  VkBuffer indexBufferLandscape;
+  VkDeviceMemory indexBufferMemoryLandscape;
 
   struct PushConstants {
     VkShaderStageFlags shaderStage = {VK_SHADER_STAGE_COMPUTE_BIT};
