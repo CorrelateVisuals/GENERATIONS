@@ -18,21 +18,21 @@ mat4 view = ubo.view;
 mat4 projection = ubo.projection;
 float waterThreshold = ubo.waterThreshold;
 
-const float GEO_TILE_SIZE = 0.01f;
+//const float GEO_TILE_SIZE = 0.01f;
 
-vec4 vertex = inPosition;
+/*vec4 vertex = inPosition;
 
 vec4 constructTile() {
     vec4 position = inPosition;
     //position *= GEO_TILE_SIZE; // Adjust the x, y, and z coordinates
     return position;
-}
+}*/
 
-vec4 worldPosition = model * constructTile();
+vec4 worldPosition = model * inPosition;
 vec4 viewPosition =  view * worldPosition;
-vec3 worldNormal =   mat3(model) * vertex.xyz;
+/*vec3 worldNormal =   mat3(model) * vertex.xyz;*/
 
-vec4 setColor() {
+/*vec4 setColor() {
     vec2 normalizedPosition = (worldPosition.xy + gridXY.xy * 0.5) / gridXY.xy;
     vec2 invNormalizedPosition = vec2(1.0) - normalizedPosition;
 
@@ -54,24 +54,21 @@ vec4 setColor() {
     color = mix(color, waterColor, isBelowWater);
 
     return color;
-}
+}*/
 
-vec4 modifyColorContrast(vec4 color, float contrast) { return vec4(mix(vec3(0.5), color.rgb, contrast), color.a);}
+/*vec4 modifyColorContrast(vec4 color, float contrast) { return vec4(mix(vec3(0.5), color.rgb, contrast), color.a);}
 vec4 modifyColorGamma(vec4 color, float gamma) { return vec4(pow(color.rgb, vec3(gamma)), color.a);}
 
 float gouraudShading(float brightness, float emit) {
     vec3 lightDirection = normalize(light.rgb - worldPosition.xyz);
     float diffuseIntensity = max(dot(worldNormal, lightDirection), emit);
     return diffuseIntensity * brightness;
-}
+}*/
 
 layout(location = 0) out vec4 fragColor;
 
 void main() {
-    vec4 color = vec4(1.0) * setColor() * gouraudShading(1.5f, 0.2f); 
-
-    fragColor = modifyColorContrast(color, 1.3f);
-
+    fragColor = vec4(1.0f);
     gl_Position = projection * viewPosition;
 }
 

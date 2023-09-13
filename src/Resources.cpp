@@ -394,7 +394,7 @@ void Resources::createVertexBufferLandscape() {
   void* data;
   vkMapMemory(_mechanics.mainDevice.logical, stagingBufferMemory, 0, bufferSize,
               0, &data);
-  memcpy(data, world.vertices.data(), (size_t)bufferSize);
+  memcpy(data, world.landscapeVertices.data(), (size_t)bufferSize);
   vkUnmapMemory(_mechanics.mainDevice.logical, stagingBufferMemory);
 
   createBuffer(
@@ -708,12 +708,12 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
   vkCmdDraw(commandBuffer, world.geo.water.vertexCount, 1, 0, 0);
 
   // Pipeline 4
-  vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                    _pipelines.graphics.texture);
-  VkBuffer vertexBuffers[] = {vertexBuffer};
-  vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
-  vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT16);
-  vkCmdDrawIndexed(commandBuffer, world.geo.texture.vertexCount, 1, 0, 0, 0);
+  // vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+  //                  _pipelines.graphics.texture);
+  // VkBuffer vertexBuffers[] = {vertexBuffer};
+  // vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+  // vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT16);
+  // vkCmdDrawIndexed(commandBuffer, world.geo.texture.vertexCount, 1, 0, 0, 0);
 
   vkCmdEndRenderPass(commandBuffer);
 
