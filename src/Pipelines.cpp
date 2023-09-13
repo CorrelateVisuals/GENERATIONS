@@ -146,9 +146,8 @@ void Pipelines::createGraphicsPipelines(
   std::vector<VkPipelineShaderStageCreateInfo> shaderStages{
       setShaderStage(VK_SHADER_STAGE_VERTEX_BIT, "CellsVert.spv"),
       setShaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, "CellsFrag.spv")};
-  static auto bindings =
-      World::getCellBindingDescriptions(VK_VERTEX_INPUT_RATE_INSTANCE);
-  static auto attributes = World::getCellAttributeDescriptions();
+  static auto bindings = World::Cell::getBindingDescription();
+  static auto attributes = World::Cell::getAttributeDescriptions();
   uint32_t bindingsSize = static_cast<uint32_t>(bindings.size());
   uint32_t attributeSize = static_cast<uint32_t>(attributes.size());
 
@@ -201,12 +200,26 @@ void Pipelines::createGraphicsPipelines(
                     VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphics.cells);
   destroyShaderModules(shaderModules);
 
-  // Tiles pipeline
+  // Landscape pipeline
   shaderStages = {
       setShaderStage(VK_SHADER_STAGE_VERTEX_BIT, "TilesVert.spv"),
       setShaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, "TilesFrag.spv")};
   pipelineInfo.stageCount = static_cast<uint32_t>(shaderStages.size());
   pipelineInfo.pStages = shaderStages.data();
+
+  bindings = World::Landscape::getBindingDescription();
+  attributes = World::Landscape::getAttributeDescriptions();
+  bindingsSize = static_cast<uint32_t>(bindings.size());
+  attributeSize = static_cast<uint32_t>(attributes.size());
+
+  vertexInput.vertexBindingDescriptionCount = bindingsSize;
+  vertexInput.vertexAttributeDescriptionCount = attributeSize;
+  vertexInput.pVertexBindingDescriptions = bindings.data();
+  vertexInput.pVertexAttributeDescriptions = attributes.data();
+  pipelineInfo.pVertexInputState = &vertexInput;
+
+  inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
+  pipelineInfo.pInputAssemblyState = &inputAssembly;
 
   _mechanics.result(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
                     VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphics.tiles);
@@ -230,6 +243,9 @@ void Pipelines::createGraphicsPipelines(
   vertexInput.pVertexBindingDescriptions = bindings.data();
   vertexInput.pVertexAttributeDescriptions = attributes.data();
   pipelineInfo.pVertexInputState = &vertexInput;
+
+  inputAssembly = inputAssemblyStateTriangleList;
+  pipelineInfo.pInputAssemblyState = &inputAssembly;
 
   _mechanics.result(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
                     VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,

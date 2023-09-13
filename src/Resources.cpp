@@ -30,6 +30,9 @@ void Resources::createResources(Pipelines& _pipelines) {
   createVertexBuffer();
   createIndexBuffer();
 
+  createVertexBufferLandscape();
+  createIndexBufferLandscape();
+
   createDescriptorPool();
   createDescriptorSets();
 
@@ -349,6 +352,7 @@ void Resources::createVertexBuffer() {
   vkDestroyBuffer(_mechanics.mainDevice.logical, stagingBuffer, nullptr);
   vkFreeMemory(_mechanics.mainDevice.logical, stagingBufferMemory, nullptr);
 }
+
 void Resources::createIndexBuffer() {
   VkDeviceSize bufferSize = sizeof(world.indices[0]) * world.indices.size();
 
@@ -375,6 +379,37 @@ void Resources::createIndexBuffer() {
   vkDestroyBuffer(_mechanics.mainDevice.logical, stagingBuffer, nullptr);
   vkFreeMemory(_mechanics.mainDevice.logical, stagingBufferMemory, nullptr);
 }
+
+void Resources::createVertexBufferLandscape() {
+  VkDeviceSize bufferSize =
+      sizeof(world.landscapeVertices[0]) * world.landscapeVertices.size();
+
+  VkBuffer stagingBuffer;
+  VkDeviceMemory stagingBufferMemory;
+  createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+               VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                   VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+               stagingBuffer, stagingBufferMemory);
+
+  void* data;
+  vkMapMemory(_mechanics.mainDevice.logical, stagingBufferMemory, 0, bufferSize,
+              0, &data);
+  memcpy(data, world.vertices.data(), (size_t)bufferSize);
+  vkUnmapMemory(_mechanics.mainDevice.logical, stagingBufferMemory);
+
+  createBuffer(
+      bufferSize,
+      VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBufferLandscape,
+      vertexBufferMemoryLandscape);
+
+  copyBuffer(stagingBuffer, vertexBufferLandscape, bufferSize);
+
+  vkDestroyBuffer(_mechanics.mainDevice.logical, stagingBuffer, nullptr);
+  vkFreeMemory(_mechanics.mainDevice.logical, stagingBufferMemory, nullptr);
+}
+
+void Resources::createIndexBufferLandscape() {}
 
 void Resources::setPushConstants() {
   pushConstants.data = {world.time.passedHours};
@@ -663,8 +698,9 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
   // Pipeline 2
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                     _pipelines.graphics.tiles);
-  vkCmdDraw(commandBuffer, world.geo.tile.vertexCount,
-            world.grid.XY[0] * world.grid.XY[1], 0, 0);
+  VkBuffer vertexBuffers1[] = {vertexBufferLandscape};
+  vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers1, offsets);
+  vkCmdDraw(commandBuffer, world.grid.XY[0] * world.grid.XY[1], 1, 0, 0);
 
   // Pipeline 3
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,

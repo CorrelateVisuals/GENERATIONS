@@ -20,15 +20,15 @@ World::~World() {
   Log::logFooter();
 }
 
-std::vector<VkVertexInputBindingDescription> World::getCellBindingDescriptions(
-    VkVertexInputRate inputRate) {
+std::vector<VkVertexInputBindingDescription>
+World::Cell::getBindingDescription() {
   std::vector<VkVertexInputBindingDescription> bindingDescriptions{
-      {0, sizeof(Cell), inputRate}};
+      {0, sizeof(Cell), VK_VERTEX_INPUT_RATE_INSTANCE}};
   return bindingDescriptions;
 }
 
 std::vector<VkVertexInputAttributeDescription>
-World::getCellAttributeDescriptions() {
+World::Cell::getAttributeDescriptions() {
   std::vector<VkVertexInputAttributeDescription> attributeDescriptions{
       {0, 0, VK_FORMAT_R32G32B32A32_SFLOAT,
        static_cast<uint32_t>(offsetof(Cell, position))},
@@ -45,6 +45,38 @@ World::getCellAttributeDescriptions() {
       {6, 0, VK_FORMAT_R32G32B32A32_SFLOAT,
        static_cast<uint32_t>(offsetof(Cell, textureCoords))},
   };
+  return attributeDescriptions;
+}
+
+std::vector<VkVertexInputBindingDescription>
+World::Vertex::getBindingDescription() {
+  std::vector<VkVertexInputBindingDescription> bindingDescriptions{
+      {0, sizeof(Vertex), VK_VERTEX_INPUT_RATE_VERTEX}};
+  return bindingDescriptions;
+}
+
+std::vector<VkVertexInputAttributeDescription>
+World::Vertex::getAttributeDescriptions() {
+  std::vector<VkVertexInputAttributeDescription> attributeDescriptions{
+      {0, 0, VK_FORMAT_R32G32_SFLOAT,
+       static_cast<uint32_t>(offsetof(Vertex, pos))},
+      {2, 0, VK_FORMAT_R32G32_SFLOAT,
+       static_cast<uint32_t>(offsetof(Vertex, texCoord))}};
+  return attributeDescriptions;
+}
+
+std::vector<VkVertexInputBindingDescription>
+World::Landscape::getBindingDescription() {
+  std::vector<VkVertexInputBindingDescription> bindingDescriptions{
+      {0, sizeof(Landscape), VK_VERTEX_INPUT_RATE_VERTEX}};
+  return bindingDescriptions;
+}
+
+std::vector<VkVertexInputAttributeDescription>
+World::Landscape::getAttributeDescriptions() {
+  std::vector<VkVertexInputAttributeDescription> attributeDescriptions{
+      {0, 0, VK_FORMAT_R32G32B32A32_SFLOAT,
+       static_cast<uint32_t>(offsetof(Landscape, position))}};
   return attributeDescriptions;
 }
 
@@ -126,6 +158,12 @@ std::vector<World::Cell> World::initializeCells() {
     const std::array<int, 4>& state = isAlive ? alive : dead;
 
     cells[i] = {pos, color, size, state, sidesHeight, cornersHeight};
+
+    landscapeVertices.push_back({pos});
+  }
+  for (auto item : landscapeVertices) {
+    std::cout << item.position[0] << " " << item.position[1] << " "
+              << item.position[2] << std::endl;
   }
   return cells;
 }
@@ -319,20 +357,3 @@ glm::mat4 World::setProjection(VkExtent2D& swapChainExtent) {
 //   }
 //   return forwardMovement;
 // }
-
-std::vector<VkVertexInputBindingDescription>
-World::Vertex::getBindingDescription() {
-  std::vector<VkVertexInputBindingDescription> bindingDescriptions{
-      {0, sizeof(Vertex), VK_VERTEX_INPUT_RATE_VERTEX}};
-  return bindingDescriptions;
-}
-
-std::vector<VkVertexInputAttributeDescription>
-World::Vertex::getAttributeDescriptions() {
-  std::vector<VkVertexInputAttributeDescription> attributeDescriptions{
-      {0, 0, VK_FORMAT_R32G32_SFLOAT,
-       static_cast<uint32_t>(offsetof(Vertex, pos))},
-      {2, 0, VK_FORMAT_R32G32_SFLOAT,
-       static_cast<uint32_t>(offsetof(Vertex, texCoord))}};
-  return attributeDescriptions;
-}

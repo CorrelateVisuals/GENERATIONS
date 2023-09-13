@@ -56,6 +56,17 @@ class World {
 
   const std::vector<uint16_t> indices = {0, 1, 2, 2, 3, 0};
 
+  struct Landscape {
+    std::array<float, 4> position;
+
+    static std::vector<VkVertexInputBindingDescription> getBindingDescription();
+    static std::vector<VkVertexInputAttributeDescription>
+    getAttributeDescriptions();
+  };
+
+  std::vector<Landscape> landscapeVertices;
+  std::vector<Landscape> landscapeIndices;
+
   struct Cell {
     std::array<float, 4> position;
     std::array<float, 4> color;
@@ -64,6 +75,10 @@ class World {
     std::array<float, 4> tileSidesHeight;
     std::array<float, 4> tileCornersHeight;
     std::array<float, 4> textureCoords;
+
+    static std::vector<VkVertexInputBindingDescription> getBindingDescription();
+    static std::vector<VkVertexInputAttributeDescription>
+    getAttributeDescriptions();
   };
 
   struct UniformBufferObject {
@@ -79,10 +94,6 @@ class World {
  public:
   std::vector<World::Cell> initializeCells();
   UniformBufferObject updateUniforms(VkExtent2D& _swapChain);
-  static std::vector<VkVertexInputAttributeDescription>
-  getCellAttributeDescriptions();
-  static std::vector<VkVertexInputBindingDescription>
-  getCellBindingDescriptions(VkVertexInputRate inputRate);
 
  private:
   struct Camera {
