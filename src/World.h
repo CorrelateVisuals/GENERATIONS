@@ -20,7 +20,7 @@ class World {
   Timer time{30.0f};
 
   struct Grid {
-    uint_fast32_t cellsAlive = 0;
+    uint_fast32_t cellsAlive = 5000;
     std::array<uint_fast16_t, 2> XY = {200, 100};
   } grid;
 
@@ -107,7 +107,7 @@ class World {
   } camera;
 
   struct Light {
-    std::array<float, 4> position{0.0f, 0.0f, 200.0f, 0.0f};
+    std::array<float, 4> position{0.0f, 0.0f, 2000.0f, 0.0f};
   } light;
 
   inline static const std::array<float, 4> red{1.0f, 0.0f, 0.0f, 1.0f};
