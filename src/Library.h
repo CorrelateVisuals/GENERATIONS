@@ -6,6 +6,8 @@
 
 namespace Lib {
 std::vector<float> generateRandomValues(int amount, float min, float max);
+std::vector<int> createGridPolygons(const std::vector<int>& vertices,
+                                    int gridWidth);
 
 double lowFrequencyOscillator(double frequency);
 glm::vec2 smoothstep(const glm::vec2& xy);

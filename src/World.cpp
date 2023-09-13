@@ -145,6 +145,8 @@ std::vector<World::Cell> World::initializeCells() {
   float startX = -((width - 1) * gap) / 2.0f;
   float startY = -((height - 1) * gap) / 2.0f;
 
+  std::vector<int> tempIndices;
+
   for (uint_fast32_t i = 0; i < numGridPoints; ++i) {
     const uint_fast16_t x = static_cast<uint_fast16_t>(i % width);
     const uint_fast16_t y = static_cast<uint_fast16_t>(i / width);
@@ -160,11 +162,16 @@ std::vector<World::Cell> World::initializeCells() {
     cells[i] = {pos, color, size, state, sidesHeight, cornersHeight};
 
     landscapeVertices.push_back({pos});
+    tempIndices.push_back(i);
   }
-  for (auto item : landscapeVertices) {
-    std::cout << item.position[0] << " " << item.position[1] << " "
-              << item.position[2] << std::endl;
+
+  landscapeIndices =
+      Lib::createGridPolygons(tempIndices, static_cast<int>(grid.XY[0]));
+
+  for (auto item : landscapeIndices) {
+    std::cout << item << std::endl;
   }
+
   return cells;
 }
 

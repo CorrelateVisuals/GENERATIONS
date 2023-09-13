@@ -21,7 +21,7 @@ class World {
 
   struct Grid {
     uint_fast32_t cellsAlive = 0;
-    std::array<uint_fast16_t, 2> XY = {10, 10};
+    std::array<uint_fast16_t, 2> XY = {3, 3};
   } grid;
 
   struct Geometry {
@@ -64,7 +64,7 @@ class World {
   };
 
   std::vector<Landscape> landscapeVertices;
-  std::vector<Landscape> landscapeIndices;
+  std::vector<int> landscapeIndices;
 
   struct Cell {
     std::array<float, 4> position;
