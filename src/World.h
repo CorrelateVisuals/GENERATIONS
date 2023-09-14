@@ -20,8 +20,8 @@ class World {
   Timer time{30.0f};
 
   struct Grid {
-    uint_fast32_t cellsAlive = 45000;
-    std::array<uint_fast16_t, 2> XY = {300, 300};
+    uint_fast32_t cellsAlive = 5000;
+    std::array<uint_fast16_t, 2> XY = {200, 100};
   } grid;
 
   struct Geometry {
