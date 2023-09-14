@@ -49,19 +49,19 @@ World::Cell::getAttributeDescriptions() {
 }
 
 std::vector<VkVertexInputBindingDescription>
-World::Vertex::getBindingDescription() {
+World::Rectangle::getBindingDescription() {
   std::vector<VkVertexInputBindingDescription> bindingDescriptions{
-      {0, sizeof(Vertex), VK_VERTEX_INPUT_RATE_VERTEX}};
+      {0, sizeof(Rectangle), VK_VERTEX_INPUT_RATE_VERTEX}};
   return bindingDescriptions;
 }
 
 std::vector<VkVertexInputAttributeDescription>
-World::Vertex::getAttributeDescriptions() {
+World::Rectangle::getAttributeDescriptions() {
   std::vector<VkVertexInputAttributeDescription> attributeDescriptions{
       {0, 0, VK_FORMAT_R32G32_SFLOAT,
-       static_cast<uint32_t>(offsetof(Vertex, pos))},
+       static_cast<uint32_t>(offsetof(Rectangle, pos))},
       {2, 0, VK_FORMAT_R32G32_SFLOAT,
-       static_cast<uint32_t>(offsetof(Vertex, texCoord))}};
+       static_cast<uint32_t>(offsetof(Rectangle, texCoord))}};
   return attributeDescriptions;
 }
 
@@ -111,7 +111,7 @@ std::vector<World::Cell> World::initializeCells() {
   float startX = -((width - 1) * gap) / 2.0f;
   float startY = -((height - 1) * gap) / 2.0f;
 
-  std::vector<int> tempIndices;
+  std::vector<uint32_t> tempIndices;
 
   for (uint_fast32_t i = 0; i < numGridPoints; ++i) {
     const uint_fast16_t x = static_cast<uint_fast16_t>(i % width);

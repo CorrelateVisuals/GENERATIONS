@@ -17,9 +17,10 @@ std::vector<float> Lib::generateRandomValues(int amount, float min, float max) {
   return randomValues;
 }
 
-std::vector<uint16_t> Lib::createGridPolygons(const std::vector<int>& vertices,
-                                              int gridWidth) {
-  std::vector<uint16_t> result;
+std::vector<uint32_t> Lib::createGridPolygons(
+    const std::vector<uint32_t>& vertices,
+    int gridWidth) {
+  std::vector<uint32_t> result;
 
   int numRows = vertices.size() / gridWidth;
 

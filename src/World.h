@@ -20,8 +20,8 @@ class World {
   Timer time{30.0f};
 
   struct Grid {
-    uint_fast32_t cellsAlive = 5000;
-    std::array<uint_fast16_t, 2> XY = {200, 100};
+    uint_fast32_t cellsAlive = 45000;
+    std::array<uint_fast16_t, 2> XY = {300, 300};
   } grid;
 
   struct Geometry {
@@ -40,20 +40,21 @@ class World {
     } texture;
   } geo;
 
-  struct Vertex {
-    glm::vec2 pos;
-    glm::vec2 texCoord;
+  struct Rectangle {
+    std::array<float, 2> pos;
+    std::array<float, 2> texCoord;
 
     static std::vector<VkVertexInputBindingDescription> getBindingDescription();
     static std::vector<VkVertexInputAttributeDescription>
     getAttributeDescriptions();
   };
 
-  const std::vector<Vertex> vertices = {{{-5.0f, -5.0f}, {1.0f, 0.0f}},
-                                        {{5.0f, -5.0f}, {0.0f, 0.0f}},
-                                        {{5.0f, 5.0f}, {0.0f, 1.0f}},
-                                        {{-5.0f, 5.0f}, {1.0f, 1.0f}}};
-  const std::vector<uint16_t> indices = {0, 1, 2, 2, 3, 0};
+  const std::vector<Rectangle> rectangleVertices = {
+      {{-1.0f, -1.0f}, {1.0f, 0.0f}},
+      {{1.0f, -1.0f}, {0.0f, 0.0f}},
+      {{1.0f, 1.0f}, {0.0f, 1.0f}},
+      {{-1.0f, 1.0f}, {1.0f, 1.0f}}};
+  const std::vector<uint16_t> rectangleIndices = {0, 1, 2, 2, 3, 0};
 
   struct Landscape {
     std::array<float, 4> position;
@@ -64,7 +65,7 @@ class World {
   };
 
   std::vector<Landscape> landscapeVertices;
-  std::vector<uint16_t> landscapeIndices;
+  std::vector<uint32_t> landscapeIndices;
 
   struct Cell {
     std::array<float, 4> position;

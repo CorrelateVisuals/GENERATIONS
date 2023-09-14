@@ -6,7 +6,7 @@
 
 namespace Lib {
 std::vector<float> generateRandomValues(int amount, float min, float max);
-std::vector<uint16_t> createGridPolygons(const std::vector<int>& vertices,
+std::vector<uint32_t> createGridPolygons(const std::vector<uint32_t>& vertices,
                                          int gridWidth);
 
 double lowFrequencyOscillator(double frequency);

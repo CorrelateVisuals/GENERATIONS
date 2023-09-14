@@ -229,8 +229,8 @@ void Pipelines::createGraphicsPipelines(
   pipelineInfo.stageCount = static_cast<uint32_t>(shaderStages.size());
   pipelineInfo.pStages = shaderStages.data();
 
-  bindings = World::Vertex::getBindingDescription();
-  attributes = World::Vertex::getAttributeDescriptions();
+  bindings = World::Rectangle::getBindingDescription();
+  attributes = World::Rectangle::getAttributeDescriptions();
   bindingsSize = static_cast<uint32_t>(bindings.size());
   attributeSize = static_cast<uint32_t>(attributes.size());
 

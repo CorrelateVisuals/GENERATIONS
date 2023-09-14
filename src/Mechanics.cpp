@@ -295,7 +295,7 @@ VkPresentModeKHR VulkanMechanics::chooseSwapPresentMode(
     const std::vector<VkPresentModeKHR>& availablePresentModes) {
   Log::text(Log::Style::charLeader, "Choose Swap Present Mode");
   for (const auto& availablePresentMode : availablePresentModes) {
-    if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
+    if (availablePresentMode == VK_PRESENT_MODE_FIFO_KHR) {
       return availablePresentMode;
     }
   }
