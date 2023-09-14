@@ -683,6 +683,12 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
 
   _mechanics.result(vkBeginCommandBuffer, commandBuffer, &beginInfo);
 
+  // vkCmdPipelineBarrier(
+  //     buffers.command.graphic[_mechanics.syncObjects.currentFrame],
+  //     VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+  //     VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, 0, 0, nullptr, 0, nullptr, 0,
+  //     nullptr);
+
   std::vector<VkClearValue> clearValues{{.color = {{0.0f, 0.0f, 0.0f, 1.0f}}},
                                         {.depthStencil = {1.0f, 0}}};
 

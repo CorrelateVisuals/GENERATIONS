@@ -21,7 +21,7 @@ class World {
 
   struct Grid {
     uint_fast32_t cellsAlive = 5000;
-    std::array<uint_fast16_t, 2> XY = {200, 100};
+    std::array<uint_fast16_t, 2> XY = {300, 200};
   } grid;
 
   struct Geometry {
