@@ -202,8 +202,8 @@ void Pipelines::createGraphicsPipelines(
 
   // Landscape pipeline
   shaderStages = {
-      setShaderStage(VK_SHADER_STAGE_VERTEX_BIT, "TilesVert.spv"),
-      setShaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, "TilesFrag.spv")};
+      setShaderStage(VK_SHADER_STAGE_VERTEX_BIT, "LandscapeVert.spv"),
+      setShaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, "LandscapeFrag.spv")};
   pipelineInfo.stageCount = static_cast<uint32_t>(shaderStages.size());
   pipelineInfo.pStages = shaderStages.data();
 

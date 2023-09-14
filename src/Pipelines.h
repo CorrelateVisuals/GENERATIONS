@@ -15,7 +15,7 @@ class Pipelines {
   const std::unordered_map<std::string, std::vector<std::string>> shaders = {
       {"Engine", {"Comp"}},
       {"Cells", {"Vert", "Frag"}},
-      {"Tiles", {"Vert", "Frag"}},
+      {"Landscape", {"Vert", "Frag"}},
       {"Water", {"Vert", "Frag"}},
       {"Texture", {"Vert", "Frag"}}};
   const std::string shaderDir = "shaders/";

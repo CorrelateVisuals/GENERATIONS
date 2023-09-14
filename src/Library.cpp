@@ -19,10 +19,10 @@ std::vector<float> Lib::generateRandomValues(int amount, float min, float max) {
 
 std::vector<uint32_t> Lib::createGridPolygons(
     const std::vector<uint32_t>& vertices,
-    int gridWidth) {
+    uint32_t gridWidth) {
   std::vector<uint32_t> result;
 
-  uint32_t numRows = vertices.size() / gridWidth;
+  uint32_t numRows = static_cast<uint32_t>(vertices.size()) / gridWidth;
 
   for (uint32_t row = 0; row < numRows - 1; row++) {
     for (uint32_t col = 0; col < gridWidth - 1; col++) {
