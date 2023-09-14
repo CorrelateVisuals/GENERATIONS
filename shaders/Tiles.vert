@@ -46,7 +46,7 @@ vec4 setColor(vec4 color) {
     color += vec4(0.0, 0.8, 0.4, 0.5) * blendBottomLeft;     // Blue for bottom left corner
     color += vec4(0.5, 0.2, 0.1, 0.4) * blendBottomRight;    // Green for bottom right corner
 
-    color *= clamp(worldPosition.z , 0.2, 0.2);
+    color *= clamp(worldPosition.z / 100 , 0.2, 0.8);
 
     vec4 waterColor = vec4(0.0, 0.5, 0.8, 1.0);
     float isBelowWater = step(worldPosition.z, waterThreshold);
@@ -67,7 +67,7 @@ float gouraudShading(float brightness, float emit) {
 layout(location = 0) out vec4 fragColor;
 
 void main() {
-    vec4 color = setColor(vec4(0.5f)) * gouraudShading(0.5f, 0.2f); 
+    vec4 color = setColor(vec4(0.2f)) * gouraudShading(1.0f, 1.5f); 
     fragColor = color;
     gl_Position = projection * viewPosition;
 }
