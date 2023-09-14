@@ -35,7 +35,37 @@ class World {
     struct Water {
       const uint32_t vertexCount{6};
     } water;
+    struct Texture {
+      const uint32_t vertexCount{6};
+    } texture;
   } geo;
+
+  struct Rectangle {
+    std::array<float, 2> pos;
+    std::array<float, 2> texCoord;
+
+    static std::vector<VkVertexInputBindingDescription> getBindingDescription();
+    static std::vector<VkVertexInputAttributeDescription>
+    getAttributeDescriptions();
+  };
+
+  const std::vector<Rectangle> rectangleVertices = {
+      {{-1.0f, -1.0f}, {1.0f, 0.0f}},
+      {{1.0f, -1.0f}, {0.0f, 0.0f}},
+      {{1.0f, 1.0f}, {0.0f, 1.0f}},
+      {{-1.0f, 1.0f}, {1.0f, 1.0f}}};
+  const std::vector<uint16_t> rectangleIndices = {0, 1, 2, 2, 3, 0};
+
+  struct Landscape {
+    std::array<float, 4> position;
+
+    static std::vector<VkVertexInputBindingDescription> getBindingDescription();
+    static std::vector<VkVertexInputAttributeDescription>
+    getAttributeDescriptions();
+  };
+
+  std::vector<Landscape> landscapeVertices;
+  std::vector<uint32_t> landscapeIndices;
 
   struct Cell {
     std::array<float, 4> position;
@@ -45,6 +75,10 @@ class World {
     std::array<float, 4> tileSidesHeight;
     std::array<float, 4> tileCornersHeight;
     std::array<float, 4> textureCoords;
+
+    static std::vector<VkVertexInputBindingDescription> getBindingDescription();
+    static std::vector<VkVertexInputAttributeDescription>
+    getAttributeDescriptions();
   };
 
   struct UniformBufferObject {
@@ -60,10 +94,6 @@ class World {
  public:
   std::vector<World::Cell> initializeCells();
   UniformBufferObject updateUniforms(VkExtent2D& _swapChain);
-  static std::vector<VkVertexInputAttributeDescription>
-  getCellAttributeDescriptions();
-  static std::vector<VkVertexInputBindingDescription>
-  getCellBindingDescriptions(VkVertexInputRate inputRate);
 
  private:
   struct Camera {
@@ -78,7 +108,7 @@ class World {
   } camera;
 
   struct Light {
-    std::array<float, 4> position{0.0f, 0.0f, 200.0f, 0.0f};
+    std::array<float, 4> position{0.0f, 0.0f, 2000.0f, 0.0f};
   } light;
 
   inline static const std::array<float, 4> red{1.0f, 0.0f, 0.0f, 1.0f};
@@ -90,6 +120,8 @@ class World {
   // float getForwardMovement(const glm::vec2& leftButtonDelta);
   std::vector<uint_fast32_t> setCellsAliveRandomly(uint_fast32_t numberOfCells);
   bool isIndexAlive(const std::vector<int>& aliveCells, int index);
+
+  std::vector<float> generateLandscapeHeight();
 
   glm::mat4 setModel();
   glm::mat4 setView();

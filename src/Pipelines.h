@@ -16,7 +16,8 @@ class Pipelines {
       {"Engine", {"Comp"}},
       {"Cells", {"Vert", "Frag"}},
       {"Tiles", {"Vert", "Frag"}},
-      {"Water", {"Vert", "Frag"}}};
+      {"Water", {"Vert", "Frag"}},
+      {"Texture", {"Vert", "Frag"}}};
   const std::string shaderDir = "shaders/";
   std::vector<VkShaderModule> shaderModules;
 
@@ -30,6 +31,7 @@ class Pipelines {
     VkPipeline cells;
     VkPipeline tiles;
     VkPipeline water;
+    VkPipeline texture;
     VkPipelineLayout layout;
     VkRenderPass renderPass;
 
@@ -77,7 +79,7 @@ class Pipelines {
 
   // Presets
   constexpr static inline VkPipelineRasterizationStateCreateInfo
-      rasterizationDefault{
+      rasterizationCullBackBit{
           .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
           .depthClampEnable = VK_TRUE,
           .rasterizerDiscardEnable = VK_FALSE,
