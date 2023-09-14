@@ -120,6 +120,8 @@ class World {
   std::vector<uint_fast32_t> setCellsAliveRandomly(uint_fast32_t numberOfCells);
   bool isIndexAlive(const std::vector<int>& aliveCells, int index);
 
+  std::vector<float> generateLandscapeHeight();
+
   glm::mat4 setModel();
   glm::mat4 setView();
   glm::mat4 setProjection(VkExtent2D& swapChainExtent);
