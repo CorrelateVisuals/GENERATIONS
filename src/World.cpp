@@ -206,7 +206,7 @@ World::UniformBufferObject World::updateUniforms(VkExtent2D& _swapChainExtent) {
       .cellSize = geo.cube.size,
       .model = setModel(),
       .view = setView(),
-      .proj = setProjection(_swapChainExtent)};
+      .projection = setProjection(_swapChainExtent)};
   return uniformObject;
 }
 
