@@ -203,6 +203,10 @@ void Pipelines::createGraphicsPipelines(
   // Landscape pipeline
   shaderStages = {
       setShaderStage(VK_SHADER_STAGE_VERTEX_BIT, "LandscapeVert.spv"),
+      setShaderStage(VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT,
+                     "LandscapeTesc.spv"),
+      setShaderStage(VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT,
+                     "LandscapeTese.spv"),
       setShaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, "LandscapeFrag.spv")};
   pipelineInfo.stageCount = static_cast<uint32_t>(shaderStages.size());
   pipelineInfo.pStages = shaderStages.data();
@@ -218,9 +222,27 @@ void Pipelines::createGraphicsPipelines(
   vertexInput.pVertexAttributeDescriptions = attributes.data();
   pipelineInfo.pVertexInputState = &vertexInput;
 
+  inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_PATCH_LIST;
+  pipelineInfo.pInputAssemblyState = &inputAssembly;
+
+  rasterization.cullMode = VK_CULL_MODE_NONE;
+  pipelineInfo.pRasterizationState = &rasterization;
+
+  uint32_t tessellationTopologyTriangle = 3;
+  VkPipelineTessellationStateCreateInfo tessellationStateInfo{
+      .sType = VK_STRUCTURE_TYPE_PIPELINE_TESSELLATION_STATE_CREATE_INFO,
+      .pNext = nullptr,
+      .flags = 0,
+      .patchControlPoints = tessellationTopologyTriangle};
+  pipelineInfo.pTessellationState = &tessellationStateInfo;
+
   _mechanics.result(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
                     VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphics.tiles);
   destroyShaderModules(shaderModules);
+
+  pipelineInfo.pTessellationState = nullptr;
+  inputAssembly = inputAssemblyStateTriangleList;
+  pipelineInfo.pInputAssemblyState = &inputAssembly;
 
   // Texture pipeline
   shaderStages = {
