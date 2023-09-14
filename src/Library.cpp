@@ -22,15 +22,15 @@ std::vector<uint32_t> Lib::createGridPolygons(
     int gridWidth) {
   std::vector<uint32_t> result;
 
-  int numRows = vertices.size() / gridWidth;
+  uint32_t numRows = vertices.size() / gridWidth;
 
-  for (int row = 0; row < numRows - 1; row++) {
-    for (int col = 0; col < gridWidth - 1; col++) {
+  for (uint32_t row = 0; row < numRows - 1; row++) {
+    for (uint32_t col = 0; col < gridWidth - 1; col++) {
       // Calculate vertices for the four vertices of the quad
-      int topLeft = row * gridWidth + col;
-      int topRight = topLeft + 1;
-      int bottomLeft = (row + 1) * gridWidth + col;
-      int bottomRight = bottomLeft + 1;
+      uint32_t topLeft = row * gridWidth + col;
+      uint32_t topRight = topLeft + 1;
+      uint32_t bottomLeft = (row + 1) * gridWidth + col;
+      uint32_t bottomRight = bottomLeft + 1;
 
       // Create the first triangle of the quad
       result.push_back(topLeft);
