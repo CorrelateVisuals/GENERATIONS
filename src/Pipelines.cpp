@@ -224,7 +224,6 @@ void Pipelines::createGraphicsPipelines(
 
   inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_PATCH_LIST;
   pipelineInfo.pInputAssemblyState = &inputAssembly;
-
   uint32_t tessellationTopologyTriangle = 3;
   VkPipelineTessellationStateCreateInfo tessellationStateInfo{
       .sType = VK_STRUCTURE_TYPE_PIPELINE_TESSELLATION_STATE_CREATE_INFO,
@@ -232,6 +231,9 @@ void Pipelines::createGraphicsPipelines(
       .flags = 0,
       .patchControlPoints = tessellationTopologyTriangle};
   pipelineInfo.pTessellationState = &tessellationStateInfo;
+
+  rasterization.polygonMode = VK_POLYGON_MODE_LINE;
+  pipelineInfo.pRasterizationState = &rasterization;
 
   _mechanics.result(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
                     VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphics.tiles);

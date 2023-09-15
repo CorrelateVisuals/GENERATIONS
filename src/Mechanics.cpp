@@ -248,6 +248,7 @@ void VulkanMechanics::createLogicalDevice() {
                                           .sampleRateShading = VK_TRUE,
                                           .depthClamp = VK_TRUE,
                                           .depthBiasClamp = VK_TRUE,
+                                          .fillModeNonSolid = VK_TRUE,
                                           .samplerAnisotropy = VK_TRUE,
                                           .shaderInt64 = VK_TRUE};
 
