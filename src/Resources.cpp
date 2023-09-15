@@ -27,11 +27,12 @@ void Resources::createResources(Pipelines& _pipelines) {
   createShaderStorageBuffers();
   createUniformBuffers();
 
-  createVertexBuffer();
-  createIndexBuffer();
-
-  createVertexBufferLandscape();
-  createIndexBufferLandscape();
+  createVertexBuffer(vertexBuffer, vertexBufferMemory, world.rectangleVertices);
+  createIndexBuffer(indexBuffer, indexBufferMemory, world.rectangleIndices);
+  createVertexBuffer(vertexBufferLandscape, vertexBufferMemoryLandscape,
+                     world.landscapeVertices);
+  createIndexBuffer(indexBufferLandscape, indexBufferMemoryLandscape,
+                    world.landscapeIndices);
 
   createDescriptorPool();
   createDescriptorSets();
@@ -326,9 +327,10 @@ void Resources::createTextureImage(std::string imagePath) {
   vkFreeMemory(_mechanics.mainDevice.logical, stagingBufferMemory, nullptr);
 }
 
-void Resources::createVertexBuffer() {
-  VkDeviceSize bufferSize =
-      sizeof(world.rectangleVertices[0]) * world.rectangleVertices.size();
+void Resources::createVertexBuffer(VkBuffer& buffer,
+                                   VkDeviceMemory& bufferMemory,
+                                   const auto& vertices) {
+  VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
 
   VkBuffer stagingBuffer;
   VkDeviceMemory stagingBufferMemory;
@@ -340,23 +342,24 @@ void Resources::createVertexBuffer() {
   void* data;
   vkMapMemory(_mechanics.mainDevice.logical, stagingBufferMemory, 0, bufferSize,
               0, &data);
-  memcpy(data, world.rectangleVertices.data(), (size_t)bufferSize);
+  memcpy(data, vertices.data(), (size_t)bufferSize);
   vkUnmapMemory(_mechanics.mainDevice.logical, stagingBufferMemory);
 
   createBuffer(
       bufferSize,
       VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffer, vertexBufferMemory);
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, buffer, bufferMemory);
 
-  copyBuffer(stagingBuffer, vertexBuffer, bufferSize);
+  copyBuffer(stagingBuffer, buffer, bufferSize);
 
   vkDestroyBuffer(_mechanics.mainDevice.logical, stagingBuffer, nullptr);
   vkFreeMemory(_mechanics.mainDevice.logical, stagingBufferMemory, nullptr);
 }
 
-void Resources::createIndexBuffer() {
-  VkDeviceSize bufferSize =
-      sizeof(world.rectangleIndices[0]) * world.rectangleIndices.size();
+void Resources::createIndexBuffer(VkBuffer& buffer,
+                                  VkDeviceMemory& bufferMemory,
+                                  const auto& indices) {
+  VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
 
   VkBuffer stagingBuffer;
   VkDeviceMemory stagingBufferMemory;
@@ -368,15 +371,15 @@ void Resources::createIndexBuffer() {
   void* data;
   vkMapMemory(_mechanics.mainDevice.logical, stagingBufferMemory, 0, bufferSize,
               0, &data);
-  memcpy(data, world.rectangleIndices.data(), (size_t)bufferSize);
+  memcpy(data, indices.data(), (size_t)bufferSize);
   vkUnmapMemory(_mechanics.mainDevice.logical, stagingBufferMemory);
 
   createBuffer(
       bufferSize,
       VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, indexBuffer, indexBufferMemory);
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, buffer, bufferMemory);
 
-  copyBuffer(stagingBuffer, indexBuffer, bufferSize);
+  copyBuffer(stagingBuffer, buffer, bufferSize);
 
   vkDestroyBuffer(_mechanics.mainDevice.logical, stagingBuffer, nullptr);
   vkFreeMemory(_mechanics.mainDevice.logical, stagingBufferMemory, nullptr);

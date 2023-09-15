@@ -92,8 +92,12 @@ class Resources {
  private:
   VulkanMechanics& _mechanics;
 
-  void createVertexBuffer();
-  void createIndexBuffer();
+  void createVertexBuffer(VkBuffer& buffer,
+                          VkDeviceMemory& bufferMemory,
+                          const auto& vertices);
+  void createIndexBuffer(VkBuffer& buffer,
+                         VkDeviceMemory& bufferMemory,
+                         const auto& indices);
 
   void createVertexBufferLandscape();
   void createIndexBufferLandscape();

@@ -232,8 +232,9 @@ void Pipelines::createGraphicsPipelines(
       .patchControlPoints = tessellationTopologyTriangle};
   pipelineInfo.pTessellationState = &tessellationStateInfo;
 
-  rasterization.polygonMode = VK_POLYGON_MODE_LINE;
-  pipelineInfo.pRasterizationState = &rasterization;
+  // rasterization.polygonMode = VK_POLYGON_MODE_LINE;
+  // rasterization.lineWidth = 4.0f;
+  // pipelineInfo.pRasterizationState = &rasterization;
 
   _mechanics.result(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
                     VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphics.tiles);
