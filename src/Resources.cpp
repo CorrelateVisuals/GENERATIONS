@@ -675,7 +675,7 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
   vkCmdDraw(commandBuffer, world.geo.cube.vertexCount,
             world.grid.XY[0] * world.grid.XY[1], 0, 0);
 
-  // Pipeline 2
+  // Landscape
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                     _pipelines.graphics.tiles);
   VkBuffer vertexBuffers1[] = {vertexBufferLandscape};
@@ -685,6 +685,13 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
   vkCmdDrawIndexed(commandBuffer,
                    static_cast<uint32_t>(world.landscapeIndices.size()), 1, 0,
                    0, 0);
+  
+  // Landscape Wireframe
+  vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+      _pipelines.graphics.landscapeWireframe);
+  vkCmdDrawIndexed(commandBuffer,
+      static_cast<uint32_t>(world.landscapeIndices.size()), 1, 0,
+      0, 0);
 
   // Pipeline 3
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,

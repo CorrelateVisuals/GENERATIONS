@@ -238,6 +238,19 @@ void Pipelines::createGraphicsPipelines(
 
   _mechanics.result(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
                     VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphics.tiles);
+
+  // Landscape pipeline2
+  colorBlendAttachment.blendEnable = VK_TRUE;
+  colorBlendAttachment.colorBlendOp = VK_BLEND_OP_SUBTRACT;
+  colorBlend.pAttachments = &colorBlendAttachment;
+  pipelineInfo.pColorBlendState = &colorBlend;
+
+   rasterization.polygonMode = VK_POLYGON_MODE_LINE;
+   rasterization.lineWidth = 1.0f;
+   pipelineInfo.pRasterizationState = &rasterization;
+
+  _mechanics.result(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
+      VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphics.landscapeWireframe);
   destroyShaderModules(shaderModules);
 
   pipelineInfo.pTessellationState = nullptr;

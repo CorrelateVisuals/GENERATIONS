@@ -32,6 +32,7 @@ class Pipelines {
     VkPipeline tiles;
     VkPipeline water;
     VkPipeline texture;
+    VkPipeline landscapeWireframe;
     VkPipelineLayout layout;
     VkRenderPass renderPass;
 
