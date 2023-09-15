@@ -99,9 +99,6 @@ class Resources {
                          VkDeviceMemory& bufferMemory,
                          const auto& indices);
 
-  void createVertexBufferLandscape();
-  void createIndexBufferLandscape();
-
   void setPushConstants();
   VkCommandBuffer beginSingleTimeCommands();
   void endSingleTimeCommands(VkCommandBuffer commandBuffer);

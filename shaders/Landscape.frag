@@ -7,7 +7,7 @@ layout(binding = 3) uniform sampler2D texSampler;
 
 layout(location = 0) out vec4 outColor;
 
-const float contrast = 1.5; // Adjust contrast value as desired
+const float contrast = 1.1; // Adjust contrast value as desired
 const float gamma = 1.2; // Adjust gamma value as desired
 
 /*void main() {

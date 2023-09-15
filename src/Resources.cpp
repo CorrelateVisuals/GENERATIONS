@@ -385,64 +385,6 @@ void Resources::createIndexBuffer(VkBuffer& buffer,
   vkFreeMemory(_mechanics.mainDevice.logical, stagingBufferMemory, nullptr);
 }
 
-void Resources::createVertexBufferLandscape() {
-  VkDeviceSize bufferSize =
-      sizeof(world.landscapeVertices[0]) * world.landscapeVertices.size();
-
-  VkBuffer stagingBuffer;
-  VkDeviceMemory stagingBufferMemory;
-  createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-               VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                   VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-               stagingBuffer, stagingBufferMemory);
-
-  void* data;
-  vkMapMemory(_mechanics.mainDevice.logical, stagingBufferMemory, 0, bufferSize,
-              0, &data);
-  memcpy(data, world.landscapeVertices.data(), (size_t)bufferSize);
-  vkUnmapMemory(_mechanics.mainDevice.logical, stagingBufferMemory);
-
-  createBuffer(
-      bufferSize,
-      VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBufferLandscape,
-      vertexBufferMemoryLandscape);
-
-  copyBuffer(stagingBuffer, vertexBufferLandscape, bufferSize);
-
-  vkDestroyBuffer(_mechanics.mainDevice.logical, stagingBuffer, nullptr);
-  vkFreeMemory(_mechanics.mainDevice.logical, stagingBufferMemory, nullptr);
-}
-
-void Resources::createIndexBufferLandscape() {
-  VkDeviceSize bufferSize =
-      sizeof(world.landscapeIndices[0]) * world.landscapeIndices.size();
-
-  VkBuffer stagingBuffer;
-  VkDeviceMemory stagingBufferMemory;
-  createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-               VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                   VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-               stagingBuffer, stagingBufferMemory);
-
-  void* data;
-  vkMapMemory(_mechanics.mainDevice.logical, stagingBufferMemory, 0, bufferSize,
-              0, &data);
-  memcpy(data, world.landscapeIndices.data(), (size_t)bufferSize);
-  vkUnmapMemory(_mechanics.mainDevice.logical, stagingBufferMemory);
-
-  createBuffer(
-      bufferSize,
-      VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, indexBufferLandscape,
-      indexBufferMemoryLandscape);
-
-  copyBuffer(stagingBuffer, indexBufferLandscape, bufferSize);
-
-  vkDestroyBuffer(_mechanics.mainDevice.logical, stagingBuffer, nullptr);
-  vkFreeMemory(_mechanics.mainDevice.logical, stagingBufferMemory, nullptr);
-}
-
 void Resources::setPushConstants() {
   pushConstants.data = {world.time.passedHours};
 }
