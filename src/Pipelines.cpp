@@ -225,9 +225,6 @@ void Pipelines::createGraphicsPipelines(
   inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_PATCH_LIST;
   pipelineInfo.pInputAssemblyState = &inputAssembly;
 
-  rasterization.cullMode = VK_CULL_MODE_NONE;
-  pipelineInfo.pRasterizationState = &rasterization;
-
   uint32_t tessellationTopologyTriangle = 3;
   VkPipelineTessellationStateCreateInfo tessellationStateInfo{
       .sType = VK_STRUCTURE_TYPE_PIPELINE_TESSELLATION_STATE_CREATE_INFO,

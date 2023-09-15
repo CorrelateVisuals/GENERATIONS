@@ -30,7 +30,7 @@ vec3 getNormal(){
 
 vec4 worldPosition = model * inPosition;
 vec4 viewPosition =  view * worldPosition;
-vec3 worldNormal =   mat3(model) * inPosition.xyz;
+vec3 worldNormal =   mat3(model) * getNormal();
 
 vec4 setColor(vec4 color) {
     vec2 normalizedPosition = (worldPosition.xy + gridXY.xy * 0.5) / gridXY.xy;
@@ -46,7 +46,7 @@ vec4 setColor(vec4 color) {
     color += vec4(0.0, 0.8, 0.4, 0.5) * blendBottomLeft;     // Blue for bottom left corner
     color += vec4(0.5, 0.2, 0.1, 0.4) * blendBottomRight;    // Green for bottom right corner
 
-    color *= clamp(worldPosition.z / 100 , 0.2, 0.8);
+    color *= clamp(worldPosition.z , 0.2, 1.0);
 
     vec4 waterColor = vec4(0.0, 0.5, 0.8, 1.0);
     float isBelowWater = step(worldPosition.z, waterThreshold);
@@ -54,9 +54,6 @@ vec4 setColor(vec4 color) {
 
     return color;
 }
-
-vec4 modifyColorContrast(vec4 color, float contrast) { return vec4(mix(vec3(0.5), color.rgb, contrast), color.a);}
-vec4 modifyColorGamma(vec4 color, float gamma) { return vec4(pow(color.rgb, vec3(gamma)), color.a);}
 
 float gouraudShading(float brightness, float emit) {
     vec3 lightDirection = normalize(light.rgb - worldPosition.xyz);
@@ -67,7 +64,7 @@ float gouraudShading(float brightness, float emit) {
 layout(location = 0) out vec4 fragColor;
 
 void main() {
-    vec4 color = setColor(vec4(0.2f)) * gouraudShading(1.0f, 1.5f); 
+    vec4 color = setColor(vec4(0.2f)) * gouraudShading(1.0f, 1.0f); 
     fragColor = color;
     gl_Position = projection * viewPosition;
 }
@@ -75,6 +72,11 @@ void main() {
 
 
 
+
+
+/*vec4 modifyColorContrast(vec4 color, float contrast) { return vec4(mix(vec3(0.5), color.rgb, contrast), color.a);}
+vec4 modifyColorGamma(vec4 color, float gamma) { return vec4(pow(color.rgb, vec3(gamma)), color.a);}
+*/
 
 
 /*{-1.0f, -1.0f,-1.0f},   // 0
