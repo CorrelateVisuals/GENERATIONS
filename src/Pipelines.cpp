@@ -295,7 +295,7 @@ void Pipelines::createGraphicsPipelineLandscapeWireframe() {
   VkPipelineRasterizationStateCreateInfo rasterization{
       rasterizationCullBackBit};
   rasterization.polygonMode = VK_POLYGON_MODE_LINE;
-  rasterization.lineWidth = 1.0f;
+  rasterization.lineWidth = 5.0f;
 
   VkPipelineMultisampleStateCreateInfo multisampling{multisampleStateDefault};
   multisampling.rasterizationSamples = graphics.msaa.samples;
@@ -304,7 +304,7 @@ void Pipelines::createGraphicsPipelineLandscapeWireframe() {
   static VkPipelineColorBlendAttachmentState colorBlendAttachment{
       colorBlendAttachmentStateFalse};
   colorBlendAttachment.blendEnable = VK_TRUE;
-  colorBlendAttachment.colorBlendOp = VK_BLEND_OP_SUBTRACT;
+  colorBlendAttachment.colorBlendOp = VK_BLEND_OP_SCREEN_EXT;
   VkPipelineColorBlendStateCreateInfo colorBlend{colorBlendStateDefault};
   colorBlend.pAttachments = &colorBlendAttachment;
 

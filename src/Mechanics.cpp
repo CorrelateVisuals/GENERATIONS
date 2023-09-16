@@ -249,6 +249,7 @@ void VulkanMechanics::createLogicalDevice() {
                                           .depthClamp = VK_TRUE,
                                           .depthBiasClamp = VK_TRUE,
                                           .fillModeNonSolid = VK_TRUE,
+                                          .wideLines = VK_TRUE,
                                           .samplerAnisotropy = VK_TRUE,
                                           .shaderInt64 = VK_TRUE};
 
@@ -345,16 +346,12 @@ void VulkanMechanics::createSyncObjects() {
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
     result(vkCreateSemaphore, mainDevice.logical, &semaphoreInfo, nullptr,
            &syncObjects.imageAvailableSemaphores[i]);
-
     result(vkCreateSemaphore, mainDevice.logical, &semaphoreInfo, nullptr,
            &syncObjects.renderFinishedSemaphores[i]);
-
     result(vkCreateFence, mainDevice.logical, &fenceInfo, nullptr,
            &syncObjects.inFlightFences[i]);
-
     result(vkCreateSemaphore, mainDevice.logical, &semaphoreInfo, nullptr,
            &syncObjects.computeFinishedSemaphores[i]);
-
     result(vkCreateFence, mainDevice.logical, &fenceInfo, nullptr,
            &syncObjects.computeInFlightFences[i]);
   }
