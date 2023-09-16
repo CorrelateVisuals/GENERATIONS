@@ -58,16 +58,11 @@ class Pipelines {
  private:
   void createRenderPass();
 
-  void createGraphicsPipelineCells(
-      const VkDescriptorSetLayout& descriptorSetLayout);
-  void createGraphicsPipelineLandscape(
-      const VkDescriptorSetLayout& descriptorSetLayout);
-  void createGraphicsPipelineLandscapeWireframe(
-      const VkDescriptorSetLayout& descriptorSetLayout);
-  void createGraphicsPipelineWater(
-      const VkDescriptorSetLayout& descriptorSetLayout);
-  void createGraphicsPipelineTexture(
-      const VkDescriptorSetLayout& descriptorSetLayout);
+  void createGraphicsPipelineCells();
+  void createGraphicsPipelineLandscape();
+  void createGraphicsPipelineLandscapeWireframe();
+  void createGraphicsPipelineWater();
+  void createGraphicsPipelineTexture();
 
   void createComputePipelineEngine(
       const VkDescriptorSetLayout& descriptorSetLayout,
