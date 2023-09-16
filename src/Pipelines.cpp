@@ -30,8 +30,8 @@ void Pipelines::setupPipelines(Resources& _resources) {
   createGraphicsPipelineWater(_resources.descriptor.setLayout);
   createGraphicsPipelineTexture(_resources.descriptor.setLayout);
 
-  createComputePipeline(_resources.descriptor.setLayout,
-                        _resources.pushConstants);
+  createComputePipelineEngine(_resources.descriptor.setLayout,
+                              _resources.pushConstants);
   createColorResources(_resources);
   createDepthResources(_resources);
 }
@@ -638,7 +638,7 @@ std::vector<char> Pipelines::readShaderFile(const std::string& filename) {
   return buffer;
 }
 
-void Pipelines::createComputePipeline(
+void Pipelines::createComputePipelineEngine(
     const VkDescriptorSetLayout& descriptorSetLayout,
     const Resources::PushConstants& pushConstants) {
   Log::text("{ === }", "Compute Pipeline");
