@@ -302,15 +302,7 @@ void Pipelines::createGraphicsPipelineLandscapeWireframe() {
   VkPipelineDepthStencilStateCreateInfo depthStencil{depthStencilStateDefault};
 
   static VkPipelineColorBlendAttachmentState colorBlendAttachment{
-      colorBlendAttachmentStateFalse};
-  colorBlendAttachment.blendEnable = VK_TRUE;
-  colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
-  colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE;
-  colorBlendAttachment.dstColorBlendFactor =
-      VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR;
-  colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
-  colorBlendAttachment.dstAlphaBlendFactor =
-      VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+      colorBlendAttachmentStateScreen};
   VkPipelineColorBlendStateCreateInfo colorBlend{colorBlendStateDefault};
   colorBlend.pAttachments = &colorBlendAttachment;
 
