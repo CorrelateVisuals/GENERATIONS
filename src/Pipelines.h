@@ -69,14 +69,9 @@ class Pipelines {
   void createGraphicsPipelineTexture(
       const VkDescriptorSetLayout& descriptorSetLayout);
 
-
-
-
-
-
-
-  void createComputePipeline(const VkDescriptorSetLayout& descriptorSetLayout,
-                             const Resources::PushConstants& _pushConstants);
+  void createComputePipelineEngine(
+      const VkDescriptorSetLayout& descriptorSetLayout,
+      const Resources::PushConstants& _pushConstants);
 
   VkFormat findDepthFormat();
   bool hasStencilComponent(VkFormat format);
@@ -182,6 +177,4 @@ class Pipelines {
       .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
       .setLayoutCount = 1,
       .pSetLayouts = nullptr};
-
-
 };

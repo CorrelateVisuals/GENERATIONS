@@ -194,11 +194,12 @@ void CapitalEngine::cleanup() {
                     nullptr);
   vkDestroyPipeline(mechanics.mainDevice.logical, pipelines.graphics.landscape,
                     nullptr);
+  vkDestroyPipeline(mechanics.mainDevice.logical,
+                    pipelines.graphics.landscapeWireframe, nullptr);
   vkDestroyPipeline(mechanics.mainDevice.logical, pipelines.graphics.water,
                     nullptr);
   vkDestroyPipeline(mechanics.mainDevice.logical, pipelines.graphics.texture,
                     nullptr);
-
   vkDestroyPipelineLayout(mechanics.mainDevice.logical,
                           pipelines.graphics.layout, nullptr);
 
