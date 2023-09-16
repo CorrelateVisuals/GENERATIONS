@@ -26,6 +26,7 @@ void Pipelines::setupPipelines(Resources& _resources) {
 
   createGraphicsPipelineCells(_resources.descriptor.setLayout);
   createGraphicsPipelineLandscape(_resources.descriptor.setLayout);
+  createGraphicsPipelineLandscapeWireframe(_resources.descriptor.setLayout);
   createGraphicsPipelineWater(_resources.descriptor.setLayout);
   createGraphicsPipelineTexture(_resources.descriptor.setLayout);
 
