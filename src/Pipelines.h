@@ -29,7 +29,7 @@ class Pipelines {
 
   struct Graphics {
     VkPipeline cells;
-    VkPipeline tiles;
+    VkPipeline landscape;
     VkPipeline water;
     VkPipeline texture;
     VkPipeline landscapeWireframe;
@@ -51,14 +51,30 @@ class Pipelines {
   } graphics;
 
  public:
-  void createPipelines(Resources& _resources);
+  void setupPipelines(Resources& _resources);
   void createColorResources(Resources& _resources);
   void createDepthResources(Resources& _resources);
 
  private:
   void createRenderPass();
-  void createGraphicsPipelines(
+
+  void createGraphicsPipelineCells(
       const VkDescriptorSetLayout& descriptorSetLayout);
+  void createGraphicsPipelineLandscape(
+      const VkDescriptorSetLayout& descriptorSetLayout);
+  void createGraphicsPipelineLandscapeWireframe(
+      const VkDescriptorSetLayout& descriptorSetLayout);
+  void createGraphicsPipelineWater(
+      const VkDescriptorSetLayout& descriptorSetLayout);
+  void createGraphicsPipelineTexture(
+      const VkDescriptorSetLayout& descriptorSetLayout);
+
+
+
+
+
+
+
   void createComputePipeline(const VkDescriptorSetLayout& descriptorSetLayout,
                              const Resources::PushConstants& _pushConstants);
 
@@ -166,4 +182,6 @@ class Pipelines {
       .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
       .setLayoutCount = 1,
       .pSetLayouts = nullptr};
+
+
 };

@@ -677,7 +677,7 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
 
   // Landscape
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                    _pipelines.graphics.tiles);
+                    _pipelines.graphics.landscape);
   VkBuffer vertexBuffers1[] = {vertexBufferLandscape};
   vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers1, offsets);
   vkCmdBindIndexBuffer(commandBuffer, indexBufferLandscape, 0,

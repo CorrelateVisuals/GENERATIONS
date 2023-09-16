@@ -7,7 +7,7 @@ CapitalEngine::CapitalEngine() : pipelines(mechanics), resources(mechanics) {
   Log::text("| CAPITAL Engine");
 
   mechanics.setupVulkan(pipelines, resources);
-  pipelines.createPipelines(resources);
+  pipelines.setupPipelines(resources);
   resources.createResources(pipelines);
 }
 
@@ -192,7 +192,7 @@ void CapitalEngine::cleanup() {
 
   vkDestroyPipeline(mechanics.mainDevice.logical, pipelines.graphics.cells,
                     nullptr);
-  vkDestroyPipeline(mechanics.mainDevice.logical, pipelines.graphics.tiles,
+  vkDestroyPipeline(mechanics.mainDevice.logical, pipelines.graphics.landscape,
                     nullptr);
   vkDestroyPipeline(mechanics.mainDevice.logical, pipelines.graphics.water,
                     nullptr);
