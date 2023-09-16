@@ -595,6 +595,12 @@ void Resources::recordComputeCommandBuffer(VkCommandBuffer commandBuffer,
         "failed to begin recording compute command buffer!");
   }
 
+  // vkCmdPipelineBarrier(
+  //     buffers.command.compute[_mechanics.syncObjects.currentFrame],
+  //     VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+  //     VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, 0, 0, nullptr, 0, nullptr, 0,
+  //     nullptr);
+
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
                     _pipelines.compute.engine);
 
@@ -628,11 +634,17 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
 
   _mechanics.result(vkBeginCommandBuffer, commandBuffer, &beginInfo);
 
+  // VkMemoryBarrier memBarrier{
+  //     .sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER,
+  //     .pNext = nullptr,
+  //     .srcAccessMask = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+  //     .dstAccessMask = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT};
+
   // vkCmdPipelineBarrier(
   //     buffers.command.graphic[_mechanics.syncObjects.currentFrame],
-  //     VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-  //     VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, 0, 0, nullptr, 0, nullptr, 0,
-  //     nullptr);
+  //     VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT,
+  //     VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT | VK_SHADER_STAGE_COMPUTE_BIT, 0, 1,
+  //     &memBarrier, 0, nullptr, 0, nullptr);
 
   std::vector<VkClearValue> clearValues{{.color = {{0.0f, 0.0f, 0.0f, 1.0f}}},
                                         {.depthStencil = {1.0f, 0}}};
@@ -675,13 +687,20 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
   vkCmdDraw(commandBuffer, world.geo.cube.vertexCount,
             world.grid.XY[0] * world.grid.XY[1], 0, 0);
 
-  // Pipeline 2
+  // Landscape
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                    _pipelines.graphics.tiles);
+                    _pipelines.graphics.landscape);
   VkBuffer vertexBuffers1[] = {vertexBufferLandscape};
   vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers1, offsets);
   vkCmdBindIndexBuffer(commandBuffer, indexBufferLandscape, 0,
                        VK_INDEX_TYPE_UINT32);
+  vkCmdDrawIndexed(commandBuffer,
+                   static_cast<uint32_t>(world.landscapeIndices.size()), 1, 0,
+                   0, 0);
+
+  // Landscape Wireframe
+  vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                    _pipelines.graphics.landscapeWireframe);
   vkCmdDrawIndexed(commandBuffer,
                    static_cast<uint32_t>(world.landscapeIndices.size()), 1, 0,
                    0, 0);

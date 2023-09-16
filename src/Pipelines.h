@@ -29,9 +29,10 @@ class Pipelines {
 
   struct Graphics {
     VkPipeline cells;
-    VkPipeline tiles;
+    VkPipeline landscape;
     VkPipeline water;
     VkPipeline texture;
+    VkPipeline landscapeWireframe;
     VkPipelineLayout layout;
     VkRenderPass renderPass;
 
@@ -50,16 +51,22 @@ class Pipelines {
   } graphics;
 
  public:
-  void createPipelines(Resources& _resources);
+  void setupPipelines(Resources& _resources);
   void createColorResources(Resources& _resources);
   void createDepthResources(Resources& _resources);
 
  private:
   void createRenderPass();
-  void createGraphicsPipelines(
-      const VkDescriptorSetLayout& descriptorSetLayout);
-  void createComputePipeline(const VkDescriptorSetLayout& descriptorSetLayout,
-                             const Resources::PushConstants& _pushConstants);
+
+  void createGraphicsPipelineCells();
+  void createGraphicsPipelineLandscape();
+  void createGraphicsPipelineLandscapeWireframe();
+  void createGraphicsPipelineWater();
+  void createGraphicsPipelineTexture();
+
+  void createComputePipelineEngine(
+      const VkDescriptorSetLayout& descriptorSetLayout,
+      const Resources::PushConstants& _pushConstants);
 
   VkFormat findDepthFormat();
   bool hasStencilComponent(VkFormat format);

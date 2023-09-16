@@ -9,7 +9,7 @@ layout(binding = 3) uniform sampler2D texSampler;
 layout(location = 0) out vec4 outColor;
 
 const float contrast = 1.2; // Adjust contrast value as desired
-const float gamma = 0.7; // Adjust gamma value as desired
+const float gamma = 1.0; // Adjust gamma value as desired
 
 /*void main() {
     outColor = texture(texSampler, textureCoords);
