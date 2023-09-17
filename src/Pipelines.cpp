@@ -537,7 +537,7 @@ VkShaderModule Pipelines::createShaderModule(const std::vector<char>& code) {
       .codeSize = code.size(),
       .pCode = reinterpret_cast<const uint32_t*>(code.data())};
 
-  VkShaderModule shaderModule{};
+  VkShaderModule shaderModule;
 
   _mechanics.result(vkCreateShaderModule, _mechanics.mainDevice.logical,
                     &createInfo, nullptr, &shaderModule);

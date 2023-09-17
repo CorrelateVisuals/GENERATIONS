@@ -211,7 +211,7 @@ World::UniformBufferObject World::updateUniforms(VkExtent2D& _swapChainExtent) {
 }
 
 void World::updateCamera() {
-  glm::vec2 buttonType[3]{};
+  glm::vec2 buttonType[3];
   constexpr uint_fast8_t left = 0;
   constexpr uint_fast8_t right = 1;
   constexpr uint_fast8_t middle = 2;
