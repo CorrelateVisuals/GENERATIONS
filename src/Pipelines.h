@@ -237,4 +237,12 @@ class Pipelines {
       .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
       .setLayoutCount = 1,
       .pSetLayouts = nullptr};
+
+  const static inline uint32_t tessellationTopologyTriangle = 3;
+  constexpr static inline VkPipelineTessellationStateCreateInfo
+      tessellationStateDefault{
+          .sType = VK_STRUCTURE_TYPE_PIPELINE_TESSELLATION_STATE_CREATE_INFO,
+          .pNext = nullptr,
+          .flags = 0,
+          .patchControlPoints = tessellationTopologyTriangle};
 };

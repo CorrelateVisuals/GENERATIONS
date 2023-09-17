@@ -284,13 +284,8 @@ void Pipelines::createGraphicsPipelineLandscapeWireframe() {
   VkPipelineInputAssemblyStateCreateInfo inputAssembly{
       inputAssemblyStateTriangleList};
   inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_PATCH_LIST;
-
-  uint32_t tessellationTopologyTriangle = 3;
   VkPipelineTessellationStateCreateInfo tessellationStateInfo{
-      .sType = VK_STRUCTURE_TYPE_PIPELINE_TESSELLATION_STATE_CREATE_INFO,
-      .pNext = nullptr,
-      .flags = 0,
-      .patchControlPoints = tessellationTopologyTriangle};
+      tessellationStateDefault};
 
   VkPipelineRasterizationStateCreateInfo rasterization{
       rasterizationCullBackBit};
