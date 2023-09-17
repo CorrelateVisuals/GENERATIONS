@@ -15,9 +15,9 @@ Resources::~Resources() {
   Log::text("{ /// }", "destructing Resources");
 }
 
-void Resources::createResources(Pipelines& _pipelines) {
+void Resources::setupResources(Pipelines& _pipelines) {
   Log::text(Log::Style::headerGuard);
-  Log::text("{ /// }", "creating Resources");
+  Log::text("{ /// }", "Setup Resources");
 
   createTextureImage(Lib::path("assets/Avatar.PNG"));
   createTextureImageView();

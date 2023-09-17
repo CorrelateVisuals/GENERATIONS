@@ -8,7 +8,7 @@ CapitalEngine::CapitalEngine() : pipelines(mechanics), resources(mechanics) {
 
   mechanics.setupVulkan(pipelines, resources);
   pipelines.setupPipelines(resources);
-  resources.createResources(pipelines);
+  resources.setupResources(pipelines);
 }
 
 CapitalEngine::~CapitalEngine() {

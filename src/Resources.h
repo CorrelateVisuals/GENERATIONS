@@ -67,7 +67,7 @@ class Resources {
   } descriptor;
 
  public:
-  void createResources(Pipelines& _pipelines);
+  void setupResources(Pipelines& _pipelines);
   void createFramebuffers(Pipelines& _pipelines);
   void createDescriptorSetLayout();
   void recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,

@@ -19,7 +19,7 @@ Pipelines::~Pipelines() {
 
 void Pipelines::setupPipelines(Resources& _resources) {
   Log::text(Log::Style::headerGuard);
-  Log::text("{ === }", "creating Pipelines");
+  Log::text("{ === }", "Setup Pipelines");
 
   _resources.createDescriptorSetLayout();
   createRenderPass();
