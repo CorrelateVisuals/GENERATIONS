@@ -739,7 +739,7 @@ VkImageView Resources::createImageView(VkImage image,
                            .baseArrayLayer = 0,
                            .layerCount = 1}};
 
-  VkImageView imageView;
+  VkImageView imageView{};
   _mechanics.result(vkCreateImageView, _mechanics.mainDevice.logical, &viewInfo,
                     nullptr, &imageView);
 
@@ -748,7 +748,7 @@ VkImageView Resources::createImageView(VkImage image,
 
 void Resources::createTextureSampler() {
   Log::text("{ img }", "Texture Sampler");
-  VkPhysicalDeviceProperties properties;
+  VkPhysicalDeviceProperties properties{};
   vkGetPhysicalDeviceProperties(_mechanics.mainDevice.physical, &properties);
 
   VkSamplerCreateInfo samplerInfo{
@@ -812,7 +812,7 @@ void Resources::copyBuffer(VkBuffer srcBuffer,
 
   VkCommandBuffer commandBuffer = beginSingleTimeCommands();
 
-  VkBufferCopy copyRegion;
+  VkBufferCopy copyRegion{};
   copyRegion.size = size;
   vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
 

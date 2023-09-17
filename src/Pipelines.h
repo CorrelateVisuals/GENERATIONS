@@ -85,7 +85,7 @@ class Pipelines {
   VulkanMechanics& _mechanics;
 
   // Presets
-  constexpr inline static VkPipelineRasterizationStateCreateInfo
+  constexpr static inline VkPipelineRasterizationStateCreateInfo
       rasterizationCullBackBit{
           .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
           .depthClampEnable = VK_TRUE,
@@ -99,13 +99,13 @@ class Pipelines {
           .depthBiasSlopeFactor = 0.02f,
           .lineWidth = 1.0f};
 
-  constexpr inline static VkPipelineInputAssemblyStateCreateInfo
+  constexpr static inline VkPipelineInputAssemblyStateCreateInfo
       inputAssemblyStateTriangleList{
           .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
           .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
           .primitiveRestartEnable = VK_FALSE};
 
-  constexpr inline static VkPipelineVertexInputStateCreateInfo
+  constexpr static inline VkPipelineVertexInputStateCreateInfo
       vertexInputStateDefault{
           .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
           .pNext = nullptr,
@@ -115,14 +115,14 @@ class Pipelines {
           .vertexAttributeDescriptionCount = 0,
           .pVertexAttributeDescriptions = nullptr};
 
-  constexpr inline static VkPipelineMultisampleStateCreateInfo
+  constexpr static inline VkPipelineMultisampleStateCreateInfo
       multisampleStateDefault{
           .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
           .rasterizationSamples = VK_SAMPLE_COUNT_1_BIT,
           .sampleShadingEnable = VK_TRUE,
           .minSampleShading = 1.0f};
 
-  constexpr inline static VkPipelineDepthStencilStateCreateInfo
+  constexpr static inline VkPipelineDepthStencilStateCreateInfo
       depthStencilStateDefault{
           .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
           .depthTestEnable = VK_TRUE,
@@ -131,7 +131,7 @@ class Pipelines {
           .depthBoundsTestEnable = VK_FALSE,
           .stencilTestEnable = VK_FALSE};
 
-  constexpr inline static VkPipelineColorBlendAttachmentState
+  constexpr static inline VkPipelineColorBlendAttachmentState
       colorBlendAttachmentStateFalse{
           .blendEnable = VK_FALSE,
           .srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA,
@@ -144,7 +144,7 @@ class Pipelines {
               VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
               VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT};
 
-  constexpr inline static VkPipelineColorBlendAttachmentState
+  constexpr static inline VkPipelineColorBlendAttachmentState
       colorBlendAttachmentStateMultiply{
           .blendEnable = VK_TRUE,
           .srcColorBlendFactor = VK_BLEND_FACTOR_DST_COLOR,
@@ -157,7 +157,7 @@ class Pipelines {
               VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
               VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT};
 
-  constexpr inline static VkPipelineColorBlendAttachmentState
+  constexpr static inline VkPipelineColorBlendAttachmentState
       colorBlendAttachmentStateAdd{.blendEnable = VK_TRUE,
                                    .srcColorBlendFactor = VK_BLEND_FACTOR_ONE,
                                    .dstColorBlendFactor = VK_BLEND_FACTOR_ONE,
@@ -170,7 +170,7 @@ class Pipelines {
                                                      VK_COLOR_COMPONENT_B_BIT |
                                                      VK_COLOR_COMPONENT_A_BIT};
 
-  constexpr inline static VkPipelineColorBlendAttachmentState
+  constexpr static inline VkPipelineColorBlendAttachmentState
       colorBlendAttachmentStateAverage{
           .blendEnable = VK_TRUE,
           .srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA,
@@ -183,7 +183,7 @@ class Pipelines {
               VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
               VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT};
 
-  constexpr inline static VkPipelineColorBlendAttachmentState
+  constexpr static inline VkPipelineColorBlendAttachmentState
       colorBlendAttachmentStateSubtract{
           .blendEnable = VK_TRUE,
           .srcColorBlendFactor = VK_BLEND_FACTOR_ONE,
@@ -196,7 +196,7 @@ class Pipelines {
               VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
               VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT};
 
-  constexpr inline static VkPipelineColorBlendAttachmentState
+  constexpr static inline VkPipelineColorBlendAttachmentState
       colorBlendAttachmentStateScreen{
           .blendEnable = VK_TRUE,
           .srcColorBlendFactor = VK_BLEND_FACTOR_ONE,
@@ -209,7 +209,7 @@ class Pipelines {
               VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
               VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT};
 
-  constexpr inline static VkPipelineColorBlendStateCreateInfo
+  constexpr static inline VkPipelineColorBlendStateCreateInfo
       colorBlendStateDefault{
           .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
           .pNext = nullptr,
@@ -220,26 +220,26 @@ class Pipelines {
           .pAttachments = nullptr,
           .blendConstants = {0.0f, 0.0f, 0.0f, 0.0f}};
 
-  constexpr inline static VkPipelineViewportStateCreateInfo
+  constexpr static inline VkPipelineViewportStateCreateInfo
       viewportStateDefault{
           .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
           .viewportCount = 1,
           .scissorCount = 1};
 
-  constexpr inline static VkDynamicState dynamicStates[] = {
+  constexpr static inline VkDynamicState dynamicStates[] = {
       VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
-  constexpr inline static VkPipelineDynamicStateCreateInfo dynamicStateDefault{
+  constexpr static inline VkPipelineDynamicStateCreateInfo dynamicStateDefault{
       .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
       .dynamicStateCount = sizeof(dynamicStates) / sizeof(dynamicStates[0]),
       .pDynamicStates = dynamicStates};
 
-  constexpr inline static VkPipelineLayoutCreateInfo layoutDefault{
+  constexpr static inline VkPipelineLayoutCreateInfo layoutDefault{
       .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
       .setLayoutCount = 1,
       .pSetLayouts = nullptr};
 
-  const inline static uint32_t tessellationTopologyTriangle = 3;
-  constexpr inline static VkPipelineTessellationStateCreateInfo
+  const static inline uint32_t tessellationTopologyTriangle = 3;
+  constexpr static inline VkPipelineTessellationStateCreateInfo
       tessellationStateDefault{
           .sType = VK_STRUCTURE_TYPE_PIPELINE_TESSELLATION_STATE_CREATE_INFO,
           .pNext = nullptr,

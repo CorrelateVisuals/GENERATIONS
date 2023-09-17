@@ -73,7 +73,7 @@ void VulkanMechanics::createInstance() {
       .enabledExtensionCount = static_cast<uint32_t>(extensions.size()),
       .ppEnabledExtensionNames = extensions.data()};
 
-  VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo;
+  VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
   if (validation.enableValidationLayers) {
     createInfo.enabledLayerCount =
         static_cast<uint32_t>(validation.validation.size());
@@ -290,7 +290,6 @@ VkSurfaceFormatKHR VulkanMechanics::chooseSwapSurfaceFormat(
       return availableFormat;
     }
   }
-
   return availableFormats[0];
 }
 

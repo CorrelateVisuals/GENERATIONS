@@ -92,6 +92,13 @@ class Resources {
  private:
   VulkanMechanics& _mechanics;
 
+  void createVertexBuffer(VkBuffer& buffer,
+                          VkDeviceMemory& bufferMemory,
+                          const auto& vertices);
+  void createIndexBuffer(VkBuffer& buffer,
+                         VkDeviceMemory& bufferMemory,
+                         const auto& indices);
+
   void setPushConstants();
   VkCommandBuffer beginSingleTimeCommands();
   void endSingleTimeCommands(VkCommandBuffer commandBuffer);
@@ -99,12 +106,6 @@ class Resources {
   void createComputeCommandBuffers();
   void createDescriptorPool();
   void createDescriptorSets();
-  void createVertexBuffer(VkBuffer& buffer,
-      VkDeviceMemory& bufferMemory,
-      const auto& vertices);
-  void createIndexBuffer(VkBuffer& buffer,
-      VkDeviceMemory& bufferMemory,
-      const auto& indices);
   void createShaderStorageBuffers();
   void createUniformBuffers();
   void createBuffer(VkDeviceSize size,
