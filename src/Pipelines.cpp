@@ -35,7 +35,11 @@ void Pipelines::setupPipelines(Resources& _resources) {
   createGraphicsPipelineWater();
   createGraphicsPipelineTexture();
 
-  createComputePipelineEngine(_resources.descriptor.setLayout,
+  createComputePipelineEngine("EngineComp.spv", compute.engine,
+                              _resources.descriptor.setLayout,
+                              _resources.pushConstants);
+  createComputePipelineEngine("modify_colorComp.spv", compute.modifyColor,
+                              _resources.descriptor.setLayout,
                               _resources.pushConstants);
   createColorResources(_resources);
   createDepthResources(_resources);
@@ -500,13 +504,13 @@ std::vector<char> Pipelines::readShaderFile(const std::string& filename) {
   return buffer;
 }
 
-void Pipelines::createComputePipelineEngine(
+void Pipelines::createComputePipelineEngine(std::string shaderFile, VkPipeline& handle,
     const VkDescriptorSetLayout& descriptorSetLayout,
     const Resources::PushConstants& pushConstants) {
   Log::text("{ === }", "Compute Pipeline");
 
   VkPipelineShaderStageCreateInfo shaderStage{
-      setShaderStage(VK_SHADER_STAGE_COMPUTE_BIT, "EngineComp.spv")};
+      setShaderStage(VK_SHADER_STAGE_COMPUTE_BIT, shaderFile.c_str())};
 
   VkPushConstantRange constants{.stageFlags = pushConstants.shaderStage,
                                 .offset = pushConstants.offset,
@@ -526,7 +530,7 @@ void Pipelines::createComputePipelineEngine(
       .layout = compute.layout};
 
   _mechanics.result(vkCreateComputePipelines, _mechanics.mainDevice.logical,
-                    VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &compute.engine);
+                    VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &handle);
 
   destroyShaderModules(shaderModules);
 }

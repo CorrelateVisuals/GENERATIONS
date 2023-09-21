@@ -183,6 +183,11 @@ void Resources::createDescriptorSetLayout() {
        .descriptorCount = 1,
        .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
        .pImmutableSamplers = nullptr},
+      {.binding = 4,
+       .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
+       .descriptorCount = 1,
+       .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
+       .pImmutableSamplers = nullptr},
   };
 
   Log::text("{ |=| }", "Descriptor Set Layout:", layoutBindings.size(),
@@ -537,6 +542,11 @@ void Resources::createDescriptorSets() {
         .sampler = image.textureSampler,
         .imageView = image.textureView,
         .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL};
+    
+    VkDescriptorImageInfo swapchainImageInfo{
+        .sampler = VK_NULL_HANDLE,
+        .imageView = _mechanics.swapChain.imageViews[0], // _mechanics.syncObjects.currentFrame
+        .imageLayout = VK_IMAGE_LAYOUT_GENERAL};
 
     std::vector<VkWriteDescriptorSet> descriptorWrites{
         {.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
@@ -570,6 +580,14 @@ void Resources::createDescriptorSets() {
          .descriptorCount = 1,
          .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
          .pImageInfo = &imageInfo},
+
+        {.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+         .dstSet = descriptor.sets[i],
+         .dstBinding = 4,
+         .dstArrayElement = 0,
+         .descriptorCount = 1,
+         .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
+         .pImageInfo = &swapchainImageInfo},
     };
 
     vkUpdateDescriptorSets(_mechanics.mainDevice.logical,
@@ -619,6 +637,7 @@ void Resources::recordComputeCommandBuffer(VkCommandBuffer commandBuffer,
   uint32_t workgroupSizeY =
       (world.grid.XY[1] + _pipelines.compute.workGroups[1] - 1) /
       _pipelines.compute.workGroups[1];
+
 
   vkCmdDispatch(commandBuffer, workgroupSizeX, workgroupSizeY,
                 _pipelines.compute.workGroups[2]);
@@ -719,6 +738,32 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
   vkCmdDrawIndexed(commandBuffer, world.geo.texture.vertexCount, 1, 0, 0, 0);
 
   vkCmdEndRenderPass(commandBuffer);
+
+
+
+  // TODO: Use an image layout transition here to transition the swapchain image into VK_IMAGE_LAYOUT_GENERAL
+  //       This is part of an image memory barrier (i.e., vkCmdPipelineBarrier with the VkImageMemoryBarrier parameter set)
+  
+ vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
+                    _pipelines.compute.modifyColor);
+
+  vkCmdBindDescriptorSets(
+      commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, _pipelines.compute.layout,
+      0, 1, &descriptor.sets[_mechanics.syncObjects.currentFrame], 0, nullptr);
+
+  setPushConstants();
+  vkCmdPushConstants(commandBuffer, _pipelines.compute.layout,
+                     pushConstants.shaderStage, pushConstants.offset,
+                     pushConstants.size, pushConstants.data.data());
+
+  uint32_t workgroupSizeX = (static_cast<uint32_t>(Window::get().display.width) + 15) / 16;
+  uint32_t workgroupSizeY = (static_cast<uint32_t>(Window::get().display.height) + 15) / 16;
+
+  vkCmdDispatch(commandBuffer, workgroupSizeX, workgroupSizeY, 1);
+
+  // TODO: Use an image layout transition here to transition the swapchain image into VK_IMAGE_LAYOUT_PRESENT
+
+  
 
   _mechanics.result(vkEndCommandBuffer, commandBuffer);
 }

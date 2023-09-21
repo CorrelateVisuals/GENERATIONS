@@ -14,6 +14,7 @@ class Pipelines {
 
   const std::unordered_map<std::string, std::vector<std::string>> shaders = {
       {"Engine", {"Comp"}},
+      {"modify_color", {"Comp"}},
       {"Cells", {"Vert", "Frag"}},
       {"Landscape", {"Vert", "Tesc", "Tese", "Frag"}},
       {"Water", {"Vert", "Frag"}},
@@ -23,6 +24,7 @@ class Pipelines {
 
   struct Compute {
     VkPipeline engine;
+    VkPipeline modifyColor;
     VkPipelineLayout layout;
     const std::array<uint32_t, 3> workGroups{32, 32, 1};
   } compute;
@@ -64,7 +66,7 @@ class Pipelines {
   void createGraphicsPipelineWater();
   void createGraphicsPipelineTexture();
 
-  void createComputePipelineEngine(
+  void createComputePipelineEngine(std::string shaderFile, VkPipeline& handle,
       const VkDescriptorSetLayout& descriptorSetLayout,
       const Resources::PushConstants& _pushConstants);
 
