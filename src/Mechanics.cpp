@@ -428,7 +428,8 @@ void VulkanMechanics::createSwapChain() {
       .imageColorSpace = surfaceFormat.colorSpace,
       .imageExtent = extent,
       .imageArrayLayers = 1,
-      .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+      .imageUsage =
+          VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_STORAGE_BIT,
       .preTransform = swapChainSupport.capabilities.currentTransform,
       .compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
       .presentMode = presentMode,
@@ -467,7 +468,8 @@ void VulkanMechanics::createSwapChainImageViews(Resources& resources) {
 
   for (size_t i = 0; i < swapChain.images.size(); i++) {
     swapChain.imageViews[i] = resources.createImageView(
-        swapChain.images[i], swapChain.imageFormat, VK_IMAGE_ASPECT_COLOR_BIT);
+        swapChain.images[i], swapChain.imageFormat,
+        VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_ASPECT_COLOR_BIT);
   }
 }
 

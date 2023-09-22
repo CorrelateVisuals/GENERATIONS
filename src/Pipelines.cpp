@@ -37,6 +37,8 @@ void Pipelines::setupPipelines(Resources& _resources) {
 
   createComputePipelineEngine(_resources.descriptor.setLayout,
                               _resources.pushConstants);
+  createPostFXComputePipelineEngine(_resources.descriptor.setLayout,
+                                    _resources.pushConstants);
   createColorResources(_resources);
   createDepthResources(_resources);
 }
@@ -502,19 +504,19 @@ std::vector<char> Pipelines::readShaderFile(const std::string& filename) {
 
 void Pipelines::createComputePipelineEngine(
     const VkDescriptorSetLayout& descriptorSetLayout,
-    const Resources::PushConstants& pushConstants) {
-  Log::text("{ === }", "Compute Pipeline");
+    const Resources::PushConstants& _pushConstants) {
+  Log::text("{ === }", "Compute Engine Pipeline");
 
   VkPipelineShaderStageCreateInfo shaderStage{
       setShaderStage(VK_SHADER_STAGE_COMPUTE_BIT, "EngineComp.spv")};
 
-  VkPushConstantRange constants{.stageFlags = pushConstants.shaderStage,
-                                .offset = pushConstants.offset,
-                                .size = pushConstants.size};
+  VkPushConstantRange constants{.stageFlags = _pushConstants.shaderStage,
+                                .offset = _pushConstants.offset,
+                                .size = _pushConstants.size};
 
   VkPipelineLayoutCreateInfo layout{layoutDefault};
   layout.pSetLayouts = &descriptorSetLayout;
-  layout.pushConstantRangeCount = pushConstants.count;
+  layout.pushConstantRangeCount = _pushConstants.count;
   layout.pPushConstantRanges = &constants;
 
   _mechanics.result(vkCreatePipelineLayout, _mechanics.mainDevice.logical,
@@ -527,6 +529,37 @@ void Pipelines::createComputePipelineEngine(
 
   _mechanics.result(vkCreateComputePipelines, _mechanics.mainDevice.logical,
                     VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &compute.engine);
+
+  destroyShaderModules(shaderModules);
+}
+
+void Pipelines::createPostFXComputePipelineEngine(
+    const VkDescriptorSetLayout& descriptorSetLayout,
+    const Resources::PushConstants& _pushConstants) {
+  Log::text("{ === }", "Compute Engine Pipeline");
+
+  VkPipelineShaderStageCreateInfo shaderStage{
+      setShaderStage(VK_SHADER_STAGE_COMPUTE_BIT, "PostFXComp.spv")};
+
+  VkPushConstantRange constants{.stageFlags = _pushConstants.shaderStage,
+                                .offset = _pushConstants.offset,
+                                .size = _pushConstants.size};
+
+  VkPipelineLayoutCreateInfo layout{layoutDefault};
+  layout.pSetLayouts = &descriptorSetLayout;
+  layout.pushConstantRangeCount = _pushConstants.count;
+  layout.pPushConstantRanges = &constants;
+
+  _mechanics.result(vkCreatePipelineLayout, _mechanics.mainDevice.logical,
+                    &layout, nullptr, &compute.layout);
+
+  VkComputePipelineCreateInfo pipelineInfo{
+      .sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
+      .stage = shaderStage,
+      .layout = compute.layout};
+
+  _mechanics.result(vkCreateComputePipelines, _mechanics.mainDevice.logical,
+                    VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &compute.postFX);
 
   destroyShaderModules(shaderModules);
 }

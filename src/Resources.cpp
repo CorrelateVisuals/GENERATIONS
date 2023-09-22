@@ -183,6 +183,11 @@ void Resources::createDescriptorSetLayout() {
        .descriptorCount = 1,
        .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
        .pImmutableSamplers = nullptr},
+      {.binding = 4,
+       .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
+       .descriptorCount = 1,
+       .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
+       .pImmutableSamplers = nullptr},
   };
 
   Log::text("{ |=| }", "Descriptor Set Layout:", layoutBindings.size(),
@@ -462,7 +467,66 @@ void Resources::transitionImageLayout(VkImage image,
     barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
     sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-    destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+    destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT |
+                       VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+  } else {
+    throw std::invalid_argument("unsupported layout transition!");
+  }
+
+  vkCmdPipelineBarrier(commandBuffer, sourceStage, destinationStage, 0, 0,
+                       nullptr, 0, nullptr, 1, &barrier);
+
+  endSingleTimeCommands(commandBuffer);
+}
+
+void Resources::transitionImageLayout2(VkImage image,
+                                       VkFormat format,
+                                       VkImageLayout oldLayout,
+                                       VkImageLayout newLayout) {
+  Log::text("{ >>> }", "Transition Image Layout");
+
+  VkCommandBuffer commandBuffer = beginSingleTimeCommands();
+
+  VkImageMemoryBarrier barrier{.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+                               .oldLayout = oldLayout,
+                               .newLayout = newLayout,
+                               .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                               .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                               .image = image};
+  barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+  barrier.subresourceRange.baseMipLevel = 0;
+  barrier.subresourceRange.levelCount = 1;
+  barrier.subresourceRange.baseArrayLayer = 0;
+  barrier.subresourceRange.layerCount = 1;
+
+  VkPipelineStageFlags sourceStage;
+  VkPipelineStageFlags destinationStage;
+
+  if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED &&
+      newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
+    barrier.srcAccessMask = 0;
+    barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+
+    sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+    destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+  } else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL &&
+             newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+    barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+    barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+    sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+    destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT |
+                       VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+
+    // Add VK_IMAGE_USAGE_STORAGE_BIT to the image usage flags
+    VkImageCreateInfo imageCreateInfo =
+        {};  // You should have this information from image creation
+    if ((imageCreateInfo.usage & VK_IMAGE_USAGE_STORAGE_BIT) == 0) {
+      imageCreateInfo.usage |= VK_IMAGE_USAGE_STORAGE_BIT;
+      // Recreate the image with the updated usage flags if necessary
+      // Note: You may need to destroy the old image and create a new one
+      // with the updated usage flags.
+    }
   } else {
     throw std::invalid_argument("unsupported layout transition!");
   }
@@ -538,6 +602,14 @@ void Resources::createDescriptorSets() {
         .imageView = image.textureView,
         .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL};
 
+    VkDescriptorImageInfo swapchainImageInfo{
+        .sampler = VK_NULL_HANDLE,
+        .imageView =
+            _mechanics.swapChain.imageViews
+                [1 - _mechanics.syncObjects
+                         .currentFrame],  // _mechanics.syncObjects.currentFrame
+        .imageLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR};
+
     std::vector<VkWriteDescriptorSet> descriptorWrites{
         {.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
          .dstSet = descriptor.sets[i],
@@ -570,6 +642,14 @@ void Resources::createDescriptorSets() {
          .descriptorCount = 1,
          .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
          .pImageInfo = &imageInfo},
+
+        {.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+         .dstSet = descriptor.sets[i],
+         .dstBinding = 4,
+         .dstArrayElement = 0,
+         .descriptorCount = 1,
+         .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
+         .pImageInfo = &swapchainImageInfo},
     };
 
     vkUpdateDescriptorSets(_mechanics.mainDevice.logical,
@@ -719,6 +799,35 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
   vkCmdDrawIndexed(commandBuffer, world.geo.texture.vertexCount, 1, 0, 0, 0);
 
   vkCmdEndRenderPass(commandBuffer);
+
+  // TODO: Use an image layout transition here to transition the swapchain image
+  // into VK_IMAGE_LAYOUT_GENERAL
+  //       This is part of an image memory barrier (i.e., vkCmdPipelineBarrier
+  //       with the VkImageMemoryBarrier parameter set)
+
+  vkDeviceWaitIdle(_mechanics.mainDevice.logical);
+
+  vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
+                    _pipelines.compute.postFX);
+
+  vkCmdBindDescriptorSets(
+      commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, _pipelines.compute.layout,
+      0, 1, &descriptor.sets[_mechanics.syncObjects.currentFrame], 0, nullptr);
+
+  setPushConstants();
+  vkCmdPushConstants(commandBuffer, _pipelines.compute.layout,
+                     pushConstants.shaderStage, pushConstants.offset,
+                     pushConstants.size, pushConstants.data.data());
+
+  uint32_t workgroupSizeX =
+      (static_cast<uint32_t>(Window::get().display.width) + 15) / 16;
+  uint32_t workgroupSizeY =
+      (static_cast<uint32_t>(Window::get().display.height) + 15) / 16;
+
+  vkCmdDispatch(commandBuffer, workgroupSizeX, workgroupSizeY, 1);
+
+  // TODO: Use an image layout transition here to transition the swapchain image
+  // into VK_IMAGE_LAYOUT_PRESENT
 
   _mechanics.result(vkEndCommandBuffer, commandBuffer);
 }

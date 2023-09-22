@@ -17,12 +17,15 @@ class Pipelines {
       {"Cells", {"Vert", "Frag"}},
       {"Landscape", {"Vert", "Tesc", "Tese", "Frag"}},
       {"Water", {"Vert", "Frag"}},
-      {"Texture", {"Vert", "Frag"}}};
+      {"Texture", {"Vert", "Frag"}},
+      {"PostFX", {"Comp"}}};
+
   const std::string shaderDir = "shaders/";
   std::vector<VkShaderModule> shaderModules;
 
   struct Compute {
     VkPipeline engine;
+    VkPipeline postFX;
     VkPipelineLayout layout;
     const std::array<uint32_t, 3> workGroups{32, 32, 1};
   } compute;
@@ -65,6 +68,10 @@ class Pipelines {
   void createGraphicsPipelineTexture();
 
   void createComputePipelineEngine(
+      const VkDescriptorSetLayout& descriptorSetLayout,
+      const Resources::PushConstants& _pushConstants);
+
+  void createPostFXComputePipelineEngine(
       const VkDescriptorSetLayout& descriptorSetLayout,
       const Resources::PushConstants& _pushConstants);
 
