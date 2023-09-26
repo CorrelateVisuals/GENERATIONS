@@ -604,11 +604,8 @@ void Resources::createDescriptorSets() {
 
     VkDescriptorImageInfo swapchainImageInfo{
         .sampler = VK_NULL_HANDLE,
-        .imageView = _mechanics.swapChain
-                         .imageViews[i],  // _mechanics.syncObjects.currentFrame
+        .imageView = _mechanics.swapChain.imageViews[i],
         .imageLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR};
-
-    std::cout << _mechanics.syncObjects.currentFrame << " HERE ";
 
     std::vector<VkWriteDescriptorSet> descriptorWrites{
         {.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
