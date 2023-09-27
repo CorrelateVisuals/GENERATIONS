@@ -802,6 +802,11 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
   //       This is part of an image memory barrier (i.e., vkCmdPipelineBarrier
   //       with the VkImageMemoryBarrier parameter set)
 
+  //transitionImageLayout(
+  //    _mechanics.swapChain.images[_mechanics.syncObjects.currentFrame],
+  //    VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+  //    VK_IMAGE_LAYOUT_GENERAL);
+
   vkDeviceWaitIdle(_mechanics.mainDevice.logical);
 
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
@@ -825,6 +830,11 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
 
   // TODO: Use an image layout transition here to transition the swapchain image
   // into VK_IMAGE_LAYOUT_PRESENT
+
+  // transitionImageLayout(
+  //     _mechanics.swapChain.images[_mechanics.syncObjects.currentFrame],
+  //     VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_GENERAL,
+  //     VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
   _mechanics.result(vkEndCommandBuffer, commandBuffer);
 }
