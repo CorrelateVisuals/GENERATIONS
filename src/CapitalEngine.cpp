@@ -190,9 +190,6 @@ void CapitalEngine::cleanup() {
   vkDestroyBuffer(mechanics.mainDevice.logical, resources.indexBufferLandscape,
                   nullptr);
 
-
-  vkDestroyPipeline(mechanics.mainDevice.logical, pipelines.compute.postFX,
-      nullptr);
   vkDestroyPipeline(mechanics.mainDevice.logical, pipelines.graphics.cells,
                     nullptr);
   vkDestroyPipeline(mechanics.mainDevice.logical, pipelines.graphics.landscape,
@@ -205,9 +202,12 @@ void CapitalEngine::cleanup() {
                     nullptr);
   vkDestroyPipelineLayout(mechanics.mainDevice.logical,
                           pipelines.graphics.layout, nullptr);
+  
 
   vkDestroyPipeline(mechanics.mainDevice.logical, pipelines.compute.engine,
                     nullptr);
+  vkDestroyPipeline(mechanics.mainDevice.logical, pipelines.compute.postFX,
+      nullptr);
   vkDestroyPipelineLayout(mechanics.mainDevice.logical,
                           pipelines.compute.layout, nullptr);
 

@@ -74,9 +74,7 @@ class Pipelines {
   void createGraphicsPipeline_Texture();
 
   void createComputePipeline_Engine();
-  void createPostFXComputePipelineEngine(
-      const VkDescriptorSetLayout& descriptorSetLayout,
-      const Resources::PushConstants& _pushConstants);
+  void createComputePipeline_PostFX();
 
   VkFormat findDepthFormat();
   bool hasStencilComponent(VkFormat format);

@@ -24,11 +24,6 @@ void Pipelines::setupPipelines(Resources& _resources) {
   _resources.createDescriptorSetLayout();
   createRenderPass();
 
-  VkPipelineLayoutCreateInfo layout{layoutDefault};
-  layout.pSetLayouts = &_resources.descriptor.setLayout;
-  _mechanics.result(vkCreatePipelineLayout, _mechanics.mainDevice.logical,
-                    &layout, nullptr, &graphics.layout);
-
   createColorResources(_resources);
   createDepthResources(_resources);
 
@@ -41,8 +36,7 @@ void Pipelines::setupPipelines(Resources& _resources) {
 
   createComputePipeline_Layout(_resources.descriptor, _resources.pushConstants);
   createComputePipeline_Engine();
-  createPostFXComputePipelineEngine(_resources.descriptor.setLayout,
-                                    _resources.pushConstants);
+  createComputePipeline_PostFX();
 }
 
 void Pipelines::createColorResources(Resources& _resources) {
@@ -543,25 +537,11 @@ void Pipelines::createComputePipeline_Engine() {
   destroyShaderModules(shaderModules);
 }
 
-void Pipelines::createPostFXComputePipelineEngine(
-    const VkDescriptorSetLayout& descriptorSetLayout,
-    const Resources::PushConstants& _pushConstants) {
+void Pipelines::createComputePipeline_PostFX() {
   Log::text("{ === }", "Compute Engine Pipeline");
 
   VkPipelineShaderStageCreateInfo shaderStage{
       setShaderStage(VK_SHADER_STAGE_COMPUTE_BIT, "PostFXComp.spv")};
-
-  VkPushConstantRange constants{.stageFlags = _pushConstants.shaderStage,
-                                .offset = _pushConstants.offset,
-                                .size = _pushConstants.size};
-
-  VkPipelineLayoutCreateInfo layout{layoutDefault};
-  layout.pSetLayouts = &descriptorSetLayout;
-  layout.pushConstantRangeCount = _pushConstants.count;
-  layout.pPushConstantRanges = &constants;
-
-  _mechanics.result(vkCreatePipelineLayout, _mechanics.mainDevice.logical,
-                    &layout, nullptr, &compute.layout);
 
   VkComputePipelineCreateInfo pipelineInfo{
       .sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
