@@ -20,6 +20,16 @@ class Resources {
 
   static World world;
 
+  VkBuffer vertexBuffer;
+  VkDeviceMemory vertexBufferMemory;
+  VkBuffer indexBuffer;
+  VkDeviceMemory indexBufferMemory;
+
+  VkBuffer vertexBufferLandscape;
+  VkDeviceMemory vertexBufferMemoryLandscape;
+  VkBuffer indexBufferLandscape;
+  VkDeviceMemory indexBufferMemoryLandscape;
+
   struct PushConstants {
     VkShaderStageFlags shaderStage = {VK_SHADER_STAGE_COMPUTE_BIT};
     uint32_t count = 1;
@@ -57,7 +67,7 @@ class Resources {
   } descriptor;
 
  public:
-  void createResources(Pipelines& _pipelines);
+  void setupResources(Pipelines& _pipelines);
   void createFramebuffers(Pipelines& _pipelines);
   void createDescriptorSetLayout();
   void recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
@@ -81,6 +91,13 @@ class Resources {
 
  private:
   VulkanMechanics& _mechanics;
+
+  void createVertexBuffer(VkBuffer& buffer,
+                          VkDeviceMemory& bufferMemory,
+                          const auto& vertices);
+  void createIndexBuffer(VkBuffer& buffer,
+                         VkDeviceMemory& bufferMemory,
+                         const auto& indices);
 
   void setPushConstants();
   VkCommandBuffer beginSingleTimeCommands();

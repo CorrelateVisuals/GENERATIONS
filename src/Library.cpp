@@ -17,6 +17,36 @@ std::vector<float> Lib::generateRandomValues(int amount, float min, float max) {
   return randomValues;
 }
 
+std::vector<uint32_t> Lib::createGridPolygons(
+    const std::vector<uint32_t>& vertices,
+    uint32_t gridWidth) {
+  std::vector<uint32_t> result;
+
+  uint32_t numRows = static_cast<uint32_t>(vertices.size()) / gridWidth;
+
+  for (uint32_t row = 0; row < numRows - 1; row++) {
+    for (uint32_t col = 0; col < gridWidth - 1; col++) {
+      // Calculate vertices for the four vertices of the quad
+      uint32_t topLeft = row * gridWidth + col;
+      uint32_t topRight = topLeft + 1;
+      uint32_t bottomLeft = (row + 1) * gridWidth + col;
+      uint32_t bottomRight = bottomLeft + 1;
+
+      // Create the first triangle of the quad
+      result.push_back(topLeft);
+      result.push_back(topRight);
+      result.push_back(bottomLeft);
+
+      // Create the second triangle of the quad
+      result.push_back(topRight);
+      result.push_back(bottomRight);
+      result.push_back(bottomLeft);
+    }
+  }
+
+  return result;
+}
+
 double Lib::lowFrequencyOscillator(double frequency) {
   using namespace std::chrono;
   static const auto start_time = high_resolution_clock::now();

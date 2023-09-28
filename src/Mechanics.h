@@ -27,6 +27,14 @@ class VulkanMechanics {
     VkDevice logical;
     const std::vector<const char*> extensions = {
         VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+    const VkPhysicalDeviceFeatures features{.tessellationShader = VK_TRUE,
+                                            .sampleRateShading = VK_TRUE,
+                                            .depthClamp = VK_TRUE,
+                                            .depthBiasClamp = VK_TRUE,
+                                            .fillModeNonSolid = VK_TRUE,
+                                            .wideLines = VK_TRUE,
+                                            .samplerAnisotropy = VK_TRUE,
+                                            .shaderInt64 = VK_TRUE};
   } mainDevice;
 
   struct Queues {

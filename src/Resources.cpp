@@ -15,11 +15,11 @@ Resources::~Resources() {
   Log::text("{ /// }", "destructing Resources");
 }
 
-void Resources::createResources(Pipelines& _pipelines) {
+void Resources::setupResources(Pipelines& _pipelines) {
   Log::text(Log::Style::headerGuard);
-  Log::text("{ /// }", "creating Resources");
+  Log::text("{ /// }", "Setup Resources");
 
-  createTextureImage(Lib::path("assets/GenerationsCapture.PNG"));
+  createTextureImage(Lib::path("assets/Avatar.PNG"));
   createTextureImageView();
   createTextureSampler();
 
@@ -27,8 +27,16 @@ void Resources::createResources(Pipelines& _pipelines) {
   createShaderStorageBuffers();
   createUniformBuffers();
 
+  createVertexBuffer(vertexBuffer, vertexBufferMemory, world.rectangleVertices);
+  createIndexBuffer(indexBuffer, indexBufferMemory, world.rectangleIndices);
+  createVertexBuffer(vertexBufferLandscape, vertexBufferMemoryLandscape,
+                     world.landscapeVertices);
+  createIndexBuffer(indexBufferLandscape, indexBufferMemoryLandscape,
+                    world.landscapeIndices);
+
   createDescriptorPool();
   createDescriptorSets();
+
   createCommandBuffers();
   createComputeCommandBuffers();
   _mechanics.createSyncObjects();
@@ -319,6 +327,64 @@ void Resources::createTextureImage(std::string imagePath) {
   vkFreeMemory(_mechanics.mainDevice.logical, stagingBufferMemory, nullptr);
 }
 
+void Resources::createVertexBuffer(VkBuffer& buffer,
+                                   VkDeviceMemory& bufferMemory,
+                                   const auto& vertices) {
+  VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
+
+  VkBuffer stagingBuffer;
+  VkDeviceMemory stagingBufferMemory;
+  createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+               VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                   VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+               stagingBuffer, stagingBufferMemory);
+
+  void* data;
+  vkMapMemory(_mechanics.mainDevice.logical, stagingBufferMemory, 0, bufferSize,
+              0, &data);
+  memcpy(data, vertices.data(), (size_t)bufferSize);
+  vkUnmapMemory(_mechanics.mainDevice.logical, stagingBufferMemory);
+
+  createBuffer(
+      bufferSize,
+      VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, buffer, bufferMemory);
+
+  copyBuffer(stagingBuffer, buffer, bufferSize);
+
+  vkDestroyBuffer(_mechanics.mainDevice.logical, stagingBuffer, nullptr);
+  vkFreeMemory(_mechanics.mainDevice.logical, stagingBufferMemory, nullptr);
+}
+
+void Resources::createIndexBuffer(VkBuffer& buffer,
+                                  VkDeviceMemory& bufferMemory,
+                                  const auto& indices) {
+  VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
+
+  VkBuffer stagingBuffer;
+  VkDeviceMemory stagingBufferMemory;
+  createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+               VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                   VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+               stagingBuffer, stagingBufferMemory);
+
+  void* data;
+  vkMapMemory(_mechanics.mainDevice.logical, stagingBufferMemory, 0, bufferSize,
+              0, &data);
+  memcpy(data, indices.data(), (size_t)bufferSize);
+  vkUnmapMemory(_mechanics.mainDevice.logical, stagingBufferMemory);
+
+  createBuffer(
+      bufferSize,
+      VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, buffer, bufferMemory);
+
+  copyBuffer(stagingBuffer, buffer, bufferSize);
+
+  vkDestroyBuffer(_mechanics.mainDevice.logical, stagingBuffer, nullptr);
+  vkFreeMemory(_mechanics.mainDevice.logical, stagingBufferMemory, nullptr);
+}
+
 void Resources::setPushConstants() {
   pushConstants.data = {world.time.passedHours};
 }
@@ -529,6 +595,12 @@ void Resources::recordComputeCommandBuffer(VkCommandBuffer commandBuffer,
         "failed to begin recording compute command buffer!");
   }
 
+  // vkCmdPipelineBarrier(
+  //     buffers.command.compute[_mechanics.syncObjects.currentFrame],
+  //     VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+  //     VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, 0, 0, nullptr, 0, nullptr, 0,
+  //     nullptr);
+
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
                     _pipelines.compute.engine);
 
@@ -561,6 +633,18 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO};
 
   _mechanics.result(vkBeginCommandBuffer, commandBuffer, &beginInfo);
+
+  // VkMemoryBarrier memBarrier{
+  //     .sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER,
+  //     .pNext = nullptr,
+  //     .srcAccessMask = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+  //     .dstAccessMask = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT};
+
+  // vkCmdPipelineBarrier(
+  //     buffers.command.graphic[_mechanics.syncObjects.currentFrame],
+  //     VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT,
+  //     VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT | VK_SHADER_STAGE_COMPUTE_BIT, 0, 1,
+  //     &memBarrier, 0, nullptr, 0, nullptr);
 
   std::vector<VkClearValue> clearValues{{.color = {{0.0f, 0.0f, 0.0f, 1.0f}}},
                                         {.depthStencil = {1.0f, 0}}};
@@ -603,16 +687,36 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
   vkCmdDraw(commandBuffer, world.geo.cube.vertexCount,
             world.grid.XY[0] * world.grid.XY[1], 0, 0);
 
-  // Pipeline 2
+  // Landscape
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                    _pipelines.graphics.tiles);
-  vkCmdDraw(commandBuffer, world.geo.tile.vertexCount,
-            world.grid.XY[0] * world.grid.XY[1], 0, 0);
+                    _pipelines.graphics.landscape);
+  VkBuffer vertexBuffers1[] = {vertexBufferLandscape};
+  vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers1, offsets);
+  vkCmdBindIndexBuffer(commandBuffer, indexBufferLandscape, 0,
+                       VK_INDEX_TYPE_UINT32);
+  vkCmdDrawIndexed(commandBuffer,
+                   static_cast<uint32_t>(world.landscapeIndices.size()), 1, 0,
+                   0, 0);
+
+  // Landscape Wireframe
+  vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                    _pipelines.graphics.landscapeWireframe);
+  vkCmdDrawIndexed(commandBuffer,
+                   static_cast<uint32_t>(world.landscapeIndices.size()), 1, 0,
+                   0, 0);
 
   // Pipeline 3
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                     _pipelines.graphics.water);
   vkCmdDraw(commandBuffer, world.geo.water.vertexCount, 1, 0, 0);
+
+  // Pipeline 4
+  vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                    _pipelines.graphics.texture);
+  VkBuffer vertexBuffers[] = {vertexBuffer};
+  vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+  vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT16);
+  vkCmdDrawIndexed(commandBuffer, world.geo.texture.vertexCount, 1, 0, 0, 0);
 
   vkCmdEndRenderPass(commandBuffer);
 

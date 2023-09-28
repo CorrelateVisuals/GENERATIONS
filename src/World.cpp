@@ -20,15 +20,15 @@ World::~World() {
   Log::logFooter();
 }
 
-std::vector<VkVertexInputBindingDescription> World::getCellBindingDescriptions(
-    VkVertexInputRate inputRate) {
+std::vector<VkVertexInputBindingDescription>
+World::Cell::getBindingDescription() {
   std::vector<VkVertexInputBindingDescription> bindingDescriptions{
-      {0, sizeof(Cell), inputRate}};
+      {0, sizeof(Cell), VK_VERTEX_INPUT_RATE_INSTANCE}};
   return bindingDescriptions;
 }
 
 std::vector<VkVertexInputAttributeDescription>
-World::getCellAttributeDescriptions() {
+World::Cell::getAttributeDescriptions() {
   std::vector<VkVertexInputAttributeDescription> attributeDescriptions{
       {0, 0, VK_FORMAT_R32G32B32A32_SFLOAT,
        static_cast<uint32_t>(offsetof(Cell, position))},
@@ -45,6 +45,38 @@ World::getCellAttributeDescriptions() {
       {6, 0, VK_FORMAT_R32G32B32A32_SFLOAT,
        static_cast<uint32_t>(offsetof(Cell, textureCoords))},
   };
+  return attributeDescriptions;
+}
+
+std::vector<VkVertexInputBindingDescription>
+World::Rectangle::getBindingDescription() {
+  std::vector<VkVertexInputBindingDescription> bindingDescriptions{
+      {0, sizeof(Rectangle), VK_VERTEX_INPUT_RATE_VERTEX}};
+  return bindingDescriptions;
+}
+
+std::vector<VkVertexInputAttributeDescription>
+World::Rectangle::getAttributeDescriptions() {
+  std::vector<VkVertexInputAttributeDescription> attributeDescriptions{
+      {0, 0, VK_FORMAT_R32G32_SFLOAT,
+       static_cast<uint32_t>(offsetof(Rectangle, pos))},
+      {2, 0, VK_FORMAT_R32G32_SFLOAT,
+       static_cast<uint32_t>(offsetof(Rectangle, texCoord))}};
+  return attributeDescriptions;
+}
+
+std::vector<VkVertexInputBindingDescription>
+World::Landscape::getBindingDescription() {
+  std::vector<VkVertexInputBindingDescription> bindingDescriptions{
+      {0, sizeof(Landscape), VK_VERTEX_INPUT_RATE_VERTEX}};
+  return bindingDescriptions;
+}
+
+std::vector<VkVertexInputAttributeDescription>
+World::Landscape::getAttributeDescriptions() {
+  std::vector<VkVertexInputAttributeDescription> attributeDescriptions{
+      {0, 0, VK_FORMAT_R32G32B32A32_SFLOAT,
+       static_cast<uint32_t>(offsetof(Landscape, position))}};
   return attributeDescriptions;
 }
 
@@ -65,47 +97,13 @@ std::vector<World::Cell> World::initializeCells() {
   std::vector<World::Cell> cells(numGridPoints);
   std::vector<bool> isAliveIndices(numGridPoints, false);
 
-  for (uint_fast32_t i = 0; i < numGridPoints; i++) {
-    isAliveIndices.push_back(false);
-  }
-
   std::vector<uint_fast32_t> aliveCellIndices =
       setCellsAliveRandomly(grid.cellsAlive);
   for (int aliveIndex : aliveCellIndices) {
     isAliveIndices[aliveIndex] = true;
   }
 
-  Terrain::Config terrainLayer1 = {.width = grid.XY[0],
-                                   .height = grid.XY[1],
-                                   .roughness = 0.4f,
-                                   .octaves = 10,
-                                   .scale = 1.1f,
-                                   .amplitude = 5.0f,
-                                   .exponent = 2.0f,
-                                   .frequency = 2.0f,
-                                   .heightOffset = 0.0f};
-  Terrain terrain(terrainLayer1);
-
-  Terrain::Config terrainLayer2 = {.width = grid.XY[0],
-                                   .height = grid.XY[1],
-                                   .roughness = 1.0f,
-                                   .octaves = 10,
-                                   .scale = 1.1f,
-                                   .amplitude = 0.3f,
-                                   .exponent = 1.0f,
-                                   .frequency = 2.0f,
-                                   .heightOffset = 0.0f};
-  Terrain terrainSurface(terrainLayer2);
-
-  std::vector<float> terrainPerlinGrid1 = terrain.generatePerlinGrid();
-  std::vector<float> terrainPerlinGrid2 = terrainSurface.generatePerlinGrid();
-
-  std::vector<float> tileHeight(terrainPerlinGrid1.size());
-  for (size_t i = 0; i < tileHeight.size(); i++) {
-    float blendFactor = 0.5f;
-    tileHeight[i] = terrain.linearInterpolationFunction(
-        terrainPerlinGrid1[i], terrainPerlinGrid2[i], blendFactor);
-  }
+  std::vector<float> landscapeHeight = generateLandscapeHeight();
 
   const std::array<float, 4> sidesHeight = {0.0f, 0.0f, 0.0f, 0.0f};
   const std::array<float, 4> cornersHeight = {0.0f, 0.0f, 0.0f, 0.0f};
@@ -113,20 +111,29 @@ std::vector<World::Cell> World::initializeCells() {
   float startX = -((width - 1) * gap) / 2.0f;
   float startY = -((height - 1) * gap) / 2.0f;
 
+  std::vector<uint32_t> tempIndices;
+
   for (uint_fast32_t i = 0; i < numGridPoints; ++i) {
     const uint_fast16_t x = static_cast<uint_fast16_t>(i % width);
     const uint_fast16_t y = static_cast<uint_fast16_t>(i / width);
     const float posX = startX + x * gap;
     const float posY = startY + y * gap;
 
-    const std::array<float, 4> pos = {posX, posY, tileHeight[i], 1.0f};
+    const std::array<float, 4> pos = {posX, posY, landscapeHeight[i], 1.0f};
     const bool isAlive = isAliveIndices[i];
 
     const std::array<float, 4>& color = isAlive ? blue : red;
     const std::array<int, 4>& state = isAlive ? alive : dead;
 
     cells[i] = {pos, color, size, state, sidesHeight, cornersHeight};
+
+    tempIndices.push_back(i);
+    landscapeVertices.push_back({pos});
   }
+
+  landscapeIndices =
+      Lib::createGridPolygons(tempIndices, static_cast<int>(grid.XY[0]));
+
   return cells;
 }
 
@@ -155,6 +162,41 @@ bool World::isIndexAlive(const std::vector<int>& aliveCells, int index) {
          aliveCells.end();
 }
 
+std::vector<float> World::generateLandscapeHeight() {
+  Terrain::Config terrainLayer1 = {.width = grid.XY[0],
+                                   .height = grid.XY[1],
+                                   .roughness = 0.4f,
+                                   .octaves = 10,
+                                   .scale = 1.1f,
+                                   .amplitude = 5.0f,
+                                   .exponent = 2.0f,
+                                   .frequency = 2.0f,
+                                   .heightOffset = 0.0f};
+  Terrain terrain(terrainLayer1);
+
+  Terrain::Config terrainLayer2 = {.width = grid.XY[0],
+                                   .height = grid.XY[1],
+                                   .roughness = 1.0f,
+                                   .octaves = 10,
+                                   .scale = 1.1f,
+                                   .amplitude = 0.3f,
+                                   .exponent = 1.0f,
+                                   .frequency = 2.0f,
+                                   .heightOffset = 0.0f};
+  Terrain terrainSurface(terrainLayer2);
+
+  std::vector<float> terrainPerlinGrid1 = terrain.generatePerlinGrid();
+  std::vector<float> terrainPerlinGrid2 = terrainSurface.generatePerlinGrid();
+
+  std::vector<float> landscapeHeight(terrainPerlinGrid1.size());
+  for (size_t i = 0; i < landscapeHeight.size(); i++) {
+    float blendFactor = 0.5f;
+    landscapeHeight[i] = terrain.linearInterpolationFunction(
+        terrainPerlinGrid1[i], terrainPerlinGrid2[i], blendFactor);
+  }
+  return landscapeHeight;
+}
+
 World::UniformBufferObject World::updateUniforms(VkExtent2D& _swapChainExtent) {
   UniformBufferObject uniformObject{
       .light = light.position,
@@ -164,7 +206,7 @@ World::UniformBufferObject World::updateUniforms(VkExtent2D& _swapChainExtent) {
       .cellSize = geo.cube.size,
       .model = setModel(),
       .view = setView(),
-      .proj = setProjection(_swapChainExtent)};
+      .projection = setProjection(_swapChainExtent)};
   return uniformObject;
 }
 

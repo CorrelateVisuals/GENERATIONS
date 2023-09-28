@@ -51,9 +51,6 @@
     <ClCompile Include="ValidationLayers.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Structs.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CapitalEngine.h">
@@ -89,25 +86,5 @@
     <ClInclude Include="ValidationLayers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Structs.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\shaders\Engine.comp">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="..\shaders\Cells.frag">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="..\shaders\Cells.vert">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="..\shaders\Tiles.frag">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="..\shaders\Tiles.vert">
-      <Filter>Resource Files</Filter>
-    </None>
   </ItemGroup>
 </Project>

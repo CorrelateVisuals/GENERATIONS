@@ -244,13 +244,6 @@ void VulkanMechanics::createLogicalDevice() {
     queueCreateInfos.push_back(queueCreateInfo);
   }
 
-  VkPhysicalDeviceFeatures deviceFeatures{//.tessellationShader = VK_TRUE,
-                                          .sampleRateShading = VK_TRUE,
-                                          .depthClamp = VK_TRUE,
-                                          .depthBiasClamp = VK_TRUE,
-                                          .samplerAnisotropy = VK_TRUE,
-                                          .shaderInt64 = VK_TRUE};
-
   VkDeviceCreateInfo createInfo{
       .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
       .queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size()),
@@ -259,7 +252,7 @@ void VulkanMechanics::createLogicalDevice() {
       .enabledExtensionCount =
           static_cast<uint32_t>(mainDevice.extensions.size()),
       .ppEnabledExtensionNames = mainDevice.extensions.data(),
-      .pEnabledFeatures = &deviceFeatures};
+      .pEnabledFeatures = &mainDevice.features};
 
   if (validation.enableValidationLayers) {
     createInfo.enabledLayerCount =
@@ -295,7 +288,7 @@ VkPresentModeKHR VulkanMechanics::chooseSwapPresentMode(
     const std::vector<VkPresentModeKHR>& availablePresentModes) {
   Log::text(Log::Style::charLeader, "Choose Swap Present Mode");
   for (const auto& availablePresentMode : availablePresentModes) {
-    if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
+    if (availablePresentMode == VK_PRESENT_MODE_FIFO_KHR) {
       return availablePresentMode;
     }
   }
@@ -344,16 +337,12 @@ void VulkanMechanics::createSyncObjects() {
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
     result(vkCreateSemaphore, mainDevice.logical, &semaphoreInfo, nullptr,
            &syncObjects.imageAvailableSemaphores[i]);
-
     result(vkCreateSemaphore, mainDevice.logical, &semaphoreInfo, nullptr,
            &syncObjects.renderFinishedSemaphores[i]);
-
     result(vkCreateFence, mainDevice.logical, &fenceInfo, nullptr,
            &syncObjects.inFlightFences[i]);
-
     result(vkCreateSemaphore, mainDevice.logical, &semaphoreInfo, nullptr,
            &syncObjects.computeFinishedSemaphores[i]);
-
     result(vkCreateFence, mainDevice.logical, &fenceInfo, nullptr,
            &syncObjects.computeInFlightFences[i]);
   }
@@ -416,7 +405,7 @@ void VulkanMechanics::createSwapChain() {
       chooseSwapPresentMode(swapChainSupport.presentModes);
   VkExtent2D extent = chooseSwapExtent(swapChainSupport.capabilities);
 
-  uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
+  uint32_t imageCount = swapChainSupport.capabilities.minImageCount;
   if (swapChainSupport.capabilities.maxImageCount > 0 &&
       imageCount > swapChainSupport.capabilities.maxImageCount) {
     imageCount = swapChainSupport.capabilities.maxImageCount;

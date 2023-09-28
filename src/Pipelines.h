@@ -15,8 +15,9 @@ class Pipelines {
   const std::unordered_map<std::string, std::vector<std::string>> shaders = {
       {"Engine", {"Comp"}},
       {"Cells", {"Vert", "Frag"}},
-      {"Tiles", {"Vert", "Frag"}},
-      {"Water", {"Vert", "Frag"}}};
+      {"Landscape", {"Vert", "Tesc", "Tese", "Frag"}},
+      {"Water", {"Vert", "Frag"}},
+      {"Texture", {"Vert", "Frag"}}};
   const std::string shaderDir = "shaders/";
   std::vector<VkShaderModule> shaderModules;
 
@@ -28,8 +29,10 @@ class Pipelines {
 
   struct Graphics {
     VkPipeline cells;
-    VkPipeline tiles;
+    VkPipeline landscape;
     VkPipeline water;
+    VkPipeline texture;
+    VkPipeline landscapeWireframe;
     VkPipelineLayout layout;
     VkRenderPass renderPass;
 
@@ -48,16 +51,22 @@ class Pipelines {
   } graphics;
 
  public:
-  void createPipelines(Resources& _resources);
+  void setupPipelines(Resources& _resources);
   void createColorResources(Resources& _resources);
   void createDepthResources(Resources& _resources);
 
  private:
   void createRenderPass();
-  void createGraphicsPipelines(
-      const VkDescriptorSetLayout& descriptorSetLayout);
-  void createComputePipeline(const VkDescriptorSetLayout& descriptorSetLayout,
-                             const Resources::PushConstants& _pushConstants);
+
+  void createGraphicsPipelineCells();
+  void createGraphicsPipelineLandscape();
+  void createGraphicsPipelineLandscapeWireframe();
+  void createGraphicsPipelineWater();
+  void createGraphicsPipelineTexture();
+
+  void createComputePipelineEngine(
+      const VkDescriptorSetLayout& descriptorSetLayout,
+      const Resources::PushConstants& _pushConstants);
 
   VkFormat findDepthFormat();
   bool hasStencilComponent(VkFormat format);
@@ -77,7 +86,7 @@ class Pipelines {
 
   // Presets
   constexpr static inline VkPipelineRasterizationStateCreateInfo
-      rasterizationDefault{
+      rasterizationCullBackBit{
           .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
           .depthClampEnable = VK_TRUE,
           .rasterizerDiscardEnable = VK_FALSE,
@@ -135,6 +144,71 @@ class Pipelines {
               VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
               VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT};
 
+  constexpr static inline VkPipelineColorBlendAttachmentState
+      colorBlendAttachmentStateMultiply{
+          .blendEnable = VK_TRUE,
+          .srcColorBlendFactor = VK_BLEND_FACTOR_DST_COLOR,
+          .dstColorBlendFactor = VK_BLEND_FACTOR_ZERO,
+          .colorBlendOp = VK_BLEND_OP_ADD,
+          .srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
+          .dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO,
+          .alphaBlendOp = VK_BLEND_OP_ADD,
+          .colorWriteMask =
+              VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
+              VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT};
+
+  constexpr static inline VkPipelineColorBlendAttachmentState
+      colorBlendAttachmentStateAdd{.blendEnable = VK_TRUE,
+                                   .srcColorBlendFactor = VK_BLEND_FACTOR_ONE,
+                                   .dstColorBlendFactor = VK_BLEND_FACTOR_ONE,
+                                   .colorBlendOp = VK_BLEND_OP_ADD,
+                                   .srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
+                                   .dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
+                                   .alphaBlendOp = VK_BLEND_OP_ADD,
+                                   .colorWriteMask = VK_COLOR_COMPONENT_R_BIT |
+                                                     VK_COLOR_COMPONENT_G_BIT |
+                                                     VK_COLOR_COMPONENT_B_BIT |
+                                                     VK_COLOR_COMPONENT_A_BIT};
+
+  constexpr static inline VkPipelineColorBlendAttachmentState
+      colorBlendAttachmentStateAverage{
+          .blendEnable = VK_TRUE,
+          .srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA,
+          .dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
+          .colorBlendOp = VK_BLEND_OP_ADD,
+          .srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
+          .dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
+          .alphaBlendOp = VK_BLEND_OP_ADD,
+          .colorWriteMask =
+              VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
+              VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT};
+
+  constexpr static inline VkPipelineColorBlendAttachmentState
+      colorBlendAttachmentStateSubtract{
+          .blendEnable = VK_TRUE,
+          .srcColorBlendFactor = VK_BLEND_FACTOR_ONE,
+          .dstColorBlendFactor = VK_BLEND_FACTOR_ONE,
+          .colorBlendOp = VK_BLEND_OP_REVERSE_SUBTRACT,
+          .srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
+          .dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
+          .alphaBlendOp = VK_BLEND_OP_ADD,
+          .colorWriteMask =
+              VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
+              VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT};
+
+  constexpr static inline VkPipelineColorBlendAttachmentState
+      colorBlendAttachmentStateScreen{
+          .blendEnable = VK_TRUE,
+          .srcColorBlendFactor = VK_BLEND_FACTOR_ONE,
+          .dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR,
+          .colorBlendOp = VK_BLEND_OP_ADD,
+          .srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
+          .dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
+          .alphaBlendOp = VK_BLEND_OP_ADD,
+          .colorWriteMask =
+              VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
+              VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT};
+
   constexpr static inline VkPipelineColorBlendStateCreateInfo
       colorBlendStateDefault{
           .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
@@ -163,4 +237,12 @@ class Pipelines {
       .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
       .setLayoutCount = 1,
       .pSetLayouts = nullptr};
+
+  const static inline uint32_t tessellationTopologyTriangle = 3;
+  constexpr static inline VkPipelineTessellationStateCreateInfo
+      tessellationStateDefault{
+          .sType = VK_STRUCTURE_TYPE_PIPELINE_TESSELLATION_STATE_CREATE_INFO,
+          .pNext = nullptr,
+          .flags = 0,
+          .patchControlPoints = tessellationTopologyTriangle};
 };

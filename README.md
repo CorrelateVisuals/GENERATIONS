@@ -6,8 +6,6 @@ Currently GENERATIONS is running ![Conway's Game of Life](https://en.wikipedia.o
 ![Cover Image](https://github.com/CorrelateVisuals/GENERATION/blob/main/assets/GenerationsCapture.PNG?raw=true)
 
 ### Expanding Vulkan Functionality
-- Multiple graphical pipelines
-  + Blending
 - Tesselation shader stages
 - Texture/Image reading and writing GPU & CPU
 - Color picking/Render picking

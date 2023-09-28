@@ -86,7 +86,7 @@ layout(location = 0) out vec4 fragColor;
 layout(location = 6) out vec2 textureCoordinates;
 
 void main() {
-    vec4 color = inColor * setColor() * gouraudShading(1.0f, 0.4f); 
+    vec4 color = inColor * setColor() * gouraudShading(1.0f, 1.0f); 
 
     fragColor = modifyColorContrast(color, 1.3f);
     textureCoordinates = textureCoords;

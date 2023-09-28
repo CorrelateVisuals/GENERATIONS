@@ -7,8 +7,8 @@ CapitalEngine::CapitalEngine() : pipelines(mechanics), resources(mechanics) {
   Log::text("| CAPITAL Engine");
 
   mechanics.setupVulkan(pipelines, resources);
-  pipelines.createPipelines(resources);
-  resources.createResources(pipelines);
+  pipelines.setupPipelines(resources);
+  resources.setupResources(pipelines);
 }
 
 CapitalEngine::~CapitalEngine() {
@@ -29,6 +29,7 @@ void CapitalEngine::mainLoop() {
     Window::get().setMouse();
     resources.world.time.run();
 
+    // vkDeviceWaitIdle(mechanics.mainDevice.logical);
     drawFrame();
 
     if (glfwGetKey(Window::get().window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
@@ -172,13 +173,33 @@ void CapitalEngine::cleanup() {
   vkFreeMemory(mechanics.mainDevice.logical, resources.image.textureMemory,
                nullptr);
 
+  vkFreeMemory(mechanics.mainDevice.logical, resources.vertexBufferMemory,
+               nullptr);
+  vkFreeMemory(mechanics.mainDevice.logical, resources.indexBufferMemory,
+               nullptr);
+  vkFreeMemory(mechanics.mainDevice.logical,
+               resources.vertexBufferMemoryLandscape, nullptr);
+  vkFreeMemory(mechanics.mainDevice.logical,
+               resources.indexBufferMemoryLandscape, nullptr);
+
+  vkDestroyBuffer(mechanics.mainDevice.logical, resources.vertexBuffer,
+                  nullptr);
+  vkDestroyBuffer(mechanics.mainDevice.logical, resources.indexBuffer, nullptr);
+  vkDestroyBuffer(mechanics.mainDevice.logical, resources.vertexBufferLandscape,
+                  nullptr);
+  vkDestroyBuffer(mechanics.mainDevice.logical, resources.indexBufferLandscape,
+                  nullptr);
+
   vkDestroyPipeline(mechanics.mainDevice.logical, pipelines.graphics.cells,
                     nullptr);
-  vkDestroyPipeline(mechanics.mainDevice.logical, pipelines.graphics.tiles,
+  vkDestroyPipeline(mechanics.mainDevice.logical, pipelines.graphics.landscape,
                     nullptr);
+  vkDestroyPipeline(mechanics.mainDevice.logical,
+                    pipelines.graphics.landscapeWireframe, nullptr);
   vkDestroyPipeline(mechanics.mainDevice.logical, pipelines.graphics.water,
                     nullptr);
-
+  vkDestroyPipeline(mechanics.mainDevice.logical, pipelines.graphics.texture,
+                    nullptr);
   vkDestroyPipelineLayout(mechanics.mainDevice.logical,
                           pipelines.graphics.layout, nullptr);
 
