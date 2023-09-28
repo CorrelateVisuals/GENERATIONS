@@ -35,6 +35,7 @@ void Resources::setupResources(Pipelines& _pipelines) {
                     world.landscapeIndices);
 
   createDescriptorPool();
+  allocateDescriptorSets();
   createDescriptorSets();
 
   createCommandBuffers();
@@ -232,6 +233,20 @@ void Resources::createDescriptorPool() {
 
   _mechanics.result(vkCreateDescriptorPool, _mechanics.mainDevice.logical,
                     &poolInfo, nullptr, &descriptor.pool);
+}
+
+void Resources::allocateDescriptorSets() {
+  std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT,
+                                             descriptor.setLayout);
+  VkDescriptorSetAllocateInfo allocateInfo{
+      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
+      .descriptorPool = descriptor.pool,
+      .descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT),
+      .pSetLayouts = layouts.data()};
+
+  descriptor.sets.resize(MAX_FRAMES_IN_FLIGHT);
+  _mechanics.result(vkAllocateDescriptorSets, _mechanics.mainDevice.logical,
+                    &allocateInfo, descriptor.sets.data());
 }
 
 void Resources::createImage(uint32_t width,
@@ -490,7 +505,8 @@ void Resources::transitionImageLayout(VkCommandBuffer commandBuffer,
                                                        // finished...
     destinationStage =
         VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;  // ...before any command may
-                                             // continue. (Very heavy barrier.)
+                                             // continue. (Very heavy
+                                             // barrier.)
   }
 
   vkCmdPipelineBarrier(commandBuffer, sourceStage, destinationStage, 0, 0,
@@ -587,17 +603,6 @@ void Resources::createTextureImageView() {
 
 void Resources::createDescriptorSets() {
   Log::text("{ |=| }", "Descriptor Sets");
-  std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT,
-                                             descriptor.setLayout);
-  VkDescriptorSetAllocateInfo allocateInfo{
-      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-      .descriptorPool = descriptor.pool,
-      .descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT),
-      .pSetLayouts = layouts.data()};
-
-  descriptor.sets.resize(MAX_FRAMES_IN_FLIGHT);
-  _mechanics.result(vkAllocateDescriptorSets, _mechanics.mainDevice.logical,
-                    &allocateInfo, descriptor.sets.data());
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
     VkDescriptorBufferInfo uniformBufferInfo{
@@ -729,6 +734,12 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
 
   _mechanics.result(vkBeginCommandBuffer, commandBuffer, &beginInfo);
 
+  transitionImageLayout(
+      commandBuffer,
+      _mechanics.swapChain.images[_mechanics.syncObjects.currentFrame],
+      VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED,
+      /* -> */ VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+
   // VkMemoryBarrier memBarrier{
   //     .sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER,
   //     .pNext = nullptr,
@@ -815,18 +826,15 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
 
   vkCmdEndRenderPass(commandBuffer);
 
-  // TODO: Use an image layout transition here to transition the swapchain image
-  // into VK_IMAGE_LAYOUT_GENERAL
   //       This is part of an image memory barrier (i.e., vkCmdPipelineBarrier
   //       with the VkImageMemoryBarrier parameter set)
-
   transitionImageLayout(
       commandBuffer,
       _mechanics.swapChain.images[_mechanics.syncObjects.currentFrame],
       VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
       /* -> */ VK_IMAGE_LAYOUT_GENERAL);
 
-  vkDeviceWaitIdle(_mechanics.mainDevice.logical);
+  // vkDeviceWaitIdle(_mechanics.mainDevice.logical);
 
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
                     _pipelines.compute.postFX);
@@ -846,9 +854,6 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
       (static_cast<uint32_t>(Window::get().display.height) + 15) / 16;
 
   vkCmdDispatch(commandBuffer, workgroupSizeX, workgroupSizeY, 1);
-
-  // TODO: Use an image layout transition here to transition the swapchain image
-  // into VK_IMAGE_LAYOUT_PRESENT
 
   transitionImageLayout(
       commandBuffer,
