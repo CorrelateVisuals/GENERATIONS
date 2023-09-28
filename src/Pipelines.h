@@ -58,15 +58,19 @@ class Pipelines {
  private:
   void createRenderPass();
 
+  void createGraphicsPipelineLayout(
+      const Resources::DescriptorSets& _descriptorSets);
+  void createComputePipelineLayout(
+      const Resources::DescriptorSets& _descriptorSets,
+      const Resources::PushConstants& _pushConstants);
+
   void createGraphicsPipelineCells();
   void createGraphicsPipelineLandscape();
   void createGraphicsPipelineLandscapeWireframe();
   void createGraphicsPipelineWater();
   void createGraphicsPipelineTexture();
 
-  void createComputePipelineEngine(
-      const VkDescriptorSetLayout& descriptorSetLayout,
-      const Resources::PushConstants& _pushConstants);
+  void createComputePipelineEngine();
 
   VkFormat findDepthFormat();
   bool hasStencilComponent(VkFormat format);

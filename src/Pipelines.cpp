@@ -22,12 +22,12 @@ void Pipelines::setupPipelines(Resources& _resources) {
   Log::text("{ === }", "Setup Pipelines");
 
   _resources.createDescriptorSetLayout();
-  createRenderPass();
+  createGraphicsPipelineLayout(_resources.descriptor);
+  createComputePipelineLayout(_resources.descriptor, _resources.pushConstants);
+  createColorResources(_resources);
+  createDepthResources(_resources);
 
-  VkPipelineLayoutCreateInfo layout{layoutDefault};
-  layout.pSetLayouts = &_resources.descriptor.setLayout;
-  _mechanics.result(vkCreatePipelineLayout, _mechanics.mainDevice.logical,
-                    &layout, nullptr, &graphics.layout);
+  createRenderPass();
 
   createGraphicsPipelineCells();
   createGraphicsPipelineLandscape();
@@ -35,10 +35,7 @@ void Pipelines::setupPipelines(Resources& _resources) {
   createGraphicsPipelineWater();
   createGraphicsPipelineTexture();
 
-  createComputePipelineEngine(_resources.descriptor.setLayout,
-                              _resources.pushConstants);
-  createColorResources(_resources);
-  createDepthResources(_resources);
+  createComputePipelineEngine();
 }
 
 void Pipelines::createColorResources(Resources& _resources) {
@@ -148,6 +145,28 @@ void Pipelines::createRenderPass() {
 
   _mechanics.result(vkCreateRenderPass, _mechanics.mainDevice.logical,
                     &renderPassInfo, nullptr, &graphics.renderPass);
+}
+
+void Pipelines::createGraphicsPipelineLayout(
+    const Resources::DescriptorSets& _descriptorSets) {
+  VkPipelineLayoutCreateInfo graphicsLayout{layoutDefault};
+  graphicsLayout.pSetLayouts = &_descriptorSets.setLayout;
+  _mechanics.result(vkCreatePipelineLayout, _mechanics.mainDevice.logical,
+                    &graphicsLayout, nullptr, &graphics.layout);
+}
+
+void Pipelines::createComputePipelineLayout(
+    const Resources::DescriptorSets& _descriptorSets,
+    const Resources::PushConstants& _pushConstants) {
+  VkPushConstantRange constants{.stageFlags = _pushConstants.shaderStage,
+                                .offset = _pushConstants.offset,
+                                .size = _pushConstants.size};
+  VkPipelineLayoutCreateInfo computeLayout{layoutDefault};
+  computeLayout.pSetLayouts = &_descriptorSets.setLayout;
+  computeLayout.pushConstantRangeCount = _pushConstants.count;
+  computeLayout.pPushConstantRanges = &constants;
+  _mechanics.result(vkCreatePipelineLayout, _mechanics.mainDevice.logical,
+                    &computeLayout, nullptr, &compute.layout);
 }
 
 void Pipelines::createGraphicsPipelineCells() {
@@ -500,25 +519,11 @@ std::vector<char> Pipelines::readShaderFile(const std::string& filename) {
   return buffer;
 }
 
-void Pipelines::createComputePipelineEngine(
-    const VkDescriptorSetLayout& descriptorSetLayout,
-    const Resources::PushConstants& pushConstants) {
+void Pipelines::createComputePipelineEngine() {
   Log::text("{ === }", "Compute Pipeline");
 
   VkPipelineShaderStageCreateInfo shaderStage{
       setShaderStage(VK_SHADER_STAGE_COMPUTE_BIT, "EngineComp.spv")};
-
-  VkPushConstantRange constants{.stageFlags = pushConstants.shaderStage,
-                                .offset = pushConstants.offset,
-                                .size = pushConstants.size};
-
-  VkPipelineLayoutCreateInfo layout{layoutDefault};
-  layout.pSetLayouts = &descriptorSetLayout;
-  layout.pushConstantRangeCount = pushConstants.count;
-  layout.pPushConstantRanges = &constants;
-
-  _mechanics.result(vkCreatePipelineLayout, _mechanics.mainDevice.logical,
-                    &layout, nullptr, &compute.layout);
 
   VkComputePipelineCreateInfo pipelineInfo{
       .sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
