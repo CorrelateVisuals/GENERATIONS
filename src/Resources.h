@@ -70,6 +70,7 @@ class Resources {
   void setupResources(Pipelines& _pipelines);
   void createFramebuffers(Pipelines& _pipelines);
   void createDescriptorSetLayout();
+  void createDescriptorSets();
   void recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
                                    uint32_t imageIndex,
                                    Pipelines& _pipelines);
@@ -105,7 +106,8 @@ class Resources {
   void createCommandBuffers();
   void createComputeCommandBuffers();
   void createDescriptorPool();
-  void createDescriptorSets();
+  void allocateDescriptorSets();
+  // void createDescriptorSets();
   void createShaderStorageBuffers();
   void createUniformBuffers();
   void createBuffer(VkDeviceSize size,
@@ -120,10 +122,15 @@ class Resources {
                          VkImage image,
                          uint32_t width,
                          uint32_t height);
-  void transitionImageLayout(VkImage image,
+  void transitionImageLayout(VkCommandBuffer commandBuffer,
+                             VkImage image,
                              VkFormat format,
                              VkImageLayout oldLayout,
                              VkImageLayout newLayout);
+  void transitionImageLayout2(VkImage image,
+                              VkFormat format,
+                              VkImageLayout oldLayout,
+                              VkImageLayout newLayout);
   void createTextureImage(std::string imagePath);
   void createTextureSampler();
   void createTextureImageView();

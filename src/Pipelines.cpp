@@ -22,10 +22,15 @@ void Pipelines::setupPipelines(Resources& _resources) {
   Log::text("{ === }", "Setup Pipelines");
 
   _resources.createDescriptorSetLayout();
+  createRenderPass();
+
+  VkPipelineLayoutCreateInfo layout{layoutDefault};
+  layout.pSetLayouts = &_resources.descriptor.setLayout;
+  _mechanics.result(vkCreatePipelineLayout, _mechanics.mainDevice.logical,
+                    &layout, nullptr, &graphics.layout);
+
   createColorResources(_resources);
   createDepthResources(_resources);
-
-  createRenderPass();
 
   createGraphicsPipeline_Layout(_resources.descriptor);
   createGraphicsPipeline_Cells();
@@ -36,6 +41,8 @@ void Pipelines::setupPipelines(Resources& _resources) {
 
   createComputePipeline_Layout(_resources.descriptor, _resources.pushConstants);
   createComputePipeline_Engine();
+  createPostFXComputePipelineEngine(_resources.descriptor.setLayout,
+                                    _resources.pushConstants);
 }
 
 void Pipelines::createColorResources(Resources& _resources) {
@@ -532,6 +539,37 @@ void Pipelines::createComputePipeline_Engine() {
 
   _mechanics.result(vkCreateComputePipelines, _mechanics.mainDevice.logical,
                     VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &compute.engine);
+
+  destroyShaderModules(shaderModules);
+}
+
+void Pipelines::createPostFXComputePipelineEngine(
+    const VkDescriptorSetLayout& descriptorSetLayout,
+    const Resources::PushConstants& _pushConstants) {
+  Log::text("{ === }", "Compute Engine Pipeline");
+
+  VkPipelineShaderStageCreateInfo shaderStage{
+      setShaderStage(VK_SHADER_STAGE_COMPUTE_BIT, "PostFXComp.spv")};
+
+  VkPushConstantRange constants{.stageFlags = _pushConstants.shaderStage,
+                                .offset = _pushConstants.offset,
+                                .size = _pushConstants.size};
+
+  VkPipelineLayoutCreateInfo layout{layoutDefault};
+  layout.pSetLayouts = &descriptorSetLayout;
+  layout.pushConstantRangeCount = _pushConstants.count;
+  layout.pPushConstantRanges = &constants;
+
+  _mechanics.result(vkCreatePipelineLayout, _mechanics.mainDevice.logical,
+                    &layout, nullptr, &compute.layout);
+
+  VkComputePipelineCreateInfo pipelineInfo{
+      .sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
+      .stage = shaderStage,
+      .layout = compute.layout};
+
+  _mechanics.result(vkCreateComputePipelines, _mechanics.mainDevice.logical,
+                    VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &compute.postFX);
 
   destroyShaderModules(shaderModules);
 }
