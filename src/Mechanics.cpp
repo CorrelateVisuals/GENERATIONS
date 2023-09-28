@@ -285,7 +285,7 @@ VkSurfaceFormatKHR VulkanMechanics::chooseSwapSurfaceFormat(
   Log::text(Log::Style::charLeader, "Choose Swap Surface Format");
 
   for (const auto& availableFormat : availableFormats) {
-    if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB &&
+    if (availableFormat.format == VK_FORMAT_R8G8B8A8_UNORM &&
         availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
       return availableFormat;
     }
@@ -468,8 +468,7 @@ void VulkanMechanics::createSwapChainImageViews(Resources& resources) {
 
   for (size_t i = 0; i < swapChain.images.size(); i++) {
     swapChain.imageViews[i] = resources.createImageView(
-        swapChain.images[i], swapChain.imageFormat,
-        VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_ASPECT_COLOR_BIT);
+        swapChain.images[i], swapChain.imageFormat, VK_IMAGE_ASPECT_COLOR_BIT);
   }
 }
 
