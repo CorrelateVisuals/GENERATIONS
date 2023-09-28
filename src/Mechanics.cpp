@@ -244,15 +244,6 @@ void VulkanMechanics::createLogicalDevice() {
     queueCreateInfos.push_back(queueCreateInfo);
   }
 
-  VkPhysicalDeviceFeatures deviceFeatures{.tessellationShader = VK_TRUE,
-                                          .sampleRateShading = VK_TRUE,
-                                          .depthClamp = VK_TRUE,
-                                          .depthBiasClamp = VK_TRUE,
-                                          .fillModeNonSolid = VK_TRUE,
-                                          .wideLines = VK_TRUE,
-                                          .samplerAnisotropy = VK_TRUE,
-                                          .shaderInt64 = VK_TRUE};
-
   VkDeviceCreateInfo createInfo{
       .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
       .queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size()),
@@ -261,7 +252,7 @@ void VulkanMechanics::createLogicalDevice() {
       .enabledExtensionCount =
           static_cast<uint32_t>(mainDevice.extensions.size()),
       .ppEnabledExtensionNames = mainDevice.extensions.data(),
-      .pEnabledFeatures = &deviceFeatures};
+      .pEnabledFeatures = &mainDevice.features};
 
   if (validation.enableValidationLayers) {
     createInfo.enabledLayerCount =
