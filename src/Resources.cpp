@@ -828,6 +828,7 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
 
   //       This is part of an image memory barrier (i.e., vkCmdPipelineBarrier
   //       with the VkImageMemoryBarrier parameter set)
+
   transitionImageLayout(
       commandBuffer,
       _mechanics.swapChain.images[_mechanics.syncObjects.currentFrame],

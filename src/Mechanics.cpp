@@ -503,11 +503,13 @@ void VulkanMechanics::recreateSwapChain(Pipelines& _pipelines,
   createSwapChain();
   createSwapChainImageViews(_resources);
 
+  _resources.createDescriptorSets();
+  std::cout << std::endl;
+  std::cout << syncObjects.currentFrame << std::endl;
+  std::cout << std::endl;
   _pipelines.createDepthResources(_resources);
   _pipelines.createColorResources(_resources);
   _resources.createFramebuffers(_pipelines);
-
-  _resources.createDescriptorSets();
 }
 
 void VulkanMechanics::compileShaders(const Pipelines& _pipelines) {
