@@ -22,20 +22,20 @@ void Pipelines::setupPipelines(Resources& _resources) {
   Log::text("{ === }", "Setup Pipelines");
 
   _resources.createDescriptorSetLayout();
-  createGraphicsPipelineLayout(_resources.descriptor);
-  createComputePipelineLayout(_resources.descriptor, _resources.pushConstants);
   createColorResources(_resources);
   createDepthResources(_resources);
 
   createRenderPass();
 
-  createGraphicsPipelineCells();
-  createGraphicsPipelineLandscape();
-  createGraphicsPipelineLandscapeWireframe();
-  createGraphicsPipelineWater();
-  createGraphicsPipelineTexture();
+  createGraphicsPipeline_Layout(_resources.descriptor);
+  createGraphicsPipeline_Cells();
+  createGraphicsPipeline_Landscape();
+  createGraphicsPipeline_LandscapeWireframe();
+  createGraphicsPipeline_Water();
+  createGraphicsPipeline_Texture();
 
-  createComputePipelineEngine();
+  createComputePipeline_Layout(_resources.descriptor, _resources.pushConstants);
+  createComputePipeline_Engine();
 }
 
 void Pipelines::createColorResources(Resources& _resources) {
@@ -147,7 +147,7 @@ void Pipelines::createRenderPass() {
                     &renderPassInfo, nullptr, &graphics.renderPass);
 }
 
-void Pipelines::createGraphicsPipelineLayout(
+void Pipelines::createGraphicsPipeline_Layout(
     const Resources::DescriptorSets& _descriptorSets) {
   VkPipelineLayoutCreateInfo graphicsLayout{layoutDefault};
   graphicsLayout.pSetLayouts = &_descriptorSets.setLayout;
@@ -155,7 +155,7 @@ void Pipelines::createGraphicsPipelineLayout(
                     &graphicsLayout, nullptr, &graphics.layout);
 }
 
-void Pipelines::createComputePipelineLayout(
+void Pipelines::createComputePipeline_Layout(
     const Resources::DescriptorSets& _descriptorSets,
     const Resources::PushConstants& _pushConstants) {
   VkPushConstantRange constants{.stageFlags = _pushConstants.shaderStage,
@@ -169,7 +169,7 @@ void Pipelines::createComputePipelineLayout(
                     &computeLayout, nullptr, &compute.layout);
 }
 
-void Pipelines::createGraphicsPipelineCells() {
+void Pipelines::createGraphicsPipeline_Cells() {
   Log::text("{ === }", "Graphics Pipeline: Cells");
 
   std::vector<VkPipelineShaderStageCreateInfo> shaderStages{
@@ -225,7 +225,7 @@ void Pipelines::createGraphicsPipelineCells() {
   destroyShaderModules(shaderModules);
 }
 
-void Pipelines::createGraphicsPipelineLandscape() {
+void Pipelines::createGraphicsPipeline_Landscape() {
   Log::text("{ === }", "Graphics Pipeline: Landscape");
 
   std::vector<VkPipelineShaderStageCreateInfo> shaderStages = {
@@ -281,7 +281,7 @@ void Pipelines::createGraphicsPipelineLandscape() {
   destroyShaderModules(shaderModules);
 }
 
-void Pipelines::createGraphicsPipelineLandscapeWireframe() {
+void Pipelines::createGraphicsPipeline_LandscapeWireframe() {
   std::vector<VkPipelineShaderStageCreateInfo> shaderStages = {
       setShaderStage(VK_SHADER_STAGE_VERTEX_BIT, "LandscapeVert.spv"),
       setShaderStage(VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT,
@@ -347,7 +347,7 @@ void Pipelines::createGraphicsPipelineLandscapeWireframe() {
   destroyShaderModules(shaderModules);
 }
 
-void Pipelines::createGraphicsPipelineWater() {
+void Pipelines::createGraphicsPipeline_Water() {
   std::vector<VkPipelineShaderStageCreateInfo> shaderStages = {
       setShaderStage(VK_SHADER_STAGE_VERTEX_BIT, "WaterVert.spv"),
       setShaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, "WaterFrag.spv")};
@@ -394,7 +394,7 @@ void Pipelines::createGraphicsPipelineWater() {
   destroyShaderModules(shaderModules);
 }
 
-void Pipelines::createGraphicsPipelineTexture() {
+void Pipelines::createGraphicsPipeline_Texture() {
   std::vector<VkPipelineShaderStageCreateInfo> shaderStages = {
       setShaderStage(VK_SHADER_STAGE_VERTEX_BIT, "TextureVert.spv"),
       setShaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, "TextureFrag.spv")};
@@ -519,7 +519,7 @@ std::vector<char> Pipelines::readShaderFile(const std::string& filename) {
   return buffer;
 }
 
-void Pipelines::createComputePipelineEngine() {
+void Pipelines::createComputePipeline_Engine() {
   Log::text("{ === }", "Compute Pipeline");
 
   VkPipelineShaderStageCreateInfo shaderStage{
