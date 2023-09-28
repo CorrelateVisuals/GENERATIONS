@@ -120,7 +120,8 @@ class Resources {
                          VkImage image,
                          uint32_t width,
                          uint32_t height);
-  void transitionImageLayout(VkImage image,
+  void transitionImageLayout(VkCommandBuffer commandBuffer, 
+                             VkImage image,
                              VkFormat format,
                              VkImageLayout oldLayout,
                              VkImageLayout newLayout);
