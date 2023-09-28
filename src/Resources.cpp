@@ -49,7 +49,8 @@ void Resources::createFramebuffers(Pipelines& _pipelines) {
   _mechanics.swapChain.framebuffers.resize(
       _mechanics.swapChain.imageViews.size());
 
-  Log::text(Log::Style::charLeader, "attachments: msaa, depth, imageView*3");
+  Log::text(Log::Style::charLeader,
+            "attachments: msaa, depth, swapChain imageViews");
   for (size_t i = 0; i < _mechanics.swapChain.imageViews.size(); i++) {
     std::vector<VkImageView> attachments{_pipelines.graphics.msaa.imageView,
                                          _pipelines.graphics.depth.imageView,
@@ -802,10 +803,10 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
   //       This is part of an image memory barrier (i.e., vkCmdPipelineBarrier
   //       with the VkImageMemoryBarrier parameter set)
 
-  //transitionImageLayout(
-  //    _mechanics.swapChain.images[_mechanics.syncObjects.currentFrame],
-  //    VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
-  //    VK_IMAGE_LAYOUT_GENERAL);
+  // transitionImageLayout(
+  //     _mechanics.swapChain.images[_mechanics.syncObjects.currentFrame],
+  //     VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+  //     VK_IMAGE_LAYOUT_GENERAL);
 
   vkDeviceWaitIdle(_mechanics.mainDevice.logical);
 
