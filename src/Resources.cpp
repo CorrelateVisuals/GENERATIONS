@@ -314,14 +314,13 @@ void Resources::createTextureImage(std::string imagePath) {
   stbi_image_free(pixels);
 
   createImage(texWidth, texHeight, VK_SAMPLE_COUNT_1_BIT,
-              VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL,
+              VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL,
               VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
               VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, image.texture,
               image.textureMemory);
 
   VkCommandBuffer commandBuffer1 = beginSingleTimeCommands();
-  transitionImageLayout(commandBuffer1,
-                        image.texture, VK_FORMAT_R8G8B8A8_UNORM,
+  transitionImageLayout(commandBuffer1, image.texture, VK_FORMAT_R8G8B8A8_SRGB,
                         VK_IMAGE_LAYOUT_UNDEFINED,
                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
   endSingleTimeCommands(commandBuffer1);
@@ -331,8 +330,7 @@ void Resources::createTextureImage(std::string imagePath) {
                     static_cast<uint32_t>(texHeight));
 
   VkCommandBuffer commandBuffer2 = beginSingleTimeCommands();
-  transitionImageLayout(commandBuffer2,
-                        image.texture, VK_FORMAT_R8G8B8A8_UNORM,
+  transitionImageLayout(commandBuffer2, image.texture, VK_FORMAT_R8G8B8A8_SRGB,
                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                         VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
   endSingleTimeCommands(commandBuffer2);
@@ -440,12 +438,12 @@ void Resources::endSingleTimeCommands(VkCommandBuffer commandBuffer) {
                        &commandBuffer);
 }
 
-void Resources::transitionImageLayout(VkCommandBuffer commandBuffer, 
+void Resources::transitionImageLayout(VkCommandBuffer commandBuffer,
                                       VkImage image,
                                       VkFormat format,
                                       VkImageLayout oldLayout,
                                       VkImageLayout newLayout) {
-  Log::text("{ >>> }", "Transition Image Layout");
+  // Log::text("{ >>> }", "Transition Image Layout");
 
   VkImageMemoryBarrier barrier{.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
                                .oldLayout = oldLayout,
@@ -478,14 +476,21 @@ void Resources::transitionImageLayout(VkCommandBuffer commandBuffer,
     destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT |
                        VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
   } else {
-    //throw std::invalid_argument("unsupported layout transition!");
+    // throw std::invalid_argument("unsupported layout transition!");
 
-    barrier.srcAccessMask = VK_ACCESS_MEMORY_WRITE_BIT; // Every write must have finished...
-    barrier.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT; // ... before it is safe to read or write
-                                                             // (Image Layout Transitions perform both, read AND write access.)
+    barrier.srcAccessMask =
+        VK_ACCESS_MEMORY_WRITE_BIT;  // Every write must have finished...
+    barrier.dstAccessMask =
+        VK_ACCESS_MEMORY_READ_BIT |
+        VK_ACCESS_MEMORY_WRITE_BIT;  // ... before it is safe to read or write
+                                     // (Image Layout Transitions perform both,
+                                     // read AND write access.)
 
-    sourceStage      = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT; // All commands must have finished...
-    destinationStage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT; // ...before any command may continue. (Very heavy barrier.)
+    sourceStage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;  // All commands must have
+                                                       // finished...
+    destinationStage =
+        VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;  // ...before any command may
+                                             // continue. (Very heavy barrier.)
   }
 
   vkCmdPipelineBarrier(commandBuffer, sourceStage, destinationStage, 0, 0,
@@ -576,7 +581,7 @@ void Resources::copyBufferToImage(VkBuffer buffer,
 
 void Resources::createTextureImageView() {
   Log::text("{ ... }", ":  Texture Image View");
-  image.textureView = createImageView(image.texture, VK_FORMAT_R8G8B8A8_UNORM,
+  image.textureView = createImageView(image.texture, VK_FORMAT_R8G8B8A8_SRGB,
                                       VK_IMAGE_ASPECT_COLOR_BIT);
 }
 
@@ -815,10 +820,11 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
   //       This is part of an image memory barrier (i.e., vkCmdPipelineBarrier
   //       with the VkImageMemoryBarrier parameter set)
 
-   transitionImageLayout(commandBuffer,
-       _mechanics.swapChain.images[_mechanics.syncObjects.currentFrame],
-       VK_FORMAT_R8G8B8A8_UNORM, 
-       VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, /* -> */ VK_IMAGE_LAYOUT_GENERAL);
+  transitionImageLayout(
+      commandBuffer,
+      _mechanics.swapChain.images[_mechanics.syncObjects.currentFrame],
+      VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+      /* -> */ VK_IMAGE_LAYOUT_GENERAL);
 
   vkDeviceWaitIdle(_mechanics.mainDevice.logical);
 
@@ -844,12 +850,12 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
   // TODO: Use an image layout transition here to transition the swapchain image
   // into VK_IMAGE_LAYOUT_PRESENT
 
-   transitionImageLayout(commandBuffer,
-       _mechanics.swapChain.images[_mechanics.syncObjects.currentFrame],
-       VK_FORMAT_R8G8B8A8_UNORM, 
-       VK_IMAGE_LAYOUT_GENERAL, /* -> */ VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+  transitionImageLayout(
+      commandBuffer,
+      _mechanics.swapChain.images[_mechanics.syncObjects.currentFrame],
+      VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_GENERAL,
+      /* -> */ VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
-  Log::text("{ >>> }", "just before vkEndCommandBuffer");
   _mechanics.result(vkEndCommandBuffer, commandBuffer);
 }
 
