@@ -499,7 +499,6 @@ void VulkanMechanics::recreateSwapChain(Pipelines& _pipelines,
   _resources.createFramebuffers(_pipelines);
 
   _resources.createDescriptorSets();
-
   uint32_t reset = 1;
   syncObjects.currentFrame = reset;
 }

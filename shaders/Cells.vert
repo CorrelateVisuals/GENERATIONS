@@ -68,29 +68,21 @@ vec4 worldPosition = model * constructCube();
 vec4 viewPosition =  view * worldPosition;
 vec3 worldNormal =   mat3(model) * getNormal();
 
-vec4 setColor() {
-    vec4 color = vec4(0.7f, 0.8f, 0.7f, 1.0f);
-    return color;
-}
-
-vec4 modifyColorContrast(vec4 color, float contrast) { return vec4(mix(vec3(0.5), color.rgb, contrast), color.a);}
-vec4 modifyColorGamma(vec4 color, float gamma) { return vec4(pow(color.rgb, vec3(gamma)), color.a);}
-
-float gouraudShading(float brightness, float emit) {
+float gouraudShading(float emit) {
     vec3 lightDirection = normalize(light.rgb - worldPosition.xyz);
     float diffuseIntensity = max(dot(worldNormal, lightDirection), emit);
-    return diffuseIntensity * brightness;
+    return diffuseIntensity;
 }
 
 layout(location = 0) out vec4 fragColor;
 layout(location = 6) out vec2 textureCoordinates;
 
 void main() {
-    vec4 color = inColor * setColor() * gouraudShading(1.0f, 1.0f); 
+    vec4 color = vec4(0.7f, 0.8f, 0.7f, 1.0f);
+    color *= inColor * gouraudShading(1.0f); 
 
-    fragColor = modifyColorContrast(color, 1.3f);
+    fragColor = color;
     textureCoordinates = textureCoords;
-
     gl_Position = projection * viewPosition;
 }
 
