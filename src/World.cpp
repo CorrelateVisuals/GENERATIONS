@@ -31,7 +31,7 @@ std::vector<VkVertexInputAttributeDescription>
 World::Cell::getAttributeDescriptions() {
   std::vector<VkVertexInputAttributeDescription> attributeDescriptions{
       {0, 0, VK_FORMAT_R32G32B32A32_SFLOAT,
-       static_cast<uint32_t>(offsetof(Cell, position))},
+       static_cast<uint32_t>(offsetof(Cell, instancePosition))},
       {1, 0, VK_FORMAT_R32G32B32A32_SFLOAT,
        static_cast<uint32_t>(offsetof(Cell, color))},
       {2, 0, VK_FORMAT_R32G32B32A32_SFLOAT,
@@ -110,16 +110,17 @@ std::vector<World::Cell> World::initializeCells() {
     const float posX = startX + x * gap;
     const float posY = startY + y * gap;
 
-    const std::array<float, 4> pos = {posX, posY, landscapeHeight[i], 1.0f};
+    const std::array<float, 4> position = {posX, posY, landscapeHeight[i],
+                                           1.0f};
     const bool isAlive = isAliveIndices[i];
 
     const std::array<float, 4>& color = isAlive ? blue : red;
     const std::array<int, 4>& state = isAlive ? alive : dead;
 
-    cells[i] = {pos, color, size, state};
+    cells[i] = {position, color, size, state};
 
     tempIndices.push_back(i);
-    landscapeVertices.push_back({pos});
+    landscapeVertices.push_back({position});
   }
 
   landscapeIndices =

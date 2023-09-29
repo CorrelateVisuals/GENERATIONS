@@ -72,7 +72,7 @@ layout(location = 0) out vec4 fragColor;
 
 void main() {
     vec4 color = vec4(0.7f, 0.8f, 0.7f, 1.0f);
-    color *= inColor * gouraudShading(1.0f); 
+    color *= inColor * gouraudShading(0.4f); 
 
     fragColor = color;
     gl_Position = projection * viewPosition;
