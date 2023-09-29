@@ -38,12 +38,6 @@ World::Cell::getAttributeDescriptions() {
        static_cast<uint32_t>(offsetof(Cell, size))},
       {3, 0, VK_FORMAT_R32G32B32A32_SINT,
        static_cast<uint32_t>(offsetof(Cell, states))},
-      {4, 0, VK_FORMAT_R32G32B32A32_SFLOAT,
-       static_cast<uint32_t>(offsetof(Cell, tileSidesHeight))},
-      {5, 0, VK_FORMAT_R32G32B32A32_SFLOAT,
-       static_cast<uint32_t>(offsetof(Cell, tileCornersHeight))},
-      {6, 0, VK_FORMAT_R32G32B32A32_SFLOAT,
-       static_cast<uint32_t>(offsetof(Cell, textureCoords))},
   };
   return attributeDescriptions;
 }
@@ -105,9 +99,6 @@ std::vector<World::Cell> World::initializeCells() {
 
   std::vector<float> landscapeHeight = generateLandscapeHeight();
 
-  const std::array<float, 4> sidesHeight = {0.0f, 0.0f, 0.0f, 0.0f};
-  const std::array<float, 4> cornersHeight = {0.0f, 0.0f, 0.0f, 0.0f};
-
   float startX = -((width - 1) * gap) / 2.0f;
   float startY = -((height - 1) * gap) / 2.0f;
 
@@ -125,7 +116,7 @@ std::vector<World::Cell> World::initializeCells() {
     const std::array<float, 4>& color = isAlive ? blue : red;
     const std::array<int, 4>& state = isAlive ? alive : dead;
 
-    cells[i] = {pos, color, size, state, sidesHeight, cornersHeight};
+    cells[i] = {pos, color, size, state};
 
     tempIndices.push_back(i);
     landscapeVertices.push_back({pos});

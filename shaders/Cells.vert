@@ -4,10 +4,6 @@ layout(location = 0) in vec4 inPosition;
 layout(location = 1) in vec4 inColor;
 layout(location = 2) in vec4 inSize;
 layout(location = 3) in ivec4 inStates;
-layout(location = 4) in vec4 inTileSidesHeight;
-layout(location = 5) in vec4 inTileCornersHeight;
-
-layout(location = 6) in vec2 textureCoords;
 
 layout (binding = 0) uniform ParameterUBO {
     vec4 light;
@@ -25,8 +21,7 @@ mat4 view = ubo.view;
 mat4 projection = ubo.projection;
 float waterThreshold = ubo.waterThreshold;
 
-vec3 cubeVertices[8] = {
-    // Cube
+const vec3 cubeVertices[8] = {
     {1, 1, 1},    // 0 right front top
     {-1, 1, 1},   // 1 left front top
     {-1, -1, 1},  // 2 left back top
@@ -46,7 +41,6 @@ const int cubeIndices[36] = {
     4, 7, 6, 4, 6, 5,       // Bottom face
 };
 vec3 vertex = cubeVertices[cubeIndices[gl_VertexIndex]];
-
 
 vec4 constructCube() {
     vec4 position = inPosition;
@@ -75,14 +69,12 @@ float gouraudShading(float emit) {
 }
 
 layout(location = 0) out vec4 fragColor;
-layout(location = 6) out vec2 textureCoordinates;
 
 void main() {
     vec4 color = vec4(0.7f, 0.8f, 0.7f, 1.0f);
     color *= inColor * gouraudShading(1.0f); 
 
     fragColor = color;
-    textureCoordinates = textureCoords;
     gl_Position = projection * viewPosition;
 }
 

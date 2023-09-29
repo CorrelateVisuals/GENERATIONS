@@ -72,9 +72,6 @@ class World {
     std::array<float, 4> color;
     std::array<float, 4> size;
     std::array<int, 4> states;
-    std::array<float, 4> tileSidesHeight;
-    std::array<float, 4> tileCornersHeight;
-    std::array<float, 4> textureCoords;
 
     static std::vector<VkVertexInputBindingDescription> getBindingDescription();
     static std::vector<VkVertexInputAttributeDescription>
