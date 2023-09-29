@@ -107,7 +107,6 @@ class Resources {
   void createComputeCommandBuffers();
   void createDescriptorPool();
   void allocateDescriptorSets();
-  // void createDescriptorSets();
   void createShaderStorageBuffers();
   void createUniformBuffers();
   void createBuffer(VkDeviceSize size,
@@ -127,10 +126,7 @@ class Resources {
                              VkFormat format,
                              VkImageLayout oldLayout,
                              VkImageLayout newLayout);
-  void transitionImageLayout2(VkImage image,
-                              VkFormat format,
-                              VkImageLayout oldLayout,
-                              VkImageLayout newLayout);
+
   void createTextureImage(std::string imagePath);
   void createTextureSampler();
   void createTextureImageView();

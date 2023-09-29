@@ -445,6 +445,7 @@ void VulkanMechanics::createSwapChain() {
   vkGetSwapchainImagesKHR(mainDevice.logical, swapChain.swapChain, &imageCount,
                           nullptr);
   swapChain.images.resize(imageCount);
+
   vkGetSwapchainImagesKHR(mainDevice.logical, swapChain.swapChain, &imageCount,
                           swapChain.images.data());
 
@@ -490,17 +491,17 @@ void VulkanMechanics::recreateSwapChain(Pipelines& _pipelines,
   vkDeviceWaitIdle(mainDevice.logical);
 
   cleanupSwapChain(_pipelines);
-
   createSwapChain();
   createSwapChainImageViews(_resources);
 
-  _resources.createDescriptorSets();
-  std::cout << std::endl;
-  std::cout << syncObjects.currentFrame << std::endl;
-  std::cout << std::endl;
   _pipelines.createDepthResources(_resources);
   _pipelines.createColorResources(_resources);
   _resources.createFramebuffers(_pipelines);
+
+  _resources.createDescriptorSets();
+
+  uint32_t reset = 1;
+  syncObjects.currentFrame = reset;
 }
 
 void VulkanMechanics::compileShaders(const Pipelines& _pipelines) {

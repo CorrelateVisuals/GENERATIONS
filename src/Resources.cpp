@@ -513,64 +513,6 @@ void Resources::transitionImageLayout(VkCommandBuffer commandBuffer,
                        nullptr, 0, nullptr, 1, &barrier);
 }
 
-void Resources::transitionImageLayout2(VkImage image,
-                                       VkFormat format,
-                                       VkImageLayout oldLayout,
-                                       VkImageLayout newLayout) {
-  Log::text("{ >>> }", "Transition Image Layout");
-
-  VkCommandBuffer commandBuffer = beginSingleTimeCommands();
-
-  VkImageMemoryBarrier barrier{.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-                               .oldLayout = oldLayout,
-                               .newLayout = newLayout,
-                               .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-                               .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-                               .image = image};
-  barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-  barrier.subresourceRange.baseMipLevel = 0;
-  barrier.subresourceRange.levelCount = 1;
-  barrier.subresourceRange.baseArrayLayer = 0;
-  barrier.subresourceRange.layerCount = 1;
-
-  VkPipelineStageFlags sourceStage;
-  VkPipelineStageFlags destinationStage;
-
-  if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED &&
-      newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
-    barrier.srcAccessMask = 0;
-    barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-
-    sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-    destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-  } else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL &&
-             newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
-    barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-    barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-
-    sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-    destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT |
-                       VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
-
-    // Add VK_IMAGE_USAGE_STORAGE_BIT to the image usage flags
-    VkImageCreateInfo imageCreateInfo =
-        {};  // You should have this information from image creation
-    if ((imageCreateInfo.usage & VK_IMAGE_USAGE_STORAGE_BIT) == 0) {
-      imageCreateInfo.usage |= VK_IMAGE_USAGE_STORAGE_BIT;
-      // Recreate the image with the updated usage flags if necessary
-      // Note: You may need to destroy the old image and create a new one
-      // with the updated usage flags.
-    }
-  } else {
-    throw std::invalid_argument("unsupported layout transition!");
-  }
-
-  vkCmdPipelineBarrier(commandBuffer, sourceStage, destinationStage, 0, 0,
-                       nullptr, 0, nullptr, 1, &barrier);
-
-  endSingleTimeCommands(commandBuffer);
-}
-
 void Resources::copyBufferToImage(VkBuffer buffer,
                                   VkImage image,
                                   uint32_t width,
@@ -733,24 +675,6 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO};
 
   _mechanics.result(vkBeginCommandBuffer, commandBuffer, &beginInfo);
-
-  transitionImageLayout(
-      commandBuffer,
-      _mechanics.swapChain.images[_mechanics.syncObjects.currentFrame],
-      VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED,
-      /* -> */ VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
-
-  // VkMemoryBarrier memBarrier{
-  //     .sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER,
-  //     .pNext = nullptr,
-  //     .srcAccessMask = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
-  //     .dstAccessMask = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT};
-
-  // vkCmdPipelineBarrier(
-  //     buffers.command.graphic[_mechanics.syncObjects.currentFrame],
-  //     VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT,
-  //     VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT | VK_SHADER_STAGE_COMPUTE_BIT, 0, 1,
-  //     &memBarrier, 0, nullptr, 0, nullptr);
 
   std::vector<VkClearValue> clearValues{{.color = {{0.0f, 0.0f, 0.0f, 1.0f}}},
                                         {.depthStencil = {1.0f, 0}}};
