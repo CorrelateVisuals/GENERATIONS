@@ -240,20 +240,35 @@ void World::loadModel() {
 
       vertex.color = {1.0f, 1.0f, 1.0f};
 
-      Log::text(" ", vertex.pos.x, vertex.texCoord.x, vertex.color.x);
-      Log::text(" ", vertex.pos.y, vertex.texCoord.y, vertex.color.y);
-      Log::text(" ", vertex.pos.z, vertex.color.z);
-
       if (uniqueVertices.count(vertex) == 0) {
         uniqueVertices[vertex] =
             static_cast<uint32_t>(rectangleVertices.size());
         rectangleVertices.push_back(vertex);
       }
-
       rectangleIndices.push_back(uniqueVertices[vertex]);
-      Log::text(" ", uniqueVertices[vertex]);
     }
   }
+
+  rotateModel(rectangleVertices, glm::vec3(90.0f, 180.0f, 0.0f));
+}
+
+void World::rotateModel(auto& vertices, const glm::vec3& degrees) {
+  float angleX = glm::radians(degrees.x);
+  float angleY = glm::radians(degrees.y);
+  float angleZ = glm::radians(degrees.z);
+
+  glm::mat4 rotationMatrixX =
+      glm::rotate(glm::mat4(1.0f), angleX, glm::vec3(1.0f, 0.0f, 0.0f));
+  glm::mat4 rotationMatrixY =
+      glm::rotate(glm::mat4(1.0f), angleY, glm::vec3(0.0f, 1.0f, 0.0f));
+  glm::mat4 rotationMatrixZ =
+      glm::rotate(glm::mat4(1.0f), angleZ, glm::vec3(0.0f, 0.0f, 1.0f));
+
+  for (auto& vertex : vertices) {
+    vertex.pos = glm::vec3(rotationMatrixX * rotationMatrixY * rotationMatrixZ *
+                           glm::vec4(vertex.pos, 1.0f));
+  }
+  return;
 }
 
 void World::updateCamera() {

@@ -109,6 +109,7 @@ class World {
   std::vector<World::Cell> initializeCells();
   UniformBufferObject updateUniforms(VkExtent2D& _swapChain);
   void loadModel();
+  void rotateModel(auto& vertices, const glm::vec3& degrees);
 
  private:
   struct Camera {
