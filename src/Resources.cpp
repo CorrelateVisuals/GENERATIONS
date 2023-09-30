@@ -19,9 +19,10 @@ void Resources::setupResources(Pipelines& _pipelines) {
   Log::text(Log::Style::headerGuard);
   Log::text("{ /// }", "Setup Resources");
 
-  createTextureImage(Lib::path("assets/Avatar.PNG"));
+  createTextureImage(TEXTURE_PATH);
   createTextureImageView();
   createTextureSampler();
+  world.loadModel();
 
   createFramebuffers(_pipelines);
   createShaderStorageBuffers();
@@ -706,6 +707,8 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
                           &descriptor.sets[_mechanics.syncObjects.currentFrame],
                           0, nullptr);
 
+  VkDeviceSize offsets[]{0};
+  /*
   // Pipeline 1
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                     _pipelines.graphics.cells);
@@ -739,13 +742,15 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
                     _pipelines.graphics.water);
   vkCmdDraw(commandBuffer, world.geo.water.vertexCount, 1, 0, 0);
 
+  */
+
   // Pipeline 4
-  // vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-  //                  _pipelines.graphics.texture);
-  // VkBuffer vertexBuffers[] = {vertexBuffer};
-  // vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
-  // vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT16);
-  // vkCmdDrawIndexed(commandBuffer, world.geo.texture.vertexCount, 1, 0, 0, 0);
+  vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                    _pipelines.graphics.texture);
+  VkBuffer vertexBuffers[] = {vertexBuffer};
+  vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+  vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+  vkCmdDrawIndexed(commandBuffer, world.geo.texture.vertexCount, 1, 0, 0, 0);
 
   vkCmdEndRenderPass(commandBuffer);
 

@@ -1,5 +1,5 @@
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/quaternion.hpp>
+#define TINYOBJLOADER_IMPLEMENTATION
+#include <tiny_obj_loader.h>
 
 #include "CapitalEngine.h"
 #include "Terrain.h"
@@ -52,8 +52,10 @@ World::Rectangle::getBindingDescription() {
 std::vector<VkVertexInputAttributeDescription>
 World::Rectangle::getAttributeDescriptions() {
   std::vector<VkVertexInputAttributeDescription> attributeDescriptions{
-      {0, 0, VK_FORMAT_R32G32_SFLOAT,
+      {0, 0, VK_FORMAT_R32G32B32_SFLOAT,
        static_cast<uint32_t>(offsetof(Rectangle, pos))},
+      {1, 0, VK_FORMAT_R32G32B32_SFLOAT,
+       static_cast<uint32_t>(offsetof(Rectangle, color))},
       {2, 0, VK_FORMAT_R32G32_SFLOAT,
        static_cast<uint32_t>(offsetof(Rectangle, texCoord))}};
   return attributeDescriptions;
@@ -200,6 +202,58 @@ World::UniformBufferObject World::updateUniforms(VkExtent2D& _swapChainExtent) {
       .view = setView(),
       .projection = setProjection(_swapChainExtent)};
   return uniformObject;
+}
+
+template <>
+struct std::hash<World::Rectangle> {
+  size_t operator()(const World::Rectangle& vertex) const {
+    return ((std::hash<glm::vec3>()(vertex.pos) ^
+             (std::hash<glm::vec3>()(vertex.color) << 1)) >>
+            1) ^
+           (std::hash<glm::vec2>()(vertex.texCoord) << 1);
+  }
+};
+
+void World::loadModel() {
+  tinyobj::attrib_t attrib;
+  std::vector<tinyobj::shape_t> shapes;
+  std::vector<tinyobj::material_t> materials;
+  std::string warn, err;
+
+  if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err,
+                        MODEL_PATH.c_str())) {
+    throw std::runtime_error(warn + err);
+  }
+
+  std::unordered_map<Rectangle, uint32_t> uniqueVertices{};
+
+  for (const auto& shape : shapes) {
+    for (const auto& index : shape.mesh.indices) {
+      Rectangle vertex{};
+
+      vertex.pos = {attrib.vertices[3 * index.vertex_index + 0],
+                    attrib.vertices[3 * index.vertex_index + 1],
+                    attrib.vertices[3 * index.vertex_index + 2]};
+
+      vertex.texCoord = {attrib.texcoords[2 * index.texcoord_index + 0],
+                         1.0f - attrib.texcoords[2 * index.texcoord_index + 1]};
+
+      vertex.color = {1.0f, 1.0f, 1.0f};
+
+      Log::text(" ", vertex.pos.x, vertex.texCoord.x, vertex.color.x);
+      Log::text(" ", vertex.pos.y, vertex.texCoord.y, vertex.color.y);
+      Log::text(" ", vertex.pos.z, vertex.color.z);
+
+      if (uniqueVertices.count(vertex) == 0) {
+        uniqueVertices[vertex] =
+            static_cast<uint32_t>(rectangleVertices.size());
+        rectangleVertices.push_back(vertex);
+      }
+
+      rectangleIndices.push_back(uniqueVertices[vertex]);
+      Log::text(" ", uniqueVertices[vertex]);
+    }
+  }
 }
 
 void World::updateCamera() {

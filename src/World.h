@@ -1,14 +1,22 @@
 #pragma once
 #include <vulkan/vulkan.h>
+
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtx/hash.hpp>
 
 #include "Timer.h"
 
+#include <algorithm>
 #include <array>
 #include <vector>
+
+const std::string MODEL_PATH = Lib::path("assets/3D/Rectangle.obj");
+const std::string TEXTURE_PATH = Lib::path("assets/Avatar.PNG");
 
 class Timer;
 
@@ -41,20 +49,29 @@ class World {
   } geo;
 
   struct Rectangle {
-    std::array<float, 2> pos;
-    std::array<float, 2> texCoord;
+    glm::vec3 pos;
+    glm::vec3 color;
+    glm::vec2 texCoord;
 
     static std::vector<VkVertexInputBindingDescription> getBindingDescription();
     static std::vector<VkVertexInputAttributeDescription>
     getAttributeDescriptions();
+
+    bool operator==(const Rectangle& other) const {
+      return pos == other.pos && color == other.color &&
+             texCoord == other.texCoord;
+    }
   };
 
-  const std::vector<Rectangle> rectangleVertices = {
-      {{-1.0f, -1.0f}, {1.0f, 0.0f}},
-      {{1.0f, -1.0f}, {0.0f, 0.0f}},
-      {{1.0f, 1.0f}, {0.0f, 1.0f}},
-      {{-1.0f, 1.0f}, {1.0f, 1.0f}}};
-  const std::vector<uint16_t> rectangleIndices = {0, 1, 2, 2, 3, 0};
+  std::vector<Rectangle> rectangleVertices;
+  std::vector<uint32_t> rectangleIndices;
+
+  // const std::vector<Rectangle> rectangleVertices = {
+  //     {{-1.0f, -1.0f}, {1.0f, 0.0f}},
+  //     {{1.0f, -1.0f}, {0.0f, 0.0f}},
+  //     {{1.0f, 1.0f}, {0.0f, 1.0f}},
+  //     {{-1.0f, 1.0f}, {1.0f, 1.0f}}};
+  // const std::vector<uint16_t> rectangleIndices = {0, 1, 2, 2, 3, 0};
 
   struct Landscape {
     std::array<float, 4> position;
@@ -91,6 +108,7 @@ class World {
  public:
   std::vector<World::Cell> initializeCells();
   UniformBufferObject updateUniforms(VkExtent2D& _swapChain);
+  void loadModel();
 
  private:
   struct Camera {
