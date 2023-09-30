@@ -22,7 +22,8 @@ void Resources::setupResources(Pipelines& _pipelines) {
   createTextureImage(TEXTURE_PATH);
   createTextureImageView();
   createTextureSampler();
-  world.loadModel();
+  world.loadModel(MODEL_PATH, glm::vec3(90.0f, 180.0f, 0.0f),
+                  glm::vec3(-25.0f, -25.0f, 10.0f));
 
   createFramebuffers(_pipelines);
   createShaderStorageBuffers();
@@ -707,8 +708,6 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
                           &descriptor.sets[_mechanics.syncObjects.currentFrame],
                           0, nullptr);
 
-  VkDeviceSize offsets[]{0};
-  /*
   // Pipeline 1
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                     _pipelines.graphics.cells);
@@ -741,8 +740,6 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                     _pipelines.graphics.water);
   vkCmdDraw(commandBuffer, world.geo.water.vertexCount, 1, 0, 0);
-
-  */
 
   // Pipeline 4
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,

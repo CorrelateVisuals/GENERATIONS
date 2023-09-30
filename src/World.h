@@ -48,7 +48,7 @@ class World {
     } texture;
   } geo;
 
-  struct Rectangle {
+  struct Vertex {
     glm::vec3 pos;
     glm::vec3 color;
     glm::vec2 texCoord;
@@ -56,11 +56,16 @@ class World {
     static std::vector<VkVertexInputBindingDescription> getBindingDescription();
     static std::vector<VkVertexInputAttributeDescription>
     getAttributeDescriptions();
-
-    bool operator==(const Rectangle& other) const {
+    bool operator==(const Vertex& other) const {
       return pos == other.pos && color == other.color &&
              texCoord == other.texCoord;
     }
+  };
+
+  struct Rectangle : Vertex {
+    static std::vector<VkVertexInputBindingDescription> getBindingDescription();
+    static std::vector<VkVertexInputAttributeDescription>
+    getAttributeDescriptions();
   };
 
   std::vector<Rectangle> rectangleVertices;
@@ -108,8 +113,12 @@ class World {
  public:
   std::vector<World::Cell> initializeCells();
   UniformBufferObject updateUniforms(VkExtent2D& _swapChain);
-  void loadModel();
-  void rotateModel(auto& vertices, const glm::vec3& degrees);
+  void loadModel(const std::string& modelPath,
+                 const glm::vec3& rotate,
+                 const glm::vec3& translate);
+  void transformModel(auto& vertices,
+                      const glm::vec3& degrees,
+                      const glm::vec3& translationDistance);
 
  private:
   struct Camera {

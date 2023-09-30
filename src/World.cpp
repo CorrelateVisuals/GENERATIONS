@@ -21,6 +21,25 @@ World::~World() {
 }
 
 std::vector<VkVertexInputBindingDescription>
+World::Vertex::getBindingDescription() {
+  std::vector<VkVertexInputBindingDescription> bindingDescriptions{
+      {0, sizeof(Vertex), VK_VERTEX_INPUT_RATE_VERTEX}};
+  return bindingDescriptions;
+}
+
+std::vector<VkVertexInputAttributeDescription>
+World::Vertex::getAttributeDescriptions() {
+  std::vector<VkVertexInputAttributeDescription> attributeDescriptions{
+      {0, 0, VK_FORMAT_R32G32B32_SFLOAT,
+       static_cast<uint32_t>(offsetof(Vertex, pos))},
+      {1, 0, VK_FORMAT_R32G32B32_SFLOAT,
+       static_cast<uint32_t>(offsetof(Vertex, color))},
+      {2, 0, VK_FORMAT_R32G32_SFLOAT,
+       static_cast<uint32_t>(offsetof(Vertex, texCoord))}};
+  return attributeDescriptions;
+}
+
+std::vector<VkVertexInputBindingDescription>
 World::Cell::getBindingDescription() {
   std::vector<VkVertexInputBindingDescription> bindingDescriptions{
       {0, sizeof(Cell), VK_VERTEX_INPUT_RATE_INSTANCE}};
@@ -214,14 +233,16 @@ struct std::hash<World::Rectangle> {
   }
 };
 
-void World::loadModel() {
+void World::loadModel(const std::string& modelPath,
+                      const glm::vec3& rotate,
+                      const glm::vec3& translate) {
   tinyobj::attrib_t attrib;
   std::vector<tinyobj::shape_t> shapes;
   std::vector<tinyobj::material_t> materials;
   std::string warn, err;
 
   if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err,
-                        MODEL_PATH.c_str())) {
+                        modelPath.c_str())) {
     throw std::runtime_error(warn + err);
   }
 
@@ -243,30 +264,31 @@ void World::loadModel() {
       if (uniqueVertices.count(vertex) == 0) {
         uniqueVertices[vertex] =
             static_cast<uint32_t>(rectangleVertices.size());
+
         rectangleVertices.push_back(vertex);
       }
       rectangleIndices.push_back(uniqueVertices[vertex]);
     }
   }
 
-  rotateModel(rectangleVertices, glm::vec3(90.0f, 180.0f, 0.0f));
+  transformModel(rectangleVertices, rotate, translate);
 }
 
-void World::rotateModel(auto& vertices, const glm::vec3& degrees) {
+void World::transformModel(auto& vertices,
+                           const glm::vec3& degrees,
+                           const glm::vec3& translationDistance) {
   float angleX = glm::radians(degrees.x);
   float angleY = glm::radians(degrees.y);
   float angleZ = glm::radians(degrees.z);
 
-  glm::mat4 rotationMatrixX =
-      glm::rotate(glm::mat4(1.0f), angleX, glm::vec3(1.0f, 0.0f, 0.0f));
-  glm::mat4 rotationMatrixY =
-      glm::rotate(glm::mat4(1.0f), angleY, glm::vec3(0.0f, 1.0f, 0.0f));
-  glm::mat4 rotationMatrixZ =
+  glm::mat4 rotationMatrix =
+      glm::rotate(glm::mat4(1.0f), angleX, glm::vec3(1.0f, 0.0f, 0.0f)) *
+      glm::rotate(glm::mat4(1.0f), angleY, glm::vec3(0.0f, 1.0f, 0.0f)) *
       glm::rotate(glm::mat4(1.0f), angleZ, glm::vec3(0.0f, 0.0f, 1.0f));
 
   for (auto& vertex : vertices) {
-    vertex.pos = glm::vec3(rotationMatrixX * rotationMatrixY * rotationMatrixZ *
-                           glm::vec4(vertex.pos, 1.0f));
+    vertex.pos = glm::vec3(rotationMatrix * glm::vec4(vertex.pos, 1.0f));
+    vertex.pos = vertex.pos + translationDistance;
   }
   return;
 }
