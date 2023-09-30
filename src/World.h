@@ -49,16 +49,17 @@ class World {
   } geo;
 
   struct Vertex {
-    glm::vec3 pos;
+    glm::vec3 instancePosition;
+    glm::vec3 vertexPosition;
     glm::vec3 color;
-    glm::vec2 texCoord;
+    glm::vec2 textureCoordinates;
 
     static std::vector<VkVertexInputBindingDescription> getBindingDescription();
     static std::vector<VkVertexInputAttributeDescription>
     getAttributeDescriptions();
     bool operator==(const Vertex& other) const {
-      return pos == other.pos && color == other.color &&
-             texCoord == other.texCoord;
+      return vertexPosition == other.vertexPosition && color == other.color &&
+             textureCoordinates == other.textureCoordinates;
     }
   };
 

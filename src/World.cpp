@@ -31,11 +31,11 @@ std::vector<VkVertexInputAttributeDescription>
 World::Vertex::getAttributeDescriptions() {
   std::vector<VkVertexInputAttributeDescription> attributeDescriptions{
       {0, 0, VK_FORMAT_R32G32B32_SFLOAT,
-       static_cast<uint32_t>(offsetof(Vertex, pos))},
+       static_cast<uint32_t>(offsetof(Vertex, vertexPosition))},
       {1, 0, VK_FORMAT_R32G32B32_SFLOAT,
        static_cast<uint32_t>(offsetof(Vertex, color))},
       {2, 0, VK_FORMAT_R32G32_SFLOAT,
-       static_cast<uint32_t>(offsetof(Vertex, texCoord))}};
+       static_cast<uint32_t>(offsetof(Vertex, textureCoordinates))}};
   return attributeDescriptions;
 }
 
@@ -72,11 +72,11 @@ std::vector<VkVertexInputAttributeDescription>
 World::Rectangle::getAttributeDescriptions() {
   std::vector<VkVertexInputAttributeDescription> attributeDescriptions{
       {0, 0, VK_FORMAT_R32G32B32_SFLOAT,
-       static_cast<uint32_t>(offsetof(Rectangle, pos))},
+       static_cast<uint32_t>(offsetof(Rectangle, vertexPosition))},
       {1, 0, VK_FORMAT_R32G32B32_SFLOAT,
        static_cast<uint32_t>(offsetof(Rectangle, color))},
       {2, 0, VK_FORMAT_R32G32_SFLOAT,
-       static_cast<uint32_t>(offsetof(Rectangle, texCoord))}};
+       static_cast<uint32_t>(offsetof(Rectangle, textureCoordinates))}};
   return attributeDescriptions;
 }
 
@@ -226,10 +226,10 @@ World::UniformBufferObject World::updateUniforms(VkExtent2D& _swapChainExtent) {
 template <>
 struct std::hash<World::Rectangle> {
   size_t operator()(const World::Rectangle& vertex) const {
-    return ((std::hash<glm::vec3>()(vertex.pos) ^
+    return ((std::hash<glm::vec3>()(vertex.vertexPosition) ^
              (std::hash<glm::vec3>()(vertex.color) << 1)) >>
             1) ^
-           (std::hash<glm::vec2>()(vertex.texCoord) << 1);
+           (std::hash<glm::vec2>()(vertex.textureCoordinates) << 1);
   }
 };
 
@@ -252,12 +252,13 @@ void World::loadModel(const std::string& modelPath,
     for (const auto& index : shape.mesh.indices) {
       Rectangle vertex{};
 
-      vertex.pos = {attrib.vertices[3 * index.vertex_index + 0],
-                    attrib.vertices[3 * index.vertex_index + 1],
-                    attrib.vertices[3 * index.vertex_index + 2]};
+      vertex.vertexPosition = {attrib.vertices[3 * index.vertex_index + 0],
+                               attrib.vertices[3 * index.vertex_index + 1],
+                               attrib.vertices[3 * index.vertex_index + 2]};
 
-      vertex.texCoord = {attrib.texcoords[2 * index.texcoord_index + 0],
-                         1.0f - attrib.texcoords[2 * index.texcoord_index + 1]};
+      vertex.textureCoordinates = {
+          attrib.texcoords[2 * index.texcoord_index + 0],
+          1.0f - attrib.texcoords[2 * index.texcoord_index + 1]};
 
       vertex.color = {1.0f, 1.0f, 1.0f};
 
@@ -287,8 +288,9 @@ void World::transformModel(auto& vertices,
       glm::rotate(glm::mat4(1.0f), angleZ, glm::vec3(0.0f, 0.0f, 1.0f));
 
   for (auto& vertex : vertices) {
-    vertex.pos = glm::vec3(rotationMatrix * glm::vec4(vertex.pos, 1.0f));
-    vertex.pos = vertex.pos + translationDistance;
+    vertex.vertexPosition =
+        glm::vec3(rotationMatrix * glm::vec4(vertex.vertexPosition, 1.0f));
+    vertex.vertexPosition = vertex.vertexPosition + translationDistance;
   }
   return;
 }
