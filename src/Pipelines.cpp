@@ -189,7 +189,7 @@ void Pipelines::createGraphicsPipeline_Cells() {
 
   VkPipelineInputAssemblyStateCreateInfo inputAssembly{
       inputAssemblyStateTriangleList};
-  inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
+  // inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
 
   VkPipelineRasterizationStateCreateInfo rasterization{
       rasterizationCullBackBit};
