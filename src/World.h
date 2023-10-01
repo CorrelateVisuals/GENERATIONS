@@ -60,13 +60,30 @@ class World {
                textureCoordinates == other.textureCoordinates;
       }
     };
+    std::string model;
+    std::string modelPath;
     std::vector<Vertex> vertices;
     std::vector<uint32_t> indices;
+
+    Geometry(const std::string& modelName = "") : model(modelName) {
+      if (!model.empty()) {
+        modelPath = Lib::path("assets/3D/" + model + ".obj");
+      }
+    };
+    ~Geometry() = default;
   };
 
   struct Rectangle : Geometry {
-    const std::string modelPath = Lib::path("assets/3D/Rectangle.obj");
+    Rectangle() : Geometry("Rectangle"){};
   } rectangle;
+
+  struct Cube : Geometry {
+    Cube() : Geometry("Cube"){};
+  } cube;
+
+  struct Point : Geometry {
+    Point(){};
+  } point;
 
   // struct Cube {
   //     const std::string modelPath = Lib::path("assets/3D/Cube.obj");
