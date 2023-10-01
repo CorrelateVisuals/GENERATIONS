@@ -63,14 +63,21 @@ class World {
     const std::string modelPath = Lib::path("assets/3D/Rectangle.obj");
     std::vector<Vertex> vertices;
     std::vector<uint32_t> indices;
-
-    struct Description : Vertex {
-      static std::vector<VkVertexInputBindingDescription>
-      getBindingDescription();
-      static std::vector<VkVertexInputAttributeDescription>
-      getAttributeDescriptions();
-    };
+    struct Description : Vertex {};
   } rectangle;
+
+  // struct Cube {
+  //     const std::string modelPath = Lib::path("assets/3D/Cube.obj");
+  //     std::vector<Vertex> vertices;
+  //     std::vector<uint32_t> indices;
+
+  //    struct Description : Vertex {
+  //        static std::vector<VkVertexInputBindingDescription>
+  //            getBindingDescription();
+  //        static std::vector<VkVertexInputAttributeDescription>
+  //            getAttributeDescriptions();
+  //    };
+  //} cube;
 
   struct Landscape {
     std::array<float, 4> position;

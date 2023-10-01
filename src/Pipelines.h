@@ -36,6 +36,7 @@ class Pipelines {
     VkPipeline water;
     VkPipeline texture;
     VkPipeline landscapeWireframe;
+    VkPipeline cube;
     VkPipelineLayout layout;
     VkRenderPass renderPass;
 
@@ -72,6 +73,7 @@ class Pipelines {
   void createGraphicsPipeline_LandscapeWireframe();
   void createGraphicsPipeline_Water();
   void createGraphicsPipeline_Texture();
+  void createGraphicsPipeline_Cube();
 
   void createComputePipeline_Engine();
   void createComputePipeline_PostFX();

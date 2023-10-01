@@ -62,26 +62,6 @@ World::Cell::getAttributeDescriptions() {
 }
 
 std::vector<VkVertexInputBindingDescription>
-World::Rectangle::Description::getBindingDescription() {
-  std::vector<VkVertexInputBindingDescription> bindingDescriptions{
-      {0, sizeof(Rectangle::Description), VK_VERTEX_INPUT_RATE_VERTEX}};
-  return bindingDescriptions;
-}
-
-std::vector<VkVertexInputAttributeDescription>
-World::Rectangle::Description::getAttributeDescriptions() {
-  std::vector<VkVertexInputAttributeDescription> attributeDescriptions{
-      {0, 0, VK_FORMAT_R32G32B32_SFLOAT,
-       static_cast<uint32_t>(offsetof(Rectangle::Description, vertexPosition))},
-      {1, 0, VK_FORMAT_R32G32B32_SFLOAT,
-       static_cast<uint32_t>(offsetof(Rectangle::Description, color))},
-      {2, 0, VK_FORMAT_R32G32_SFLOAT,
-       static_cast<uint32_t>(
-           offsetof(Rectangle::Description, textureCoordinates))}};
-  return attributeDescriptions;
-}
-
-std::vector<VkVertexInputBindingDescription>
 World::Landscape::getBindingDescription() {
   std::vector<VkVertexInputBindingDescription> bindingDescriptions{
       {0, sizeof(Landscape), VK_VERTEX_INPUT_RATE_VERTEX}};

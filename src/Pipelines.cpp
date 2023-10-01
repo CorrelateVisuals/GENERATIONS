@@ -463,6 +463,64 @@ void Pipelines::createGraphicsPipeline_Texture() {
   destroyShaderModules(shaderModules);
 }
 
+void Pipelines::createGraphicsPipeline_Cube() {
+  std::vector<VkPipelineShaderStageCreateInfo> shaderStages = {
+      setShaderStage(VK_SHADER_STAGE_VERTEX_BIT, "TextureVert.spv"),
+      setShaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, "TextureFrag.spv")};
+
+  static auto bindings = World::Rectangle::Description::getBindingDescription();
+  static auto attributes =
+      World::Rectangle::Description::getAttributeDescriptions();
+  uint32_t bindingsSize = static_cast<uint32_t>(bindings.size());
+  uint32_t attributeSize = static_cast<uint32_t>(attributes.size());
+
+  VkPipelineVertexInputStateCreateInfo vertexInput{vertexInputStateDefault};
+  vertexInput.vertexBindingDescriptionCount = bindingsSize;
+  vertexInput.vertexAttributeDescriptionCount = attributeSize;
+  vertexInput.pVertexBindingDescriptions = bindings.data();
+  vertexInput.pVertexAttributeDescriptions = attributes.data();
+
+  VkPipelineInputAssemblyStateCreateInfo inputAssembly{
+      inputAssemblyStateTriangleList};
+  VkPipelineRasterizationStateCreateInfo rasterization{
+      rasterizationCullBackBit};
+  VkPipelineMultisampleStateCreateInfo multisampling{multisampleStateDefault};
+  multisampling.rasterizationSamples = graphics.msaa.samples;
+  VkPipelineDepthStencilStateCreateInfo depthStencil{depthStencilStateDefault};
+
+  static VkPipelineColorBlendAttachmentState colorBlendAttachment{
+      colorBlendAttachmentStateFalse};
+  colorBlendAttachment.blendEnable = VK_TRUE;
+
+  VkPipelineColorBlendStateCreateInfo colorBlend{colorBlendStateDefault};
+  colorBlend.pAttachments = &colorBlendAttachment;
+
+  VkPipelineViewportStateCreateInfo viewport{viewportStateDefault};
+  VkPipelineDynamicStateCreateInfo dynamic{dynamicStateDefault};
+
+  VkGraphicsPipelineCreateInfo pipelineInfo{
+      .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
+      .stageCount = static_cast<uint32_t>(shaderStages.size()),
+      .pStages = shaderStages.data(),
+      .pVertexInputState = &vertexInput,
+      .pInputAssemblyState = &inputAssembly,
+      .pViewportState = &viewport,
+      .pRasterizationState = &rasterization,
+      .pMultisampleState = &multisampling,
+      .pDepthStencilState = &depthStencil,
+      .pColorBlendState = &colorBlend,
+      .pDynamicState = &dynamic,
+      .layout = graphics.layout,
+      .renderPass = graphics.renderPass,
+      .subpass = 0,
+      .basePipelineHandle = VK_NULL_HANDLE};
+
+  _mechanics.result(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
+                    VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
+                    &graphics.texture);
+  destroyShaderModules(shaderModules);
+}
+
 VkFormat Pipelines::findSupportedFormat(const std::vector<VkFormat>& candidates,
                                         VkImageTiling tiling,
                                         VkFormatFeatureFlags features) {
