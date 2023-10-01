@@ -26,9 +26,22 @@ void Resources::setupResources(Pipelines& _pipelines) {
   world.loadModel(world.rectangle.modelPath, world.rectangle.vertices,
                   world.rectangle.indices, glm::vec3(90.0f, 180.0f, 0.0f),
                   glm::vec3(0.0f, 0.0f, 0.0f), 1.0f);
-  world.loadModel(world.cube.modelPath, world.cube.vertices, world.cube.indices,
-                  glm::vec3(90.0f, 180.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f),
-                  1.0f);
+  world.loadModelVertices(world.cube.modelPath, world.cube.vertices,
+                          world.cube.indices, glm::vec3(90.0f, 180.0f, 0.0f),
+                          glm::vec3(0.0f, 0.0f, 0.0f), 1.0f);
+
+  // Log::text(" ", world.cube.vertices.size(), world.cube.indices.size());
+
+  // std::vector<uint32_t> oneCubeIndices = world.cube.indices;
+  // size_t numGridPoints = world.grid.XY[0] * world.grid.XY[1];
+  // std::vector<uint32_t> allIndices;
+  //// Generate indices for each particle's cube
+  // for (uint32_t i = 0; i < numGridPoints; ++i) {
+  //   uint32_t baseVertexIndex = i * 24;  // Offset for this particle's cube
+  //   for (uint32_t j = 0; j < oneCubeIndices.size(); ++j) {
+  //     allIndices.push_back(baseVertexIndex + oneCubeIndices[j]);
+  //   }
+  // }
 
   createFramebuffers(_pipelines);
   createShaderStorageBuffers();
@@ -44,6 +57,8 @@ void Resources::setupResources(Pipelines& _pipelines) {
 
   createVertexBuffer(vertexBufferCell, vertexBufferMemoryCell,
                      world.cube.vertices);
+  // createIndexBufferCube(indexBufferCell, indexBufferMemoryCell, allIndices,
+  //                       oneCubeIndices);
 
   createDescriptorPool();
   allocateDescriptorSets();
@@ -399,6 +414,40 @@ void Resources::createIndexBuffer(VkBuffer& buffer,
                                   const auto& indices) {
   VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
 
+  Log::text("", indices[0], indices.size());
+
+  VkBuffer stagingBuffer;
+  VkDeviceMemory stagingBufferMemory;
+  createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+               VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                   VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+               stagingBuffer, stagingBufferMemory);
+
+  void* data;
+  vkMapMemory(_mechanics.mainDevice.logical, stagingBufferMemory, 0, bufferSize,
+              0, &data);
+  memcpy(data, indices.data(), (size_t)bufferSize);
+  vkUnmapMemory(_mechanics.mainDevice.logical, stagingBufferMemory);
+
+  createBuffer(
+      bufferSize,
+      VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, buffer, bufferMemory);
+
+  copyBuffer(stagingBuffer, buffer, bufferSize);
+
+  vkDestroyBuffer(_mechanics.mainDevice.logical, stagingBuffer, nullptr);
+  vkFreeMemory(_mechanics.mainDevice.logical, stagingBufferMemory, nullptr);
+}
+
+void Resources::createIndexBufferCube(VkBuffer& buffer,
+                                      VkDeviceMemory& bufferMemory,
+                                      const auto& indices,
+                                      std::vector<uint32_t> oneCube) {
+  VkDeviceSize bufferSize = sizeof(oneCube.size()) * indices.size();
+
+  Log::text("", indices[0], indices.size(), oneCube.size());
+
   VkBuffer stagingBuffer;
   VkDeviceMemory stagingBufferMemory;
   createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
@@ -727,8 +776,42 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
       buffers.shaderStorage[_mechanics.syncObjects.currentFrame],
       vertexBufferCell};
   vkCmdBindVertexBuffers(commandBuffer, 0, 2, vertexBuffers0, offsets0);
-  vkCmdDraw(commandBuffer, world.geo.cube.vertexCount,
+  vkCmdDraw(commandBuffer, world.cube.vertices.size(),
             world.grid.XY[0] * world.grid.XY[1], 0, 0);
+
+  // VkDeviceSize sharedVertexOffset = 0;  // Offset for the shared vertex
+  // buffer VkBuffer sharedVertexBuffers[] = {
+  //     buffers.shaderStorage[_mechanics.syncObjects.currentFrame]  // Binding
+  //     0
+  // };
+
+  // vkCmdBindVertexBuffers(commandBuffer, 0, 1, sharedVertexBuffers,
+  //                        &sharedVertexOffset);
+
+  // VkDeviceSize indexedVertexOffset = 0;  // Offset for the indexed vertex
+  // buffer VkBuffer indexedVertexBuffers[] = {
+  //     vertexBufferCell  // Binding 0
+  // };
+
+  // vkCmdBindVertexBuffers(commandBuffer, 1, 1, indexedVertexBuffers,
+  //                        &indexedVertexOffset);
+
+  // VkDeviceSize indexBufferOffset = 0;  // Offset for the index buffer
+  // VkIndexType indexType =
+  //     VK_INDEX_TYPE_UINT32;  // Change to the appropriate type
+
+  // vkCmdBindIndexBuffer(commandBuffer, indexBuffer, indexBufferOffset,
+  //                      indexType);
+
+  // uint32_t indexCount = world.cube.indices.size();  // Number of indices to
+  // draw uint32_t instanceCount =
+  //     world.grid.XY[0] * world.grid.XY[1];  // Number of instances
+  // uint32_t firstIndex = 0;                  // Index of the first index to
+  // use int32_t vertexOffset = 0;    // Vertex offset (used to add to the
+  // vertex ID) uint32_t firstInstance = 0;  // First instance ID
+
+  // vkCmdDrawIndexed(commandBuffer, indexCount, instanceCount, firstIndex,
+  //                  vertexOffset, firstInstance);
 
   // Landscape
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,

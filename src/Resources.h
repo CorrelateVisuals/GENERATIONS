@@ -32,6 +32,8 @@ class Resources {
 
   VkBuffer vertexBufferCell;
   VkDeviceMemory vertexBufferMemoryCell;
+  VkBuffer indexBufferCell;
+  VkDeviceMemory indexBufferMemoryCell;
 
   struct PushConstants {
     VkShaderStageFlags shaderStage = {VK_SHADER_STAGE_COMPUTE_BIT};
@@ -102,6 +104,10 @@ class Resources {
   void createIndexBuffer(VkBuffer& buffer,
                          VkDeviceMemory& bufferMemory,
                          const auto& indices);
+  void createIndexBufferCube(VkBuffer& buffer,
+                             VkDeviceMemory& bufferMemory,
+                             const auto& indices,
+                             std::vector<uint32_t> oneCube);
 
   void setPushConstants();
   VkCommandBuffer beginSingleTimeCommands();

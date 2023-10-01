@@ -4,6 +4,7 @@ layout(location = 0) in vec4 inPosition;
 layout(location = 1) in vec4 inColor;
 layout(location = 2) in vec4 inSize;
 layout(location = 3) in ivec4 inStates;
+layout(location = 4) in vec3 inVertex;
 
 layout (binding = 0) uniform ParameterUBO {
     vec4 light;
@@ -40,7 +41,8 @@ const int cubeIndices[36] = {
     2, 6, 7, 2, 7, 3,       // Back face
     4, 7, 6, 4, 6, 5,       // Bottom face
 };
-vec3 vertex = cubeVertices[cubeIndices[gl_VertexIndex]];
+//vec3 vertex = cubeVertices[cubeIndices[gl_VertexIndex]];
+vec3 vertex = inVertex;
 
 vec4 constructCube() {
     vec4 position = inPosition;

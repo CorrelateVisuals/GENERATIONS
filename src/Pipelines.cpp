@@ -189,9 +189,12 @@ void Pipelines::createGraphicsPipeline_Cells() {
 
   VkPipelineInputAssemblyStateCreateInfo inputAssembly{
       inputAssemblyStateTriangleList};
+  inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
 
   VkPipelineRasterizationStateCreateInfo rasterization{
       rasterizationCullBackBit};
+  rasterization.cullMode = VK_CULL_MODE_NONE;
+
   VkPipelineMultisampleStateCreateInfo multisampling{multisampleStateDefault};
   multisampling.rasterizationSamples = graphics.msaa.samples;
   VkPipelineDepthStencilStateCreateInfo depthStencil{depthStencilStateDefault};

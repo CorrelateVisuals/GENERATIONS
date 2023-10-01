@@ -13,7 +13,7 @@ class World {
   World();
   ~World();
 
-  Timer time{30.0f};
+  Timer time{1.0f};
 
   struct Grid {
     uint_fast32_t cellsAlive = 5000;
@@ -23,7 +23,7 @@ class World {
   struct GeometryTEMP {
     struct Cube {
       const uint32_t vertexCount{36};
-      const float size{0.1f};
+      const float size{0.5f};
     } cube;
   } geo;
 
@@ -70,6 +70,14 @@ class World {
                  const glm::vec3& rotate,
                  const glm::vec3& translate,
                  float geoSize);
+
+  void loadModelVertices(const std::string& modelPath,
+                         std::vector<Geometry::Vertex>& vertices,
+                         std::vector<uint32_t>& indices,
+                         const glm::vec3& rotate,
+                         const glm::vec3& translate,
+                         float geoSize);
+
   void transformModel(auto& vertices,
                       ORIENTATION_ORDER order,
                       const glm::vec3& degrees,
