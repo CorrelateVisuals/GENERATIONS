@@ -62,21 +62,22 @@ World::Cell::getAttributeDescriptions() {
 }
 
 std::vector<VkVertexInputBindingDescription>
-World::Rectangle::getBindingDescription() {
+World::Rectangle::Description::getBindingDescription() {
   std::vector<VkVertexInputBindingDescription> bindingDescriptions{
-      {0, sizeof(Rectangle), VK_VERTEX_INPUT_RATE_VERTEX}};
+      {0, sizeof(Rectangle::Description), VK_VERTEX_INPUT_RATE_VERTEX}};
   return bindingDescriptions;
 }
 
 std::vector<VkVertexInputAttributeDescription>
-World::Rectangle::getAttributeDescriptions() {
+World::Rectangle::Description::getAttributeDescriptions() {
   std::vector<VkVertexInputAttributeDescription> attributeDescriptions{
       {0, 0, VK_FORMAT_R32G32B32_SFLOAT,
-       static_cast<uint32_t>(offsetof(Rectangle, vertexPosition))},
+       static_cast<uint32_t>(offsetof(Rectangle::Description, vertexPosition))},
       {1, 0, VK_FORMAT_R32G32B32_SFLOAT,
-       static_cast<uint32_t>(offsetof(Rectangle, color))},
+       static_cast<uint32_t>(offsetof(Rectangle::Description, color))},
       {2, 0, VK_FORMAT_R32G32_SFLOAT,
-       static_cast<uint32_t>(offsetof(Rectangle, textureCoordinates))}};
+       static_cast<uint32_t>(
+           offsetof(Rectangle::Description, textureCoordinates))}};
   return attributeDescriptions;
 }
 
@@ -224,8 +225,8 @@ World::UniformBufferObject World::updateUniforms(VkExtent2D& _swapChainExtent) {
 }
 
 template <>
-struct std::hash<World::Rectangle> {
-  size_t operator()(const World::Rectangle& vertex) const {
+struct std::hash<World::Vertex> {
+  size_t operator()(const World::Vertex& vertex) const {
     return ((std::hash<glm::vec3>()(vertex.vertexPosition) ^
              (std::hash<glm::vec3>()(vertex.color) << 1)) >>
             1) ^
@@ -234,8 +235,11 @@ struct std::hash<World::Rectangle> {
 };
 
 void World::loadModel(const std::string& modelPath,
+                      std::vector<Vertex>& vertices,
+                      std::vector<uint32_t>& indices,
                       const glm::vec3& rotate,
-                      const glm::vec3& translate) {
+                      const glm::vec3& translate,
+                      int geoSize) {
   tinyobj::attrib_t attrib;
   std::vector<tinyobj::shape_t> shapes;
   std::vector<tinyobj::material_t> materials;
@@ -246,11 +250,11 @@ void World::loadModel(const std::string& modelPath,
     throw std::runtime_error(warn + err);
   }
 
-  std::unordered_map<Rectangle, uint32_t> uniqueVertices{};
+  std::unordered_map<Vertex, uint32_t> uniqueVertices{};
 
   for (const auto& shape : shapes) {
     for (const auto& index : shape.mesh.indices) {
-      Rectangle vertex{};
+      Vertex vertex{};
 
       vertex.vertexPosition = {attrib.vertices[3 * index.vertex_index + 0],
                                attrib.vertices[3 * index.vertex_index + 1],
@@ -263,21 +267,22 @@ void World::loadModel(const std::string& modelPath,
       vertex.color = {1.0f, 1.0f, 1.0f};
 
       if (uniqueVertices.count(vertex) == 0) {
-        uniqueVertices[vertex] =
-            static_cast<uint32_t>(rectangleVertices.size());
+        uniqueVertices[vertex] = static_cast<uint32_t>(vertices.size());
 
-        rectangleVertices.push_back(vertex);
+        vertices.push_back(vertex);
       }
-      rectangleIndices.push_back(uniqueVertices[vertex]);
+      indices.push_back(uniqueVertices[vertex]);
     }
   }
-
-  transformModel(rectangleVertices, rotate, translate);
+  transformModel(vertices, ORIENTATION_ORDER{ROTATE_SCALE_TRANSLATE}, rotate,
+                 translate, geoSize);
 }
 
 void World::transformModel(auto& vertices,
+                           ORIENTATION_ORDER order,
                            const glm::vec3& degrees,
-                           const glm::vec3& translationDistance) {
+                           const glm::vec3& translationDistance,
+                           int scale) {
   float angleX = glm::radians(degrees.x);
   float angleY = glm::radians(degrees.y);
   float angleZ = glm::radians(degrees.z);
@@ -288,9 +293,20 @@ void World::transformModel(auto& vertices,
       glm::rotate(glm::mat4(1.0f), angleZ, glm::vec3(0.0f, 0.0f, 1.0f));
 
   for (auto& vertex : vertices) {
-    vertex.vertexPosition =
-        glm::vec3(rotationMatrix * glm::vec4(vertex.vertexPosition, 1.0f));
-    vertex.vertexPosition = vertex.vertexPosition + translationDistance;
+    switch (order) {
+      case ORIENTATION_ORDER::ROTATE_SCALE_TRANSLATE:
+        vertex.vertexPosition =
+            glm::vec3(rotationMatrix * glm::vec4(vertex.vertexPosition, 1.0f));
+        vertex.vertexPosition *= scale;
+        vertex.vertexPosition = vertex.vertexPosition + translationDistance;
+        break;
+      case ORIENTATION_ORDER::ROTATE_TRANSLATE_SCALE:
+        vertex.vertexPosition =
+            glm::vec3(rotationMatrix * glm::vec4(vertex.vertexPosition, 1.0f));
+        vertex.vertexPosition = vertex.vertexPosition + translationDistance;
+        vertex.vertexPosition *= scale;
+        break;
+    }
   }
   return;
 }

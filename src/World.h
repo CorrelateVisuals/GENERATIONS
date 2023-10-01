@@ -15,7 +15,8 @@
 #include <array>
 #include <vector>
 
-const std::string MODEL_PATH = Lib::path("assets/3D/Rectangle.obj");
+const enum ORIENTATION_ORDER { ROTATE_SCALE_TRANSLATE, ROTATE_TRANSLATE_SCALE };
+
 const std::string TEXTURE_PATH = Lib::path("assets/Avatar.PNG");
 
 class Timer;
@@ -37,15 +38,9 @@ class World {
       const uint32_t vertexCount{36};
       const float size{0.1f};
     } cube;
-    struct Tile {
-      const uint32_t vertexCount{54};
-    } tile;
     struct Water {
       const uint32_t vertexCount{6};
     } water;
-    struct Texture {
-      const uint32_t vertexCount{6};
-    } texture;
   } geo;
 
   struct Vertex {
@@ -57,27 +52,25 @@ class World {
     static std::vector<VkVertexInputBindingDescription> getBindingDescription();
     static std::vector<VkVertexInputAttributeDescription>
     getAttributeDescriptions();
+
     bool operator==(const Vertex& other) const {
       return vertexPosition == other.vertexPosition && color == other.color &&
              textureCoordinates == other.textureCoordinates;
     }
   };
 
-  struct Rectangle : Vertex {
-    static std::vector<VkVertexInputBindingDescription> getBindingDescription();
-    static std::vector<VkVertexInputAttributeDescription>
-    getAttributeDescriptions();
-  };
+  struct Rectangle {
+    const std::string MODEL_PATH = Lib::path("assets/3D/Rectangle.obj");
+    std::vector<Vertex> vertices;
+    std::vector<uint32_t> indices;
 
-  std::vector<Rectangle> rectangleVertices;
-  std::vector<uint32_t> rectangleIndices;
-
-  // const std::vector<Rectangle> rectangleVertices = {
-  //     {{-1.0f, -1.0f}, {1.0f, 0.0f}},
-  //     {{1.0f, -1.0f}, {0.0f, 0.0f}},
-  //     {{1.0f, 1.0f}, {0.0f, 1.0f}},
-  //     {{-1.0f, 1.0f}, {1.0f, 1.0f}}};
-  // const std::vector<uint16_t> rectangleIndices = {0, 1, 2, 2, 3, 0};
+    struct Description : Vertex {
+      static std::vector<VkVertexInputBindingDescription>
+      getBindingDescription();
+      static std::vector<VkVertexInputAttributeDescription>
+      getAttributeDescriptions();
+    };
+  } rectangle;
 
   struct Landscape {
     std::array<float, 4> position;
@@ -86,7 +79,6 @@ class World {
     static std::vector<VkVertexInputAttributeDescription>
     getAttributeDescriptions();
   };
-
   std::vector<Landscape> landscapeVertices;
   std::vector<uint32_t> landscapeIndices;
 
@@ -115,11 +107,16 @@ class World {
   std::vector<World::Cell> initializeCells();
   UniformBufferObject updateUniforms(VkExtent2D& _swapChain);
   void loadModel(const std::string& modelPath,
+                 std::vector<Vertex>& vertices,
+                 std::vector<uint32_t>& indices,
                  const glm::vec3& rotate,
-                 const glm::vec3& translate);
+                 const glm::vec3& translate,
+                 int geoSize);
   void transformModel(auto& vertices,
+                      ORIENTATION_ORDER order,
                       const glm::vec3& degrees,
-                      const glm::vec3& translationDistance);
+                      const glm::vec3& translationDistance,
+                      int scale);
 
  private:
   struct Camera {

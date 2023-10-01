@@ -22,15 +22,17 @@ void Resources::setupResources(Pipelines& _pipelines) {
   createTextureImage(TEXTURE_PATH);
   createTextureImageView();
   createTextureSampler();
-  world.loadModel(MODEL_PATH, glm::vec3(90.0f, 180.0f, 0.0f),
-                  glm::vec3(-25.0f, -25.0f, 10.0f));
+  world.loadModel(world.rectangle.MODEL_PATH, world.rectangle.vertices,
+                  world.rectangle.indices, glm::vec3(90.0f, 180.0f, 0.0f),
+                  glm::vec3(0.0f, 0.0f, 0.0f), world.grid.XY[0] / 3.5);
 
   createFramebuffers(_pipelines);
   createShaderStorageBuffers();
   createUniformBuffers();
 
-  createVertexBuffer(vertexBuffer, vertexBufferMemory, world.rectangleVertices);
-  createIndexBuffer(indexBuffer, indexBufferMemory, world.rectangleIndices);
+  createVertexBuffer(vertexBuffer, vertexBufferMemory,
+                     world.rectangle.vertices);
+  createIndexBuffer(indexBuffer, indexBufferMemory, world.rectangle.indices);
   createVertexBuffer(vertexBufferLandscape, vertexBufferMemoryLandscape,
                      world.landscapeVertices);
   createIndexBuffer(indexBufferLandscape, indexBufferMemoryLandscape,
@@ -739,15 +741,19 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
   // Pipeline 3
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                     _pipelines.graphics.water);
-  vkCmdDraw(commandBuffer, world.geo.water.vertexCount, 1, 0, 0);
+  VkBuffer vertexBuffers[] = {vertexBuffer};
+  vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+  vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+  vkCmdDrawIndexed(commandBuffer,
+                   static_cast<uint32_t>(world.rectangle.indices.size()), 1, 0,
+                   0, 0);
 
   // Pipeline 4
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                     _pipelines.graphics.texture);
-  VkBuffer vertexBuffers[] = {vertexBuffer};
-  vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
-  vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
-  vkCmdDrawIndexed(commandBuffer, world.geo.texture.vertexCount, 1, 0, 0, 0);
+  vkCmdDrawIndexed(commandBuffer,
+                   static_cast<uint32_t>(world.rectangle.indices.size()), 1, 0,
+                   0, 0);
 
   vkCmdEndRenderPass(commandBuffer);
 

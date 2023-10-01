@@ -353,7 +353,17 @@ void Pipelines::createGraphicsPipeline_Water() {
       setShaderStage(VK_SHADER_STAGE_VERTEX_BIT, "WaterVert.spv"),
       setShaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, "WaterFrag.spv")};
 
+  static auto bindings = World::Rectangle::Description::getBindingDescription();
+  static auto attributes =
+      World::Rectangle::Description::getAttributeDescriptions();
+  uint32_t bindingsSize = static_cast<uint32_t>(bindings.size());
+  uint32_t attributeSize = static_cast<uint32_t>(attributes.size());
+
   VkPipelineVertexInputStateCreateInfo vertexInput{vertexInputStateDefault};
+  vertexInput.vertexBindingDescriptionCount = bindingsSize;
+  vertexInput.vertexAttributeDescriptionCount = attributeSize;
+  vertexInput.pVertexBindingDescriptions = bindings.data();
+  vertexInput.pVertexAttributeDescriptions = attributes.data();
 
   VkPipelineInputAssemblyStateCreateInfo inputAssembly{
       inputAssemblyStateTriangleList};
@@ -400,8 +410,9 @@ void Pipelines::createGraphicsPipeline_Texture() {
       setShaderStage(VK_SHADER_STAGE_VERTEX_BIT, "TextureVert.spv"),
       setShaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, "TextureFrag.spv")};
 
-  static auto bindings = World::Rectangle::getBindingDescription();
-  static auto attributes = World::Rectangle::getAttributeDescriptions();
+  static auto bindings = World::Rectangle::Description::getBindingDescription();
+  static auto attributes =
+      World::Rectangle::Description::getAttributeDescriptions();
   uint32_t bindingsSize = static_cast<uint32_t>(bindings.size());
   uint32_t attributeSize = static_cast<uint32_t>(attributes.size());
 
