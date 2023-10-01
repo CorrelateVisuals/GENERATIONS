@@ -20,10 +20,8 @@ mat4 view = ubo.view;
 mat4 projection = ubo.projection;
 float waterThreshold = ubo.waterThreshold;
 
-const float GEO_TILE_SIZE = 0.3f;
-vec2 gridXYsize = vec2(gridXY.x, gridXY.y) * GEO_TILE_SIZE;
-
-vec4 worldPosition = model * vec4(inPosition, 1.0f);
+vec4 position = vec4( vec2(inPosition.xy * (gridXY.xy / 2)), inPosition.z, 1.0f);
+vec4 worldPosition = model * position;
 vec4 viewPosition = view * worldPosition;
 
 layout(location = 0) out vec4 fragColor;

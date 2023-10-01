@@ -24,7 +24,7 @@ void Resources::setupResources(Pipelines& _pipelines) {
   createTextureSampler();
   world.loadModel(world.rectangle.modelPath, world.rectangle.vertices,
                   world.rectangle.indices, glm::vec3(90.0f, 180.0f, 0.0f),
-                  glm::vec3(0.0f, 0.0f, 0.0f), world.grid.XY[0] / 2.0f);
+                  glm::vec3(0.0f, 0.0f, 0.0f), 1.0f);
 
   createFramebuffers(_pipelines);
   createShaderStorageBuffers();

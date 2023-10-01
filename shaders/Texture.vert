@@ -17,7 +17,9 @@ mat4 model = ubo.model;
 mat4 view = ubo.view;
 mat4 projection = ubo.projection;
 
-vec4 worldPosition = model * vec4(inPosition, 1.0);
+float heightOffset = 10.0f;
+vec4 position = vec4( vec2(inPosition.xy), inPosition.z + heightOffset, 1.0f);
+vec4 worldPosition = model * position;
 vec4 viewPosition = view * worldPosition;
 
 layout(location = 0) out vec4 fragColor;
