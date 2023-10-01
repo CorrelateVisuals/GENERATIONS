@@ -21,25 +21,6 @@ World::~World() {
 }
 
 std::vector<VkVertexInputBindingDescription>
-World::Geometry::Vertex::getBindingDescription() {
-  std::vector<VkVertexInputBindingDescription> bindingDescriptions{
-      {0, sizeof(Geometry::Vertex), VK_VERTEX_INPUT_RATE_VERTEX}};
-  return bindingDescriptions;
-}
-
-std::vector<VkVertexInputAttributeDescription>
-World::Geometry::Vertex::getAttributeDescriptions() {
-  std::vector<VkVertexInputAttributeDescription> attributeDescriptions{
-      {0, 0, VK_FORMAT_R32G32B32_SFLOAT,
-       static_cast<uint32_t>(offsetof(Geometry::Vertex, vertexPosition))},
-      {1, 0, VK_FORMAT_R32G32B32_SFLOAT,
-       static_cast<uint32_t>(offsetof(Geometry::Vertex, color))},
-      {2, 0, VK_FORMAT_R32G32_SFLOAT,
-       static_cast<uint32_t>(offsetof(Geometry::Vertex, textureCoordinates))}};
-  return attributeDescriptions;
-}
-
-std::vector<VkVertexInputBindingDescription>
 World::Cell::getBindingDescription() {
   std::vector<VkVertexInputBindingDescription> bindingDescriptions{
       {0, sizeof(Cell), VK_VERTEX_INPUT_RATE_INSTANCE}};
@@ -61,18 +42,11 @@ World::Cell::getAttributeDescriptions() {
   return attributeDescriptions;
 }
 
-std::vector<VkVertexInputBindingDescription>
-World::Landscape::getBindingDescription() {
-  std::vector<VkVertexInputBindingDescription> bindingDescriptions{
-      {0, sizeof(Landscape), VK_VERTEX_INPUT_RATE_VERTEX}};
-  return bindingDescriptions;
-}
-
 std::vector<VkVertexInputAttributeDescription>
 World::Landscape::getAttributeDescriptions() {
   std::vector<VkVertexInputAttributeDescription> attributeDescriptions{
-      {0, 0, VK_FORMAT_R32G32B32A32_SFLOAT,
-       static_cast<uint32_t>(offsetof(Landscape, position))}};
+      {0, 0, VK_FORMAT_R32G32B32_SFLOAT,
+       static_cast<uint32_t>(offsetof(Landscape::Vertex, vertexPosition))}};
   return attributeDescriptions;
 }
 
@@ -119,10 +93,11 @@ std::vector<World::Cell> World::initializeCells() {
     cells[i] = {position, color, size, state};
 
     tempIndices.push_back(i);
-    landscapeVertices.push_back({position});
+    landscape.addVertexPosition(
+        glm::vec3(position[0], position[1], position[2]));
   }
 
-  landscapeIndices =
+  landscape.indices =
       Lib::createGridPolygons(tempIndices, static_cast<int>(grid.XY[0]));
 
   return cells;
@@ -202,8 +177,8 @@ World::UniformBufferObject World::updateUniforms(VkExtent2D& _swapChainExtent) {
 }
 
 template <>
-struct std::hash<World::Geometry::Vertex> {
-  size_t operator()(const World::Geometry::Vertex& vertex) const {
+struct std::hash<Geometry::Vertex> {
+  size_t operator()(const Geometry::Vertex& vertex) const {
     return ((std::hash<glm::vec3>()(vertex.vertexPosition) ^
              (std::hash<glm::vec3>()(vertex.color) << 1)) >>
             1) ^

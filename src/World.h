@@ -1,21 +1,10 @@
 #pragma once
-#include <vulkan/vulkan.h>
-
-#define GLM_FORCE_RADIANS
-#define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/quaternion.hpp>
-#include <glm/gtx/hash.hpp>
-
+#include "Geometry.h"
 #include "Timer.h"
 
 #include <algorithm>
 #include <array>
 #include <vector>
-
-const enum ORIENTATION_ORDER { ROTATE_SCALE_TRANSLATE, ROTATE_TRANSLATE_SCALE };
 
 const std::string TEXTURE_PATH = Lib::path("assets/Avatar.PNG");
 
@@ -38,40 +27,7 @@ class World {
       const uint32_t vertexCount{36};
       const float size{0.1f};
     } cube;
-    struct Water {
-      const uint32_t vertexCount{6};
-    } water;
   } geo;
-
-  struct Geometry {
-    struct Vertex {
-      glm::vec3 instancePosition;
-      glm::vec3 vertexPosition;
-      glm::vec3 color;
-      glm::vec2 textureCoordinates;
-
-      static std::vector<VkVertexInputBindingDescription>
-      getBindingDescription();
-      static std::vector<VkVertexInputAttributeDescription>
-      getAttributeDescriptions();
-
-      bool operator==(const Vertex& other) const {
-        return vertexPosition == other.vertexPosition && color == other.color &&
-               textureCoordinates == other.textureCoordinates;
-      }
-    };
-    std::string model;
-    std::string modelPath;
-    std::vector<Vertex> vertices;
-    std::vector<uint32_t> indices;
-
-    Geometry(const std::string& modelName = "") : model(modelName) {
-      if (!model.empty()) {
-        modelPath = Lib::path("assets/3D/" + model + ".obj");
-      }
-    };
-    ~Geometry() = default;
-  };
 
   struct Rectangle : Geometry {
     Rectangle() : Geometry("Rectangle"){};
@@ -81,32 +37,10 @@ class World {
     Cube() : Geometry("Cube"){};
   } cube;
 
-  struct Point : Geometry {
-    Point(){};
-  } point;
-
-  // struct Cube {
-  //     const std::string modelPath = Lib::path("assets/3D/Cube.obj");
-  //     std::vector<Vertex> vertices;
-  //     std::vector<uint32_t> indices;
-
-  //    struct Description : Vertex {
-  //        static std::vector<VkVertexInputBindingDescription>
-  //            getBindingDescription();
-  //        static std::vector<VkVertexInputAttributeDescription>
-  //            getAttributeDescriptions();
-  //    };
-  //} cube;
-
-  struct Landscape {
-    std::array<float, 4> position;
-
-    static std::vector<VkVertexInputBindingDescription> getBindingDescription();
+  struct Landscape : Geometry {
     static std::vector<VkVertexInputAttributeDescription>
     getAttributeDescriptions();
-  };
-  std::vector<Landscape> landscapeVertices;
-  std::vector<uint32_t> landscapeIndices;
+  } landscape;
 
   struct Cell {
     std::array<float, 4> instancePosition;

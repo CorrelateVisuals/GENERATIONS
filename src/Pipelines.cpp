@@ -232,7 +232,7 @@ void Pipelines::createGraphicsPipeline_Landscape() {
   std::vector<VkPipelineShaderStageCreateInfo> shaderStages = {
       setShaderStage(VK_SHADER_STAGE_VERTEX_BIT, "LandscapeVert.spv"),
       setShaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, "LandscapeFrag.spv")};
-  static auto bindings = World::Landscape::getBindingDescription();
+  static auto bindings = World::Landscape::Vertex::getBindingDescription();
   static auto attributes = World::Landscape::getAttributeDescriptions();
   uint32_t bindingsSize = static_cast<uint32_t>(bindings.size());
   uint32_t attributeSize = static_cast<uint32_t>(attributes.size());
@@ -290,7 +290,7 @@ void Pipelines::createGraphicsPipeline_LandscapeWireframe() {
       setShaderStage(VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT,
                      "LandscapeTese.spv"),
       setShaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, "LandscapeFrag.spv")};
-  static auto bindings = World::Landscape::getBindingDescription();
+  static auto bindings = World::Landscape::Vertex::getBindingDescription();
   static auto attributes = World::Landscape::getAttributeDescriptions();
   uint32_t bindingsSize = static_cast<uint32_t>(bindings.size());
   uint32_t attributeSize = static_cast<uint32_t>(attributes.size());

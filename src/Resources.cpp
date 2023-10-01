@@ -34,9 +34,9 @@ void Resources::setupResources(Pipelines& _pipelines) {
                      world.rectangle.vertices);
   createIndexBuffer(indexBuffer, indexBufferMemory, world.rectangle.indices);
   createVertexBuffer(vertexBufferLandscape, vertexBufferMemoryLandscape,
-                     world.landscapeVertices);
+                     world.landscape.vertices);
   createIndexBuffer(indexBufferLandscape, indexBufferMemoryLandscape,
-                    world.landscapeIndices);
+                    world.landscape.indices);
 
   createDescriptorPool();
   allocateDescriptorSets();
@@ -728,14 +728,14 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
   vkCmdBindIndexBuffer(commandBuffer, indexBufferLandscape, 0,
                        VK_INDEX_TYPE_UINT32);
   vkCmdDrawIndexed(commandBuffer,
-                   static_cast<uint32_t>(world.landscapeIndices.size()), 1, 0,
+                   static_cast<uint32_t>(world.landscape.indices.size()), 1, 0,
                    0, 0);
 
   // Landscape Wireframe
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                     _pipelines.graphics.landscapeWireframe);
   vkCmdDrawIndexed(commandBuffer,
-                   static_cast<uint32_t>(world.landscapeIndices.size()), 1, 0,
+                   static_cast<uint32_t>(world.landscape.indices.size()), 1, 0,
                    0, 0);
 
   // Pipeline 3
