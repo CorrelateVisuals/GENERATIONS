@@ -101,7 +101,6 @@ std::vector<World::Cell> World::initializeCells() {
   const uint_fast16_t height{grid.XY[1]};
   const uint_fast32_t numGridPoints{width * height};
   const uint_fast32_t numAliveCells{grid.cellsAlive};
-  const float gap{0.6f};
   std::array<float, 4> size{geo.cube.size};
 
   if (numAliveCells > numGridPoints) {
@@ -120,17 +119,15 @@ std::vector<World::Cell> World::initializeCells() {
   }
 
   std::vector<float> landscapeHeight = generateLandscapeHeight();
-
-  float startX = -((width - 1) * gap) / 2.0f;
-  float startY = -((height - 1) * gap) / 2.0f;
-
   std::vector<uint32_t> tempIndices;
 
+  float startX = (width - 1) / -2.0f;
+  float startY = (height - 1) / -2.0f;
   for (uint_fast32_t i = 0; i < numGridPoints; ++i) {
     const uint_fast16_t x = static_cast<uint_fast16_t>(i % width);
     const uint_fast16_t y = static_cast<uint_fast16_t>(i / width);
-    const float posX = startX + x * gap;
-    const float posY = startY + y * gap;
+    const float posX = startX + x;
+    const float posY = startY + y;
 
     const std::array<float, 4> position = {posX, posY, landscapeHeight[i],
                                            1.0f};
@@ -239,7 +236,7 @@ void World::loadModel(const std::string& modelPath,
                       std::vector<uint32_t>& indices,
                       const glm::vec3& rotate,
                       const glm::vec3& translate,
-                      int geoSize) {
+                      float geoSize) {
   tinyobj::attrib_t attrib;
   std::vector<tinyobj::shape_t> shapes;
   std::vector<tinyobj::material_t> materials;
@@ -282,7 +279,7 @@ void World::transformModel(auto& vertices,
                            ORIENTATION_ORDER order,
                            const glm::vec3& degrees,
                            const glm::vec3& translationDistance,
-                           int scale) {
+                           float scale) {
   float angleX = glm::radians(degrees.x);
   float angleY = glm::radians(degrees.y);
   float angleZ = glm::radians(degrees.z);

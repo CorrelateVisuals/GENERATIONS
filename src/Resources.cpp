@@ -22,9 +22,9 @@ void Resources::setupResources(Pipelines& _pipelines) {
   createTextureImage(TEXTURE_PATH);
   createTextureImageView();
   createTextureSampler();
-  world.loadModel(world.rectangle.MODEL_PATH, world.rectangle.vertices,
+  world.loadModel(world.rectangle.modelPath, world.rectangle.vertices,
                   world.rectangle.indices, glm::vec3(90.0f, 180.0f, 0.0f),
-                  glm::vec3(0.0f, 0.0f, 0.0f), world.grid.XY[0] / 3.5);
+                  glm::vec3(0.0f, 0.0f, 0.0f), world.grid.XY[0] / 2.0f);
 
   createFramebuffers(_pipelines);
   createShaderStorageBuffers();
@@ -754,7 +754,6 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
   vkCmdDrawIndexed(commandBuffer,
                    static_cast<uint32_t>(world.rectangle.indices.size()), 1, 0,
                    0, 0);
-
   vkCmdEndRenderPass(commandBuffer);
 
   //       This is part of an image memory barrier (i.e., vkCmdPipelineBarrier

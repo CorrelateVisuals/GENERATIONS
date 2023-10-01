@@ -60,7 +60,7 @@ class World {
   };
 
   struct Rectangle {
-    const std::string MODEL_PATH = Lib::path("assets/3D/Rectangle.obj");
+    const std::string modelPath = Lib::path("assets/3D/Rectangle.obj");
     std::vector<Vertex> vertices;
     std::vector<uint32_t> indices;
 
@@ -111,12 +111,12 @@ class World {
                  std::vector<uint32_t>& indices,
                  const glm::vec3& rotate,
                  const glm::vec3& translate,
-                 int geoSize);
+                 float geoSize);
   void transformModel(auto& vertices,
                       ORIENTATION_ORDER order,
                       const glm::vec3& degrees,
                       const glm::vec3& translationDistance,
-                      int scale);
+                      float scale);
 
  private:
   struct Camera {
