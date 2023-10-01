@@ -13,12 +13,14 @@ layout (binding = 0) uniform ParameterUBO {
     mat4 view;
     mat4 projection;
 } ubo;
+ivec2 gridXY = ubo.gridXY;
 mat4 model = ubo.model;
 mat4 view = ubo.view;
 mat4 projection = ubo.projection;
 
 float heightOffset = 10.0f;
-vec4 position = vec4( vec2(inPosition.xy), inPosition.z + heightOffset, 1.0f);
+vec2 translate = gridXY / -2;
+vec4 position = vec4( vec2(inPosition.xy + translate), inPosition.z + heightOffset, 1.0f);
 vec4 worldPosition = model * position;
 vec4 viewPosition = view * worldPosition;
 
