@@ -22,9 +22,13 @@ void Resources::setupResources(Pipelines& _pipelines) {
   createTextureImage(Lib::path("assets/Avatar.PNG"));
   createTextureImageView();
   createTextureSampler();
+
   world.loadModel(world.rectangle.modelPath, world.rectangle.vertices,
                   world.rectangle.indices, glm::vec3(90.0f, 180.0f, 0.0f),
                   glm::vec3(0.0f, 0.0f, 0.0f), 1.0f);
+  world.loadModel(world.cube.modelPath, world.cube.vertices, world.cube.indices,
+                  glm::vec3(90.0f, 180.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f),
+                  1.0f);
 
   createFramebuffers(_pipelines);
   createShaderStorageBuffers();
@@ -37,6 +41,9 @@ void Resources::setupResources(Pipelines& _pipelines) {
                      world.landscape.vertices);
   createIndexBuffer(indexBufferLandscape, indexBufferMemoryLandscape,
                     world.landscape.indices);
+
+  createVertexBuffer(vertexBufferCell, vertexBufferMemoryCell,
+                     world.cube.vertices);
 
   createDescriptorPool();
   allocateDescriptorSets();
@@ -714,9 +721,12 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                     _pipelines.graphics.cells);
   VkDeviceSize offsets[]{0};
-  vkCmdBindVertexBuffers(
-      commandBuffer, 0, 1,
-      &buffers.shaderStorage[_mechanics.syncObjects.currentFrame], offsets);
+
+  VkDeviceSize offsets0[]{0, 0};
+  VkBuffer vertexBuffers0[] = {
+      buffers.shaderStorage[_mechanics.syncObjects.currentFrame],
+      vertexBufferCell};
+  vkCmdBindVertexBuffers(commandBuffer, 0, 2, vertexBuffers0, offsets0);
   vkCmdDraw(commandBuffer, world.geo.cube.vertexCount,
             world.grid.XY[0] * world.grid.XY[1], 0, 0);
 

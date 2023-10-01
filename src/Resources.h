@@ -30,6 +30,9 @@ class Resources {
   VkBuffer indexBufferLandscape;
   VkDeviceMemory indexBufferMemoryLandscape;
 
+  VkBuffer vertexBufferCell;
+  VkDeviceMemory vertexBufferMemoryCell;
+
   struct PushConstants {
     VkShaderStageFlags shaderStage = {VK_SHADER_STAGE_COMPUTE_BIT};
     uint32_t count = 1;

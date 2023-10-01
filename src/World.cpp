@@ -23,7 +23,9 @@ World::~World() {
 std::vector<VkVertexInputBindingDescription>
 World::Cell::getBindingDescription() {
   std::vector<VkVertexInputBindingDescription> bindingDescriptions{
-      {0, sizeof(Cell), VK_VERTEX_INPUT_RATE_INSTANCE}};
+      {0, sizeof(Cell), VK_VERTEX_INPUT_RATE_INSTANCE},
+      {1, sizeof(Cell), VK_VERTEX_INPUT_RATE_VERTEX},
+  };
   return bindingDescriptions;
 }
 
@@ -38,6 +40,8 @@ World::Cell::getAttributeDescriptions() {
        static_cast<uint32_t>(offsetof(Cell, size))},
       {3, 0, VK_FORMAT_R32G32B32A32_SINT,
        static_cast<uint32_t>(offsetof(Cell, states))},
+      {4, 1, VK_FORMAT_R32G32B32A32_SFLOAT,
+       static_cast<uint32_t>(offsetof(Cube::Vertex, vertexPosition))},
   };
   return attributeDescriptions;
 }
