@@ -6,8 +6,6 @@
 #include <array>
 #include <vector>
 
-const std::string TEXTURE_PATH = Lib::path("assets/Avatar.PNG");
-
 class Timer;
 
 class World {
