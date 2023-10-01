@@ -41,10 +41,10 @@ class World {
   } landscape;
 
   struct Cell {
-    std::array<float, 4> instancePosition;
-    std::array<float, 4> color;
-    std::array<float, 4> size;
-    std::array<int, 4> states;
+    glm::vec4 instancePosition;
+    glm::vec4 color;
+    glm::vec4 size;
+    glm::ivec4 states;
 
     static std::vector<VkVertexInputBindingDescription> getBindingDescription();
     static std::vector<VkVertexInputAttributeDescription>
@@ -52,8 +52,8 @@ class World {
   };
 
   struct UniformBufferObject {
-    std::array<float, 4> light;
-    std::array<uint32_t, 2> gridXY;
+    glm::vec4 light;
+    glm::ivec2 gridXY;
     float waterThreshold;
     float cellSize;
     alignas(16) glm::mat4 model;
@@ -89,13 +89,13 @@ class World {
   } camera;
 
   struct Light {
-    std::array<float, 4> position{0.0f, 0.0f, 60.0f, 0.0f};
+    glm::vec4 position{0.0f, 0.0f, 60.0f, 0.0f};
   } light;
 
-  inline static const std::array<float, 4> red{1.0f, 0.0f, 0.0f, 1.0f};
-  inline static const std::array<float, 4> blue{0.0f, 0.0f, 1.0f, 1.0f};
-  inline static const std::array<int, 4> alive{1, 0, 0, 0};
-  inline static const std::array<int, 4> dead{-1, 0, 0, 0};
+  const glm::vec4 red{1.0f, 0.0f, 0.0f, 1.0f};
+  const glm::vec4 blue{0.0f, 0.0f, 1.0f, 1.0f};
+  const glm::ivec4 alive{1, 0, 0, 0};
+  const glm::ivec4 dead{-1, 0, 0, 0};
 
   void updateCamera();
   // float getForwardMovement(const glm::vec2& leftButtonDelta);
