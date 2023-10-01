@@ -19,7 +19,7 @@ void Resources::setupResources(Pipelines& _pipelines) {
   Log::text(Log::Style::headerGuard);
   Log::text("{ /// }", "Setup Resources");
 
-  createTextureImage(TEXTURE_PATH);
+  createTextureImage(Lib::path("assets/Avatar.PNG"));
   createTextureImageView();
   createTextureSampler();
   world.loadModel(world.rectangle.modelPath, world.rectangle.vertices,
