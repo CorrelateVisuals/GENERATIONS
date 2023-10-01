@@ -353,9 +353,8 @@ void Pipelines::createGraphicsPipeline_Water() {
       setShaderStage(VK_SHADER_STAGE_VERTEX_BIT, "WaterVert.spv"),
       setShaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, "WaterFrag.spv")};
 
-  static auto bindings = World::Rectangle::Description::getBindingDescription();
-  static auto attributes =
-      World::Rectangle::Description::getAttributeDescriptions();
+  static auto bindings = World::Rectangle::Vertex::getBindingDescription();
+  static auto attributes = World::Rectangle::Vertex::getAttributeDescriptions();
   uint32_t bindingsSize = static_cast<uint32_t>(bindings.size());
   uint32_t attributeSize = static_cast<uint32_t>(attributes.size());
 
@@ -410,9 +409,8 @@ void Pipelines::createGraphicsPipeline_Texture() {
       setShaderStage(VK_SHADER_STAGE_VERTEX_BIT, "TextureVert.spv"),
       setShaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, "TextureFrag.spv")};
 
-  static auto bindings = World::Rectangle::Description::getBindingDescription();
-  static auto attributes =
-      World::Rectangle::Description::getAttributeDescriptions();
+  static auto bindings = World::Rectangle::Vertex::getBindingDescription();
+  static auto attributes = World::Rectangle::Vertex::getAttributeDescriptions();
   uint32_t bindingsSize = static_cast<uint32_t>(bindings.size());
   uint32_t attributeSize = static_cast<uint32_t>(attributes.size());
 
@@ -468,9 +466,8 @@ void Pipelines::createGraphicsPipeline_Cube() {
       setShaderStage(VK_SHADER_STAGE_VERTEX_BIT, "TextureVert.spv"),
       setShaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, "TextureFrag.spv")};
 
-  static auto bindings = World::Rectangle::Description::getBindingDescription();
-  static auto attributes =
-      World::Rectangle::Description::getAttributeDescriptions();
+  static auto bindings = World::Rectangle::Vertex::getBindingDescription();
+  static auto attributes = World::Rectangle::Vertex::getAttributeDescriptions();
   uint32_t bindingsSize = static_cast<uint32_t>(bindings.size());
   uint32_t attributeSize = static_cast<uint32_t>(attributes.size());
 

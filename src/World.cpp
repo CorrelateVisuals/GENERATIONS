@@ -21,21 +21,21 @@ World::~World() {
 }
 
 std::vector<VkVertexInputBindingDescription>
-World::Vertex::getBindingDescription() {
+World::Geometry::Vertex::getBindingDescription() {
   std::vector<VkVertexInputBindingDescription> bindingDescriptions{
-      {0, sizeof(Vertex), VK_VERTEX_INPUT_RATE_VERTEX}};
+      {0, sizeof(Geometry::Vertex), VK_VERTEX_INPUT_RATE_VERTEX}};
   return bindingDescriptions;
 }
 
 std::vector<VkVertexInputAttributeDescription>
-World::Vertex::getAttributeDescriptions() {
+World::Geometry::Vertex::getAttributeDescriptions() {
   std::vector<VkVertexInputAttributeDescription> attributeDescriptions{
       {0, 0, VK_FORMAT_R32G32B32_SFLOAT,
-       static_cast<uint32_t>(offsetof(Vertex, vertexPosition))},
+       static_cast<uint32_t>(offsetof(Geometry::Vertex, vertexPosition))},
       {1, 0, VK_FORMAT_R32G32B32_SFLOAT,
-       static_cast<uint32_t>(offsetof(Vertex, color))},
+       static_cast<uint32_t>(offsetof(Geometry::Vertex, color))},
       {2, 0, VK_FORMAT_R32G32_SFLOAT,
-       static_cast<uint32_t>(offsetof(Vertex, textureCoordinates))}};
+       static_cast<uint32_t>(offsetof(Geometry::Vertex, textureCoordinates))}};
   return attributeDescriptions;
 }
 
@@ -202,8 +202,8 @@ World::UniformBufferObject World::updateUniforms(VkExtent2D& _swapChainExtent) {
 }
 
 template <>
-struct std::hash<World::Vertex> {
-  size_t operator()(const World::Vertex& vertex) const {
+struct std::hash<World::Geometry::Vertex> {
+  size_t operator()(const World::Geometry::Vertex& vertex) const {
     return ((std::hash<glm::vec3>()(vertex.vertexPosition) ^
              (std::hash<glm::vec3>()(vertex.color) << 1)) >>
             1) ^
@@ -212,7 +212,7 @@ struct std::hash<World::Vertex> {
 };
 
 void World::loadModel(const std::string& modelPath,
-                      std::vector<Vertex>& vertices,
+                      std::vector<Geometry::Vertex>& vertices,
                       std::vector<uint32_t>& indices,
                       const glm::vec3& rotate,
                       const glm::vec3& translate,
@@ -227,11 +227,11 @@ void World::loadModel(const std::string& modelPath,
     throw std::runtime_error(warn + err);
   }
 
-  std::unordered_map<Vertex, uint32_t> uniqueVertices{};
+  std::unordered_map<Geometry::Vertex, uint32_t> uniqueVertices{};
 
   for (const auto& shape : shapes) {
     for (const auto& index : shape.mesh.indices) {
-      Vertex vertex{};
+      Geometry::Vertex vertex{};
 
       vertex.vertexPosition = {attrib.vertices[3 * index.vertex_index + 0],
                                attrib.vertices[3 * index.vertex_index + 1],

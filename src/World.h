@@ -33,7 +33,7 @@ class World {
     std::array<uint_fast16_t, 2> XY = {100, 100};
   } grid;
 
-  struct Geometry {
+  struct GeometryTEMP {
     struct Cube {
       const uint32_t vertexCount{36};
       const float size{0.1f};
@@ -43,27 +43,29 @@ class World {
     } water;
   } geo;
 
-  struct Vertex {
-    glm::vec3 instancePosition;
-    glm::vec3 vertexPosition;
-    glm::vec3 color;
-    glm::vec2 textureCoordinates;
+  struct Geometry {
+    struct Vertex {
+      glm::vec3 instancePosition;
+      glm::vec3 vertexPosition;
+      glm::vec3 color;
+      glm::vec2 textureCoordinates;
 
-    static std::vector<VkVertexInputBindingDescription> getBindingDescription();
-    static std::vector<VkVertexInputAttributeDescription>
-    getAttributeDescriptions();
+      static std::vector<VkVertexInputBindingDescription>
+      getBindingDescription();
+      static std::vector<VkVertexInputAttributeDescription>
+      getAttributeDescriptions();
 
-    bool operator==(const Vertex& other) const {
-      return vertexPosition == other.vertexPosition && color == other.color &&
-             textureCoordinates == other.textureCoordinates;
-    }
-  };
-
-  struct Rectangle {
-    const std::string modelPath = Lib::path("assets/3D/Rectangle.obj");
+      bool operator==(const Vertex& other) const {
+        return vertexPosition == other.vertexPosition && color == other.color &&
+               textureCoordinates == other.textureCoordinates;
+      }
+    };
     std::vector<Vertex> vertices;
     std::vector<uint32_t> indices;
-    struct Description : Vertex {};
+  };
+
+  struct Rectangle : Geometry {
+    const std::string modelPath = Lib::path("assets/3D/Rectangle.obj");
   } rectangle;
 
   // struct Cube {
@@ -114,7 +116,7 @@ class World {
   std::vector<World::Cell> initializeCells();
   UniformBufferObject updateUniforms(VkExtent2D& _swapChain);
   void loadModel(const std::string& modelPath,
-                 std::vector<Vertex>& vertices,
+                 std::vector<Geometry::Vertex>& vertices,
                  std::vector<uint32_t>& indices,
                  const glm::vec3& rotate,
                  const glm::vec3& translate,
