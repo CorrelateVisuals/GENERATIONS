@@ -3,10 +3,10 @@
 
 struct Cell {
     vec4 position;  // float    xyz
+    vec4 vertexPosition;
     vec4 color;     // float    rgba
     vec4 size;      // float    x
     ivec4 states;   // bool     alive, stage, cycle, passedHours
-    vec4 vertexPosition;
     vec4 normal;
 } cell;
 
@@ -107,16 +107,16 @@ void simulate(out Cell cell) {
     int neighbours  = cycleNeighbours(1);
 
     if (underWater) {   
-       cell = Cell(pos, grey1, sizeOff, setState(dead, 0), vertexPos, normal ); 
+       cell = Cell(pos, vertexPos, grey1, sizeOff, setState(dead, 0), normal ); 
    } else if (stage(0)) {
-        cell = initialized ?    Cell(pos, white, size, setState(alive, 0), vertexPos, normal ) :
-               lifeCycle ?      Cell(pos, colorIncrement, size, setState(alive, 0), vertexPos, normal ) :
-               endOfStage ?     Cell(pos, white, size, setState(alive, 1), vertexPos, normal ) :
-                                Cell(pos, grey1, sizeOff, setState(dead, 1), vertexPos, normal );
+        cell = initialized ?    Cell(pos, vertexPos, white, size, setState(alive, 0), normal ) :
+               lifeCycle ?      Cell(pos, vertexPos, colorIncrement, size, setState(alive, 0), normal ) :
+               endOfStage ?     Cell(pos, vertexPos, white, size, setState(alive, 1),  normal ) :
+                                Cell(pos, vertexPos, grey1, sizeOff, setState(dead, 1), normal );
     } else if (stage(1)) {
-        cell = live(neighbours) ?   Cell(pos, white, size, setState(alive, 0), vertexPos, normal ) :
-               die(neighbours) ?    Cell(pos, grey1, sizeOff, setState(dead, 0), vertexPos, normal ) :
-                                    Cell(pos, colorIn, sizeOff, setState(dead, 1), vertexPos, normal );
+        cell = live(neighbours) ?   Cell(pos, vertexPos, white, size, setState(alive, 0), normal ) :
+               die(neighbours) ?    Cell(pos, vertexPos, grey1, sizeOff, setState(dead, 0), normal ) :
+                                    Cell(pos, vertexPos, colorIn, sizeOff, setState(dead, 1), normal );
     }
 }
 

@@ -34,14 +34,14 @@ World::Cell::getAttributeDescriptions() {
   std::vector<VkVertexInputAttributeDescription> attributeDescriptions{
       {0, 0, VK_FORMAT_R32G32B32A32_SFLOAT,
        static_cast<uint32_t>(offsetof(Cell, instancePosition))},
-      {1, 0, VK_FORMAT_R32G32B32A32_SFLOAT,
-       static_cast<uint32_t>(offsetof(Cell, color))},
-      {2, 0, VK_FORMAT_R32G32B32A32_SFLOAT,
-       static_cast<uint32_t>(offsetof(Cell, size))},
-      {3, 0, VK_FORMAT_R32G32B32A32_SINT,
-       static_cast<uint32_t>(offsetof(Cell, states))},
-      {4, 1, VK_FORMAT_R32G32B32A32_SFLOAT,
+      {1, 1, VK_FORMAT_R32G32B32A32_SFLOAT,
        static_cast<uint32_t>(offsetof(Cube::Vertex, vertexPosition))},
+      {2, 0, VK_FORMAT_R32G32B32A32_SFLOAT,
+       static_cast<uint32_t>(offsetof(Cell, color))},
+      {3, 0, VK_FORMAT_R32G32B32A32_SFLOAT,
+       static_cast<uint32_t>(offsetof(Cell, size))},
+      {4, 0, VK_FORMAT_R32G32B32A32_SINT,
+       static_cast<uint32_t>(offsetof(Cell, states))},
       {5, 1, VK_FORMAT_R32G32B32A32_SFLOAT,
        static_cast<uint32_t>(offsetof(Cube::Vertex, normal))},
   };
@@ -70,6 +70,7 @@ std::vector<World::Cell> World::initializeCells() {
   }
 
   std::vector<World::Cell> cells(numGridPoints);
+  World::Cell cell;
   std::vector<bool> isAliveIndices(numGridPoints, false);
 
   std::vector<uint_fast32_t> aliveCellIndices =
@@ -95,11 +96,14 @@ std::vector<World::Cell> World::initializeCells() {
     const glm::vec4& color = isAlive ? blue : red;
     const glm::ivec4& state = isAlive ? alive : dead;
 
-    cells[i] = {position, color, size, state};
+    cell.instancePosition = position;
+    cell.color = color;
+    cell.size = size;
+    cell.states = state;
+    cells[i] = cell;
 
     tempIndices.push_back(i);
-    landscape.addVertexPosition(
-        glm::vec3(position[0], position[1], position[2]));
+    landscape.addVertexPosition(glm::vec3(position.x, position.y, position.z));
   }
 
   landscape.indices =

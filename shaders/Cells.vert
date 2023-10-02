@@ -1,10 +1,10 @@
 #version 450
 
 layout(location = 0) in vec4 inPosition;
-layout(location = 1) in vec4 inColor;
-layout(location = 2) in vec4 inSize;
-layout(location = 3) in ivec4 inStates;
-layout(location = 4) in vec4 inVertex;
+layout(location = 1) in vec4 inVertex;
+layout(location = 2) in vec4 inColor;
+layout(location = 3) in vec4 inSize;
+layout(location = 4) in ivec4 inStates;
 layout(location = 5) in vec4 inNormal;
 
 layout (binding = 0) uniform ParameterUBO {
