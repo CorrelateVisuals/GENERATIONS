@@ -16,7 +16,7 @@ class World {
   Timer time{25.0f};
 
   struct Grid {
-    const uint_fast32_t cellsAlive = 1250;
+    const uint_fast32_t initialAliveCells = 1250;
     vec2_uint_fast16_t size = {100, 50};
   } grid;
 
@@ -26,7 +26,7 @@ class World {
 
   struct Cube : Geometry {
     Cube() : Geometry("Cube"){};
-    const float size = 0.3f;
+    const float size = 0.2f;
   } cube;
 
   struct Landscape : Geometry {
@@ -81,14 +81,15 @@ class World {
   const glm::ivec4 alive{1, 0, 0, 0};
   const glm::ivec4 dead{-1, 0, 0, 0};
 
+ private:
   void updateCamera();
-  // float getForwardMovement(const glm::vec2& leftButtonDelta);
   std::vector<uint_fast32_t> setCellsAliveRandomly(uint_fast32_t numberOfCells);
-  bool isIndexAlive(const std::vector<int>& aliveCells, int index);
-
+  bool isCellIndexAlive(const std::vector<int>& aliveCells, int index);
   std::vector<float> generateLandscapeHeight();
 
   glm::mat4 setModel();
   glm::mat4 setView();
   glm::mat4 setProjection(VkExtent2D& swapChainExtent);
 };
+
+// float getForwardMovement(const glm::vec2& leftButtonDelta);

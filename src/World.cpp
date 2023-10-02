@@ -53,7 +53,7 @@ World::Landscape::getAttributeDescriptions() {
 
 std::vector<World::Cell> World::initializeCells() {
   const uint_fast32_t numGridPoints{grid.size.x * grid.size.y};
-  const uint_fast32_t numAliveCells{grid.cellsAlive};
+  const uint_fast32_t numAliveCells{grid.initialAliveCells};
 
   if (numAliveCells > numGridPoints) {
     throw std::runtime_error(
@@ -63,15 +63,14 @@ std::vector<World::Cell> World::initializeCells() {
 
   std::vector<World::Cell> cells(numGridPoints);
   std::vector<bool> isAliveIndices(numGridPoints, false);
+  std::vector<float> landscapeHeight = generateLandscapeHeight();
+  std::vector<uint32_t> tempIndices(numGridPoints);
 
   std::vector<uint_fast32_t> aliveCellIndices =
-      setCellsAliveRandomly(grid.cellsAlive);
+      setCellsAliveRandomly(grid.initialAliveCells);
   for (int aliveIndex : aliveCellIndices) {
     isAliveIndices[aliveIndex] = true;
   }
-
-  std::vector<float> landscapeHeight = generateLandscapeHeight();
-  std::vector<uint32_t> tempIndices(numGridPoints);
 
   float startX = (grid.size.x - 1) / -2.0f;
   float startY = (grid.size.y - 1) / -2.0f;
@@ -120,7 +119,7 @@ std::vector<uint_fast32_t> World::setCellsAliveRandomly(
   return CellIDs;
 }
 
-bool World::isIndexAlive(const std::vector<int>& aliveCells, int index) {
+bool World::isCellIndexAlive(const std::vector<int>& aliveCells, int index) {
   return std::find(aliveCells.begin(), aliveCells.end(), index) !=
          aliveCells.end();
 }

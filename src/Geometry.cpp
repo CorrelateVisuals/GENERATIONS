@@ -27,10 +27,11 @@ Geometry::Vertex::getAttributeDescriptions() {
 template <>
 struct std::hash<Geometry::Vertex> {
   size_t operator()(const Geometry::Vertex& vertex) const {
-    return ((std::hash<glm::vec3>()(vertex.vertexPosition) ^
-             (std::hash<glm::vec3>()(vertex.color) << 1)) >>
-            1) ^
-           (std::hash<glm::vec2>()(vertex.textureCoordinates) << 1);
+    return ((std::hash<glm::vec3>()(vertex.instancePosition) ^
+             (std::hash<glm::vec3>()(vertex.vertexPosition) << 1) ^
+             (std::hash<glm::vec3>()(vertex.normal) << 2) ^
+             (std::hash<glm::vec3>()(vertex.color) << 3) ^
+             (std::hash<glm::vec2>()(vertex.textureCoordinates) << 4)));
   }
 };
 
@@ -78,12 +79,11 @@ void Geometry::loadModel(const std::string& modelPath,
                            rotate, translate, geoSize);
 }
 
-bool Geometry::loadModelVertices2(const std::string& modelPath,
-                                  std::vector<Geometry::Vertex>& vertices,
-                                  std::vector<uint32_t>& indices,
-                                  const glm::vec3& rotate,
-                                  const glm::vec3& translate,
-                                  float geoSize) {
+void Geometry::loadModel(const std::string& modelPath,
+                         std::vector<Geometry::Vertex>& vertices,
+                         const glm::vec3& rotate,
+                         const glm::vec3& translate,
+                         float geoSize) {
   // attrib will contain the vertex arrays of the file
   tinyobj::attrib_t attrib;
   // shapes contains the info for each separate object in the file
@@ -108,7 +108,7 @@ bool Geometry::loadModelVertices2(const std::string& modelPath,
   // This happens if the file can't be found or is malformed
   if (!err.empty()) {
     std::cerr << err << std::endl;
-    return false;
+    return;
   }
 
   // Loop over shapes
@@ -153,7 +153,7 @@ bool Geometry::loadModelVertices2(const std::string& modelPath,
     }
   }
 
-  return true;
+  return;
 }
 
 void Geometry::transformModel(auto& vertices,
