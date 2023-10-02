@@ -2,11 +2,10 @@
 #extension GL_EXT_shader_explicit_arithmetic_types_int64 : enable
 
 struct Cell {
-    vec4 position;  // float    xyz
+    vec4 position;  
     vec4 vertexPosition;
-    vec4 color;     // float    rgba
-    vec4 size;      // float    x
-    ivec4 states;   // bool     alive, stage, cycle, passedHours
+    vec4 color;     
+    ivec4 states;
     vec4 normal;
 } cell;
 
@@ -14,6 +13,7 @@ layout(std430, binding = 1) readonly buffer CellSSBOIn {Cell cellIn[ ]; };
 layout(std430, binding = 2) buffer CellSSBOOut {Cell cellOut[ ]; };
 layout (local_size_x = 32, local_size_y = 32, local_size_z = 1) in;
 layout(push_constant, std430) uniform pushConstant { uint64_t passedHours; };
+
 layout (binding = 0) uniform ParameterUBO {
     vec4 lightDirection;
     ivec2 gridXY;
@@ -29,22 +29,17 @@ uint globalID_x = gl_GlobalInvocationID.x;
 uint globalID_y = gl_GlobalInvocationID.y;
 uint index = globalID_y * gridXY.x + globalID_x % gridXY.x + (globalID_x / gridXY.x) * gridXY.y;
 
-const int alive       =  1;
-const int dead        = -1;
-const int off         = -1;
-const vec4 sizeOff    = vec4(0.0);
-const vec4 red        = vec4(1.0, 0.0, 0.0, 1.0);
-const vec4 green      = vec4(0.0, 1.0, 0.0, 1.0); 
-const vec4 dimGreen   = vec4(0.0, 0.05, 0.0, 1.0);
 const vec4 blue       = vec4(0.0, 0.0, 1.0, 1.0);
 const vec4 white      = vec4(1.0, 1.0, 1.0, 1.0);
 const vec4 grey1      = vec4(0.5, 0.5, 0.5, 1.0);
-const vec4 black      = vec4(0.0, 0.0, 0.0, 1.0);
-const vec4 dimBlue    = vec4(0.0, 0.0, 0.1, 1.0);
-const vec4 terrain    = vec4(0.0, 0.1, 0.1, 1.0);
+const int alive       =  1;
+const int dead        = -1;
+const float sizeOn    = 1.0f;
+const float sizeOff   = 0.0f;
 
-vec4 size       = vec4(ubo.cellSize);
 vec4 pos        = cellIn[index].position;
+vec4 posOn      = vec4( pos.xyz, sizeOn );
+vec4 posOff     = vec4( pos.xyz, sizeOff );
 vec4 vertexPos  = cellIn[index].vertexPosition;
 vec4 colorIn    = cellIn[index].color;
 ivec4 statesIn  = cellIn[index].states;
@@ -98,7 +93,6 @@ bool endOfStage         = aliveCell && reachedCycleEnd;
 float waterHeightOffset = 0.1;
 bool underWater         = pos.z <= (ubo.waterThreshold + waterHeightOffset);
 
-
 bool live(int neighbours) { return (aliveCell && (neighbours == 3 || neighbours == 2)) || (deadCell && neighbours == 3); }
 bool die(int neighbours)  { return (aliveCell && (neighbours < 2 || neighbours > 3)); }
 vec4 colorIncrement     = colorIn + vec4(float((passedHours % cycleSize + 1)) / float(cycleSize * 50), vec3(0.0));
@@ -107,16 +101,16 @@ void simulate(out Cell cell) {
     int neighbours  = cycleNeighbours(1);
 
     if (underWater) {   
-       cell = Cell(pos, vertexPos, grey1, sizeOff, setState(dead, 0), normal ); 
+       cell = Cell(posOff, vertexPos, grey1, setState(dead, 0), normal ); 
    } else if (stage(0)) {
-        cell = initialized ?    Cell(pos, vertexPos, white, size, setState(alive, 0), normal ) :
-               lifeCycle ?      Cell(pos, vertexPos, colorIncrement, size, setState(alive, 0), normal ) :
-               endOfStage ?     Cell(pos, vertexPos, white, size, setState(alive, 1),  normal ) :
-                                Cell(pos, vertexPos, grey1, sizeOff, setState(dead, 1), normal );
+        cell = initialized ?    Cell(posOn, vertexPos, white, setState(alive, 0), normal ) :
+               lifeCycle ?      Cell(posOn, vertexPos, colorIncrement, setState(alive, 0), normal ) :
+               endOfStage ?     Cell(posOn, vertexPos, white, setState(alive, 1),  normal ) :
+                                Cell(posOff, vertexPos, grey1, setState(dead, 1), normal );
     } else if (stage(1)) {
-        cell = live(neighbours) ?   Cell(pos, vertexPos, white, size, setState(alive, 0), normal ) :
-               die(neighbours) ?    Cell(pos, vertexPos, grey1, sizeOff, setState(dead, 0), normal ) :
-                                    Cell(pos, vertexPos, colorIn, sizeOff, setState(dead, 1), normal );
+        cell = live(neighbours) ?   Cell(posOn, vertexPos, white, setState(alive, 0), normal ) :
+               die(neighbours) ?    Cell(posOff, vertexPos, grey1, setState(dead, 0), normal ) :
+                                    Cell(posOff, vertexPos, colorIn, setState(dead, 1), normal );
     }
 }
 

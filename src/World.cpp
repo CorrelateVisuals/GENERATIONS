@@ -38,11 +38,9 @@ World::Cell::getAttributeDescriptions() {
        static_cast<uint32_t>(offsetof(Cube::Vertex, vertexPosition))},
       {2, 0, VK_FORMAT_R32G32B32A32_SFLOAT,
        static_cast<uint32_t>(offsetof(Cell, color))},
-      {3, 0, VK_FORMAT_R32G32B32A32_SFLOAT,
-       static_cast<uint32_t>(offsetof(Cell, size))},
-      {4, 0, VK_FORMAT_R32G32B32A32_SINT,
+      {3, 0, VK_FORMAT_R32G32B32A32_SINT,
        static_cast<uint32_t>(offsetof(Cell, states))},
-      {5, 1, VK_FORMAT_R32G32B32A32_SFLOAT,
+      {4, 1, VK_FORMAT_R32G32B32A32_SFLOAT,
        static_cast<uint32_t>(offsetof(Cube::Vertex, normal))},
   };
   return attributeDescriptions;
@@ -61,7 +59,6 @@ std::vector<World::Cell> World::initializeCells() {
   const uint_fast16_t height{grid.XY[1]};
   const uint_fast32_t numGridPoints{width * height};
   const uint_fast32_t numAliveCells{grid.cellsAlive};
-  glm::vec4 size{cube.size};
 
   if (numAliveCells > numGridPoints) {
     throw std::runtime_error(
@@ -90,22 +87,21 @@ std::vector<World::Cell> World::initializeCells() {
     const float posX = startX + x;
     const float posY = startY + y;
 
-    const glm::vec4 position = {posX, posY, landscapeHeight[i], 1.0f};
     const bool isAlive = isAliveIndices[i];
 
     const glm::vec4& color = isAlive ? blue : red;
     const glm::ivec4& state = isAlive ? alive : dead;
+    const float scale = isAlive ? 1.0f : 0.0f;
+    const glm::vec4 position{posX, posY, landscapeHeight[i], scale};
 
     cell.instancePosition = position;
     cell.color = color;
-    cell.size = size;
     cell.states = state;
     cells[i] = cell;
 
     tempIndices.push_back(i);
     landscape.addVertexPosition(glm::vec3(position.x, position.y, position.z));
   }
-
   landscape.indices =
       Lib::createGridPolygons(tempIndices, static_cast<int>(grid.XY[0]));
 

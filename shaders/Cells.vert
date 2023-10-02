@@ -3,9 +3,8 @@
 layout(location = 0) in vec4 inPosition;
 layout(location = 1) in vec4 inVertex;
 layout(location = 2) in vec4 inColor;
-layout(location = 3) in vec4 inSize;
-layout(location = 4) in ivec4 inStates;
-layout(location = 5) in vec4 inNormal;
+layout(location = 3) in ivec4 inStates;
+layout(location = 4) in vec4 inNormal;
 
 layout (binding = 0) uniform ParameterUBO {
     vec4 light;
@@ -24,7 +23,7 @@ mat4 projection = ubo.projection;
 float waterThreshold = ubo.waterThreshold;
 
 vec4 constructCube() {
-    vec3 position = inPosition.xyz + (inVertex.xyz * inSize.xyz);
+    vec3 position = inPosition.xyz + (inVertex.xyz * inPosition.w);
     return vec4(position, 1.0f);
 }
 
