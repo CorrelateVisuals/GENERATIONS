@@ -16,27 +16,20 @@ layout (binding = 0) uniform ParameterUBO {
     mat4 projection;
 } ubo;
 
-vec4 constructCube() {
-    vec3 position = inPosition.xyz + (inVertex.xyz * inPosition.w);
-    return vec4(position, 1.0f);
-}
-
-vec4 worldPosition = ubo.model * constructCube();
-vec4 viewPosition =  ubo.view * worldPosition;
-vec3 worldNormal =   mat3(ubo.model) * inNormal.xyz;
+vec4 position       = vec4( vec3(inPosition.xyz + (inVertex.xyz * inPosition.w)), 1.0f);
+vec4 worldPosition  = ubo.model * position;
+vec4 viewPosition   = ubo.view * worldPosition;
+vec3 worldNormal    = mat3(ubo.model) * inNormal.xyz;
 
 float gouraudShading(float emit) {
-    vec3 lightDirection = normalize(ubo.light.rgb - worldPosition.xyz);
-    float diffuseIntensity = max(dot(worldNormal, lightDirection), emit);
+    vec3 lightDirection     = normalize(ubo.light.rgb - worldPosition.xyz);
+    float diffuseIntensity  = max(dot(worldNormal, lightDirection), emit);
     return diffuseIntensity;
 }
 
 layout(location = 0) out vec4 fragColor;
 
 void main() {
-    vec4 color = vec4(0.7f, 0.8f, 0.7f, 1.0f);
-    color *= inColor * gouraudShading(0.2f);
-
-    fragColor = color;
+    fragColor   = inColor * gouraudShading(0.2f);
     gl_Position = ubo.projection * viewPosition;
 }
