@@ -16,7 +16,7 @@ class World {
   Timer time{25.0f};
 
   struct Grid {
-    uint_fast32_t cellsAlive = 1250;
+    const uint_fast32_t cellsAlive = 1250;
     std::array<uint_fast16_t, 2> XY = {100, 50};
   } grid;
 
@@ -25,8 +25,8 @@ class World {
   } rectangle;
 
   struct Cube : Geometry {
-    Cube() : Geometry("Cube"){};
-    float size = 0.3f;
+    Cube() : Geometry("Sphere"){};
+    const float size = 0.3f;
   } cube;
 
   struct Landscape : Geometry {

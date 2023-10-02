@@ -20,8 +20,8 @@ struct Geometry {
   struct Vertex {
     glm::vec3 instancePosition;
     glm::vec3 vertexPosition;
-    glm::vec3 color;
     glm::vec3 normal;
+    glm::vec3 color;
     glm::vec2 textureCoordinates;
 
     static std::vector<VkVertexInputBindingDescription> getBindingDescription();
@@ -30,7 +30,8 @@ struct Geometry {
 
     bool operator==(const Vertex& other) const {
       return vertexPosition == other.vertexPosition && color == other.color &&
-             textureCoordinates == other.textureCoordinates;
+             textureCoordinates == other.textureCoordinates &&
+             normal == other.normal;
     }
   };
   std::string model;
