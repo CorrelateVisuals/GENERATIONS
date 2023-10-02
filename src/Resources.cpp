@@ -30,7 +30,7 @@ void Resources::setupResources(Pipelines& _pipelines) {
                           world.cube.indices, glm::vec3(90.0f, 180.0f, 0.0f),
                           glm::vec3(0.0f, 0.0f, 0.0f), 1.0f);
 
-  // Log::text(" ", world.cube.vertices.size(), world.cube.indices.size());
+  Log::text(" vertices.size: ", world.cube.vertices.size());
 
   // std::vector<uint32_t> oneCubeIndices = world.cube.indices;
   // size_t numGridPoints = world.grid.XY[0] * world.grid.XY[1];

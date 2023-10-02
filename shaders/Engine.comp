@@ -6,6 +6,7 @@ struct Cell {
     vec4 color;     // float    rgba
     vec4 size;      // float    x
     ivec4 states;   // bool     alive, stage, cycle, passedHours
+    vec4 vertexPosition;
 } cell;
 
 layout(std430, binding = 1) readonly buffer CellSSBOIn {Cell cellIn[ ]; };
@@ -43,6 +44,7 @@ const vec4 terrain    = vec4(0.0, 0.1, 0.1, 1.0);
 
 vec4 size       = vec4(ubo.cellSize);
 vec4 pos        = cellIn[index].position;
+vec4 vertexPos  = cellIn[index].vertexPosition;
 vec4 colorIn    = cellIn[index].color;
 ivec4 statesIn  = cellIn[index].states;
 
@@ -103,16 +105,16 @@ void simulate(out Cell cell) {
     int neighbours  = cycleNeighbours(1);
 
     if (underWater) {   
-       cell = Cell(pos, grey1, sizeOff, setState(dead, 0) ); 
+       cell = Cell(pos, grey1, sizeOff, setState(dead, 0), vertexPos ); 
    } else if (stage(0)) {
-        cell = initialized ?    Cell(pos, white, size, setState(alive, 0) ) :
-               lifeCycle ?      Cell(pos, colorIncrement, size, setState(alive, 0) ) :
-               endOfStage ?     Cell(pos, white, size, setState(alive, 1) ) :
-                                Cell(pos, grey1, sizeOff, setState(dead, 1) );
+        cell = initialized ?    Cell(pos, white, size, setState(alive, 0), vertexPos ) :
+               lifeCycle ?      Cell(pos, colorIncrement, size, setState(alive, 0), vertexPos ) :
+               endOfStage ?     Cell(pos, white, size, setState(alive, 1), vertexPos ) :
+                                Cell(pos, grey1, sizeOff, setState(dead, 1), vertexPos );
     } else if (stage(1)) {
-        cell = live(neighbours) ?   Cell(pos, white, size, setState(alive, 0) ) :
-               die(neighbours) ?    Cell(pos, grey1, sizeOff, setState(dead, 0) ) :
-                                    Cell(pos, colorIn, sizeOff, setState(dead, 1) );
+        cell = live(neighbours) ?   Cell(pos, white, size, setState(alive, 0), vertexPos ) :
+               die(neighbours) ?    Cell(pos, grey1, sizeOff, setState(dead, 0), vertexPos ) :
+                                    Cell(pos, colorIn, sizeOff, setState(dead, 1), vertexPos );
     }
 }
 

@@ -24,7 +24,7 @@ std::vector<VkVertexInputBindingDescription>
 World::Cell::getBindingDescription() {
   std::vector<VkVertexInputBindingDescription> bindingDescriptions{
       {0, sizeof(Cell), VK_VERTEX_INPUT_RATE_INSTANCE},
-      {1, sizeof(Cell), VK_VERTEX_INPUT_RATE_VERTEX},
+      {1, sizeof(Cube::Vertex), VK_VERTEX_INPUT_RATE_VERTEX},
   };
   return bindingDescriptions;
 }
@@ -40,9 +40,10 @@ World::Cell::getAttributeDescriptions() {
        static_cast<uint32_t>(offsetof(Cell, size))},
       {3, 0, VK_FORMAT_R32G32B32A32_SINT,
        static_cast<uint32_t>(offsetof(Cell, states))},
-      {4, 1, VK_FORMAT_R32G32B32_SFLOAT,
+      {4, 1, VK_FORMAT_R32G32B32A32_SFLOAT,
        static_cast<uint32_t>(offsetof(Cube::Vertex, vertexPosition))},
   };
+
   return attributeDescriptions;
 }
 
@@ -259,14 +260,14 @@ void World::loadModelVertices(const std::string& modelPath,
                                attrib.vertices[3 * index.vertex_index + 1],
                                attrib.vertices[3 * index.vertex_index + 2]};
 
-      //vertex.textureCoordinates = {
-      //    attrib.texcoords[2 * index.texcoord_index + 0],
-      //    1.0f - attrib.texcoords[2 * index.texcoord_index + 1]};
+      // vertex.textureCoordinates = {
+      //     attrib.texcoords[2 * index.texcoord_index + 0],
+      //     1.0f - attrib.texcoords[2 * index.texcoord_index + 1]};
 
-      //vertex.color = {1.0f, 1.0f, 1.0f};
+      // vertex.color = {1.0f, 1.0f, 1.0f};
       vertices.push_back(vertex);
-      // 
-      //if (uniqueVertices.count(vertex) == 0) {
+      //
+      // if (uniqueVertices.count(vertex) == 0) {
       //    uniqueVertices[vertex] = static_cast<uint32_t>(vertices.size());
 
       //    vertices.push_back(vertex);
@@ -279,8 +280,8 @@ void World::loadModelVertices(const std::string& modelPath,
               item.vertexPosition.z);
   }
 
-  // transformModel(vertices, ORIENTATION_ORDER{ROTATE_SCALE_TRANSLATE}, rotate,
-  // translate, geoSize);
+  transformModel(vertices, ORIENTATION_ORDER{ROTATE_SCALE_TRANSLATE}, rotate,
+                 translate, geoSize);
 }
 
 void World::transformModel(auto& vertices,

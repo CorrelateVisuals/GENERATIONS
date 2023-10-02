@@ -13,11 +13,11 @@ class World {
   World();
   ~World();
 
-  Timer time{1.0f};
+  Timer time{0.0f};
 
   struct Grid {
-    uint_fast32_t cellsAlive = 5000;
-    std::array<uint_fast16_t, 2> XY = {100, 100};
+    uint_fast32_t cellsAlive = 1;
+    std::array<uint_fast16_t, 2> XY = {4, 4};
   } grid;
 
   struct GeometryTEMP {
@@ -45,6 +45,7 @@ class World {
     glm::vec4 color;
     glm::vec4 size;
     glm::ivec4 states;
+    glm::vec4 vertexPosition;
 
     static std::vector<VkVertexInputBindingDescription> getBindingDescription();
     static std::vector<VkVertexInputAttributeDescription>
