@@ -17,7 +17,7 @@ class World {
 
   struct Grid {
     const uint_fast32_t cellsAlive = 1250;
-    vec2_fast16 size = {100, 50};
+    vec2_uint_fast16_t size = {100, 50};
   } grid;
 
   struct Rectangle : Geometry {

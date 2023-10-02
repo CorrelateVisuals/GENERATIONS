@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-struct vec2_fast16 {
+struct vec2_uint_fast16_t {
   uint_fast16_t x;
   uint_fast16_t y;
 };

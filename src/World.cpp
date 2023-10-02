@@ -52,9 +52,7 @@ World::Landscape::getAttributeDescriptions() {
 }
 
 std::vector<World::Cell> World::initializeCells() {
-  const uint_fast16_t width{grid.size.x};
-  const uint_fast16_t height{grid.size.y};
-  const uint_fast32_t numGridPoints{width * height};
+  const uint_fast32_t numGridPoints{grid.size.x * grid.size.y};
   const uint_fast32_t numAliveCells{grid.cellsAlive};
 
   if (numAliveCells > numGridPoints) {
@@ -64,7 +62,6 @@ std::vector<World::Cell> World::initializeCells() {
   }
 
   std::vector<World::Cell> cells(numGridPoints);
-  World::Cell cell;
   std::vector<bool> isAliveIndices(numGridPoints, false);
 
   std::vector<uint_fast32_t> aliveCellIndices =
@@ -74,16 +71,15 @@ std::vector<World::Cell> World::initializeCells() {
   }
 
   std::vector<float> landscapeHeight = generateLandscapeHeight();
-  std::vector<uint32_t> tempIndices;
+  std::vector<uint32_t> tempIndices(numGridPoints);
 
-  float startX = (width - 1) / -2.0f;
-  float startY = (height - 1) / -2.0f;
+  float startX = (grid.size.x - 1) / -2.0f;
+  float startY = (grid.size.y - 1) / -2.0f;
   for (uint_fast32_t i = 0; i < numGridPoints; ++i) {
-    const uint_fast16_t x = static_cast<uint_fast16_t>(i % width);
-    const uint_fast16_t y = static_cast<uint_fast16_t>(i / width);
+    const uint_fast16_t x = static_cast<uint_fast16_t>(i % grid.size.x);
+    const uint_fast16_t y = static_cast<uint_fast16_t>(i / grid.size.x);
     const float posX = startX + x;
     const float posY = startY + y;
-
     const bool isAlive = isAliveIndices[i];
 
     const glm::vec4& color = isAlive ? blue : red;
@@ -91,12 +87,11 @@ std::vector<World::Cell> World::initializeCells() {
     const float scale = isAlive ? cube.size : 0.0f;
     const glm::vec4 position{posX, posY, landscapeHeight[i], scale};
 
-    cell.instancePosition = position;
-    cell.color = color;
-    cell.states = state;
-    cells[i] = cell;
+    cells[i].instancePosition = position;
+    cells[i].color = color;
+    cells[i].states = state;
 
-    tempIndices.push_back(i);
+    tempIndices[i] = (i);
     landscape.addVertexPosition(glm::vec3(position.x, position.y, position.z));
   }
   landscape.indices =
