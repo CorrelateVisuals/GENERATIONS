@@ -173,6 +173,8 @@ void CapitalEngine::cleanup() {
   vkFreeMemory(mechanics.mainDevice.logical, resources.image.textureMemory,
                nullptr);
 
+  vkFreeMemory(mechanics.mainDevice.logical, resources.vertexBufferMemoryCube,
+               nullptr);
   vkFreeMemory(mechanics.mainDevice.logical, resources.vertexBufferMemory,
                nullptr);
   vkFreeMemory(mechanics.mainDevice.logical, resources.indexBufferMemory,
@@ -182,6 +184,8 @@ void CapitalEngine::cleanup() {
   vkFreeMemory(mechanics.mainDevice.logical,
                resources.indexBufferMemoryLandscape, nullptr);
 
+  vkDestroyBuffer(mechanics.mainDevice.logical, resources.vertexBufferCube,
+                  nullptr);
   vkDestroyBuffer(mechanics.mainDevice.logical, resources.vertexBuffer,
                   nullptr);
   vkDestroyBuffer(mechanics.mainDevice.logical, resources.indexBuffer, nullptr);
@@ -202,12 +206,11 @@ void CapitalEngine::cleanup() {
                     nullptr);
   vkDestroyPipelineLayout(mechanics.mainDevice.logical,
                           pipelines.graphics.layout, nullptr);
-  
 
   vkDestroyPipeline(mechanics.mainDevice.logical, pipelines.compute.engine,
                     nullptr);
   vkDestroyPipeline(mechanics.mainDevice.logical, pipelines.compute.postFX,
-      nullptr);
+                    nullptr);
   vkDestroyPipelineLayout(mechanics.mainDevice.logical,
                           pipelines.compute.layout, nullptr);
 

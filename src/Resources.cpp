@@ -55,10 +55,8 @@ void Resources::setupResources(Pipelines& _pipelines) {
   createIndexBuffer(indexBufferLandscape, indexBufferMemoryLandscape,
                     world.landscape.indices);
 
-  createVertexBuffer(vertexBufferCell, vertexBufferMemoryCell,
+  createVertexBuffer(vertexBufferCube, vertexBufferMemoryCube,
                      world.cube.vertices);
-  // createIndexBufferCube(indexBufferCell, indexBufferMemoryCell, allIndices,
-  //                       oneCubeIndices);
 
   createDescriptorPool();
   allocateDescriptorSets();
@@ -774,9 +772,9 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
   VkDeviceSize offsets0[]{0, 0};
   VkBuffer vertexBuffers0[] = {
       buffers.shaderStorage[_mechanics.syncObjects.currentFrame],
-      vertexBufferCell};
+      vertexBufferCube};
   vkCmdBindVertexBuffers(commandBuffer, 0, 2, vertexBuffers0, offsets0);
-  vkCmdDraw(commandBuffer, world.cube.vertices.size(),
+  vkCmdDraw(commandBuffer, static_cast<uint32_t>(world.cube.vertices.size()),
             world.grid.XY[0] * world.grid.XY[1], 0, 0);
 
   // VkDeviceSize sharedVertexOffset = 0;  // Offset for the shared vertex
@@ -790,7 +788,7 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
 
   // VkDeviceSize indexedVertexOffset = 0;  // Offset for the indexed vertex
   // buffer VkBuffer indexedVertexBuffers[] = {
-  //     vertexBufferCell  // Binding 0
+  //     vertexBufferCube  // Binding 0
   // };
 
   // vkCmdBindVertexBuffers(commandBuffer, 1, 1, indexedVertexBuffers,
