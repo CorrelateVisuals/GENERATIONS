@@ -21,6 +21,7 @@ struct Geometry {
     glm::vec3 instancePosition;
     glm::vec3 vertexPosition;
     glm::vec3 color;
+    glm::vec3 normal;
     glm::vec2 textureCoordinates;
 
     static std::vector<VkVertexInputBindingDescription> getBindingDescription();

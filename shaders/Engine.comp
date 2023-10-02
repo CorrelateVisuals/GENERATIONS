@@ -7,6 +7,7 @@ struct Cell {
     vec4 size;      // float    x
     ivec4 states;   // bool     alive, stage, cycle, passedHours
     vec4 vertexPosition;
+    vec4 normal;
 } cell;
 
 layout(std430, binding = 1) readonly buffer CellSSBOIn {Cell cellIn[ ]; };
@@ -47,6 +48,7 @@ vec4 pos        = cellIn[index].position;
 vec4 vertexPos  = cellIn[index].vertexPosition;
 vec4 colorIn    = cellIn[index].color;
 ivec4 statesIn  = cellIn[index].states;
+vec4 normal     = cellIn[index].normal;
 
 const int cycleSize = 24;
 ivec4 setState(int _alive, int stage){ 
@@ -105,16 +107,16 @@ void simulate(out Cell cell) {
     int neighbours  = cycleNeighbours(1);
 
     if (underWater) {   
-       cell = Cell(pos, grey1, sizeOff, setState(dead, 0), vertexPos ); 
+       cell = Cell(pos, grey1, sizeOff, setState(dead, 0), vertexPos, normal ); 
    } else if (stage(0)) {
-        cell = initialized ?    Cell(pos, white, size, setState(alive, 0), vertexPos ) :
-               lifeCycle ?      Cell(pos, colorIncrement, size, setState(alive, 0), vertexPos ) :
-               endOfStage ?     Cell(pos, white, size, setState(alive, 1), vertexPos ) :
-                                Cell(pos, grey1, sizeOff, setState(dead, 1), vertexPos );
+        cell = initialized ?    Cell(pos, white, size, setState(alive, 0), vertexPos, normal ) :
+               lifeCycle ?      Cell(pos, colorIncrement, size, setState(alive, 0), vertexPos, normal ) :
+               endOfStage ?     Cell(pos, white, size, setState(alive, 1), vertexPos, normal ) :
+                                Cell(pos, grey1, sizeOff, setState(dead, 1), vertexPos, normal );
     } else if (stage(1)) {
-        cell = live(neighbours) ?   Cell(pos, white, size, setState(alive, 0), vertexPos ) :
-               die(neighbours) ?    Cell(pos, grey1, sizeOff, setState(dead, 0), vertexPos ) :
-                                    Cell(pos, colorIn, sizeOff, setState(dead, 1), vertexPos );
+        cell = live(neighbours) ?   Cell(pos, white, size, setState(alive, 0), vertexPos, normal ) :
+               die(neighbours) ?    Cell(pos, grey1, sizeOff, setState(dead, 0), vertexPos, normal ) :
+                                    Cell(pos, colorIn, sizeOff, setState(dead, 1), vertexPos, normal );
     }
 }
 

@@ -13,7 +13,7 @@ class World {
   World();
   ~World();
 
-  Timer time{5.0f};
+  Timer time{25.0f};
 
   struct Grid {
     uint_fast32_t cellsAlive = 1250;
@@ -40,6 +40,7 @@ class World {
     glm::vec4 size;
     glm::ivec4 states;
     glm::vec4 vertexPosition;
+    glm::vec4 normal;
 
     static std::vector<VkVertexInputBindingDescription> getBindingDescription();
     static std::vector<VkVertexInputAttributeDescription>
@@ -73,6 +74,13 @@ class World {
                          const glm::vec3& translate,
                          float geoSize);
 
+  bool loadModelVertices2(const std::string& modelPath,
+                          std::vector<Geometry::Vertex>& vertices,
+                          std::vector<uint32_t>& indices,
+                          const glm::vec3& rotate,
+                          const glm::vec3& translate,
+                          float geoSize);
+
   void transformModel(auto& vertices,
                       ORIENTATION_ORDER order,
                       const glm::vec3& degrees,
@@ -92,7 +100,7 @@ class World {
   } camera;
 
   struct Light {
-    glm::vec4 position{0.0f, 0.0f, 60.0f, 0.0f};
+    glm::vec4 position{0.0f, 10.0f, 20.0f, 0.0f};
   } light;
 
   const glm::vec4 red{1.0f, 0.0f, 0.0f, 1.0f};
