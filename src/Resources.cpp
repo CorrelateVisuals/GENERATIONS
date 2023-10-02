@@ -23,12 +23,12 @@ void Resources::setupResources(Pipelines& _pipelines) {
   createTextureImageView();
   createTextureSampler();
 
-  world.loadModel(world.rectangle.modelPath, world.rectangle.vertices,
-                  world.rectangle.indices, glm::vec3(90.0f, 180.0f, 0.0f),
-                  glm::vec3(0.0f, 0.0f, 0.0f), 1.0f);
-  world.loadModelVertices2(world.cube.modelPath, world.cube.vertices,
-                           world.cube.indices, glm::vec3(90.0f, 180.0f, 0.0f),
-                           glm::vec3(0.0f, 0.0f, 0.0f), 1.0f);
+  Geometry::loadModel(world.rectangle.modelPath, world.rectangle.vertices,
+                      world.rectangle.indices, glm::vec3(90.0f, 180.0f, 0.0f),
+                      glm::vec3(0.0f, 0.0f, 0.0f), 1.0f);
+  Geometry::loadModelVertices2(
+      world.cube.modelPath, world.cube.vertices, world.cube.indices,
+      glm::vec3(90.0f, 180.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), 1.0f);
 
   createFramebuffers(_pipelines);
   createShaderStorageBuffers();

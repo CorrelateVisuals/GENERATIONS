@@ -59,25 +59,6 @@ class World {
  public:
   std::vector<World::Cell> initializeCells();
   UniformBufferObject updateUniforms(VkExtent2D& _swapChain);
-  void loadModel(const std::string& modelPath,
-                 std::vector<Geometry::Vertex>& vertices,
-                 std::vector<uint32_t>& indices,
-                 const glm::vec3& rotate,
-                 const glm::vec3& translate,
-                 float geoSize);
-
-  bool loadModelVertices2(const std::string& modelPath,
-                          std::vector<Geometry::Vertex>& vertices,
-                          std::vector<uint32_t>& indices,
-                          const glm::vec3& rotate,
-                          const glm::vec3& translate,
-                          float geoSize);
-
-  void transformModel(auto& vertices,
-                      ORIENTATION_ORDER order,
-                      const glm::vec3& degrees,
-                      const glm::vec3& translationDistance,
-                      float scale);
 
  private:
   struct Camera {

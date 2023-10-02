@@ -48,4 +48,25 @@ class Geometry {
   void addVertexPosition(const glm::vec3& position) {
     vertices.push_back({glm::vec3(0.0f), position});
   }
+
+  static void loadModel(const std::string& modelPath,
+      std::vector<Geometry::Vertex>& vertices,
+      std::vector<uint32_t>& indices,
+      const glm::vec3& rotate,
+      const glm::vec3& translate,
+      float geoSize);
+
+  static bool loadModelVertices2(const std::string& modelPath,
+      std::vector<Geometry::Vertex>& vertices,
+      std::vector<uint32_t>& indices,
+      const glm::vec3& rotate,
+      const glm::vec3& translate,
+      float geoSize);
+
+private:
+ static void transformModel(auto& vertices,
+                            ORIENTATION_ORDER order,
+                            const glm::vec3& degrees,
+                            const glm::vec3& translationDistance,
+                            float scale);
 };
