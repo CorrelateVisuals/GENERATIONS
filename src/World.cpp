@@ -60,7 +60,7 @@ std::vector<World::Cell> World::initializeCells() {
   const uint_fast16_t height{grid.XY[1]};
   const uint_fast32_t numGridPoints{width * height};
   const uint_fast32_t numAliveCells{grid.cellsAlive};
-  glm::vec4 size{geo.cube.size};
+  glm::vec4 size{cube.size};
 
   if (numAliveCells > numGridPoints) {
     throw std::runtime_error(
@@ -173,7 +173,7 @@ World::UniformBufferObject World::updateUniforms(VkExtent2D& _swapChainExtent) {
       .gridXY = {static_cast<uint32_t>(grid.XY[0]),
                  static_cast<uint32_t>(grid.XY[1])},
       .waterThreshold = 0.1f,
-      .cellSize = geo.cube.size,
+      .cellSize = cube.size,
       .model = setModel(),
       .view = setView(),
       .projection = setProjection(_swapChainExtent)};
@@ -266,12 +266,6 @@ void World::loadModelVertices(const std::string& modelPath,
 
       // vertex.color = {1.0f, 1.0f, 1.0f};
       vertices.push_back(vertex);
-      //
-      // if (uniqueVertices.count(vertex) == 0) {
-      //    uniqueVertices[vertex] = static_cast<uint32_t>(vertices.size());
-
-      //    vertices.push_back(vertex);
-      //}
     }
   }
 

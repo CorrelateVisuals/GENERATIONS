@@ -13,19 +13,12 @@ class World {
   World();
   ~World();
 
-  Timer time{0.0f};
+  Timer time{5.0f};
 
   struct Grid {
-    uint_fast32_t cellsAlive = 1;
-    std::array<uint_fast16_t, 2> XY = {4, 4};
+    uint_fast32_t cellsAlive = 1250;
+    std::array<uint_fast16_t, 2> XY = {100, 50};
   } grid;
-
-  struct GeometryTEMP {
-    struct Cube {
-      const uint32_t vertexCount{36};
-      const float size{0.5f};
-    } cube;
-  } geo;
 
   struct Rectangle : Geometry {
     Rectangle() : Geometry("Rectangle"){};
@@ -33,6 +26,7 @@ class World {
 
   struct Cube : Geometry {
     Cube() : Geometry("Cube"){};
+    float size = 0.3f;
   } cube;
 
   struct Landscape : Geometry {

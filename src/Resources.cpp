@@ -30,19 +30,6 @@ void Resources::setupResources(Pipelines& _pipelines) {
                           world.cube.indices, glm::vec3(90.0f, 180.0f, 0.0f),
                           glm::vec3(0.0f, 0.0f, 0.0f), 1.0f);
 
-  Log::text(" vertices.size: ", world.cube.vertices.size());
-
-  // std::vector<uint32_t> oneCubeIndices = world.cube.indices;
-  // size_t numGridPoints = world.grid.XY[0] * world.grid.XY[1];
-  // std::vector<uint32_t> allIndices;
-  //// Generate indices for each particle's cube
-  // for (uint32_t i = 0; i < numGridPoints; ++i) {
-  //   uint32_t baseVertexIndex = i * 24;  // Offset for this particle's cube
-  //   for (uint32_t j = 0; j < oneCubeIndices.size(); ++j) {
-  //     allIndices.push_back(baseVertexIndex + oneCubeIndices[j]);
-  //   }
-  // }
-
   createFramebuffers(_pipelines);
   createShaderStorageBuffers();
   createUniformBuffers();
