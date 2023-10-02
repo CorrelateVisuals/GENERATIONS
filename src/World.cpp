@@ -81,17 +81,13 @@ std::vector<World::Cell> World::initializeCells() {
     const float posY = startY + y;
     const bool isAlive = isAliveIndices[i];
 
-    const glm::vec4& color = isAlive ? blue : red;
-    const glm::ivec4& state = isAlive ? alive : dead;
-    const float scale = isAlive ? cube.size : 0.0f;
-    const glm::vec4 position{posX, posY, landscapeHeight[i], scale};
+    cells[i].instancePosition = {posX, posY, landscapeHeight[i],
+                                 isAlive ? cube.size : 0.0f};
+    cells[i].color = isAlive ? blue : red;
+    cells[i].states = isAlive ? alive : dead;
 
-    cells[i].instancePosition = position;
-    cells[i].color = color;
-    cells[i].states = state;
-
-    tempIndices[i] = (i);
-    landscape.addVertexPosition(glm::vec3(position.x, position.y, position.z));
+    tempIndices[i] = i;
+    landscape.addVertexPosition(glm::vec3(posX, posY, landscapeHeight[i]));
   }
   landscape.indices =
       Lib::createGridPolygons(tempIndices, static_cast<int>(grid.size.x));
