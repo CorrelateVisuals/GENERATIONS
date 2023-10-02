@@ -15,24 +15,18 @@ layout (binding = 0) uniform ParameterUBO {
     mat4 view;
     mat4 projection;
 } ubo;
-vec4 light = ubo.light;
-ivec2 gridXY = ubo.gridXY;
-mat4 model = ubo.model;
-mat4 view = ubo.view;
-mat4 projection = ubo.projection;
-float waterThreshold = ubo.waterThreshold;
 
 vec4 constructCube() {
     vec3 position = inPosition.xyz + (inVertex.xyz * inPosition.w);
     return vec4(position, 1.0f);
 }
 
-vec4 worldPosition = model * constructCube();
-vec4 viewPosition =  view * worldPosition;
-vec3 worldNormal =   mat3(model) * inNormal.xyz;
+vec4 worldPosition = ubo.model * constructCube();
+vec4 viewPosition =  ubo.view * worldPosition;
+vec3 worldNormal =   mat3(ubo.model) * inNormal.xyz;
 
 float gouraudShading(float emit) {
-    vec3 lightDirection = normalize(light.rgb - worldPosition.xyz);
+    vec3 lightDirection = normalize(ubo.light.rgb - worldPosition.xyz);
     float diffuseIntensity = max(dot(worldNormal, lightDirection), emit);
     return diffuseIntensity;
 }
@@ -44,5 +38,5 @@ void main() {
     color *= inColor * gouraudShading(0.2f);
 
     fragColor = color;
-    gl_Position = projection * viewPosition;
+    gl_Position = ubo.projection * viewPosition;
 }

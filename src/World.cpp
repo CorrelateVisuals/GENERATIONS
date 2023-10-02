@@ -235,38 +235,6 @@ void World::loadModel(const std::string& modelPath,
                  translate, geoSize);
 }
 
-void World::loadModelVertices(const std::string& modelPath,
-                              std::vector<Geometry::Vertex>& vertices,
-                              std::vector<uint32_t>& indices,
-                              const glm::vec3& rotate,
-                              const glm::vec3& translate,
-                              float geoSize) {
-  tinyobj::attrib_t attrib;
-  std::vector<tinyobj::shape_t> shapes;
-  std::vector<tinyobj::material_t> materials;
-  std::string warn, err;
-
-  if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err,
-                        modelPath.c_str())) {
-    throw std::runtime_error(warn + err);
-  }
-
-  for (const auto& shape : shapes) {
-    for (const auto& index : shape.mesh.indices) {
-      Geometry::Vertex vertex{};
-
-      vertex.vertexPosition = {attrib.vertices[3 * index.vertex_index + 0],
-                               attrib.vertices[3 * index.vertex_index + 1],
-                               attrib.vertices[3 * index.vertex_index + 2]};
-
-      vertices.push_back(vertex);
-    }
-  }
-
-  transformModel(vertices, ORIENTATION_ORDER{ROTATE_SCALE_TRANSLATE}, rotate,
-                 translate, geoSize);
-}
-
 bool World::loadModelVertices2(const std::string& modelPath,
                                std::vector<Geometry::Vertex>& vertices,
                                std::vector<uint32_t>& indices,

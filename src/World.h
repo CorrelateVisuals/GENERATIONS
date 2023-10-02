@@ -66,13 +66,6 @@ class World {
                  const glm::vec3& translate,
                  float geoSize);
 
-  void loadModelVertices(const std::string& modelPath,
-                         std::vector<Geometry::Vertex>& vertices,
-                         std::vector<uint32_t>& indices,
-                         const glm::vec3& rotate,
-                         const glm::vec3& translate,
-                         float geoSize);
-
   bool loadModelVertices2(const std::string& modelPath,
                           std::vector<Geometry::Vertex>& vertices,
                           std::vector<uint32_t>& indices,

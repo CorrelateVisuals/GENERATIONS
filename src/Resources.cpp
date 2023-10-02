@@ -37,6 +37,7 @@ void Resources::setupResources(Pipelines& _pipelines) {
   createVertexBuffer(vertexBuffer, vertexBufferMemory,
                      world.rectangle.vertices);
   createIndexBuffer(indexBuffer, indexBufferMemory, world.rectangle.indices);
+
   createVertexBuffer(vertexBufferLandscape, vertexBufferMemoryLandscape,
                      world.landscape.vertices);
   createIndexBuffer(indexBufferLandscape, indexBufferMemoryLandscape,
