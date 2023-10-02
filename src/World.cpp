@@ -55,8 +55,8 @@ World::Landscape::getAttributeDescriptions() {
 }
 
 std::vector<World::Cell> World::initializeCells() {
-  const uint_fast16_t width{grid.XY[0]};
-  const uint_fast16_t height{grid.XY[1]};
+  const uint_fast16_t width{grid.size.x};
+  const uint_fast16_t height{grid.size.y};
   const uint_fast32_t numGridPoints{width * height};
   const uint_fast32_t numAliveCells{grid.cellsAlive};
 
@@ -91,7 +91,7 @@ std::vector<World::Cell> World::initializeCells() {
 
     const glm::vec4& color = isAlive ? blue : red;
     const glm::ivec4& state = isAlive ? alive : dead;
-    const float scale = isAlive ? 1.0f : 0.0f;
+    const float scale = isAlive ? cube.size : 0.0f;
     const glm::vec4 position{posX, posY, landscapeHeight[i], scale};
 
     cell.instancePosition = position;
@@ -103,7 +103,7 @@ std::vector<World::Cell> World::initializeCells() {
     landscape.addVertexPosition(glm::vec3(position.x, position.y, position.z));
   }
   landscape.indices =
-      Lib::createGridPolygons(tempIndices, static_cast<int>(grid.XY[0]));
+      Lib::createGridPolygons(tempIndices, static_cast<int>(grid.size.x));
 
   return cells;
 }
@@ -115,8 +115,8 @@ std::vector<uint_fast32_t> World::setCellsAliveRandomly(
 
   std::random_device random;
   std::mt19937 generate(random());
-  std::uniform_int_distribution<int> distribution(0,
-                                                  grid.XY[0] * grid.XY[1] - 1);
+  std::uniform_int_distribution<int> distribution(
+      0, grid.size.x * grid.size.y - 1);
 
   while (CellIDs.size() < numberOfCells) {
     int CellID = distribution(generate);
@@ -134,8 +134,8 @@ bool World::isIndexAlive(const std::vector<int>& aliveCells, int index) {
 }
 
 std::vector<float> World::generateLandscapeHeight() {
-  Terrain::Config terrainLayer1 = {.width = grid.XY[0],
-                                   .height = grid.XY[1],
+  Terrain::Config terrainLayer1 = {.width = grid.size.x,
+                                   .height = grid.size.y,
                                    .roughness = 0.4f,
                                    .octaves = 10,
                                    .scale = 1.1f,
@@ -145,8 +145,8 @@ std::vector<float> World::generateLandscapeHeight() {
                                    .heightOffset = 0.0f};
   Terrain terrain(terrainLayer1);
 
-  Terrain::Config terrainLayer2 = {.width = grid.XY[0],
-                                   .height = grid.XY[1],
+  Terrain::Config terrainLayer2 = {.width = grid.size.x,
+                                   .height = grid.size.y,
                                    .roughness = 1.0f,
                                    .octaves = 10,
                                    .scale = 1.1f,
@@ -171,8 +171,8 @@ std::vector<float> World::generateLandscapeHeight() {
 World::UniformBufferObject World::updateUniforms(VkExtent2D& _swapChainExtent) {
   UniformBufferObject uniformObject{
       .light = light.position,
-      .gridXY = {static_cast<uint32_t>(grid.XY[0]),
-                 static_cast<uint32_t>(grid.XY[1])},
+      .gridXY = {static_cast<uint32_t>(grid.size.x),
+                 static_cast<uint32_t>(grid.size.y)},
       .waterThreshold = 0.1f,
       .cellSize = cube.size,
       .model = setModel(),

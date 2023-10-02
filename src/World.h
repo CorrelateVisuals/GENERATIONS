@@ -17,7 +17,7 @@ class World {
 
   struct Grid {
     const uint_fast32_t cellsAlive = 1250;
-    std::array<uint_fast16_t, 2> XY = {100, 50};
+    vec2_fast16 size = {100, 50};
   } grid;
 
   struct Rectangle : Geometry {
@@ -83,7 +83,7 @@ class World {
   struct Camera {
     float zoomSpeed = 0.5f;
     float panningSpeed = 1.2f;
-    const float fieldOfView = 60.0f;
+    const float fieldOfView = 40.0f;
     const float nearClipping = 0.1f;
     const float farClipping = 200.0f;
     glm::vec3 position{0.0f, 0.0f, 30.0f};

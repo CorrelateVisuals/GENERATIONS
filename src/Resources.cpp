@@ -122,7 +122,7 @@ void Resources::createShaderStorageBuffers() {
   std::vector<World::Cell> cells = world.initializeCells();
 
   VkDeviceSize bufferSize =
-      sizeof(World::Cell) * world.grid.XY[0] * world.grid.XY[1];
+      sizeof(World::Cell) * world.grid.size.x * world.grid.size.y;
 
   // Create a staging buffer used to upload data to the gpu
   VkBuffer stagingBuffer;
@@ -600,12 +600,12 @@ void Resources::createDescriptorSets() {
     VkDescriptorBufferInfo storageBufferInfoLastFrame{
         .buffer = buffers.shaderStorage[(i - 1) % MAX_FRAMES_IN_FLIGHT],
         .offset = 0,
-        .range = sizeof(World::Cell) * world.grid.XY[0] * world.grid.XY[1]};
+        .range = sizeof(World::Cell) * world.grid.size.x * world.grid.size.y};
 
     VkDescriptorBufferInfo storageBufferInfoCurrentFrame{
         .buffer = buffers.shaderStorage[i],
         .offset = 0,
-        .range = sizeof(World::Cell) * world.grid.XY[0] * world.grid.XY[1]};
+        .range = sizeof(World::Cell) * world.grid.size.x * world.grid.size.y};
 
     VkDescriptorImageInfo imageInfo{
         .sampler = image.textureSampler,
@@ -701,10 +701,10 @@ void Resources::recordComputeCommandBuffer(VkCommandBuffer commandBuffer,
                      pushConstants.size, pushConstants.data.data());
 
   uint32_t workgroupSizeX =
-      (world.grid.XY[0] + _pipelines.compute.workGroups[0] - 1) /
+      (world.grid.size.x + _pipelines.compute.workGroups[0] - 1) /
       _pipelines.compute.workGroups[0];
   uint32_t workgroupSizeY =
-      (world.grid.XY[1] + _pipelines.compute.workGroups[1] - 1) /
+      (world.grid.size.y + _pipelines.compute.workGroups[1] - 1) /
       _pipelines.compute.workGroups[1];
 
   vkCmdDispatch(commandBuffer, workgroupSizeX, workgroupSizeY,
@@ -763,7 +763,7 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
       vertexBufferCube};
   vkCmdBindVertexBuffers(commandBuffer, 0, 2, vertexBuffers0, offsets0);
   vkCmdDraw(commandBuffer, static_cast<uint32_t>(world.cube.vertices.size()),
-            world.grid.XY[0] * world.grid.XY[1], 0, 0);
+            world.grid.size.x * world.grid.size.y, 0, 0);
 
   // VkDeviceSize sharedVertexOffset = 0;  // Offset for the shared vertex
   // buffer VkBuffer sharedVertexBuffers[] = {
@@ -791,7 +791,7 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
 
   // uint32_t indexCount = world.cube.indices.size();  // Number of indices to
   // draw uint32_t instanceCount =
-  //     world.grid.XY[0] * world.grid.XY[1];  // Number of instances
+  //     world.grid.size.x * world.grid.size.y;  // Number of instances
   // uint32_t firstIndex = 0;                  // Index of the first index to
   // use int32_t vertexOffset = 0;    // Vertex offset (used to add to the
   // vertex ID) uint32_t firstInstance = 0;  // First instance ID

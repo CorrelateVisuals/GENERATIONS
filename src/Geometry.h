@@ -16,7 +16,8 @@
 
 const enum ORIENTATION_ORDER { ROTATE_SCALE_TRANSLATE, ROTATE_TRANSLATE_SCALE };
 
-struct Geometry {
+class Geometry {
+ public:
   struct Vertex {
     glm::vec3 instancePosition;
     glm::vec3 vertexPosition;

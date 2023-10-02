@@ -4,6 +4,11 @@
 #include <string>
 #include <vector>
 
+struct vec2_fast16 {
+  uint_fast16_t x;
+  uint_fast16_t y;
+};
+
 namespace Lib {
 std::vector<float> generateRandomValues(int amount, float min, float max);
 std::vector<uint32_t> createGridPolygons(const std::vector<uint32_t>& vertices,
