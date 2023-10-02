@@ -32,14 +32,15 @@ uint index = globalID_y * gridXY.x + globalID_x % gridXY.x + (globalID_x / gridX
 const vec4 blue       = vec4(0.0, 0.0, 1.0, 1.0);
 const vec4 white      = vec4(1.0, 1.0, 1.0, 1.0);
 const vec4 grey      = vec4(0.5, 0.5, 0.5, 1.0);
+
 const int alive       =  1;
 const int dead        = -1;
-float sizeOn          = ubo.cellSize;
-const float sizeOff   = 0.0f;
+float sizeAlive          = ubo.cellSize;
+const float sizeDead   = 0.0f;
 
 vec4 pos        = cellIn[index].position;
-vec4 posOn      = vec4( pos.xyz, sizeOn );
-vec4 posOff     = vec4( pos.xyz, sizeOff );
+vec4 posOn      = vec4( pos.xyz, sizeAlive );
+vec4 posOff     = vec4( pos.xyz, sizeDead );
 vec4 vertPos  = cellIn[index].vertPosition;
 vec4 colorIn    = cellIn[index].color;
 ivec4 statesIn  = cellIn[index].states;
