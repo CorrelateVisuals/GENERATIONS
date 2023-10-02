@@ -52,12 +52,14 @@ class Geometry {
   static void loadModel(const std::string& modelPath,
                         std::vector<Geometry::Vertex>& vertices,
                         std::vector<uint32_t>& indices,
+                        ORIENTATION_ORDER order,
                         const glm::vec3& rotate,
                         const glm::vec3& translate,
                         float geoSize);
 
   static void loadModel(const std::string& modelPath,
                         std::vector<Geometry::Vertex>& vertices,
+                        ORIENTATION_ORDER order,
                         const glm::vec3& rotate,
                         const glm::vec3& translate,
                         float geoSize);
