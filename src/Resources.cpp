@@ -121,7 +121,7 @@ void Resources::createComputeCommandBuffers() {
 void Resources::createShaderStorageBuffers() {
   Log::text("{ 101 }", "Shader Storage Buffers");
 
-  std::vector<World::Cell> cells = world.initializeCells();
+  std::vector<World::Cell> cells = world.initializeGrid();
 
   VkDeviceSize bufferSize =
       sizeof(World::Cell) * world.grid.size.x * world.grid.size.y;

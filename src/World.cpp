@@ -51,7 +51,7 @@ World::Landscape::getAttributeDescriptions() {
   return attributeDescriptions;
 }
 
-std::vector<World::Cell> World::initializeCells() {
+std::vector<World::Cell> World::initializeGrid() {
   const uint_fast32_t numGridPoints{grid.size.x * grid.size.y};
   const uint_fast32_t numAliveCells{grid.initialAliveCells};
 

@@ -57,7 +57,7 @@ class World {
   };
 
  public:
-  std::vector<World::Cell> initializeCells();
+  std::vector<World::Cell> initializeGrid();
   UniformBufferObject updateUniforms(VkExtent2D& _swapChain);
 
  private:
@@ -73,7 +73,7 @@ class World {
   } camera;
 
   struct Light {
-    glm::vec4 position{0.0f, 10.0f, 20.0f, 0.0f};
+    glm::vec4 position{0.0f, 20.0f, 20.0f, 0.0f};
   } light;
 
   const glm::vec4 red{1.0f, 0.0f, 0.0f, 1.0f};
