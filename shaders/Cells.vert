@@ -2,9 +2,9 @@
 
 layout(location = 0) in vec4 inPosition;
 layout(location = 1) in vec4 inVertex;
-layout(location = 2) in vec4 inColor;
-layout(location = 3) in ivec4 inStates;
-layout(location = 4) in vec4 inNormal;
+layout(location = 2) in vec4 inNormal;
+layout(location = 3) in vec4 inColor;
+layout(location = 4) in ivec4 inStates;
 
 layout (binding = 0) uniform ParameterUBO {
     vec4 light;

@@ -36,12 +36,12 @@ World::Cell::getAttributeDescriptions() {
        static_cast<uint32_t>(offsetof(Cell, instancePosition))},
       {1, 1, VK_FORMAT_R32G32B32A32_SFLOAT,
        static_cast<uint32_t>(offsetof(Cube::Vertex, vertexPosition))},
-      {2, 0, VK_FORMAT_R32G32B32A32_SFLOAT,
-       static_cast<uint32_t>(offsetof(Cell, color))},
-      {3, 0, VK_FORMAT_R32G32B32A32_SINT,
-       static_cast<uint32_t>(offsetof(Cell, states))},
-      {4, 1, VK_FORMAT_R32G32B32A32_SFLOAT,
+      {2, 1, VK_FORMAT_R32G32B32A32_SFLOAT,
        static_cast<uint32_t>(offsetof(Cube::Vertex, normal))},
+      {3, 0, VK_FORMAT_R32G32B32A32_SFLOAT,
+       static_cast<uint32_t>(offsetof(Cell, color))},
+      {4, 0, VK_FORMAT_R32G32B32A32_SINT,
+       static_cast<uint32_t>(offsetof(Cell, states))},
   };
   return attributeDescriptions;
 }

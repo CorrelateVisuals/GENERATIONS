@@ -37,9 +37,9 @@ class World {
   struct Cell {
     glm::vec4 instancePosition;
     glm::vec4 vertexPosition;
+    glm::vec4 normal;
     glm::vec4 color;
     glm::ivec4 states;
-    glm::vec4 normal;
 
     static std::vector<VkVertexInputBindingDescription> getBindingDescription();
     static std::vector<VkVertexInputAttributeDescription>

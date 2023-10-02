@@ -3,10 +3,10 @@
 
 struct Cell {
     vec4 position;  
-    vec4 vertexPosition;
+    vec4 vertPosition;
+    vec4 normal;
     vec4 color;     
     ivec4 states;
-    vec4 normal;
 } cell;
 
 layout(std430, binding = 1) readonly buffer CellSSBOIn {Cell cellIn[ ]; };
@@ -31,16 +31,16 @@ uint index = globalID_y * gridXY.x + globalID_x % gridXY.x + (globalID_x / gridX
 
 const vec4 blue       = vec4(0.0, 0.0, 1.0, 1.0);
 const vec4 white      = vec4(1.0, 1.0, 1.0, 1.0);
-const vec4 grey1      = vec4(0.5, 0.5, 0.5, 1.0);
+const vec4 grey      = vec4(0.5, 0.5, 0.5, 1.0);
 const int alive       =  1;
 const int dead        = -1;
-const float sizeOn    = 1.0f;
+float sizeOn          = ubo.cellSize;
 const float sizeOff   = 0.0f;
 
 vec4 pos        = cellIn[index].position;
 vec4 posOn      = vec4( pos.xyz, sizeOn );
 vec4 posOff     = vec4( pos.xyz, sizeOff );
-vec4 vertexPos  = cellIn[index].vertexPosition;
+vec4 vertPos  = cellIn[index].vertPosition;
 vec4 colorIn    = cellIn[index].color;
 ivec4 statesIn  = cellIn[index].states;
 vec4 normal     = cellIn[index].normal;
@@ -101,16 +101,16 @@ void simulate(out Cell cell) {
     int neighbours  = cycleNeighbours(1);
 
     if (underWater) {   
-       cell = Cell(posOff, vertexPos, grey1, setState(dead, 0), normal ); 
+       cell = Cell(posOff, vertPos, normal, grey, setState(dead, 0) ); 
    } else if (stage(0)) {
-        cell = initialized ?    Cell(posOn, vertexPos, white, setState(alive, 0), normal ) :
-               lifeCycle ?      Cell(posOn, vertexPos, colorIncrement, setState(alive, 0), normal ) :
-               endOfStage ?     Cell(posOn, vertexPos, white, setState(alive, 1),  normal ) :
-                                Cell(posOff, vertexPos, grey1, setState(dead, 1), normal );
+        cell = initialized ?    Cell(posOn, vertPos, normal, white, setState(alive, 0) ) :
+               lifeCycle ?      Cell(posOn, vertPos, normal, colorIncrement, setState(alive, 0) ) :
+               endOfStage ?     Cell(posOn, vertPos, normal, white, setState(alive, 1) ) :
+                                Cell(posOff, vertPos, normal, grey, setState(dead, 1) );
     } else if (stage(1)) {
-        cell = live(neighbours) ?   Cell(posOn, vertexPos, white, setState(alive, 0), normal ) :
-               die(neighbours) ?    Cell(posOff, vertexPos, grey1, setState(dead, 0), normal ) :
-                                    Cell(posOff, vertexPos, colorIn, setState(dead, 1), normal );
+        cell = live(neighbours) ?   Cell(posOn, vertPos, normal, white, setState(alive, 0) ) :
+               die(neighbours) ?    Cell(posOff, vertPos, normal, grey, setState(dead, 0) ) :
+                                    Cell(posOff, vertPos, normal, colorIn, setState(dead, 1) );
     }
 }
 
