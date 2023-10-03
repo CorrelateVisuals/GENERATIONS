@@ -1,5 +1,6 @@
 #pragma once
 #include <GLFW/glfw3.h>
+#include <vk_mem_alloc.h>
 
 #include "CapitalEngine.h"
 #include "Pipelines.h"
@@ -18,6 +19,7 @@ class VulkanMechanics {
   VulkanMechanics();
   ~VulkanMechanics();
 
+  VmaAllocator memAllocator;
   VkSurfaceKHR surface;
   VkInstance instance;
   ValidationLayers validation;
@@ -83,16 +85,12 @@ class VulkanMechanics {
   void createSyncObjects();
 
   template <typename Checkresult, typename... Args>
-  void result(Checkresult vkResult, Args&&... args) {
-    using ObjectType = std::remove_pointer_t<std::decay_t<Checkresult>>;
-    std::string objectName = typeid(ObjectType).name();
+  void result(Checkresult vkResult, Args&&... args);
 
-    VkResult result = vkResult(std::forward<Args>(args)...);
-    if (result != VK_SUCCESS) {
-      throw std::runtime_error("\n!ERROR! result != VK_SUCCESS " + objectName +
-                               "!");
-    }
-  }
+  template <typename VmaResultFunc, typename... Args>
+  void resultVma(VmaResultFunc vmaResultFunc,
+                 VmaAllocator allocator,
+                 Args&&... args);
 
  private:
   void compileShaders(const Pipelines& _pipelines);
@@ -117,3 +115,29 @@ class VulkanMechanics {
   VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
   Queues::FamilyIndices findQueueFamilies(VkPhysicalDevice physicalDevice);
 };
+
+template <typename Checkresult, typename... Args>
+inline void VulkanMechanics::result(Checkresult vkResult, Args&&... args) {
+  using ObjectType = std::remove_pointer_t<std::decay_t<Checkresult>>;
+  std::string objectName = typeid(ObjectType).name();
+
+  VkResult result = vkResult(std::forward<Args>(args)...);
+  if (result != VK_SUCCESS) {
+    throw std::runtime_error("\n!ERROR! result != VK_SUCCESS " + objectName +
+                             "!");
+  }
+}
+
+template <typename VmaResultFunc, typename... Args>
+inline void VulkanMechanics::resultVma(VmaResultFunc vmaResultFunc,
+                                       VmaAllocator allocator,
+                                       Args&&... args) {
+  using ObjectType = std::remove_pointer_t<std::decay_t<VmaResultFunc>>;
+  std::string objectName = typeid(ObjectType).name();
+
+  VkResult result = vmaResultFunc(allocator, std::forward<Args>(args)...);
+  if (result != VK_SUCCESS) {
+    throw std::runtime_error("\n!ERROR! result != VK_SUCCESS " + objectName +
+                             "!");
+  }
+}

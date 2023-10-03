@@ -29,7 +29,6 @@ void CapitalEngine::mainLoop() {
     Window::get().setMouse();
     resources.world.time.run();
 
-    // vkDeviceWaitIdle(mechanics.mainDevice.logical);
     drawFrame();
 
     if (glfwGetKey(Window::get().window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
@@ -173,6 +172,8 @@ void CapitalEngine::cleanup() {
   vkFreeMemory(mechanics.mainDevice.logical, resources.image.textureMemory,
                nullptr);
 
+  vkFreeMemory(mechanics.mainDevice.logical, resources.vertexBufferMemoryCube,
+               nullptr);
   vkFreeMemory(mechanics.mainDevice.logical, resources.vertexBufferMemory,
                nullptr);
   vkFreeMemory(mechanics.mainDevice.logical, resources.indexBufferMemory,
@@ -182,6 +183,8 @@ void CapitalEngine::cleanup() {
   vkFreeMemory(mechanics.mainDevice.logical,
                resources.indexBufferMemoryLandscape, nullptr);
 
+  vkDestroyBuffer(mechanics.mainDevice.logical, resources.vertexBufferCube,
+                  nullptr);
   vkDestroyBuffer(mechanics.mainDevice.logical, resources.vertexBuffer,
                   nullptr);
   vkDestroyBuffer(mechanics.mainDevice.logical, resources.indexBuffer, nullptr);
@@ -204,6 +207,8 @@ void CapitalEngine::cleanup() {
                           pipelines.graphics.layout, nullptr);
 
   vkDestroyPipeline(mechanics.mainDevice.logical, pipelines.compute.engine,
+                    nullptr);
+  vkDestroyPipeline(mechanics.mainDevice.logical, pipelines.compute.postFX,
                     nullptr);
   vkDestroyPipelineLayout(mechanics.mainDevice.logical,
                           pipelines.compute.layout, nullptr);

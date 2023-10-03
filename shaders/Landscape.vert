@@ -36,18 +36,16 @@ vec4 setColor() {
     vec2 normalizedPosition = (worldPosition.xy + gridXY.xy * 0.5) / gridXY.xy;
     vec2 invNormalizedPosition = vec2(1.0) - normalizedPosition;
 
-    float blendTopLeft = max(invNormalizedPosition.x + invNormalizedPosition.y - 0.9, 0.0);
-    float blendTopRight = max(normalizedPosition.x + invNormalizedPosition.y - 0.9, 0.0);
-    float blendBottomLeft = max(invNormalizedPosition.x + normalizedPosition.y - 0.9, 0.0);
-    float blendBottomRight = max(normalizedPosition.x + normalizedPosition.y - 0.9, 0.0);
+    float blendTopLeft = max(invNormalizedPosition.x + invNormalizedPosition.y - 0.7, 0.0);
+    float blendTopRight = max(normalizedPosition.x + invNormalizedPosition.y - 0.7, 0.0);
+    float blendBottomLeft = max(invNormalizedPosition.x + normalizedPosition.y - 0.7, 0.0);
+    float blendBottomRight = max(normalizedPosition.x + normalizedPosition.y - 0.7, 0.0);
     
     vec4 color = vec4(0.0f);
-    color += vec4(0.6, 0.3, 0.0, 0.3) * blendTopRight;        // Red for top left corner
-    color += vec4(0.2, 0.7, 0.2, 0.4) * blendTopLeft;       // Yellow for top right corner
-    color += vec4(0.0, 0.8, 0.4, 0.5) * blendBottomLeft;     // Blue for bottom left corner
-    color += vec4(0.6, 0.1, 0.1, 0.4) * blendBottomRight;    // Green for bottom right corner
-
-    color *= clamp(worldPosition.z, 0.4, 2.5);
+    color += vec4(0.6, 0.3, 0.0, 0.3) * blendTopRight;       
+    color += vec4(0.2, 0.7, 0.2, 0.4) * blendTopLeft;     
+    color += vec4(0.0, 0.8, 0.4, 0.5) * blendBottomLeft;   
+    color += vec4(0.6, 0.1, 0.1, 0.4) * blendBottomRight; 
 
     vec4 waterColor = vec4(0.0, 0.5, 0.8, 1.0);
     float isBelowWater = step(worldPosition.z, waterThreshold);

@@ -276,7 +276,7 @@ VkSurfaceFormatKHR VulkanMechanics::chooseSwapSurfaceFormat(
   Log::text(Log::Style::charLeader, "Choose Swap Surface Format");
 
   for (const auto& availableFormat : availableFormats) {
-    if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB &&
+    if (availableFormat.format == VK_FORMAT_R8G8B8A8_SRGB &&
         availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
       return availableFormat;
     }
@@ -419,7 +419,8 @@ void VulkanMechanics::createSwapChain() {
       .imageColorSpace = surfaceFormat.colorSpace,
       .imageExtent = extent,
       .imageArrayLayers = 1,
-      .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+      .imageUsage =
+          VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_STORAGE_BIT,
       .preTransform = swapChainSupport.capabilities.currentTransform,
       .compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
       .presentMode = presentMode,
@@ -444,6 +445,7 @@ void VulkanMechanics::createSwapChain() {
   vkGetSwapchainImagesKHR(mainDevice.logical, swapChain.swapChain, &imageCount,
                           nullptr);
   swapChain.images.resize(imageCount);
+
   vkGetSwapchainImagesKHR(mainDevice.logical, swapChain.swapChain, &imageCount,
                           swapChain.images.data());
 
@@ -489,12 +491,16 @@ void VulkanMechanics::recreateSwapChain(Pipelines& _pipelines,
   vkDeviceWaitIdle(mainDevice.logical);
 
   cleanupSwapChain(_pipelines);
-
   createSwapChain();
   createSwapChainImageViews(_resources);
+
   _pipelines.createDepthResources(_resources);
   _pipelines.createColorResources(_resources);
   _resources.createFramebuffers(_pipelines);
+
+  _resources.createDescriptorSets();
+  uint32_t reset = 1;
+  syncObjects.currentFrame = reset;
 }
 
 void VulkanMechanics::compileShaders(const Pipelines& _pipelines) {

@@ -27,14 +27,20 @@ void Resources::setupResources(Pipelines& _pipelines) {
   createShaderStorageBuffers();
   createUniformBuffers();
 
-  createVertexBuffer(vertexBuffer, vertexBufferMemory, world.rectangleVertices);
-  createIndexBuffer(indexBuffer, indexBufferMemory, world.rectangleIndices);
+  createVertexBuffer(vertexBuffer, vertexBufferMemory,
+                     world.rectangle.uniqueVertices);
+  createIndexBuffer(indexBuffer, indexBufferMemory, world.rectangle.indices);
+
   createVertexBuffer(vertexBufferLandscape, vertexBufferMemoryLandscape,
-                     world.landscapeVertices);
+                     world.landscape.uniqueVertices);
   createIndexBuffer(indexBufferLandscape, indexBufferMemoryLandscape,
-                    world.landscapeIndices);
+                    world.landscape.indices);
+
+  createVertexBuffer(vertexBufferCube, vertexBufferMemoryCube,
+                     world.cube.allVertices);
 
   createDescriptorPool();
+  allocateDescriptorSets();
   createDescriptorSets();
 
   createCommandBuffers();
@@ -49,7 +55,8 @@ void Resources::createFramebuffers(Pipelines& _pipelines) {
   _mechanics.swapChain.framebuffers.resize(
       _mechanics.swapChain.imageViews.size());
 
-  Log::text(Log::Style::charLeader, "attachments: msaa, depth, imageView*3");
+  Log::text(Log::Style::charLeader,
+            "attachments: msaa, depth, swapChain imageViews");
   for (size_t i = 0; i < _mechanics.swapChain.imageViews.size(); i++) {
     std::vector<VkImageView> attachments{_pipelines.graphics.msaa.imageView,
                                          _pipelines.graphics.depth.imageView,
@@ -105,10 +112,10 @@ void Resources::createComputeCommandBuffers() {
 void Resources::createShaderStorageBuffers() {
   Log::text("{ 101 }", "Shader Storage Buffers");
 
-  std::vector<World::Cell> cells = world.initializeCells();
+  std::vector<World::Cell> cells = world.initializeGrid();
 
   VkDeviceSize bufferSize =
-      sizeof(World::Cell) * world.grid.XY[0] * world.grid.XY[1];
+      sizeof(World::Cell) * world.grid.size.x * world.grid.size.y;
 
   // Create a staging buffer used to upload data to the gpu
   VkBuffer stagingBuffer;
@@ -183,6 +190,11 @@ void Resources::createDescriptorSetLayout() {
        .descriptorCount = 1,
        .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
        .pImmutableSamplers = nullptr},
+      {.binding = 4,
+       .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
+       .descriptorCount = 1,
+       .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
+       .pImmutableSamplers = nullptr},
   };
 
   Log::text("{ |=| }", "Descriptor Set Layout:", layoutBindings.size(),
@@ -226,6 +238,20 @@ void Resources::createDescriptorPool() {
 
   _mechanics.result(vkCreateDescriptorPool, _mechanics.mainDevice.logical,
                     &poolInfo, nullptr, &descriptor.pool);
+}
+
+void Resources::allocateDescriptorSets() {
+  std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT,
+                                             descriptor.setLayout);
+  VkDescriptorSetAllocateInfo allocateInfo{
+      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
+      .descriptorPool = descriptor.pool,
+      .descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT),
+      .pSetLayouts = layouts.data()};
+
+  descriptor.sets.resize(MAX_FRAMES_IN_FLIGHT);
+  _mechanics.result(vkAllocateDescriptorSets, _mechanics.mainDevice.logical,
+                    &allocateInfo, descriptor.sets.data());
 }
 
 void Resources::createImage(uint32_t width,
@@ -313,15 +339,21 @@ void Resources::createTextureImage(std::string imagePath) {
               VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, image.texture,
               image.textureMemory);
 
-  transitionImageLayout(image.texture, VK_FORMAT_R8G8B8A8_SRGB,
+  VkCommandBuffer commandBuffer1 = beginSingleTimeCommands();
+  transitionImageLayout(commandBuffer1, image.texture, VK_FORMAT_R8G8B8A8_SRGB,
                         VK_IMAGE_LAYOUT_UNDEFINED,
                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+  endSingleTimeCommands(commandBuffer1);
+
   copyBufferToImage(stagingBuffer, image.texture,
                     static_cast<uint32_t>(texWidth),
                     static_cast<uint32_t>(texHeight));
-  transitionImageLayout(image.texture, VK_FORMAT_R8G8B8A8_SRGB,
+
+  VkCommandBuffer commandBuffer2 = beginSingleTimeCommands();
+  transitionImageLayout(commandBuffer2, image.texture, VK_FORMAT_R8G8B8A8_SRGB,
                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                         VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+  endSingleTimeCommands(commandBuffer2);
 
   vkDestroyBuffer(_mechanics.mainDevice.logical, stagingBuffer, nullptr);
   vkFreeMemory(_mechanics.mainDevice.logical, stagingBufferMemory, nullptr);
@@ -360,6 +392,40 @@ void Resources::createIndexBuffer(VkBuffer& buffer,
                                   VkDeviceMemory& bufferMemory,
                                   const auto& indices) {
   VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
+
+  Log::text("", indices[0], indices.size());
+
+  VkBuffer stagingBuffer;
+  VkDeviceMemory stagingBufferMemory;
+  createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+               VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                   VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+               stagingBuffer, stagingBufferMemory);
+
+  void* data;
+  vkMapMemory(_mechanics.mainDevice.logical, stagingBufferMemory, 0, bufferSize,
+              0, &data);
+  memcpy(data, indices.data(), (size_t)bufferSize);
+  vkUnmapMemory(_mechanics.mainDevice.logical, stagingBufferMemory);
+
+  createBuffer(
+      bufferSize,
+      VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, buffer, bufferMemory);
+
+  copyBuffer(stagingBuffer, buffer, bufferSize);
+
+  vkDestroyBuffer(_mechanics.mainDevice.logical, stagingBuffer, nullptr);
+  vkFreeMemory(_mechanics.mainDevice.logical, stagingBufferMemory, nullptr);
+}
+
+void Resources::createIndexBufferCube(VkBuffer& buffer,
+                                      VkDeviceMemory& bufferMemory,
+                                      const auto& indices,
+                                      std::vector<uint32_t> oneCube) {
+  VkDeviceSize bufferSize = sizeof(oneCube.size()) * indices.size();
+
+  Log::text("", indices[0], indices.size(), oneCube.size());
 
   VkBuffer stagingBuffer;
   VkDeviceMemory stagingBufferMemory;
@@ -426,13 +492,12 @@ void Resources::endSingleTimeCommands(VkCommandBuffer commandBuffer) {
                        &commandBuffer);
 }
 
-void Resources::transitionImageLayout(VkImage image,
+void Resources::transitionImageLayout(VkCommandBuffer commandBuffer,
+                                      VkImage image,
                                       VkFormat format,
                                       VkImageLayout oldLayout,
                                       VkImageLayout newLayout) {
-  Log::text("{ >>> }", "Transition Image Layout");
-
-  VkCommandBuffer commandBuffer = beginSingleTimeCommands();
+  // Log::text("{ >>> }", "Transition Image Layout");
 
   VkImageMemoryBarrier barrier{.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
                                .oldLayout = oldLayout,
@@ -453,7 +518,6 @@ void Resources::transitionImageLayout(VkImage image,
       newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
     barrier.srcAccessMask = 0;
     barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-
     sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
     destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
   } else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL &&
@@ -462,15 +526,29 @@ void Resources::transitionImageLayout(VkImage image,
     barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
     sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-    destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+    destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT |
+                       VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
   } else {
-    throw std::invalid_argument("unsupported layout transition!");
+    // throw std::invalid_argument("unsupported layout transition!");
+
+    barrier.srcAccessMask =
+        VK_ACCESS_MEMORY_WRITE_BIT;  // Every write must have finished...
+    barrier.dstAccessMask =
+        VK_ACCESS_MEMORY_READ_BIT |
+        VK_ACCESS_MEMORY_WRITE_BIT;  // ... before it is safe to read or write
+                                     // (Image Layout Transitions perform both,
+                                     // read AND write access.)
+
+    sourceStage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;  // All commands must have
+                                                       // finished...
+    destinationStage =
+        VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;  // ...before any command may
+                                             // continue. (Very heavy
+                                             // barrier.)
   }
 
   vkCmdPipelineBarrier(commandBuffer, sourceStage, destinationStage, 0, 0,
                        nullptr, 0, nullptr, 1, &barrier);
-
-  endSingleTimeCommands(commandBuffer);
 }
 
 void Resources::copyBufferToImage(VkBuffer buffer,
@@ -505,17 +583,6 @@ void Resources::createTextureImageView() {
 
 void Resources::createDescriptorSets() {
   Log::text("{ |=| }", "Descriptor Sets");
-  std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT,
-                                             descriptor.setLayout);
-  VkDescriptorSetAllocateInfo allocateInfo{
-      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-      .descriptorPool = descriptor.pool,
-      .descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT),
-      .pSetLayouts = layouts.data()};
-
-  descriptor.sets.resize(MAX_FRAMES_IN_FLIGHT);
-  _mechanics.result(vkAllocateDescriptorSets, _mechanics.mainDevice.logical,
-                    &allocateInfo, descriptor.sets.data());
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
     VkDescriptorBufferInfo uniformBufferInfo{
@@ -526,17 +593,22 @@ void Resources::createDescriptorSets() {
     VkDescriptorBufferInfo storageBufferInfoLastFrame{
         .buffer = buffers.shaderStorage[(i - 1) % MAX_FRAMES_IN_FLIGHT],
         .offset = 0,
-        .range = sizeof(World::Cell) * world.grid.XY[0] * world.grid.XY[1]};
+        .range = sizeof(World::Cell) * world.grid.size.x * world.grid.size.y};
 
     VkDescriptorBufferInfo storageBufferInfoCurrentFrame{
         .buffer = buffers.shaderStorage[i],
         .offset = 0,
-        .range = sizeof(World::Cell) * world.grid.XY[0] * world.grid.XY[1]};
+        .range = sizeof(World::Cell) * world.grid.size.x * world.grid.size.y};
 
     VkDescriptorImageInfo imageInfo{
         .sampler = image.textureSampler,
         .imageView = image.textureView,
         .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL};
+
+    VkDescriptorImageInfo swapchainImageInfo{
+        .sampler = VK_NULL_HANDLE,
+        .imageView = _mechanics.swapChain.imageViews[i],
+        .imageLayout = VK_IMAGE_LAYOUT_GENERAL};
 
     std::vector<VkWriteDescriptorSet> descriptorWrites{
         {.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
@@ -570,6 +642,14 @@ void Resources::createDescriptorSets() {
          .descriptorCount = 1,
          .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
          .pImageInfo = &imageInfo},
+
+        {.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+         .dstSet = descriptor.sets[i],
+         .dstBinding = 4,
+         .dstArrayElement = 0,
+         .descriptorCount = 1,
+         .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
+         .pImageInfo = &swapchainImageInfo},
     };
 
     vkUpdateDescriptorSets(_mechanics.mainDevice.logical,
@@ -614,10 +694,10 @@ void Resources::recordComputeCommandBuffer(VkCommandBuffer commandBuffer,
                      pushConstants.size, pushConstants.data.data());
 
   uint32_t workgroupSizeX =
-      (world.grid.XY[0] + _pipelines.compute.workGroups[0] - 1) /
+      (world.grid.size.x + _pipelines.compute.workGroups[0] - 1) /
       _pipelines.compute.workGroups[0];
   uint32_t workgroupSizeY =
-      (world.grid.XY[1] + _pipelines.compute.workGroups[1] - 1) /
+      (world.grid.size.y + _pipelines.compute.workGroups[1] - 1) /
       _pipelines.compute.workGroups[1];
 
   vkCmdDispatch(commandBuffer, workgroupSizeX, workgroupSizeY,
@@ -633,18 +713,6 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO};
 
   _mechanics.result(vkBeginCommandBuffer, commandBuffer, &beginInfo);
-
-  // VkMemoryBarrier memBarrier{
-  //     .sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER,
-  //     .pNext = nullptr,
-  //     .srcAccessMask = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
-  //     .dstAccessMask = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT};
-
-  // vkCmdPipelineBarrier(
-  //     buffers.command.graphic[_mechanics.syncObjects.currentFrame],
-  //     VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT,
-  //     VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT | VK_SHADER_STAGE_COMPUTE_BIT, 0, 1,
-  //     &memBarrier, 0, nullptr, 0, nullptr);
 
   std::vector<VkClearValue> clearValues{{.color = {{0.0f, 0.0f, 0.0f, 1.0f}}},
                                         {.depthStencil = {1.0f, 0}}};
@@ -681,11 +749,48 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                     _pipelines.graphics.cells);
   VkDeviceSize offsets[]{0};
-  vkCmdBindVertexBuffers(
-      commandBuffer, 0, 1,
-      &buffers.shaderStorage[_mechanics.syncObjects.currentFrame], offsets);
-  vkCmdDraw(commandBuffer, world.geo.cube.vertexCount,
-            world.grid.XY[0] * world.grid.XY[1], 0, 0);
+
+  VkDeviceSize offsets0[]{0, 0};
+  VkBuffer vertexBuffers0[] = {
+      buffers.shaderStorage[_mechanics.syncObjects.currentFrame],
+      vertexBufferCube};
+  vkCmdBindVertexBuffers(commandBuffer, 0, 2, vertexBuffers0, offsets0);
+  vkCmdDraw(commandBuffer, static_cast<uint32_t>(world.cube.allVertices.size()),
+            world.grid.size.x * world.grid.size.y, 0, 0);
+
+  // VkDeviceSize sharedVertexOffset = 0;  // Offset for the shared vertex
+  // buffer VkBuffer sharedVertexBuffers[] = {
+  //     buffers.shaderStorage[_mechanics.syncObjects.currentFrame]  // Binding
+  //     0
+  // };
+
+  // vkCmdBindVertexBuffers(commandBuffer, 0, 1, sharedVertexBuffers,
+  //                        &sharedVertexOffset);
+
+  // VkDeviceSize indexedVertexOffset = 0;  // Offset for the indexed vertex
+  // buffer VkBuffer indexedVertexBuffers[] = {
+  //     vertexBufferCube  // Binding 0
+  // };
+
+  // vkCmdBindVertexBuffers(commandBuffer, 1, 1, indexedVertexBuffers,
+  //                        &indexedVertexOffset);
+
+  // VkDeviceSize indexBufferOffset = 0;  // Offset for the index buffer
+  // VkIndexType indexType =
+  //     VK_INDEX_TYPE_UINT32;  // Change to the appropriate type
+
+  // vkCmdBindIndexBuffer(commandBuffer, indexBuffer, indexBufferOffset,
+  //                      indexType);
+
+  // uint32_t indexCount = world.cube.indices.size();  // Number of indices to
+  // draw uint32_t instanceCount =
+  //     world.grid.size.x * world.grid.size.y;  // Number of instances
+  // uint32_t firstIndex = 0;                  // Index of the first index to
+  // use int32_t vertexOffset = 0;    // Vertex offset (used to add to the
+  // vertex ID) uint32_t firstInstance = 0;  // First instance ID
+
+  // vkCmdDrawIndexed(commandBuffer, indexCount, instanceCount, firstIndex,
+  //                  vertexOffset, firstInstance);
 
   // Landscape
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -695,30 +800,69 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
   vkCmdBindIndexBuffer(commandBuffer, indexBufferLandscape, 0,
                        VK_INDEX_TYPE_UINT32);
   vkCmdDrawIndexed(commandBuffer,
-                   static_cast<uint32_t>(world.landscapeIndices.size()), 1, 0,
+                   static_cast<uint32_t>(world.landscape.indices.size()), 1, 0,
                    0, 0);
 
   // Landscape Wireframe
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                     _pipelines.graphics.landscapeWireframe);
   vkCmdDrawIndexed(commandBuffer,
-                   static_cast<uint32_t>(world.landscapeIndices.size()), 1, 0,
+                   static_cast<uint32_t>(world.landscape.indices.size()), 1, 0,
                    0, 0);
 
   // Pipeline 3
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                     _pipelines.graphics.water);
-  vkCmdDraw(commandBuffer, world.geo.water.vertexCount, 1, 0, 0);
+  VkBuffer vertexBuffers[] = {vertexBuffer};
+  vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+  vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+  vkCmdDrawIndexed(commandBuffer,
+                   static_cast<uint32_t>(world.rectangle.indices.size()), 1, 0,
+                   0, 0);
 
   // Pipeline 4
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                     _pipelines.graphics.texture);
-  VkBuffer vertexBuffers[] = {vertexBuffer};
-  vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
-  vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT16);
-  vkCmdDrawIndexed(commandBuffer, world.geo.texture.vertexCount, 1, 0, 0, 0);
-
+  vkCmdDrawIndexed(commandBuffer,
+                   static_cast<uint32_t>(world.rectangle.indices.size()), 1, 0,
+                   0, 0);
   vkCmdEndRenderPass(commandBuffer);
+
+  //       This is part of an image memory barrier (i.e., vkCmdPipelineBarrier
+  //       with the VkImageMemoryBarrier parameter set)
+
+  transitionImageLayout(
+      commandBuffer,
+      _mechanics.swapChain.images[_mechanics.syncObjects.currentFrame],
+      VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+      /* -> */ VK_IMAGE_LAYOUT_GENERAL);
+
+  // vkDeviceWaitIdle(_mechanics.mainDevice.logical);
+
+  vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
+                    _pipelines.compute.postFX);
+
+  vkCmdBindDescriptorSets(
+      commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, _pipelines.compute.layout,
+      0, 1, &descriptor.sets[_mechanics.syncObjects.currentFrame], 0, nullptr);
+
+  setPushConstants();
+  vkCmdPushConstants(commandBuffer, _pipelines.compute.layout,
+                     pushConstants.shaderStage, pushConstants.offset,
+                     pushConstants.size, pushConstants.data.data());
+
+  uint32_t workgroupSizeX =
+      (static_cast<uint32_t>(Window::get().display.width) + 15) / 16;
+  uint32_t workgroupSizeY =
+      (static_cast<uint32_t>(Window::get().display.height) + 15) / 16;
+
+  vkCmdDispatch(commandBuffer, workgroupSizeX, workgroupSizeY, 1);
+
+  transitionImageLayout(
+      commandBuffer,
+      _mechanics.swapChain.images[_mechanics.syncObjects.currentFrame],
+      VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_GENERAL,
+      /* -> */ VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
   _mechanics.result(vkEndCommandBuffer, commandBuffer);
 }

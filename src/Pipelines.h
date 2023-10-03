@@ -17,12 +17,15 @@ class Pipelines {
       {"Cells", {"Vert", "Frag"}},
       {"Landscape", {"Vert", "Tesc", "Tese", "Frag"}},
       {"Water", {"Vert", "Frag"}},
-      {"Texture", {"Vert", "Frag"}}};
+      {"Texture", {"Vert", "Frag"}},
+      {"PostFX", {"Comp"}}};
+
   const std::string shaderDir = "shaders/";
   std::vector<VkShaderModule> shaderModules;
 
   struct Compute {
     VkPipeline engine;
+    VkPipeline postFX;
     VkPipelineLayout layout;
     const std::array<uint32_t, 3> workGroups{32, 32, 1};
   } compute;
@@ -33,6 +36,7 @@ class Pipelines {
     VkPipeline water;
     VkPipeline texture;
     VkPipeline landscapeWireframe;
+    VkPipeline cube;
     VkPipelineLayout layout;
     VkRenderPass renderPass;
 
@@ -58,15 +62,21 @@ class Pipelines {
  private:
   void createRenderPass();
 
-  void createGraphicsPipelineCells();
-  void createGraphicsPipelineLandscape();
-  void createGraphicsPipelineLandscapeWireframe();
-  void createGraphicsPipelineWater();
-  void createGraphicsPipelineTexture();
-
-  void createComputePipelineEngine(
-      const VkDescriptorSetLayout& descriptorSetLayout,
+  void createGraphicsPipeline_Layout(
+      const Resources::DescriptorSets& _descriptorSets);
+  void createComputePipeline_Layout(
+      const Resources::DescriptorSets& _descriptorSets,
       const Resources::PushConstants& _pushConstants);
+
+  void createGraphicsPipeline_Cells();
+  void createGraphicsPipeline_Landscape();
+  void createGraphicsPipeline_LandscapeWireframe();
+  void createGraphicsPipeline_Water();
+  void createGraphicsPipeline_Texture();
+  void createGraphicsPipeline_Cube();
+
+  void createComputePipeline_Engine();
+  void createComputePipeline_PostFX();
 
   VkFormat findDepthFormat();
   bool hasStencilComponent(VkFormat format);

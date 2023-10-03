@@ -1,9 +1,6 @@
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/quaternion.hpp>
-
+#include "World.h"
 #include "CapitalEngine.h"
 #include "Terrain.h"
-#include "World.h"
 
 #include <algorithm>
 #include <cstdlib>
@@ -23,7 +20,9 @@ World::~World() {
 std::vector<VkVertexInputBindingDescription>
 World::Cell::getBindingDescription() {
   std::vector<VkVertexInputBindingDescription> bindingDescriptions{
-      {0, sizeof(Cell), VK_VERTEX_INPUT_RATE_INSTANCE}};
+      {0, sizeof(Cell), VK_VERTEX_INPUT_RATE_INSTANCE},
+      {1, sizeof(Cube::Vertex), VK_VERTEX_INPUT_RATE_VERTEX},
+  };
   return bindingDescriptions;
 }
 
@@ -31,62 +30,30 @@ std::vector<VkVertexInputAttributeDescription>
 World::Cell::getAttributeDescriptions() {
   std::vector<VkVertexInputAttributeDescription> attributeDescriptions{
       {0, 0, VK_FORMAT_R32G32B32A32_SFLOAT,
-       static_cast<uint32_t>(offsetof(Cell, position))},
-      {1, 0, VK_FORMAT_R32G32B32A32_SFLOAT,
+       static_cast<uint32_t>(offsetof(Cell, instancePosition))},
+      {1, 1, VK_FORMAT_R32G32B32A32_SFLOAT,
+       static_cast<uint32_t>(offsetof(Cube::Vertex, vertexPosition))},
+      {2, 1, VK_FORMAT_R32G32B32A32_SFLOAT,
+       static_cast<uint32_t>(offsetof(Cube::Vertex, normal))},
+      {3, 0, VK_FORMAT_R32G32B32A32_SFLOAT,
        static_cast<uint32_t>(offsetof(Cell, color))},
-      {2, 0, VK_FORMAT_R32G32B32A32_SFLOAT,
-       static_cast<uint32_t>(offsetof(Cell, size))},
-      {3, 0, VK_FORMAT_R32G32B32A32_SINT,
+      {4, 0, VK_FORMAT_R32G32B32A32_SINT,
        static_cast<uint32_t>(offsetof(Cell, states))},
-      {4, 0, VK_FORMAT_R32G32B32A32_SFLOAT,
-       static_cast<uint32_t>(offsetof(Cell, tileSidesHeight))},
-      {5, 0, VK_FORMAT_R32G32B32A32_SFLOAT,
-       static_cast<uint32_t>(offsetof(Cell, tileCornersHeight))},
-      {6, 0, VK_FORMAT_R32G32B32A32_SFLOAT,
-       static_cast<uint32_t>(offsetof(Cell, textureCoords))},
   };
   return attributeDescriptions;
-}
-
-std::vector<VkVertexInputBindingDescription>
-World::Rectangle::getBindingDescription() {
-  std::vector<VkVertexInputBindingDescription> bindingDescriptions{
-      {0, sizeof(Rectangle), VK_VERTEX_INPUT_RATE_VERTEX}};
-  return bindingDescriptions;
-}
-
-std::vector<VkVertexInputAttributeDescription>
-World::Rectangle::getAttributeDescriptions() {
-  std::vector<VkVertexInputAttributeDescription> attributeDescriptions{
-      {0, 0, VK_FORMAT_R32G32_SFLOAT,
-       static_cast<uint32_t>(offsetof(Rectangle, pos))},
-      {2, 0, VK_FORMAT_R32G32_SFLOAT,
-       static_cast<uint32_t>(offsetof(Rectangle, texCoord))}};
-  return attributeDescriptions;
-}
-
-std::vector<VkVertexInputBindingDescription>
-World::Landscape::getBindingDescription() {
-  std::vector<VkVertexInputBindingDescription> bindingDescriptions{
-      {0, sizeof(Landscape), VK_VERTEX_INPUT_RATE_VERTEX}};
-  return bindingDescriptions;
 }
 
 std::vector<VkVertexInputAttributeDescription>
 World::Landscape::getAttributeDescriptions() {
   std::vector<VkVertexInputAttributeDescription> attributeDescriptions{
-      {0, 0, VK_FORMAT_R32G32B32A32_SFLOAT,
-       static_cast<uint32_t>(offsetof(Landscape, position))}};
+      {0, 0, VK_FORMAT_R32G32B32_SFLOAT,
+       static_cast<uint32_t>(offsetof(Landscape::Vertex, vertexPosition))}};
   return attributeDescriptions;
 }
 
-std::vector<World::Cell> World::initializeCells() {
-  const uint_fast16_t width{grid.XY[0]};
-  const uint_fast16_t height{grid.XY[1]};
-  const uint_fast32_t numGridPoints{width * height};
-  const uint_fast32_t numAliveCells{grid.cellsAlive};
-  const float gap{0.6f};
-  std::array<float, 4> size{geo.cube.size};
+std::vector<World::Cell> World::initializeGrid() {
+  const uint_fast32_t numGridPoints{grid.size.x * grid.size.y};
+  const uint_fast32_t numAliveCells{grid.initialAliveCells};
 
   if (numAliveCells > numGridPoints) {
     throw std::runtime_error(
@@ -96,43 +63,34 @@ std::vector<World::Cell> World::initializeCells() {
 
   std::vector<World::Cell> cells(numGridPoints);
   std::vector<bool> isAliveIndices(numGridPoints, false);
+  std::vector<float> landscapeHeight = generateLandscapeHeight();
+  std::vector<uint32_t> tempIndices(numGridPoints);
 
   std::vector<uint_fast32_t> aliveCellIndices =
-      setCellsAliveRandomly(grid.cellsAlive);
+      setCellsAliveRandomly(grid.initialAliveCells);
   for (int aliveIndex : aliveCellIndices) {
     isAliveIndices[aliveIndex] = true;
   }
 
-  std::vector<float> landscapeHeight = generateLandscapeHeight();
-
-  const std::array<float, 4> sidesHeight = {0.0f, 0.0f, 0.0f, 0.0f};
-  const std::array<float, 4> cornersHeight = {0.0f, 0.0f, 0.0f, 0.0f};
-
-  float startX = -((width - 1) * gap) / 2.0f;
-  float startY = -((height - 1) * gap) / 2.0f;
-
-  std::vector<uint32_t> tempIndices;
-
+  float startX = (grid.size.x - 1) / -2.0f;
+  float startY = (grid.size.y - 1) / -2.0f;
   for (uint_fast32_t i = 0; i < numGridPoints; ++i) {
-    const uint_fast16_t x = static_cast<uint_fast16_t>(i % width);
-    const uint_fast16_t y = static_cast<uint_fast16_t>(i / width);
-    const float posX = startX + x * gap;
-    const float posY = startY + y * gap;
-
-    const std::array<float, 4> pos = {posX, posY, landscapeHeight[i], 1.0f};
+    const uint_fast16_t x = static_cast<uint_fast16_t>(i % grid.size.x);
+    const uint_fast16_t y = static_cast<uint_fast16_t>(i / grid.size.x);
+    const float posX = startX + x;
+    const float posY = startY + y;
     const bool isAlive = isAliveIndices[i];
 
-    const std::array<float, 4>& color = isAlive ? blue : red;
-    const std::array<int, 4>& state = isAlive ? alive : dead;
+    cells[i].instancePosition = {posX, posY, landscapeHeight[i],
+                                 isAlive ? cube.size : 0.0f};
+    cells[i].color = isAlive ? blue : red;
+    cells[i].states = isAlive ? alive : dead;
 
-    cells[i] = {pos, color, size, state, sidesHeight, cornersHeight};
-
-    tempIndices.push_back(i);
-    landscapeVertices.push_back({pos});
+    tempIndices[i] = i;
+    landscape.addVertexPosition(glm::vec3(posX, posY, landscapeHeight[i]));
   }
-
-  landscapeIndices =
-      Lib::createGridPolygons(tempIndices, static_cast<int>(grid.XY[0]));
+  landscape.indices =
+      Lib::createGridPolygons(tempIndices, static_cast<int>(grid.size.x));
 
   return cells;
 }
@@ -144,8 +102,8 @@ std::vector<uint_fast32_t> World::setCellsAliveRandomly(
 
   std::random_device random;
   std::mt19937 generate(random());
-  std::uniform_int_distribution<int> distribution(0,
-                                                  grid.XY[0] * grid.XY[1] - 1);
+  std::uniform_int_distribution<int> distribution(
+      0, grid.size.x * grid.size.y - 1);
 
   while (CellIDs.size() < numberOfCells) {
     int CellID = distribution(generate);
@@ -157,14 +115,14 @@ std::vector<uint_fast32_t> World::setCellsAliveRandomly(
   return CellIDs;
 }
 
-bool World::isIndexAlive(const std::vector<int>& aliveCells, int index) {
+bool World::isCellIndexAlive(const std::vector<int>& aliveCells, int index) {
   return std::find(aliveCells.begin(), aliveCells.end(), index) !=
          aliveCells.end();
 }
 
 std::vector<float> World::generateLandscapeHeight() {
-  Terrain::Config terrainLayer1 = {.width = grid.XY[0],
-                                   .height = grid.XY[1],
+  Terrain::Config terrainLayer1 = {.width = grid.size.x,
+                                   .height = grid.size.y,
                                    .roughness = 0.4f,
                                    .octaves = 10,
                                    .scale = 1.1f,
@@ -174,8 +132,8 @@ std::vector<float> World::generateLandscapeHeight() {
                                    .heightOffset = 0.0f};
   Terrain terrain(terrainLayer1);
 
-  Terrain::Config terrainLayer2 = {.width = grid.XY[0],
-                                   .height = grid.XY[1],
+  Terrain::Config terrainLayer2 = {.width = grid.size.x,
+                                   .height = grid.size.y,
                                    .roughness = 1.0f,
                                    .octaves = 10,
                                    .scale = 1.1f,
@@ -200,10 +158,10 @@ std::vector<float> World::generateLandscapeHeight() {
 World::UniformBufferObject World::updateUniforms(VkExtent2D& _swapChainExtent) {
   UniformBufferObject uniformObject{
       .light = light.position,
-      .gridXY = {static_cast<uint32_t>(grid.XY[0]),
-                 static_cast<uint32_t>(grid.XY[1])},
+      .gridXY = {static_cast<uint32_t>(grid.size.x),
+                 static_cast<uint32_t>(grid.size.y)},
       .waterThreshold = 0.1f,
-      .cellSize = geo.cube.size,
+      .cellSize = cube.size,
       .model = setModel(),
       .view = setView(),
       .projection = setProjection(_swapChainExtent)};
