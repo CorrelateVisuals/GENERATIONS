@@ -35,30 +35,30 @@ class Geometry {
              normal == other.normal;
     }
   };
-  std::string model;
-  std::string modelPath;
-  std::vector<Vertex> vertices;
+  std::vector<Vertex> allVertices;
+  std::vector<Vertex> uniqueVertices;
   std::vector<uint32_t> indices;
 
-  Geometry(const std::string& modelName = "") : model(modelName) {
-    modelPath = Lib::path("assets/3D/" + model + ".obj");
+  Geometry(const std::string& modelName = "") {
+    if (!modelName.empty()) {
+      std::string modelPath = Lib::path("assets/3D/" + modelName + ".obj");
+
+      loadModel(modelPath, allVertices, uniqueVertices, indices,
+                ORIENTATION_ORDER{ROTATE_SCALE_TRANSLATE},
+                glm::vec3(90.0f, 180.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f),
+                1.0f);
+    }
   }
   ~Geometry() = default;
 
   void addVertexPosition(const glm::vec3& position) {
-    vertices.push_back({glm::vec3(0.0f), position});
+    uniqueVertices.push_back({glm::vec3(0.0f), position});
   }
 
   static void loadModel(const std::string& modelPath,
-                        std::vector<Geometry::Vertex>& vertices,
+                        std::vector<Geometry::Vertex>& allVertices,
+                        std::vector<Geometry::Vertex>& uniqueVertices,
                         std::vector<uint32_t>& indices,
-                        ORIENTATION_ORDER order,
-                        const glm::vec3& rotate,
-                        const glm::vec3& translate,
-                        float geoSize);
-
-  static void loadModel(const std::string& modelPath,
-                        std::vector<Geometry::Vertex>& vertices,
                         ORIENTATION_ORDER order,
                         const glm::vec3& rotate,
                         const glm::vec3& translate,

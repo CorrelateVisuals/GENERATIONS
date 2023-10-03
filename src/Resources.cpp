@@ -23,30 +23,27 @@ void Resources::setupResources(Pipelines& _pipelines) {
   createTextureImageView();
   createTextureSampler();
 
-  Geometry::loadModel(
-      world.rectangle.modelPath, world.rectangle.vertices,
-      world.rectangle.indices, ORIENTATION_ORDER{ROTATE_SCALE_TRANSLATE},
-      glm::vec3(90.0f, 180.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), 1.0f);
-  Geometry::loadModel(world.cube.modelPath, world.cube.vertices,
-                      ORIENTATION_ORDER{ROTATE_SCALE_TRANSLATE},
-                      glm::vec3(90.0f, 180.0f, 0.0f),
-                      glm::vec3(0.0f, 0.0f, 0.0f), 1.0f);
+  // Geometry::loadModel(Lib::path("assets/3D/Cube.obj"),
+  // world.cube.allVertices,
+  //                     ORIENTATION_ORDER{ROTATE_SCALE_TRANSLATE},
+  //                     glm::vec3(90.0f, 180.0f, 0.0f),
+  //                     glm::vec3(0.0f, 0.0f, 0.0f), 1.0f);
 
   createFramebuffers(_pipelines);
   createShaderStorageBuffers();
   createUniformBuffers();
 
   createVertexBuffer(vertexBuffer, vertexBufferMemory,
-                     world.rectangle.vertices);
+                     world.rectangle.uniqueVertices);
   createIndexBuffer(indexBuffer, indexBufferMemory, world.rectangle.indices);
 
   createVertexBuffer(vertexBufferLandscape, vertexBufferMemoryLandscape,
-                     world.landscape.vertices);
+                     world.landscape.uniqueVertices);
   createIndexBuffer(indexBufferLandscape, indexBufferMemoryLandscape,
                     world.landscape.indices);
 
   createVertexBuffer(vertexBufferCube, vertexBufferMemoryCube,
-                     world.cube.vertices);
+                     world.cube.allVertices);
 
   createDescriptorPool();
   allocateDescriptorSets();
@@ -764,7 +761,7 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
       buffers.shaderStorage[_mechanics.syncObjects.currentFrame],
       vertexBufferCube};
   vkCmdBindVertexBuffers(commandBuffer, 0, 2, vertexBuffers0, offsets0);
-  vkCmdDraw(commandBuffer, static_cast<uint32_t>(world.cube.vertices.size()),
+  vkCmdDraw(commandBuffer, static_cast<uint32_t>(world.cube.allVertices.size()),
             world.grid.size.x * world.grid.size.y, 0, 0);
 
   // VkDeviceSize sharedVertexOffset = 0;  // Offset for the shared vertex

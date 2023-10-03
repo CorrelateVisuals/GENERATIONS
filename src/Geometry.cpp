@@ -36,9 +36,10 @@ struct std::hash<Geometry::Vertex> {
 };
 
 void Geometry::loadModel(const std::string& modelPath,
-                         std::vector<Geometry::Vertex>& vertices,
+                         std::vector<Geometry::Vertex>& allVertices,
+                         std::vector<Geometry::Vertex>& uniqueVertices,
                          std::vector<uint32_t>& indices,
-    ORIENTATION_ORDER order,
+                         ORIENTATION_ORDER order,
                          const glm::vec3& rotate,
                          const glm::vec3& translate,
                          float geoSize) {
@@ -48,54 +49,9 @@ void Geometry::loadModel(const std::string& modelPath,
   std::string warn, err;
 
   if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err,
-                        modelPath.c_str())) {
+                        modelPath.c_str(), nullptr)) {
     throw std::runtime_error(warn + err);
   }
-
-  std::unordered_map<Geometry::Vertex, uint32_t> uniqueVertices{};
-
-  for (const auto& shape : shapes) {
-    for (const auto& index : shape.mesh.indices) {
-      Geometry::Vertex vertex{};
-
-      vertex.vertexPosition = {attrib.vertices[3 * index.vertex_index + 0],
-                               attrib.vertices[3 * index.vertex_index + 1],
-                               attrib.vertices[3 * index.vertex_index + 2]};
-
-      vertex.textureCoordinates = {
-          attrib.texcoords[2 * index.texcoord_index + 0],
-          1.0f - attrib.texcoords[2 * index.texcoord_index + 1]};
-
-      vertex.color = {1.0f, 1.0f, 1.0f};
-
-      if (uniqueVertices.count(vertex) == 0) {
-        uniqueVertices[vertex] = static_cast<uint32_t>(vertices.size());
-
-        vertices.push_back(vertex);
-      }
-      indices.push_back(uniqueVertices[vertex]);
-    }
-  }
-  Geometry::transformModel(vertices, ORIENTATION_ORDER{ROTATE_SCALE_TRANSLATE},
-                           rotate, translate, geoSize);
-}
-
-void Geometry::loadModel(const std::string& modelPath,
-                         std::vector<Geometry::Vertex>& vertices,
-    ORIENTATION_ORDER order,
-                         const glm::vec3& rotate,
-                         const glm::vec3& translate,
-                         float geoSize) {
-  tinyobj::attrib_t attrib;
-  std::vector<tinyobj::shape_t> shapes;
-  std::vector<tinyobj::material_t> materials;
-
-  std::string warn;
-  std::string err;
-
-  tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, modelPath.c_str(),
-                   nullptr);
-
   if (!warn.empty()) {
     std::cout << "WARN: " << warn << std::endl;
   }
@@ -104,39 +60,37 @@ void Geometry::loadModel(const std::string& modelPath,
     return;
   }
 
-  for (size_t s = 0; s < shapes.size(); s++) {
-    size_t index_offset = 0;
-    for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++) {
-      int fv = 3;
-      for (size_t v = 0; v < fv; v++) {
-        tinyobj::index_t idx = shapes[s].mesh.indices[index_offset + v];
+  std::unordered_map<Geometry::Vertex, uint32_t> tempUniqueVertices{};
+  int idx = 0;
+  for (const auto& shape : shapes) {
+    for (const auto& index : shape.mesh.indices) {
+      Geometry::Vertex vertex{};
 
-        tinyobj::real_t vx = attrib.vertices[3 * idx.vertex_index + 0];
-        tinyobj::real_t vy = attrib.vertices[3 * idx.vertex_index + 1];
-        tinyobj::real_t vz = attrib.vertices[3 * idx.vertex_index + 2];
-        tinyobj::real_t nx = attrib.normals[3 * idx.normal_index + 0];
-        tinyobj::real_t ny = attrib.normals[3 * idx.normal_index + 1];
-        tinyobj::real_t nz = attrib.normals[3 * idx.normal_index + 2];
+      vertex.vertexPosition = {attrib.vertices[3 * index.vertex_index + 0],
+                               attrib.vertices[3 * index.vertex_index + 1],
+                               attrib.vertices[3 * index.vertex_index + 2]};
 
-        Geometry::Vertex new_vert;
-        new_vert.vertexPosition.x = vx;
-        new_vert.vertexPosition.y = vy;
-        new_vert.vertexPosition.z = vz;
+      vertex.normal = {attrib.normals[3 * index.normal_index + 0],
+                       attrib.normals[3 * index.normal_index + 1],
+                       attrib.normals[3 * index.normal_index + 2]};
 
-        new_vert.normal.x = nx;
-        new_vert.normal.y = ny;
-        new_vert.normal.z = nz;
+      vertex.textureCoordinates = {
+          attrib.texcoords[2 * index.texcoord_index + 0],
+          1.0f - attrib.texcoords[2 * index.texcoord_index + 1]};
 
-        new_vert.color = new_vert.normal;
+      vertex.color = {1.0f, 1.0f, 1.0f};
 
-        vertices.push_back(new_vert);
+      if (tempUniqueVertices.count(vertex) == 0) {
+        tempUniqueVertices[vertex] =
+            static_cast<uint32_t>(uniqueVertices.size());
+        uniqueVertices.push_back(vertex);
       }
-      index_offset += fv;
+      allVertices.push_back(vertex);
+      indices.push_back(tempUniqueVertices[vertex]);
     }
   }
-  Geometry::transformModel(vertices, ORIENTATION_ORDER{ ROTATE_SCALE_TRANSLATE },
-      rotate, translate, geoSize);
-  return;
+  transformModel(uniqueVertices, order, rotate, translate, geoSize);
+  transformModel(allVertices, order, rotate, translate, geoSize);
 }
 
 void Geometry::transformModel(auto& vertices,
