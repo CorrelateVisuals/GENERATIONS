@@ -419,41 +419,10 @@ void Resources::createIndexBuffer(VkBuffer& buffer,
   vkFreeMemory(_mechanics.mainDevice.logical, stagingBufferMemory, nullptr);
 }
 
-void Resources::createIndexBufferCube(VkBuffer& buffer,
-                                      VkDeviceMemory& bufferMemory,
-                                      const auto& indices,
-                                      std::vector<uint32_t> oneCube) {
-  VkDeviceSize bufferSize = sizeof(oneCube.size()) * indices.size();
-
-  Log::text("", indices[0], indices.size(), oneCube.size());
-
-  VkBuffer stagingBuffer;
-  VkDeviceMemory stagingBufferMemory;
-  createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-               VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                   VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-               stagingBuffer, stagingBufferMemory);
-
-  void* data;
-  vkMapMemory(_mechanics.mainDevice.logical, stagingBufferMemory, 0, bufferSize,
-              0, &data);
-  memcpy(data, indices.data(), (size_t)bufferSize);
-  vkUnmapMemory(_mechanics.mainDevice.logical, stagingBufferMemory);
-
-  createBuffer(
-      bufferSize,
-      VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, buffer, bufferMemory);
-
-  copyBuffer(stagingBuffer, buffer, bufferSize);
-
-  vkDestroyBuffer(_mechanics.mainDevice.logical, stagingBuffer, nullptr);
-  vkFreeMemory(_mechanics.mainDevice.logical, stagingBufferMemory, nullptr);
-}
-
 void Resources::setPushConstants() {
   pushConstants.data = {world.time.passedHours};
 }
+
 VkCommandBuffer Resources::beginSingleTimeCommands() {
   Log::text("{ 1.. }", "Begin Single Time Commands");
 
