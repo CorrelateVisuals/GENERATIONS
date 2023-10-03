@@ -102,10 +102,6 @@ class Resources {
   void createIndexBuffer(VkBuffer& buffer,
                          VkDeviceMemory& bufferMemory,
                          const auto& indices);
-  void createIndexBufferCube(VkBuffer& buffer,
-                             VkDeviceMemory& bufferMemory,
-                             const auto& indices,
-                             std::vector<uint32_t> oneCube);
 
   void setPushConstants();
   VkCommandBuffer beginSingleTimeCommands();
