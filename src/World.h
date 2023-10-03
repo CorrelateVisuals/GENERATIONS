@@ -20,6 +20,11 @@ class World {
     vec2_uint_fast16_t size = {100, 50};
   } grid;
 
+  struct Landscape : Geometry {
+    static std::vector<VkVertexInputAttributeDescription>
+    getAttributeDescriptions();
+  } landscape;
+
   struct Rectangle : Geometry {
     Rectangle() : Geometry("Rectangle"){};
   } rectangle;
@@ -28,11 +33,6 @@ class World {
     Cube() : Geometry("Cube"){};
     const float size = 0.2f;
   } cube;
-
-  struct Landscape : Geometry {
-    static std::vector<VkVertexInputAttributeDescription>
-    getAttributeDescriptions();
-  } landscape;
 
   struct Cell {
     glm::vec4 instancePosition;
