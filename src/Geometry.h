@@ -18,6 +18,9 @@ const enum ORIENTATION_ORDER { ROTATE_SCALE_TRANSLATE, ROTATE_TRANSLATE_SCALE };
 
 class Geometry {
  public:
+  Geometry(const std::string& modelName = "");
+  ~Geometry() = default;
+
   struct Vertex {
     glm::vec3 instancePosition;
     glm::vec3 vertexPosition;
@@ -38,9 +41,6 @@ class Geometry {
   std::vector<Vertex> allVertices;
   std::vector<Vertex> uniqueVertices;
   std::vector<uint32_t> indices;
-
-  Geometry(const std::string& modelName = "");
-  ~Geometry() = default;
 
   void addVertexPosition(const glm::vec3& position);
   static std::vector<uint32_t> createGridPolygons(

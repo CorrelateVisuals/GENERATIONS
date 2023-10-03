@@ -20,18 +20,18 @@ class World {
     vec2_uint_fast16_t size = {100, 100};
   } grid;
 
-  struct Landscape : Geometry {
+  struct Landscape : public Geometry {
     static std::vector<VkVertexInputAttributeDescription>
     getAttributeDescriptions();
   } landscape;
 
-  struct Rectangle : Geometry {
+  struct Rectangle : public Geometry {
     Rectangle() : Geometry("Rectangle"){};
   } rectangle;
 
-  struct Cube : Geometry {
-    Cube() : Geometry("Cube"){};
-    const float size = 0.2f;
+  struct Cube : public Geometry {
+    Cube() : Geometry("Sphere"){};
+    const float size = 0.5f;
   } cube;
 
   struct Cell {
