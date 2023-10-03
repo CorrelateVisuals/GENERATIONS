@@ -35,14 +35,21 @@ struct std::hash<Geometry::Vertex> {
   }
 };
 
-void Geometry::loadModel(const std::string& modelName,
-                         std::vector<Geometry::Vertex>& allVertices,
-                         std::vector<Geometry::Vertex>& uniqueVertices,
-                         std::vector<uint32_t>& indices,
-                         ORIENTATION_ORDER order,
-                         const glm::vec3& rotate,
-                         const glm::vec3& translate,
-                         float geoSize) {
+Geometry::Geometry(const std::string& modelName) {
+  if (!modelName.empty()) {
+    loadModel(modelName, *this);
+    transformModel(allVertices, ORIENTATION_ORDER{ROTATE_SCALE_TRANSLATE},
+                   glm::vec3(90.0f, 180.0f, 0.0f));
+    transformModel(uniqueVertices, ORIENTATION_ORDER{ROTATE_SCALE_TRANSLATE},
+                   glm::vec3(90.0f, 180.0f, 0.0f));
+  }
+}
+
+void Geometry::addVertexPosition(const glm::vec3& position) {
+  uniqueVertices.push_back({glm::vec3(0.0f), position});
+}
+
+void Geometry::loadModel(const std::string& modelName, Geometry& geometry) {
   std::string baseDir = Lib::path("assets/3D/");
   std::string modelPath = baseDir + modelName + ".obj";
 
@@ -85,15 +92,13 @@ void Geometry::loadModel(const std::string& modelName,
 
       if (tempUniqueVertices.count(vertex) == 0) {
         tempUniqueVertices[vertex] =
-            static_cast<uint32_t>(uniqueVertices.size());
-        uniqueVertices.push_back(vertex);
+            static_cast<uint32_t>(geometry.uniqueVertices.size());
+        geometry.uniqueVertices.push_back(vertex);
       }
-      allVertices.push_back(vertex);
-      indices.push_back(tempUniqueVertices[vertex]);
+      geometry.allVertices.push_back(vertex);
+      geometry.indices.push_back(tempUniqueVertices[vertex]);
     }
   }
-  transformModel(uniqueVertices, order, rotate, translate, geoSize);
-  transformModel(allVertices, order, rotate, translate, geoSize);
 }
 
 void Geometry::transformModel(std::vector<Vertex>& vertices,

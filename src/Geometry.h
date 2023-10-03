@@ -39,33 +39,16 @@ class Geometry {
   std::vector<Vertex> uniqueVertices;
   std::vector<uint32_t> indices;
 
-  Geometry(const std::string& modelName = "") {
-    if (!modelName.empty()) {
-      loadModel(modelName, allVertices, uniqueVertices, indices,
-                ORIENTATION_ORDER{ROTATE_SCALE_TRANSLATE},
-                glm::vec3(90.0f, 180.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f),
-                1.0f);
-    }
-  }
+  Geometry(const std::string& modelName = "");
   ~Geometry() = default;
 
-  void addVertexPosition(const glm::vec3& position) {
-    uniqueVertices.push_back({glm::vec3(0.0f), position});
-  }
-
-  static void loadModel(const std::string& modelName,
-                        std::vector<Geometry::Vertex>& allVertices,
-                        std::vector<Geometry::Vertex>& uniqueVertices,
-                        std::vector<uint32_t>& indices,
-                        ORIENTATION_ORDER order,
-                        const glm::vec3& rotate,
-                        const glm::vec3& translate,
-                        float geoSize);
+  void addVertexPosition(const glm::vec3& position);
 
  private:
-  static void transformModel(std::vector<Vertex>& vertices,
-                             ORIENTATION_ORDER order,
-                             const glm::vec3& degrees,
-                             const glm::vec3& translationDistance,
-                             float scale);
+  void loadModel(const std::string& modelName, Geometry& geometry);
+  void transformModel(std::vector<Vertex>& vertices,
+                      ORIENTATION_ORDER order,
+                      const glm::vec3& degrees = glm::vec3(0.0f),
+                      const glm::vec3& translationDistance = glm::vec3(0.0f),
+                      float scale = 1.0f);
 };
