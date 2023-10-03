@@ -23,12 +23,6 @@ void Resources::setupResources(Pipelines& _pipelines) {
   createTextureImageView();
   createTextureSampler();
 
-  // Geometry::loadModel(Lib::path("assets/3D/Cube.obj"),
-  // world.cube.allVertices,
-  //                     ORIENTATION_ORDER{ROTATE_SCALE_TRANSLATE},
-  //                     glm::vec3(90.0f, 180.0f, 0.0f),
-  //                     glm::vec3(0.0f, 0.0f, 0.0f), 1.0f);
-
   createFramebuffers(_pipelines);
   createShaderStorageBuffers();
   createUniformBuffers();

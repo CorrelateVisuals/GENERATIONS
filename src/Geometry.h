@@ -41,9 +41,7 @@ class Geometry {
 
   Geometry(const std::string& modelName = "") {
     if (!modelName.empty()) {
-      std::string modelPath = Lib::path("assets/3D/" + modelName + ".obj");
-
-      loadModel(modelPath, allVertices, uniqueVertices, indices,
+      loadModel(modelName, allVertices, uniqueVertices, indices,
                 ORIENTATION_ORDER{ROTATE_SCALE_TRANSLATE},
                 glm::vec3(90.0f, 180.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f),
                 1.0f);
@@ -55,7 +53,7 @@ class Geometry {
     uniqueVertices.push_back({glm::vec3(0.0f), position});
   }
 
-  static void loadModel(const std::string& modelPath,
+  static void loadModel(const std::string& modelName,
                         std::vector<Geometry::Vertex>& allVertices,
                         std::vector<Geometry::Vertex>& uniqueVertices,
                         std::vector<uint32_t>& indices,
@@ -65,7 +63,7 @@ class Geometry {
                         float geoSize);
 
  private:
-  static void transformModel(auto& vertices,
+  static void transformModel(std::vector<Vertex>& vertices,
                              ORIENTATION_ORDER order,
                              const glm::vec3& degrees,
                              const glm::vec3& translationDistance,

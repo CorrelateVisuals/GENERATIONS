@@ -35,7 +35,7 @@ struct std::hash<Geometry::Vertex> {
   }
 };
 
-void Geometry::loadModel(const std::string& modelPath,
+void Geometry::loadModel(const std::string& modelName,
                          std::vector<Geometry::Vertex>& allVertices,
                          std::vector<Geometry::Vertex>& uniqueVertices,
                          std::vector<uint32_t>& indices,
@@ -43,13 +43,16 @@ void Geometry::loadModel(const std::string& modelPath,
                          const glm::vec3& rotate,
                          const glm::vec3& translate,
                          float geoSize) {
+  std::string baseDir = Lib::path("assets/3D/");
+  std::string modelPath = baseDir + modelName + ".obj";
+
   tinyobj::attrib_t attrib;
   std::vector<tinyobj::shape_t> shapes;
   std::vector<tinyobj::material_t> materials;
   std::string warn, err;
 
   if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err,
-                        modelPath.c_str(), nullptr)) {
+                        modelPath.c_str(), baseDir.c_str())) {
     throw std::runtime_error(warn + err);
   }
   if (!warn.empty()) {
@@ -60,8 +63,8 @@ void Geometry::loadModel(const std::string& modelPath,
     return;
   }
 
-  std::unordered_map<Geometry::Vertex, uint32_t> tempUniqueVertices{};
-  int idx = 0;
+  std::unordered_map<Geometry::Vertex, uint32_t> tempUniqueVertices;
+
   for (const auto& shape : shapes) {
     for (const auto& index : shape.mesh.indices) {
       Geometry::Vertex vertex{};
@@ -93,7 +96,7 @@ void Geometry::loadModel(const std::string& modelPath,
   transformModel(allVertices, order, rotate, translate, geoSize);
 }
 
-void Geometry::transformModel(auto& vertices,
+void Geometry::transformModel(std::vector<Vertex>& vertices,
                               ORIENTATION_ORDER order,
                               const glm::vec3& degrees,
                               const glm::vec3& translationDistance,
@@ -114,12 +117,18 @@ void Geometry::transformModel(auto& vertices,
             glm::vec3(rotationMatrix * glm::vec4(vertex.vertexPosition, 1.0f));
         vertex.vertexPosition *= scale;
         vertex.vertexPosition = vertex.vertexPosition + translationDistance;
+
+        vertex.normal =
+            glm::vec3(rotationMatrix * glm::vec4(vertex.normal, 1.0f));
         break;
       case ORIENTATION_ORDER::ROTATE_TRANSLATE_SCALE:
         vertex.vertexPosition =
             glm::vec3(rotationMatrix * glm::vec4(vertex.vertexPosition, 1.0f));
         vertex.vertexPosition = vertex.vertexPosition + translationDistance;
         vertex.vertexPosition *= scale;
+
+        vertex.normal =
+            glm::vec3(rotationMatrix * glm::vec4(vertex.normal, 1.0f));
         break;
     }
   }
