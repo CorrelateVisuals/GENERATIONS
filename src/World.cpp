@@ -90,7 +90,7 @@ std::vector<World::Cell> World::initializeGrid() {
     landscape.addVertexPosition(glm::vec3(posX, posY, landscapeHeight[i]));
   }
   landscape.indices =
-      Lib::createGridPolygons(tempIndices, static_cast<int>(grid.size.x));
+      Geometry::createGridPolygons(tempIndices, static_cast<int>(grid.size.x));
 
   return cells;
 }

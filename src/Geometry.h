@@ -43,6 +43,9 @@ class Geometry {
   ~Geometry() = default;
 
   void addVertexPosition(const glm::vec3& position);
+  static std::vector<uint32_t> createGridPolygons(
+      const std::vector<uint32_t>& vertices,
+      uint32_t gridWidth);
 
  private:
   void loadModel(const std::string& modelName, Geometry& geometry);

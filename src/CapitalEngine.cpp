@@ -29,6 +29,7 @@ void CapitalEngine::mainLoop() {
     Window::get().setMouse();
     resources.world.time.run();
 
+    vkDeviceWaitIdle(mechanics.mainDevice.logical);
     drawFrame();
 
     if (glfwGetKey(Window::get().window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
