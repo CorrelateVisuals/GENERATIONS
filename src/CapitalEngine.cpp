@@ -173,26 +173,26 @@ void CapitalEngine::cleanup() {
   vkFreeMemory(mechanics.mainDevice.logical, resources.image.textureMemory,
                nullptr);
 
-  vkFreeMemory(mechanics.mainDevice.logical, resources.vertexBufferMemoryCube,
-               nullptr);
-  vkFreeMemory(mechanics.mainDevice.logical, resources.vertexBufferMemory,
-               nullptr);
-  vkFreeMemory(mechanics.mainDevice.logical, resources.indexBufferMemory,
-               nullptr);
-  vkFreeMemory(mechanics.mainDevice.logical,
-               resources.vertexBufferMemoryLandscape, nullptr);
-  vkFreeMemory(mechanics.mainDevice.logical,
-               resources.indexBufferMemoryLandscape, nullptr);
+  //vkFreeMemory(mechanics.mainDevice.logical, resources.vertexBufferMemoryCube,
+  //             nullptr);
+  //vkFreeMemory(mechanics.mainDevice.logical, resources.vertexBufferMemory,
+  //             nullptr);
+  //vkFreeMemory(mechanics.mainDevice.logical, resources.indexBufferMemory,
+  //             nullptr);
+  //vkFreeMemory(mechanics.mainDevice.logical,
+  //             resources.vertexBufferMemoryLandscape, nullptr);
+  //vkFreeMemory(mechanics.mainDevice.logical,
+  //             resources.indexBufferMemoryLandscape, nullptr);
 
-  vkDestroyBuffer(mechanics.mainDevice.logical, resources.vertexBufferCube,
-                  nullptr);
-  vkDestroyBuffer(mechanics.mainDevice.logical, resources.vertexBuffer,
-                  nullptr);
-  vkDestroyBuffer(mechanics.mainDevice.logical, resources.indexBuffer, nullptr);
-  vkDestroyBuffer(mechanics.mainDevice.logical, resources.vertexBufferLandscape,
-                  nullptr);
-  vkDestroyBuffer(mechanics.mainDevice.logical, resources.indexBufferLandscape,
-                  nullptr);
+  //vkDestroyBuffer(mechanics.mainDevice.logical, resources.vertexBufferCube,
+  //                nullptr);
+  //vkDestroyBuffer(mechanics.mainDevice.logical, resources.vertexBuffer,
+  //                nullptr);
+  //vkDestroyBuffer(mechanics.mainDevice.logical, resources.indexBuffer, nullptr);
+  //vkDestroyBuffer(mechanics.mainDevice.logical, resources.vertexBufferLandscape,
+  //                nullptr);
+  //vkDestroyBuffer(mechanics.mainDevice.logical, resources.indexBufferLandscape,
+  //                nullptr);
 
   vkDestroyPipeline(mechanics.mainDevice.logical, pipelines.graphics.cells,
                     nullptr);

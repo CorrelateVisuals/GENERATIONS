@@ -21,6 +21,11 @@ class Geometry {
   Geometry(const std::string& modelName = "");
   ~Geometry() = default;
 
+  VkBuffer vertexBuffer;
+  VkDeviceMemory vertexBufferMemory;
+  VkBuffer indexBuffer;
+  VkDeviceMemory indexBufferMemory;
+
   struct Vertex {
     glm::vec3 instancePosition;
     glm::vec3 vertexPosition;

@@ -20,18 +20,10 @@ class Resources {
 
   static World world;
 
-  VkBuffer vertexBuffer;
-  VkDeviceMemory vertexBufferMemory;
-  VkBuffer indexBuffer;
-  VkDeviceMemory indexBufferMemory;
-
-  VkBuffer vertexBufferLandscape;
-  VkDeviceMemory vertexBufferMemoryLandscape;
-  VkBuffer indexBufferLandscape;
-  VkDeviceMemory indexBufferMemoryLandscape;
-
-  VkBuffer vertexBufferCube;
-  VkDeviceMemory vertexBufferMemoryCube;
+  const std::unordered_map<Geometry*, VkVertexInputRate> vertexBuffers = {
+    {&world.landscape, VK_VERTEX_INPUT_RATE_INSTANCE},
+    {&world.rectangle, VK_VERTEX_INPUT_RATE_INSTANCE},
+    {&world.cube, VK_VERTEX_INPUT_RATE_VERTEX} };
 
   struct PushConstants {
     VkShaderStageFlags shaderStage = {VK_SHADER_STAGE_COMPUTE_BIT};
@@ -95,6 +87,9 @@ class Resources {
 
  private:
   VulkanMechanics& _mechanics;
+
+  void createVertexBuffers(
+      const std::unordered_map<Geometry*, VkVertexInputRate>& buffers);
 
   void createVertexBuffer(VkBuffer& buffer,
                           VkDeviceMemory& bufferMemory,

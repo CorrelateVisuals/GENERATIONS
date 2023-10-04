@@ -27,17 +27,7 @@ void Resources::setupResources(Pipelines& _pipelines) {
   createShaderStorageBuffers();
   createUniformBuffers();
 
-  createVertexBuffer(vertexBuffer, vertexBufferMemory,
-                     world.rectangle.uniqueVertices);
-  createIndexBuffer(indexBuffer, indexBufferMemory, world.rectangle.indices);
-
-  createVertexBuffer(vertexBufferLandscape, vertexBufferMemoryLandscape,
-                     world.landscape.uniqueVertices);
-  createIndexBuffer(indexBufferLandscape, indexBufferMemoryLandscape,
-                    world.landscape.indices);
-
-  createVertexBuffer(vertexBufferCube, vertexBufferMemoryCube,
-                     world.cube.allVertices);
+  createVertexBuffers(vertexBuffers);
 
   createDescriptorPool();
   allocateDescriptorSets();
@@ -358,6 +348,24 @@ void Resources::createTextureImage(std::string imagePath) {
   vkDestroyBuffer(_mechanics.mainDevice.logical, stagingBuffer, nullptr);
   vkFreeMemory(_mechanics.mainDevice.logical, stagingBufferMemory, nullptr);
 }
+
+void Resources::createVertexBuffers(const std::unordered_map<Geometry*, VkVertexInputRate>& buffers)
+{
+    for (const auto& resource : buffers) {
+        Geometry* currentGeometry = resource.first;
+
+        if (resource.second == VK_VERTEX_INPUT_RATE_INSTANCE) {
+            createVertexBuffer(currentGeometry->vertexBuffer, currentGeometry->vertexBufferMemory,
+                currentGeometry->uniqueVertices);
+            createIndexBuffer(currentGeometry->indexBuffer, currentGeometry->indexBufferMemory,
+                currentGeometry->indices);
+        }
+        else if (resource.second == VK_VERTEX_INPUT_RATE_VERTEX) {
+            createVertexBuffer(currentGeometry->vertexBuffer, currentGeometry->vertexBufferMemory,
+                currentGeometry->allVertices);
+        }
+    }
+};
 
 void Resources::createVertexBuffer(VkBuffer& buffer,
                                    VkDeviceMemory& bufferMemory,
@@ -722,51 +730,17 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
   VkDeviceSize offsets0[]{0, 0};
   VkBuffer vertexBuffers0[] = {
       buffers.shaderStorage[_mechanics.syncObjects.currentFrame],
-      vertexBufferCube};
+      world.cube.vertexBuffer};
   vkCmdBindVertexBuffers(commandBuffer, 0, 2, vertexBuffers0, offsets0);
   vkCmdDraw(commandBuffer, static_cast<uint32_t>(world.cube.allVertices.size()),
             world.grid.size.x * world.grid.size.y, 0, 0);
 
-  // VkDeviceSize sharedVertexOffset = 0;  // Offset for the shared vertex
-  // buffer VkBuffer sharedVertexBuffers[] = {
-  //     buffers.shaderStorage[_mechanics.syncObjects.currentFrame]  // Binding
-  //     0
-  // };
-
-  // vkCmdBindVertexBuffers(commandBuffer, 0, 1, sharedVertexBuffers,
-  //                        &sharedVertexOffset);
-
-  // VkDeviceSize indexedVertexOffset = 0;  // Offset for the indexed vertex
-  // buffer VkBuffer indexedVertexBuffers[] = {
-  //     vertexBufferCube  // Binding 0
-  // };
-
-  // vkCmdBindVertexBuffers(commandBuffer, 1, 1, indexedVertexBuffers,
-  //                        &indexedVertexOffset);
-
-  // VkDeviceSize indexBufferOffset = 0;  // Offset for the index buffer
-  // VkIndexType indexType =
-  //     VK_INDEX_TYPE_UINT32;  // Change to the appropriate type
-
-  // vkCmdBindIndexBuffer(commandBuffer, indexBuffer, indexBufferOffset,
-  //                      indexType);
-
-  // uint32_t indexCount = world.cube.indices.size();  // Number of indices to
-  // draw uint32_t instanceCount =
-  //     world.grid.size.x * world.grid.size.y;  // Number of instances
-  // uint32_t firstIndex = 0;                  // Index of the first index to
-  // use int32_t vertexOffset = 0;    // Vertex offset (used to add to the
-  // vertex ID) uint32_t firstInstance = 0;  // First instance ID
-
-  // vkCmdDrawIndexed(commandBuffer, indexCount, instanceCount, firstIndex,
-  //                  vertexOffset, firstInstance);
-
   // Landscape
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                     _pipelines.graphics.landscape);
-  VkBuffer vertexBuffers1[] = {vertexBufferLandscape};
+  VkBuffer vertexBuffers1[] = {world.landscape.vertexBuffer};
   vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers1, offsets);
-  vkCmdBindIndexBuffer(commandBuffer, indexBufferLandscape, 0,
+  vkCmdBindIndexBuffer(commandBuffer, world.landscape.indexBuffer, 0,
                        VK_INDEX_TYPE_UINT32);
   vkCmdDrawIndexed(commandBuffer,
                    static_cast<uint32_t>(world.landscape.indices.size()), 1, 0,
@@ -782,9 +756,9 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
   // Pipeline 3
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                     _pipelines.graphics.water);
-  VkBuffer vertexBuffers[] = {vertexBuffer};
+  VkBuffer vertexBuffers[] = {world.rectangle.vertexBuffer};
   vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
-  vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+  vkCmdBindIndexBuffer(commandBuffer, world.rectangle.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
   vkCmdDrawIndexed(commandBuffer,
                    static_cast<uint32_t>(world.rectangle.indices.size()), 1, 0,
                    0, 0);
