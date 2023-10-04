@@ -31,10 +31,29 @@ class Resources {
     VkImageView imageView;
     VkSampler imageSampler;
     VkSampleCountFlagBits samples = VK_SAMPLE_COUNT_1_BIT;
+
+    ~Image(){
+        // vkDestroySampler(mechanics.mainDevice.logical,
+        // resources.texture.imageSampler,
+        //    nullptr);
+        // vkDestroyImageView(mechanics.mainDevice.logical,
+        // resources.texture.imageView,
+        //    nullptr);
+        // vkDestroyImage(mechanics.mainDevice.logical, resources.texture.image,
+        //    nullptr);
+        // vkFreeMemory(mechanics.mainDevice.logical,
+        // resources.texture.imageMemory,
+        //    nullptr);
+    };
   };
 
+  struct DepthImage : public Image {
+  } depthImage;
+  struct MultiSamplingImage : public Image {
+  } msaaImage;
   struct Texture : public Image {
   } texture;
+
 
   struct PushConstants {
     VkShaderStageFlags shaderStage = {VK_SHADER_STAGE_COMPUTE_BIT};
@@ -89,6 +108,10 @@ class Resources {
                               VkFormat format,
                               VkImageAspectFlags aspectFlags);
 
+  void createColorResources();
+  void createDepthResources();
+  VkFormat findDepthFormat();
+
  private:
   VulkanMechanics& _mechanics;
 
@@ -132,4 +155,8 @@ class Resources {
   void createTextureImage(std::string imagePath);
   void createTextureSampler();
   void createTextureImageView();
+
+  VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates,
+      VkImageTiling tiling,
+      VkFormatFeatureFlags features);
 };

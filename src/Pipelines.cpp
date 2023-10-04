@@ -22,61 +22,33 @@ void Pipelines::setupPipelines(Resources& _resources) {
   Log::text("{ === }", "Setup Pipelines");
 
   _resources.createDescriptorSetLayout();
-  createRenderPass();
+  createRenderPass(_resources);
 
-  createColorResources(_resources);
-  createDepthResources(_resources);
+  _resources.createColorResources();
+  _resources.createDepthResources();
 
   createGraphicsPipeline_Layout(_resources.descriptor);
-  createGraphicsPipeline_Cells();
-  createGraphicsPipeline_Landscape();
-  createGraphicsPipeline_LandscapeWireframe();
-  createGraphicsPipeline_Water();
-  createGraphicsPipeline_Texture();
+
+  createGraphicsPipeline_Cells(_resources.msaaImage.samples);
+  createGraphicsPipeline_Landscape(_resources.msaaImage.samples);
+  createGraphicsPipeline_LandscapeWireframe(_resources.msaaImage.samples);
+  createGraphicsPipeline_Water(_resources.msaaImage.samples);
+  createGraphicsPipeline_Texture(_resources.msaaImage.samples);
 
   createComputePipeline_Layout(_resources.descriptor, _resources.pushConstants);
+
   createComputePipeline_Engine();
   createComputePipeline_PostFX();
 }
 
-void Pipelines::createColorResources(Resources& _resources) {
-  Log::text("{ []< }", "Color Resources ");
-
-  VkFormat colorFormat = _mechanics.swapChain.imageFormat;
-
-  _resources.createImage(
-      _mechanics.swapChain.extent.width, _mechanics.swapChain.extent.height,
-      graphics.msaaImage.samples, colorFormat, VK_IMAGE_TILING_OPTIMAL,
-      VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT |
-          VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, graphics.msaaImage.image,
-      graphics.msaaImage.imageMemory);
-  graphics.msaaImage.imageView = _resources.createImageView(
-      graphics.msaaImage.image, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT);
-}
-
-void Pipelines::createDepthResources(Resources& _resources) {
-  Log::text("{ []< }", "Depth Resources ");
-  VkFormat depthFormat = findDepthFormat();
-
-  _resources.createImage(
-      _mechanics.swapChain.extent.width, _mechanics.swapChain.extent.height,
-      graphics.msaaImage.samples, depthFormat, VK_IMAGE_TILING_OPTIMAL,
-      VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
-      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, graphics.depthImage.image,
-      graphics.depthImage.imageMemory);
-  graphics.depthImage.imageView = _resources.createImageView(
-      graphics.depthImage.image, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
-}
-
-void Pipelines::createRenderPass() {
+void Pipelines::createRenderPass(Resources& _resources) {
   Log::text("{ []< }", "Render Pass");
   Log::text(Log::Style::charLeader,
             "colorAttachment, depthAttachment, colorAttachmentResolve");
 
   VkAttachmentDescription colorAttachment{
       .format = _mechanics.swapChain.imageFormat,
-      .samples = graphics.msaaImage.samples,
+      .samples = _resources.msaaImage.samples,
       .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
       .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
       .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
@@ -85,8 +57,8 @@ void Pipelines::createRenderPass() {
       .finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL};
 
   VkAttachmentDescription depthAttachment{
-      .format = findDepthFormat(),
-      .samples = graphics.msaaImage.samples,
+      .format = _resources.findDepthFormat(),
+      .samples = _resources.msaaImage.samples,
       .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
       .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
       .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
@@ -170,7 +142,8 @@ void Pipelines::createComputePipeline_Layout(
                     &computeLayout, nullptr, &compute.layout);
 }
 
-void Pipelines::createGraphicsPipeline_Cells() {
+void Pipelines::createGraphicsPipeline_Cells(
+    VkSampleCountFlagBits& msaaSamples) {
   Log::text("{ === }", "Graphics Pipeline: Cells");
 
   std::vector<VkPipelineShaderStageCreateInfo> shaderStages{
@@ -194,7 +167,7 @@ void Pipelines::createGraphicsPipeline_Cells() {
       rasterizationCullBackBit};
 
   VkPipelineMultisampleStateCreateInfo multisampling{multisampleStateDefault};
-  multisampling.rasterizationSamples = graphics.msaaImage.samples;
+  multisampling.rasterizationSamples = msaaSamples;
   VkPipelineDepthStencilStateCreateInfo depthStencil{depthStencilStateDefault};
 
   static VkPipelineColorBlendAttachmentState colorBlendAttachment{
@@ -227,7 +200,8 @@ void Pipelines::createGraphicsPipeline_Cells() {
   destroyShaderModules(shaderModules);
 }
 
-void Pipelines::createGraphicsPipeline_Landscape() {
+void Pipelines::createGraphicsPipeline_Landscape(
+    VkSampleCountFlagBits& msaaSamples) {
   Log::text("{ === }", "Graphics Pipeline: Landscape");
 
   std::vector<VkPipelineShaderStageCreateInfo> shaderStages = {
@@ -249,7 +223,7 @@ void Pipelines::createGraphicsPipeline_Landscape() {
   VkPipelineRasterizationStateCreateInfo rasterization{
       rasterizationCullBackBit};
   VkPipelineMultisampleStateCreateInfo multisampling{multisampleStateDefault};
-  multisampling.rasterizationSamples = graphics.msaaImage.samples;
+  multisampling.rasterizationSamples = msaaSamples;
   VkPipelineDepthStencilStateCreateInfo depthStencil{depthStencilStateDefault};
 
   static VkPipelineColorBlendAttachmentState colorBlendAttachment{
@@ -283,7 +257,8 @@ void Pipelines::createGraphicsPipeline_Landscape() {
   destroyShaderModules(shaderModules);
 }
 
-void Pipelines::createGraphicsPipeline_LandscapeWireframe() {
+void Pipelines::createGraphicsPipeline_LandscapeWireframe(
+    VkSampleCountFlagBits& msaaSamples) {
   std::vector<VkPipelineShaderStageCreateInfo> shaderStages = {
       setShaderStage(VK_SHADER_STAGE_VERTEX_BIT, "LandscapeVert.spv"),
       setShaderStage(VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT,
@@ -314,7 +289,7 @@ void Pipelines::createGraphicsPipeline_LandscapeWireframe() {
   rasterization.lineWidth = 5.0f;
 
   VkPipelineMultisampleStateCreateInfo multisampling{multisampleStateDefault};
-  multisampling.rasterizationSamples = graphics.msaaImage.samples;
+  multisampling.rasterizationSamples = msaaSamples;
   VkPipelineDepthStencilStateCreateInfo depthStencil{depthStencilStateDefault};
 
   static VkPipelineColorBlendAttachmentState colorBlendAttachment{
@@ -349,7 +324,8 @@ void Pipelines::createGraphicsPipeline_LandscapeWireframe() {
   destroyShaderModules(shaderModules);
 }
 
-void Pipelines::createGraphicsPipeline_Water() {
+void Pipelines::createGraphicsPipeline_Water(
+    VkSampleCountFlagBits& msaaSamples) {
   std::vector<VkPipelineShaderStageCreateInfo> shaderStages = {
       setShaderStage(VK_SHADER_STAGE_VERTEX_BIT, "WaterVert.spv"),
       setShaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, "WaterFrag.spv")};
@@ -370,7 +346,7 @@ void Pipelines::createGraphicsPipeline_Water() {
   VkPipelineRasterizationStateCreateInfo rasterization{
       rasterizationCullBackBit};
   VkPipelineMultisampleStateCreateInfo multisampling{multisampleStateDefault};
-  multisampling.rasterizationSamples = graphics.msaaImage.samples;
+  multisampling.rasterizationSamples = msaaSamples;
   VkPipelineDepthStencilStateCreateInfo depthStencil{depthStencilStateDefault};
 
   static VkPipelineColorBlendAttachmentState colorBlendAttachment{
@@ -405,7 +381,8 @@ void Pipelines::createGraphicsPipeline_Water() {
   destroyShaderModules(shaderModules);
 }
 
-void Pipelines::createGraphicsPipeline_Texture() {
+void Pipelines::createGraphicsPipeline_Texture(
+    VkSampleCountFlagBits& msaaSamples) {
   std::vector<VkPipelineShaderStageCreateInfo> shaderStages = {
       setShaderStage(VK_SHADER_STAGE_VERTEX_BIT, "TextureVert.spv"),
       setShaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, "TextureFrag.spv")};
@@ -426,7 +403,7 @@ void Pipelines::createGraphicsPipeline_Texture() {
   VkPipelineRasterizationStateCreateInfo rasterization{
       rasterizationCullBackBit};
   VkPipelineMultisampleStateCreateInfo multisampling{multisampleStateDefault};
-  multisampling.rasterizationSamples = graphics.msaaImage.samples;
+  multisampling.rasterizationSamples = msaaSamples;
   VkPipelineDepthStencilStateCreateInfo depthStencil{depthStencilStateDefault};
 
   static VkPipelineColorBlendAttachmentState colorBlendAttachment{
@@ -462,7 +439,8 @@ void Pipelines::createGraphicsPipeline_Texture() {
   destroyShaderModules(shaderModules);
 }
 
-void Pipelines::createGraphicsPipeline_Cube() {
+void Pipelines::createGraphicsPipeline_Cube(
+    VkSampleCountFlagBits& msaaSamples) {
   std::vector<VkPipelineShaderStageCreateInfo> shaderStages = {
       setShaderStage(VK_SHADER_STAGE_VERTEX_BIT, "TextureVert.spv"),
       setShaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, "TextureFrag.spv")};
@@ -483,7 +461,7 @@ void Pipelines::createGraphicsPipeline_Cube() {
   VkPipelineRasterizationStateCreateInfo rasterization{
       rasterizationCullBackBit};
   VkPipelineMultisampleStateCreateInfo multisampling{multisampleStateDefault};
-  multisampling.rasterizationSamples = graphics.msaaImage.samples;
+  multisampling.rasterizationSamples = msaaSamples;
   VkPipelineDepthStencilStateCreateInfo depthStencil{depthStencilStateDefault};
 
   static VkPipelineColorBlendAttachmentState colorBlendAttachment{
@@ -517,33 +495,6 @@ void Pipelines::createGraphicsPipeline_Cube() {
                     VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
                     &graphics.texture);
   destroyShaderModules(shaderModules);
-}
-
-VkFormat Pipelines::findSupportedFormat(const std::vector<VkFormat>& candidates,
-                                        VkImageTiling tiling,
-                                        VkFormatFeatureFlags features) {
-  for (VkFormat format : candidates) {
-    VkFormatProperties props;
-    vkGetPhysicalDeviceFormatProperties(_mechanics.mainDevice.physical, format,
-                                        &props);
-
-    if (tiling == VK_IMAGE_TILING_LINEAR &&
-        (props.linearTilingFeatures & features) == features) {
-      return format;
-    } else if (tiling == VK_IMAGE_TILING_OPTIMAL &&
-               (props.optimalTilingFeatures & features) == features) {
-      return format;
-    }
-  }
-
-  throw std::runtime_error("\n!ERROR! failed to find supported format!");
-}
-
-VkFormat Pipelines::findDepthFormat() {
-  return findSupportedFormat(
-      {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT,
-       VK_FORMAT_D24_UNORM_S8_UINT},
-      VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
 }
 
 bool Pipelines::hasStencilComponent(VkFormat format) {

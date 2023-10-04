@@ -53,8 +53,8 @@ void Resources::createFramebuffers(Pipelines& _pipelines) {
             "attachments: msaaImage., depthImage, swapChain imageViews");
   for (size_t i = 0; i < _mechanics.swapChain.imageViews.size(); i++) {
     std::vector<VkImageView> attachments{
-        _pipelines.graphics.msaaImage.imageView,
-        _pipelines.graphics.depthImage.imageView,
+        msaaImage.imageView,
+        depthImage.imageView,
         _mechanics.swapChain.imageViews[i]};
 
     VkFramebufferCreateInfo framebufferInfo{
@@ -565,6 +565,33 @@ void Resources::createTextureImageView() {
                                       VK_IMAGE_ASPECT_COLOR_BIT);
 }
 
+VkFormat Resources::findDepthFormat() {
+  return findSupportedFormat(
+      {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT,
+       VK_FORMAT_D24_UNORM_S8_UINT},
+      VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
+}
+
+VkFormat Resources::findSupportedFormat(const std::vector<VkFormat>& candidates,
+                                        VkImageTiling tiling,
+                                        VkFormatFeatureFlags features) {
+  for (VkFormat format : candidates) {
+    VkFormatProperties props;
+    vkGetPhysicalDeviceFormatProperties(_mechanics.mainDevice.physical, format,
+                                        &props);
+
+    if (tiling == VK_IMAGE_TILING_LINEAR &&
+        (props.linearTilingFeatures & features) == features) {
+      return format;
+    } else if (tiling == VK_IMAGE_TILING_OPTIMAL &&
+               (props.optimalTilingFeatures & features) == features) {
+      return format;
+    }
+  }
+
+  throw std::runtime_error("\n!ERROR! failed to find supported format!");
+}
+
 void Resources::createDescriptorSets() {
   Log::text("{ |=| }", "Descriptor Sets");
 
@@ -839,6 +866,36 @@ VkImageView Resources::createImageView(VkImage image,
                     nullptr, &imageView);
 
   return imageView;
+}
+
+void Resources::createDepthResources() {
+  Log::text("{ []< }", "Depth Resources ");
+  VkFormat depthFormat = findDepthFormat();
+
+  createImage(_mechanics.swapChain.extent.width,
+              _mechanics.swapChain.extent.height, msaaImage.samples,
+              depthFormat, VK_IMAGE_TILING_OPTIMAL,
+              VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+              VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, depthImage.image,
+              depthImage.imageMemory);
+  depthImage.imageView =
+      createImageView(depthImage.image, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
+}
+
+void Resources::createColorResources() {
+  Log::text("{ []< }", "Color Resources ");
+
+  VkFormat colorFormat = _mechanics.swapChain.imageFormat;
+
+  createImage(_mechanics.swapChain.extent.width,
+              _mechanics.swapChain.extent.height, msaaImage.samples,
+              colorFormat, VK_IMAGE_TILING_OPTIMAL,
+              VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT |
+                  VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+              VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, msaaImage.image,
+              msaaImage.imageMemory);
+  msaaImage.imageView =
+      createImageView(msaaImage.image, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT);
 }
 
 void Resources::createTextureSampler() {

@@ -79,7 +79,7 @@ class VulkanMechanics {
  public:
   void setupVulkan(Pipelines& _pipelines, Resources& _resources);
   void recreateSwapChain(Pipelines& _pipelines, Resources& _resources);
-  void cleanupSwapChain(Pipelines& _pipelines);
+  void cleanupSwapChain(Resources& _resources);
   void createSyncObjects();
 
   template <typename Checkresult, typename... Args>
@@ -89,7 +89,7 @@ class VulkanMechanics {
   void compileShaders(const Pipelines& _pipelines);
   void createInstance();
   void createSurface(GLFWwindow* window);
-  void pickPhysicalDevice(Pipelines::Graphics::MultiSamplingImage& msaaImage);
+  void pickPhysicalDevice(Resources::MultiSamplingImage& msaaImage);
   void createLogicalDevice();
   void createSwapChain();
   void createSwapChainImageViews(Resources& resources);
