@@ -1,6 +1,7 @@
 #pragma once
 #include "vulkan/vulkan.h"
 
+#include "Image.h"
 #include "Mechanics.h"
 #include "Pipelines.h"
 #include "World.h"
@@ -25,35 +26,15 @@ class Resources {
       {&world.rectangle, VK_VERTEX_INPUT_RATE_INSTANCE},
       {&world.cube, VK_VERTEX_INPUT_RATE_VERTEX}};
 
-  struct Image {
-    VkImage image;
-    VkDeviceMemory imageMemory;
-    VkImageView imageView;
-    VkSampler imageSampler;
-    VkSampleCountFlagBits samples = VK_SAMPLE_COUNT_1_BIT;
-
-    ~Image(){
-        // vkDestroySampler(mechanics.mainDevice.logical,
-        // resources.texture.imageSampler,
-        //    nullptr);
-        // vkDestroyImageView(mechanics.mainDevice.logical,
-        // resources.texture.imageView,
-        //    nullptr);
-        // vkDestroyImage(mechanics.mainDevice.logical, resources.texture.image,
-        //    nullptr);
-        // vkFreeMemory(mechanics.mainDevice.logical,
-        // resources.texture.imageMemory,
-        //    nullptr);
-    };
-  };
-
   struct DepthImage : public Image {
+    DepthImage(VkDevice& logicalDevice) : Image(logicalDevice){};
   } depthImage;
   struct MultiSamplingImage : public Image {
+    MultiSamplingImage(VkDevice& logicalDevice) : Image(logicalDevice){};
   } msaaImage;
   struct Texture : public Image {
+    Texture(VkDevice& logicalDevice) : Image(logicalDevice){};
   } texture;
-
 
   struct PushConstants {
     VkShaderStageFlags shaderStage = {VK_SHADER_STAGE_COMPUTE_BIT};
@@ -157,6 +138,6 @@ class Resources {
   void createTextureImageView();
 
   VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates,
-      VkImageTiling tiling,
-      VkFormatFeatureFlags features);
+                               VkImageTiling tiling,
+                               VkFormatFeatureFlags features);
 };

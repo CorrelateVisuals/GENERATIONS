@@ -7,11 +7,13 @@
 World Resources::world;
 
 Resources::Resources(VulkanMechanics& mechanics)
-    : pushConstants{},
-      texture{},
+    : _mechanics(mechanics),
+      pushConstants{},
+      depthImage(_mechanics.mainDevice.logical),
+      msaaImage(_mechanics.mainDevice.logical),
+      texture(_mechanics.mainDevice.logical),
       buffers{},
-      descriptor{},
-      _mechanics(mechanics) {
+      descriptor{} {
   Log::text("{ /// }", "constructing Resources");
 }
 
@@ -52,10 +54,9 @@ void Resources::createFramebuffers(Pipelines& _pipelines) {
   Log::text(Log::Style::charLeader,
             "attachments: msaaImage., depthImage, swapChain imageViews");
   for (size_t i = 0; i < _mechanics.swapChain.imageViews.size(); i++) {
-    std::vector<VkImageView> attachments{
-        msaaImage.imageView,
-        depthImage.imageView,
-        _mechanics.swapChain.imageViews[i]};
+    std::vector<VkImageView> attachments{msaaImage.imageView,
+                                         depthImage.imageView,
+                                         _mechanics.swapChain.imageViews[i]};
 
     VkFramebufferCreateInfo framebufferInfo{
         .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
