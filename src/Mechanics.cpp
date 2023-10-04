@@ -36,7 +36,7 @@ void VulkanMechanics::setupVulkan(Pipelines& _pipelines,
   validation.setupDebugMessenger(instance);
   createSurface(Window::get().window);
 
-  pickPhysicalDevice(_pipelines.graphics.msaa);
+  pickPhysicalDevice(_pipelines.graphics.msaaImage);
   createLogicalDevice();
 
   createSwapChain();
@@ -92,7 +92,7 @@ void VulkanMechanics::createSurface(GLFWwindow* window) {
 }
 
 void VulkanMechanics::pickPhysicalDevice(
-    Pipelines::Graphics::MultiSampling& msaa) {
+    Pipelines::Graphics::MultiSamplingImage& msaaImage) {
   Log::text("{ ### }", "Physical Device");
   uint32_t deviceCount = 0;
   vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
@@ -108,7 +108,7 @@ void VulkanMechanics::pickPhysicalDevice(
   for (const auto& device : devices) {
     if (isDeviceSuitable(device)) {
       mainDevice.physical = device;
-      msaa.samples = getMaxUsableSampleCount();
+      msaaImage.samples = getMaxUsableSampleCount();
       break;
     }
   }
@@ -349,16 +349,18 @@ void VulkanMechanics::createSyncObjects() {
 }
 
 void VulkanMechanics::cleanupSwapChain(Pipelines& _pipelines) {
-  vkDestroyImageView(mainDevice.logical, _pipelines.graphics.depth.imageView,
-                     nullptr);
-  vkDestroyImage(mainDevice.logical, _pipelines.graphics.depth.image, nullptr);
-  vkFreeMemory(mainDevice.logical, _pipelines.graphics.depth.imageMemory,
+  vkDestroyImageView(mainDevice.logical,
+                     _pipelines.graphics.depthImage.imageView, nullptr);
+  vkDestroyImage(mainDevice.logical, _pipelines.graphics.depthImage.image,
+                 nullptr);
+  vkFreeMemory(mainDevice.logical, _pipelines.graphics.depthImage.imageMemory,
                nullptr);
 
-  vkDestroyImageView(mainDevice.logical, _pipelines.graphics.msaa.imageView,
-                     nullptr);
-  vkDestroyImage(mainDevice.logical, _pipelines.graphics.msaa.image, nullptr);
-  vkFreeMemory(mainDevice.logical, _pipelines.graphics.msaa.imageMemory,
+  vkDestroyImageView(mainDevice.logical,
+                     _pipelines.graphics.msaaImage.imageView, nullptr);
+  vkDestroyImage(mainDevice.logical, _pipelines.graphics.msaaImage.image,
+                 nullptr);
+  vkFreeMemory(mainDevice.logical, _pipelines.graphics.msaaImage.imageMemory,
                nullptr);
 
   for (auto framebuffer : swapChain.framebuffers) {

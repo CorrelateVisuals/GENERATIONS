@@ -21,9 +21,20 @@ class Resources {
   static World world;
 
   const std::unordered_map<Geometry*, VkVertexInputRate> vertexBuffers = {
-    {&world.landscape, VK_VERTEX_INPUT_RATE_INSTANCE},
-    {&world.rectangle, VK_VERTEX_INPUT_RATE_INSTANCE},
-    {&world.cube, VK_VERTEX_INPUT_RATE_VERTEX} };
+      {&world.landscape, VK_VERTEX_INPUT_RATE_INSTANCE},
+      {&world.rectangle, VK_VERTEX_INPUT_RATE_INSTANCE},
+      {&world.cube, VK_VERTEX_INPUT_RATE_VERTEX}};
+
+  struct Image {
+    VkImage image;
+    VkDeviceMemory imageMemory;
+    VkImageView imageView;
+    VkSampler imageSampler;
+    VkSampleCountFlagBits samples = VK_SAMPLE_COUNT_1_BIT;
+  };
+
+  struct Texture : public Image {
+  } texture;
 
   struct PushConstants {
     VkShaderStageFlags shaderStage = {VK_SHADER_STAGE_COMPUTE_BIT};
@@ -32,13 +43,6 @@ class Resources {
     uint32_t size = 128;
     std::array<uint64_t, 32> data;
   } pushConstants;
-
-  struct Images {
-    VkImage texture;
-    VkDeviceMemory textureMemory;
-    VkImageView textureView;
-    VkSampler textureSampler;
-  } image;
 
   struct Buffers {
     std::vector<VkBuffer> shaderStorage;

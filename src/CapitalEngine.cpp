@@ -164,13 +164,13 @@ void CapitalEngine::drawFrame() {
 void CapitalEngine::cleanup() {
   mechanics.cleanupSwapChain(pipelines);
 
-  vkDestroySampler(mechanics.mainDevice.logical, resources.image.textureSampler,
+  vkDestroySampler(mechanics.mainDevice.logical, resources.texture.imageSampler,
                    nullptr);
-  vkDestroyImageView(mechanics.mainDevice.logical, resources.image.textureView,
+  vkDestroyImageView(mechanics.mainDevice.logical, resources.texture.imageView,
                      nullptr);
-  vkDestroyImage(mechanics.mainDevice.logical, resources.image.texture,
+  vkDestroyImage(mechanics.mainDevice.logical, resources.texture.image,
                  nullptr);
-  vkFreeMemory(mechanics.mainDevice.logical, resources.image.textureMemory,
+  vkFreeMemory(mechanics.mainDevice.logical, resources.texture.imageMemory,
                nullptr);
 
   //vkFreeMemory(mechanics.mainDevice.logical, resources.vertexBufferMemoryCube,

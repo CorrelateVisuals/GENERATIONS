@@ -46,13 +46,13 @@ void Pipelines::createColorResources(Resources& _resources) {
 
   _resources.createImage(
       _mechanics.swapChain.extent.width, _mechanics.swapChain.extent.height,
-      graphics.msaa.samples, colorFormat, VK_IMAGE_TILING_OPTIMAL,
+      graphics.msaaImage.samples, colorFormat, VK_IMAGE_TILING_OPTIMAL,
       VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT |
           VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, graphics.msaa.image,
-      graphics.msaa.imageMemory);
-  graphics.msaa.imageView = _resources.createImageView(
-      graphics.msaa.image, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT);
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, graphics.msaaImage.image,
+      graphics.msaaImage.imageMemory);
+  graphics.msaaImage.imageView = _resources.createImageView(
+      graphics.msaaImage.image, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT);
 }
 
 void Pipelines::createDepthResources(Resources& _resources) {
@@ -61,12 +61,12 @@ void Pipelines::createDepthResources(Resources& _resources) {
 
   _resources.createImage(
       _mechanics.swapChain.extent.width, _mechanics.swapChain.extent.height,
-      graphics.msaa.samples, depthFormat, VK_IMAGE_TILING_OPTIMAL,
+      graphics.msaaImage.samples, depthFormat, VK_IMAGE_TILING_OPTIMAL,
       VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
-      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, graphics.depth.image,
-      graphics.depth.imageMemory);
-  graphics.depth.imageView = _resources.createImageView(
-      graphics.depth.image, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, graphics.depthImage.image,
+      graphics.depthImage.imageMemory);
+  graphics.depthImage.imageView = _resources.createImageView(
+      graphics.depthImage.image, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
 }
 
 void Pipelines::createRenderPass() {
@@ -76,7 +76,7 @@ void Pipelines::createRenderPass() {
 
   VkAttachmentDescription colorAttachment{
       .format = _mechanics.swapChain.imageFormat,
-      .samples = graphics.msaa.samples,
+      .samples = graphics.msaaImage.samples,
       .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
       .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
       .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
@@ -86,7 +86,7 @@ void Pipelines::createRenderPass() {
 
   VkAttachmentDescription depthAttachment{
       .format = findDepthFormat(),
-      .samples = graphics.msaa.samples,
+      .samples = graphics.msaaImage.samples,
       .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
       .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
       .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
@@ -194,7 +194,7 @@ void Pipelines::createGraphicsPipeline_Cells() {
       rasterizationCullBackBit};
 
   VkPipelineMultisampleStateCreateInfo multisampling{multisampleStateDefault};
-  multisampling.rasterizationSamples = graphics.msaa.samples;
+  multisampling.rasterizationSamples = graphics.msaaImage.samples;
   VkPipelineDepthStencilStateCreateInfo depthStencil{depthStencilStateDefault};
 
   static VkPipelineColorBlendAttachmentState colorBlendAttachment{
@@ -249,7 +249,7 @@ void Pipelines::createGraphicsPipeline_Landscape() {
   VkPipelineRasterizationStateCreateInfo rasterization{
       rasterizationCullBackBit};
   VkPipelineMultisampleStateCreateInfo multisampling{multisampleStateDefault};
-  multisampling.rasterizationSamples = graphics.msaa.samples;
+  multisampling.rasterizationSamples = graphics.msaaImage.samples;
   VkPipelineDepthStencilStateCreateInfo depthStencil{depthStencilStateDefault};
 
   static VkPipelineColorBlendAttachmentState colorBlendAttachment{
@@ -314,7 +314,7 @@ void Pipelines::createGraphicsPipeline_LandscapeWireframe() {
   rasterization.lineWidth = 5.0f;
 
   VkPipelineMultisampleStateCreateInfo multisampling{multisampleStateDefault};
-  multisampling.rasterizationSamples = graphics.msaa.samples;
+  multisampling.rasterizationSamples = graphics.msaaImage.samples;
   VkPipelineDepthStencilStateCreateInfo depthStencil{depthStencilStateDefault};
 
   static VkPipelineColorBlendAttachmentState colorBlendAttachment{
@@ -370,7 +370,7 @@ void Pipelines::createGraphicsPipeline_Water() {
   VkPipelineRasterizationStateCreateInfo rasterization{
       rasterizationCullBackBit};
   VkPipelineMultisampleStateCreateInfo multisampling{multisampleStateDefault};
-  multisampling.rasterizationSamples = graphics.msaa.samples;
+  multisampling.rasterizationSamples = graphics.msaaImage.samples;
   VkPipelineDepthStencilStateCreateInfo depthStencil{depthStencilStateDefault};
 
   static VkPipelineColorBlendAttachmentState colorBlendAttachment{
@@ -426,7 +426,7 @@ void Pipelines::createGraphicsPipeline_Texture() {
   VkPipelineRasterizationStateCreateInfo rasterization{
       rasterizationCullBackBit};
   VkPipelineMultisampleStateCreateInfo multisampling{multisampleStateDefault};
-  multisampling.rasterizationSamples = graphics.msaa.samples;
+  multisampling.rasterizationSamples = graphics.msaaImage.samples;
   VkPipelineDepthStencilStateCreateInfo depthStencil{depthStencilStateDefault};
 
   static VkPipelineColorBlendAttachmentState colorBlendAttachment{
@@ -483,7 +483,7 @@ void Pipelines::createGraphicsPipeline_Cube() {
   VkPipelineRasterizationStateCreateInfo rasterization{
       rasterizationCullBackBit};
   VkPipelineMultisampleStateCreateInfo multisampling{multisampleStateDefault};
-  multisampling.rasterizationSamples = graphics.msaa.samples;
+  multisampling.rasterizationSamples = graphics.msaaImage.samples;
   VkPipelineDepthStencilStateCreateInfo depthStencil{depthStencilStateDefault};
 
   static VkPipelineColorBlendAttachmentState colorBlendAttachment{

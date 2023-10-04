@@ -89,7 +89,7 @@ class VulkanMechanics {
   void compileShaders(const Pipelines& _pipelines);
   void createInstance();
   void createSurface(GLFWwindow* window);
-  void pickPhysicalDevice(Pipelines::Graphics::MultiSampling& msaa);
+  void pickPhysicalDevice(Pipelines::Graphics::MultiSamplingImage& msaaImage);
   void createLogicalDevice();
   void createSwapChain();
   void createSwapChainImageViews(Resources& resources);

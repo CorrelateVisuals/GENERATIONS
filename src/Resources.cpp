@@ -7,7 +7,11 @@
 World Resources::world;
 
 Resources::Resources(VulkanMechanics& mechanics)
-    : pushConstants{}, image{}, buffers{}, descriptor{}, _mechanics(mechanics) {
+    : pushConstants{},
+      texture{},
+      buffers{},
+      descriptor{},
+      _mechanics(mechanics) {
   Log::text("{ /// }", "constructing Resources");
 }
 
@@ -46,11 +50,12 @@ void Resources::createFramebuffers(Pipelines& _pipelines) {
       _mechanics.swapChain.imageViews.size());
 
   Log::text(Log::Style::charLeader,
-            "attachments: msaa, depth, swapChain imageViews");
+            "attachments: msaaImage., depthImage, swapChain imageViews");
   for (size_t i = 0; i < _mechanics.swapChain.imageViews.size(); i++) {
-    std::vector<VkImageView> attachments{_pipelines.graphics.msaa.imageView,
-                                         _pipelines.graphics.depth.imageView,
-                                         _mechanics.swapChain.imageViews[i]};
+    std::vector<VkImageView> attachments{
+        _pipelines.graphics.msaaImage.imageView,
+        _pipelines.graphics.depthImage.imageView,
+        _mechanics.swapChain.imageViews[i]};
 
     VkFramebufferCreateInfo framebufferInfo{
         .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
@@ -326,21 +331,21 @@ void Resources::createTextureImage(std::string imagePath) {
   createImage(texWidth, texHeight, VK_SAMPLE_COUNT_1_BIT,
               VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL,
               VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-              VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, image.texture,
-              image.textureMemory);
+              VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, texture.image,
+              texture.imageMemory);
 
   VkCommandBuffer commandBuffer1 = beginSingleTimeCommands();
-  transitionImageLayout(commandBuffer1, image.texture, VK_FORMAT_R8G8B8A8_SRGB,
+  transitionImageLayout(commandBuffer1, texture.image, VK_FORMAT_R8G8B8A8_SRGB,
                         VK_IMAGE_LAYOUT_UNDEFINED,
                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
   endSingleTimeCommands(commandBuffer1);
 
-  copyBufferToImage(stagingBuffer, image.texture,
+  copyBufferToImage(stagingBuffer, texture.image,
                     static_cast<uint32_t>(texWidth),
                     static_cast<uint32_t>(texHeight));
 
   VkCommandBuffer commandBuffer2 = beginSingleTimeCommands();
-  transitionImageLayout(commandBuffer2, image.texture, VK_FORMAT_R8G8B8A8_SRGB,
+  transitionImageLayout(commandBuffer2, texture.image, VK_FORMAT_R8G8B8A8_SRGB,
                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                         VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
   endSingleTimeCommands(commandBuffer2);
@@ -349,22 +354,24 @@ void Resources::createTextureImage(std::string imagePath) {
   vkFreeMemory(_mechanics.mainDevice.logical, stagingBufferMemory, nullptr);
 }
 
-void Resources::createVertexBuffers(const std::unordered_map<Geometry*, VkVertexInputRate>& buffers)
-{
-    for (const auto& resource : buffers) {
-        Geometry* currentGeometry = resource.first;
+void Resources::createVertexBuffers(
+    const std::unordered_map<Geometry*, VkVertexInputRate>& buffers) {
+  for (const auto& resource : buffers) {
+    Geometry* currentGeometry = resource.first;
 
-        if (resource.second == VK_VERTEX_INPUT_RATE_INSTANCE) {
-            createVertexBuffer(currentGeometry->vertexBuffer, currentGeometry->vertexBufferMemory,
-                currentGeometry->uniqueVertices);
-            createIndexBuffer(currentGeometry->indexBuffer, currentGeometry->indexBufferMemory,
-                currentGeometry->indices);
-        }
-        else if (resource.second == VK_VERTEX_INPUT_RATE_VERTEX) {
-            createVertexBuffer(currentGeometry->vertexBuffer, currentGeometry->vertexBufferMemory,
-                currentGeometry->allVertices);
-        }
+    if (resource.second == VK_VERTEX_INPUT_RATE_INSTANCE) {
+      createVertexBuffer(currentGeometry->vertexBuffer,
+                         currentGeometry->vertexBufferMemory,
+                         currentGeometry->uniqueVertices);
+      createIndexBuffer(currentGeometry->indexBuffer,
+                        currentGeometry->indexBufferMemory,
+                        currentGeometry->indices);
+    } else if (resource.second == VK_VERTEX_INPUT_RATE_VERTEX) {
+      createVertexBuffer(currentGeometry->vertexBuffer,
+                         currentGeometry->vertexBufferMemory,
+                         currentGeometry->allVertices);
     }
+  }
 };
 
 void Resources::createVertexBuffer(VkBuffer& buffer,
@@ -554,7 +561,7 @@ void Resources::copyBufferToImage(VkBuffer buffer,
 
 void Resources::createTextureImageView() {
   Log::text("{ ... }", ":  Texture Image View");
-  image.textureView = createImageView(image.texture, VK_FORMAT_R8G8B8A8_SRGB,
+  texture.imageView = createImageView(texture.image, VK_FORMAT_R8G8B8A8_SRGB,
                                       VK_IMAGE_ASPECT_COLOR_BIT);
 }
 
@@ -578,8 +585,8 @@ void Resources::createDescriptorSets() {
         .range = sizeof(World::Cell) * world.grid.size.x * world.grid.size.y};
 
     VkDescriptorImageInfo imageInfo{
-        .sampler = image.textureSampler,
-        .imageView = image.textureView,
+        .sampler = texture.imageSampler,
+        .imageView = texture.imageView,
         .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL};
 
     VkDescriptorImageInfo swapchainImageInfo{
@@ -758,7 +765,8 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
                     _pipelines.graphics.water);
   VkBuffer vertexBuffers[] = {world.rectangle.vertexBuffer};
   vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
-  vkCmdBindIndexBuffer(commandBuffer, world.rectangle.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+  vkCmdBindIndexBuffer(commandBuffer, world.rectangle.indexBuffer, 0,
+                       VK_INDEX_TYPE_UINT32);
   vkCmdDrawIndexed(commandBuffer,
                    static_cast<uint32_t>(world.rectangle.indices.size()), 1, 0,
                    0, 0);
@@ -854,7 +862,7 @@ void Resources::createTextureSampler() {
       .unnormalizedCoordinates = VK_FALSE};
 
   if (vkCreateSampler(_mechanics.mainDevice.logical, &samplerInfo, nullptr,
-                      &image.textureSampler) != VK_SUCCESS) {
+                      &texture.imageSampler) != VK_SUCCESS) {
     throw std::runtime_error("failed to create texture sampler!");
   }
 }

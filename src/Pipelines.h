@@ -40,18 +40,11 @@ class Pipelines {
     VkPipelineLayout layout;
     VkRenderPass renderPass;
 
-    struct Depth {
-      VkImage image;
-      VkDeviceMemory imageMemory;
-      VkImageView imageView;
-    } depth;
+    struct DepthImage : public Resources::Image {
+    } depthImage;
+    struct MultiSamplingImage : public Resources::Image {
+    } msaaImage;
 
-    struct MultiSampling {
-      VkSampleCountFlagBits samples = VK_SAMPLE_COUNT_1_BIT;
-      VkImage image;
-      VkDeviceMemory imageMemory;
-      VkImageView imageView;
-    } msaa;
   } graphics;
 
  public:
