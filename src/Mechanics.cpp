@@ -369,40 +369,6 @@ void VulkanMechanics::createSyncObjects() {
 }
 
 void VulkanMechanics::cleanupSwapChain(Resources& _resources) {
-  std::cout << "cleanup swpcn " << _resources.depthImage.imageView << " "
-            << _resources.depthImage.image << " "
-            << _resources.depthImage.imageMemory << std::endl;
-
-  vkDestroyImageView(mainDevice.logical, _resources.depthImage.imageView,
-                     nullptr);
-  vkDestroyImage(mainDevice.logical, _resources.depthImage.image, nullptr);
-  vkFreeMemory(mainDevice.logical, _resources.depthImage.imageMemory, nullptr);
-
-  _resources.depthImage.imageView = VK_NULL_HANDLE;
-  _resources.depthImage.image = VK_NULL_HANDLE;
-  _resources.depthImage.imageMemory = VK_NULL_HANDLE;
-
-  std::cout << "cleanup swpcn " << _resources.depthImage.imageView << " "
-            << _resources.depthImage.image << " "
-            << _resources.depthImage.imageMemory << std::endl;
-
-  std::cout << "cleanup swpcn " << _resources.msaaImage.imageView << " "
-            << _resources.msaaImage.image << " "
-            << _resources.msaaImage.imageMemory << std::endl;
-
-  vkDestroyImageView(mainDevice.logical, _resources.msaaImage.imageView,
-                     nullptr);
-  vkDestroyImage(mainDevice.logical, _resources.msaaImage.image, nullptr);
-  vkFreeMemory(mainDevice.logical, _resources.msaaImage.imageMemory, nullptr);
-
-  _resources.msaaImage.imageView = VK_NULL_HANDLE;
-  _resources.msaaImage.image = VK_NULL_HANDLE;
-  _resources.msaaImage.imageMemory = VK_NULL_HANDLE;
-
-  std::cout << "cleanup swpcn " << _resources.msaaImage.imageView << " "
-            << _resources.msaaImage.image << " "
-            << _resources.msaaImage.imageMemory << std::endl;
-
   for (auto framebuffer : swapChain.framebuffers) {
     vkDestroyFramebuffer(mainDevice.logical, framebuffer, nullptr);
   }

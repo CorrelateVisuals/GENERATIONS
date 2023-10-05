@@ -26,9 +26,9 @@ class Resources {
       {&world.rectangle, VK_VERTEX_INPUT_RATE_INSTANCE},
       {&world.cube, VK_VERTEX_INPUT_RATE_VERTEX}};
 
-  static struct DepthImage : public Image {
+  struct DepthImage : public Image {
   } depthImage;
-  static struct MultiSamplingImage : public Image {
+  struct MultiSamplingImage : public Image {
   } msaaImage;
   struct Texture : public Image {
   } textureImage;

@@ -4,10 +4,6 @@
 #include "CapitalEngine.h"
 #include "Resources.h"
 
-Resources::DepthImage Resources::depthImage;
-Resources::MultiSamplingImage Resources::msaaImage;
-// std::vector<Buffer> Resources::shaderStorage;
-
 Resources::Resources(VulkanMechanics& mechanics)
     : _mechanics(mechanics),
       pushConstants{},
