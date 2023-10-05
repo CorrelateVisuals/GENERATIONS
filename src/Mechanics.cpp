@@ -108,7 +108,7 @@ void VulkanMechanics::pickPhysicalDevice(
   for (const auto& device : devices) {
     if (isDeviceSuitable(device)) {
       mainDevice.physical = device;
-      msaaImage.samples = getMaxUsableSampleCount();
+      msaaImage.sampleCount = getMaxUsableSampleCount();
       break;
     }
   }

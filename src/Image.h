@@ -10,7 +10,7 @@ public:
   VkDeviceMemory imageMemory;
   VkImageView imageView;
   VkSampler imageSampler;
-  VkSampleCountFlagBits samples;
+  VkSampleCountFlagBits sampleCount;
 
   static VkDevice* _logicalDevice;
   static VkDevice* setLogicalDevice(VkDevice* logicalDevice) {

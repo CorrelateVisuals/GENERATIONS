@@ -16,8 +16,10 @@ Resources::Resources(VulkanMechanics& mechanics)
       textureImage{},
       buffers{},
       descriptor{} {
-  Image::_logicalDevice = Image::setLogicalDevice(&_mechanics.mainDevice.logical);
-  Geometry::_logicalDevice = Geometry::setLogicalDevice(&_mechanics.mainDevice.logical);
+  Image::_logicalDevice =
+      Image::setLogicalDevice(&_mechanics.mainDevice.logical);
+  Geometry::_logicalDevice =
+      Geometry::setLogicalDevice(&_mechanics.mainDevice.logical);
 
   Log::text("{ /// }", "constructing Resources");
 }
@@ -341,8 +343,8 @@ void Resources::createTextureImage(std::string imagePath) {
               textureImage.imageMemory);
 
   VkCommandBuffer commandBuffer1 = beginSingleTimeCommands();
-  transitionImageLayout(commandBuffer1, textureImage.image, VK_FORMAT_R8G8B8A8_SRGB,
-                        VK_IMAGE_LAYOUT_UNDEFINED,
+  transitionImageLayout(commandBuffer1, textureImage.image,
+                        VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED,
                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
   endSingleTimeCommands(commandBuffer1);
 
@@ -351,7 +353,8 @@ void Resources::createTextureImage(std::string imagePath) {
                     static_cast<uint32_t>(texHeight));
 
   VkCommandBuffer commandBuffer2 = beginSingleTimeCommands();
-  transitionImageLayout(commandBuffer2, textureImage.image, VK_FORMAT_R8G8B8A8_SRGB,
+  transitionImageLayout(commandBuffer2, textureImage.image,
+                        VK_FORMAT_R8G8B8A8_SRGB,
                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                         VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
   endSingleTimeCommands(commandBuffer2);
@@ -567,8 +570,8 @@ void Resources::copyBufferToImage(VkBuffer buffer,
 
 void Resources::createTextureImageView() {
   Log::text("{ ... }", ":  Texture Image View");
-  textureImage.imageView = createImageView(textureImage.image, VK_FORMAT_R8G8B8A8_SRGB,
-                                      VK_IMAGE_ASPECT_COLOR_BIT);
+  textureImage.imageView = createImageView(
+      textureImage.image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
 }
 
 VkFormat Resources::findDepthFormat() {
@@ -879,7 +882,7 @@ void Resources::createDepthResources() {
   VkFormat depthFormat = findDepthFormat();
 
   createImage(_mechanics.swapChain.extent.width,
-              _mechanics.swapChain.extent.height, msaaImage.samples,
+              _mechanics.swapChain.extent.height, msaaImage.sampleCount,
               depthFormat, VK_IMAGE_TILING_OPTIMAL,
               VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
               VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, depthImage.image,
@@ -894,7 +897,7 @@ void Resources::createColorResources() {
   VkFormat colorFormat = _mechanics.swapChain.imageFormat;
 
   createImage(_mechanics.swapChain.extent.width,
-              _mechanics.swapChain.extent.height, msaaImage.samples,
+              _mechanics.swapChain.extent.height, msaaImage.sampleCount,
               colorFormat, VK_IMAGE_TILING_OPTIMAL,
               VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT |
                   VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,

@@ -9,8 +9,6 @@
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/hash.hpp>
 
-#include "Library.h"
-
 #include <string>
 #include <vector>
 

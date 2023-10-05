@@ -2,6 +2,7 @@
 #include <tiny_obj_loader.h>
 
 #include "Geometry.h"
+#include "Library.h"
 
 #include <iostream>
 
