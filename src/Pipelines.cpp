@@ -16,37 +16,6 @@ Pipelines::Pipelines(VulkanMechanics& mechanics, Resources& resources)
 Pipelines::~Pipelines() {
   Log::text("{ === }", "destructing Pipelines");
 
-  vkDestroySampler(_mechanics.mainDevice.logical,
-                   _resources.textureImage.imageSampler, nullptr);
-  vkDestroyImageView(_mechanics.mainDevice.logical,
-                     _resources.textureImage.imageView, nullptr);
-  vkDestroyImage(_mechanics.mainDevice.logical, _resources.textureImage.image,
-                 nullptr);
-  vkFreeMemory(_mechanics.mainDevice.logical,
-               _resources.textureImage.imageMemory, nullptr);
-
-  vkFreeMemory(_mechanics.mainDevice.logical,
-               _resources.world.cube.vertexBufferMemory, nullptr);
-  vkFreeMemory(_mechanics.mainDevice.logical,
-               _resources.world.rectangle.vertexBufferMemory, nullptr);
-  vkFreeMemory(_mechanics.mainDevice.logical,
-               _resources.world.rectangle.indexBufferMemory, nullptr);
-  vkFreeMemory(_mechanics.mainDevice.logical,
-               _resources.world.landscape.vertexBufferMemory, nullptr);
-  vkFreeMemory(_mechanics.mainDevice.logical,
-               _resources.world.landscape.indexBufferMemory, nullptr);
-
-  vkDestroyBuffer(_mechanics.mainDevice.logical,
-                  _resources.world.cube.vertexBuffer, nullptr);
-  vkDestroyBuffer(_mechanics.mainDevice.logical,
-                  _resources.world.rectangle.vertexBuffer, nullptr);
-  vkDestroyBuffer(_mechanics.mainDevice.logical,
-                  _resources.world.rectangle.indexBuffer, nullptr);
-  vkDestroyBuffer(_mechanics.mainDevice.logical,
-                  _resources.world.landscape.vertexBuffer, nullptr);
-  vkDestroyBuffer(_mechanics.mainDevice.logical,
-                  _resources.world.landscape.indexBuffer, nullptr);
-
   vkDestroyPipeline(_mechanics.mainDevice.logical, graphics.cells, nullptr);
   vkDestroyPipeline(_mechanics.mainDevice.logical, graphics.landscape, nullptr);
   vkDestroyPipeline(_mechanics.mainDevice.logical, graphics.landscapeWireframe,

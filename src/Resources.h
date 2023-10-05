@@ -19,17 +19,16 @@ class Resources {
   Resources(VulkanMechanics& mechanics);
   ~Resources();
 
-  static World world;
-  VulkanMechanics& _mechanics;
+  World world;
 
   const std::unordered_map<Geometry*, VkVertexInputRate> vertexBuffers = {
       {&world.landscape, VK_VERTEX_INPUT_RATE_INSTANCE},
       {&world.rectangle, VK_VERTEX_INPUT_RATE_INSTANCE},
       {&world.cube, VK_VERTEX_INPUT_RATE_VERTEX}};
 
-  struct DepthImage : public Image {
+  static struct DepthImage : public Image {
   } depthImage;
-  struct MultiSamplingImage : public Image {
+  static struct MultiSamplingImage : public Image {
   } msaaImage;
   struct Texture : public Image {
   } textureImage;
@@ -92,7 +91,7 @@ class Resources {
   VkFormat findDepthFormat();
 
  private:
-
+  VulkanMechanics& _mechanics;
 
   void createVertexBuffers(
       const std::unordered_map<Geometry*, VkVertexInputRate>& buffers);

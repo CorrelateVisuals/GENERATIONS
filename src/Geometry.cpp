@@ -47,10 +47,10 @@ Geometry::Geometry(const std::string& modelName) {
 }
 
 Geometry::~Geometry() {
-  // vkDestroyBuffer(*_logicalDevice, vertexBuffer, nullptr);
-  // vkDestroyBuffer(*_logicalDevice, indexBuffer, nullptr);
-  // vkFreeMemory(*_logicalDevice, vertexBufferMemory, nullptr);
-  // vkFreeMemory(*_logicalDevice, indexBufferMemory, nullptr);
+  vkDestroyBuffer(*_logicalDevice, vertexBuffer, nullptr);
+  vkDestroyBuffer(*_logicalDevice, indexBuffer, nullptr);
+  vkFreeMemory(*_logicalDevice, vertexBufferMemory, nullptr);
+  vkFreeMemory(*_logicalDevice, indexBufferMemory, nullptr);
 }
 
 void Geometry::addVertexPosition(const glm::vec3& position) {

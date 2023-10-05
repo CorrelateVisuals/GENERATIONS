@@ -4,63 +4,27 @@
 #include "CapitalEngine.h"
 #include "Resources.h"
 
-World Resources::world;
 VkDevice* Image::_logicalDevice = nullptr;
 VkDevice* Geometry::_logicalDevice = nullptr;
+Resources::DepthImage Resources::depthImage;
+Resources::MultiSamplingImage Resources::msaaImage;
 
 Resources::Resources(VulkanMechanics& mechanics)
     : _mechanics(mechanics),
       pushConstants{},
-      depthImage{},
-      msaaImage{},
       textureImage{},
       buffers{},
       descriptor{} {
+  Log::text("{ /// }", "constructing Resources");
+
   Image::_logicalDevice =
       Image::setLogicalDevice(&_mechanics.mainDevice.logical);
   Geometry::_logicalDevice =
       Geometry::setLogicalDevice(&_mechanics.mainDevice.logical);
-
-  Log::text("{ /// }", "constructing Resources");
 }
 
 Resources::~Resources() {
   Log::text("{ /// }", "destructing Resources");
-  // vkDestroySampler(_mechanics.mainDevice.logical, textureImage.imageSampler,
-  //                  nullptr);
-  // vkDestroyImageView(_mechanics.mainDevice.logical, textureImage.imageView,
-  //                    nullptr);
-  // vkDestroyImage(_mechanics.mainDevice.logical, textureImage.image, nullptr);
-  // vkFreeMemory(_mechanics.mainDevice.logical, textureImage.imageMemory,
-  //              nullptr);
-
-  // vkFreeMemory(_mechanics.mainDevice.logical, world.cube.vertexBufferMemory,
-  //              nullptr);
-  // vkFreeMemory(_mechanics.mainDevice.logical,
-  //              world.rectangle.vertexBufferMemory, nullptr);
-  // vkFreeMemory(_mechanics.mainDevice.logical,
-  // world.rectangle.indexBufferMemory,
-  //              nullptr);
-  // vkFreeMemory(_mechanics.mainDevice.logical,
-  //              world.landscape.vertexBufferMemory, nullptr);
-  // vkFreeMemory(_mechanics.mainDevice.logical,
-  // world.landscape.indexBufferMemory,
-  //              nullptr);
-
-  // vkDestroyBuffer(_mechanics.mainDevice.logical, world.cube.vertexBuffer,
-  //                 nullptr);
-  // vkDestroyBuffer(_mechanics.mainDevice.logical,
-  // world.rectangle.vertexBuffer,
-  //                 nullptr);
-  // vkDestroyBuffer(_mechanics.mainDevice.logical, world.rectangle.indexBuffer,
-  //                 nullptr);
-  // vkDestroyBuffer(_mechanics.mainDevice.logical,
-  // world.landscape.vertexBuffer,
-  //                 nullptr);
-  // vkDestroyBuffer(_mechanics.mainDevice.logical, world.landscape.indexBuffer,
-  //                 nullptr);
-
-  //_pipelines.~Pipelines();
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
     vkDestroyBuffer(_mechanics.mainDevice.logical, buffers.uniforms[i],
