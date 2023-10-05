@@ -8,6 +8,7 @@ class Buffer {
 
   VkBuffer buffer;
   VkDeviceMemory bufferMemory;
+  void* voidPointer;
 
   static VkDevice* _logicalDevice;
   static VkDevice* setLogicalDevice(VkDevice* logicalDevice) {

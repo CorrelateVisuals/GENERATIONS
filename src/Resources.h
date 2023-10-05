@@ -42,11 +42,9 @@ class Resources {
   } pushConstants;
 
   std::vector<Buffer> shaderStorage;
+  std::vector<Buffer> uniform;
 
   struct Buffers {
-    // std::vector<VkBuffer> shaderStorage;
-    // std::vector<VkDeviceMemory> shaderStorageMemory;
-
     std::vector<VkBuffer> uniforms;
     std::vector<VkDeviceMemory> uniformsMemory;
     std::vector<void*> uniformsMapped;
