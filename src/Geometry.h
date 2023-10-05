@@ -19,7 +19,7 @@ const enum ORIENTATION_ORDER { ROTATE_SCALE_TRANSLATE, ROTATE_TRANSLATE_SCALE };
 class Geometry {
  public:
   Geometry(const std::string& modelName = "");
-  ~Geometry() = default;
+  ~Geometry();
 
   VkBuffer vertexBuffer;
   VkDeviceMemory vertexBufferMemory;
@@ -51,6 +51,11 @@ class Geometry {
   static std::vector<uint32_t> createGridPolygons(
       const std::vector<uint32_t>& vertices,
       uint32_t gridWidth);
+
+  static VkDevice* _logicalDevice;
+  static VkDevice* setLogicalDevice(VkDevice* logicalDevice) {
+      return logicalDevice;
+  };
 
  private:
   void loadModel(const std::string& modelName, Geometry& geometry);

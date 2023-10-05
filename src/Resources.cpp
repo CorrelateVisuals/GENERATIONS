@@ -5,15 +5,20 @@
 #include "Resources.h"
 
 World Resources::world;
+VkDevice* Image::_logicalDevice = nullptr;
+VkDevice* Geometry::_logicalDevice = nullptr;
 
 Resources::Resources(VulkanMechanics& mechanics)
     : _mechanics(mechanics),
       pushConstants{},
-      depthImage(_mechanics.mainDevice.logical),
-      msaaImage(_mechanics.mainDevice.logical),
-      texture(_mechanics.mainDevice.logical),
+      depthImage{},
+      msaaImage{},
+      textureImage{},
       buffers{},
       descriptor{} {
+  Image::_logicalDevice = Image::setLogicalDevice(&_mechanics.mainDevice.logical);
+  Geometry::_logicalDevice = Geometry::setLogicalDevice(&_mechanics.mainDevice.logical);
+
   Log::text("{ /// }", "constructing Resources");
 }
 
@@ -332,21 +337,21 @@ void Resources::createTextureImage(std::string imagePath) {
   createImage(texWidth, texHeight, VK_SAMPLE_COUNT_1_BIT,
               VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL,
               VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-              VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, texture.image,
-              texture.imageMemory);
+              VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage.image,
+              textureImage.imageMemory);
 
   VkCommandBuffer commandBuffer1 = beginSingleTimeCommands();
-  transitionImageLayout(commandBuffer1, texture.image, VK_FORMAT_R8G8B8A8_SRGB,
+  transitionImageLayout(commandBuffer1, textureImage.image, VK_FORMAT_R8G8B8A8_SRGB,
                         VK_IMAGE_LAYOUT_UNDEFINED,
                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
   endSingleTimeCommands(commandBuffer1);
 
-  copyBufferToImage(stagingBuffer, texture.image,
+  copyBufferToImage(stagingBuffer, textureImage.image,
                     static_cast<uint32_t>(texWidth),
                     static_cast<uint32_t>(texHeight));
 
   VkCommandBuffer commandBuffer2 = beginSingleTimeCommands();
-  transitionImageLayout(commandBuffer2, texture.image, VK_FORMAT_R8G8B8A8_SRGB,
+  transitionImageLayout(commandBuffer2, textureImage.image, VK_FORMAT_R8G8B8A8_SRGB,
                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                         VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
   endSingleTimeCommands(commandBuffer2);
@@ -562,7 +567,7 @@ void Resources::copyBufferToImage(VkBuffer buffer,
 
 void Resources::createTextureImageView() {
   Log::text("{ ... }", ":  Texture Image View");
-  texture.imageView = createImageView(texture.image, VK_FORMAT_R8G8B8A8_SRGB,
+  textureImage.imageView = createImageView(textureImage.image, VK_FORMAT_R8G8B8A8_SRGB,
                                       VK_IMAGE_ASPECT_COLOR_BIT);
 }
 
@@ -613,8 +618,8 @@ void Resources::createDescriptorSets() {
         .range = sizeof(World::Cell) * world.grid.size.x * world.grid.size.y};
 
     VkDescriptorImageInfo imageInfo{
-        .sampler = texture.imageSampler,
-        .imageView = texture.imageView,
+        .sampler = textureImage.imageSampler,
+        .imageView = textureImage.imageView,
         .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL};
 
     VkDescriptorImageInfo swapchainImageInfo{
@@ -920,7 +925,7 @@ void Resources::createTextureSampler() {
       .unnormalizedCoordinates = VK_FALSE};
 
   if (vkCreateSampler(_mechanics.mainDevice.logical, &samplerInfo, nullptr,
-                      &texture.imageSampler) != VK_SUCCESS) {
+                      &textureImage.imageSampler) != VK_SUCCESS) {
     throw std::runtime_error("failed to create texture sampler!");
   }
 }

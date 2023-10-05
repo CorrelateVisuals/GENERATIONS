@@ -20,6 +20,7 @@ class Resources {
   ~Resources();
 
   static World world;
+  VulkanMechanics& _mechanics;
 
   const std::unordered_map<Geometry*, VkVertexInputRate> vertexBuffers = {
       {&world.landscape, VK_VERTEX_INPUT_RATE_INSTANCE},
@@ -27,14 +28,11 @@ class Resources {
       {&world.cube, VK_VERTEX_INPUT_RATE_VERTEX}};
 
   struct DepthImage : public Image {
-    DepthImage(VkDevice& logicalDevice) : Image(logicalDevice){};
   } depthImage;
   struct MultiSamplingImage : public Image {
-    MultiSamplingImage(VkDevice& logicalDevice) : Image(logicalDevice){};
   } msaaImage;
   struct Texture : public Image {
-    Texture(VkDevice& logicalDevice) : Image(logicalDevice){};
-  } texture;
+  } textureImage;
 
   struct PushConstants {
     VkShaderStageFlags shaderStage = {VK_SHADER_STAGE_COMPUTE_BIT};
@@ -94,7 +92,7 @@ class Resources {
   VkFormat findDepthFormat();
 
  private:
-  VulkanMechanics& _mechanics;
+
 
   void createVertexBuffers(
       const std::unordered_map<Geometry*, VkVertexInputRate>& buffers);
