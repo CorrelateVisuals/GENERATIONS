@@ -18,11 +18,7 @@ CapitalEngine::~CapitalEngine() {
   Log::text(Log::Style::headerGuard);
 
   mechanics.cleanupSwapChain(resources);
-  // resources.~Resources();
-  // mechanics.~VulkanMechanics();
-
   glfwDestroyWindow(Window::get().window);
-
   glfwTerminate();
 }
 

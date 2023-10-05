@@ -8,9 +8,8 @@ World Resources::world;
 VkDevice* Image::_logicalDevice = nullptr;
 VkDevice* Geometry::_logicalDevice = nullptr;
 
-Resources::Resources(VulkanMechanics& mechanics, Pipelines& pipelines)
+Resources::Resources(VulkanMechanics& mechanics)
     : _mechanics(mechanics),
-      _pipelines(pipelines),
       pushConstants{},
       depthImage{},
       msaaImage{},
