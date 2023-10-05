@@ -41,6 +41,9 @@ class Resources {
     std::array<uint64_t, 32> data;
   } pushConstants;
 
+  // struct ShaderStorageBuffer : public Buffer {
+  // } textureImage;
+
   struct Buffers {
     std::vector<VkBuffer> shaderStorage;
     std::vector<VkDeviceMemory> shaderStorageMemory;

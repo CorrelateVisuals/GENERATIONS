@@ -9,6 +9,8 @@
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/hash.hpp>
 
+#include "Buffer.h"
+
 #include <string>
 #include <vector>
 
@@ -17,12 +19,12 @@ const enum ORIENTATION_ORDER { ROTATE_SCALE_TRANSLATE, ROTATE_TRANSLATE_SCALE };
 class Geometry {
  public:
   Geometry(const std::string& modelName = "");
-  ~Geometry();
+  ~Geometry() = default;
 
-  VkBuffer vertexBuffer;
-  VkDeviceMemory vertexBufferMemory;
-  VkBuffer indexBuffer;
-  VkDeviceMemory indexBufferMemory;
+  struct VertexBuffer : public Buffer {
+  } vertexBuffer;
+  struct IndexBuffer : public Buffer {
+  } indexBuffer;
 
   struct Vertex {
     glm::vec3 instancePosition;
@@ -49,11 +51,6 @@ class Geometry {
   static std::vector<uint32_t> createGridPolygons(
       const std::vector<uint32_t>& vertices,
       uint32_t gridWidth);
-
-  static VkDevice* _logicalDevice;
-  static VkDevice* setLogicalDevice(VkDevice* logicalDevice) {
-      return logicalDevice;
-  };
 
  private:
   void loadModel(const std::string& modelName, Geometry& geometry);

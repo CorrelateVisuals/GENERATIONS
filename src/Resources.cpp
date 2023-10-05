@@ -5,7 +5,7 @@
 #include "Resources.h"
 
 VkDevice* Image::_logicalDevice = nullptr;
-VkDevice* Geometry::_logicalDevice = nullptr;
+VkDevice* Buffer::_logicalDevice = nullptr;
 Resources::DepthImage Resources::depthImage;
 Resources::MultiSamplingImage Resources::msaaImage;
 
@@ -19,8 +19,8 @@ Resources::Resources(VulkanMechanics& mechanics)
 
   Image::_logicalDevice =
       Image::setLogicalDevice(&_mechanics.mainDevice.logical);
-  Geometry::_logicalDevice =
-      Geometry::setLogicalDevice(&_mechanics.mainDevice.logical);
+  Buffer::_logicalDevice =
+      Buffer::setLogicalDevice(&_mechanics.mainDevice.logical);
 }
 
 Resources::~Resources() {
@@ -391,15 +391,15 @@ void Resources::createVertexBuffers(
     Geometry* currentGeometry = resource.first;
 
     if (resource.second == VK_VERTEX_INPUT_RATE_INSTANCE) {
-      createVertexBuffer(currentGeometry->vertexBuffer,
-                         currentGeometry->vertexBufferMemory,
+      createVertexBuffer(currentGeometry->vertexBuffer.buffer,
+                         currentGeometry->vertexBuffer.bufferMemory,
                          currentGeometry->uniqueVertices);
-      createIndexBuffer(currentGeometry->indexBuffer,
-                        currentGeometry->indexBufferMemory,
+      createIndexBuffer(currentGeometry->indexBuffer.buffer,
+                        currentGeometry->indexBuffer.bufferMemory,
                         currentGeometry->indices);
     } else if (resource.second == VK_VERTEX_INPUT_RATE_VERTEX) {
-      createVertexBuffer(currentGeometry->vertexBuffer,
-                         currentGeometry->vertexBufferMemory,
+      createVertexBuffer(currentGeometry->vertexBuffer.buffer,
+                         currentGeometry->vertexBuffer.bufferMemory,
                          currentGeometry->allVertices);
     }
   }
@@ -795,7 +795,7 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
   VkDeviceSize offsets0[]{0, 0};
   VkBuffer vertexBuffers0[] = {
       buffers.shaderStorage[_mechanics.syncObjects.currentFrame],
-      world.cube.vertexBuffer};
+      world.cube.vertexBuffer.buffer};
   vkCmdBindVertexBuffers(commandBuffer, 0, 2, vertexBuffers0, offsets0);
   vkCmdDraw(commandBuffer, static_cast<uint32_t>(world.cube.allVertices.size()),
             world.grid.size.x * world.grid.size.y, 0, 0);
@@ -803,9 +803,9 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
   // Landscape
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                     _pipelines.graphics.landscape);
-  VkBuffer vertexBuffers1[] = {world.landscape.vertexBuffer};
+  VkBuffer vertexBuffers1[] = {world.landscape.vertexBuffer.buffer};
   vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers1, offsets);
-  vkCmdBindIndexBuffer(commandBuffer, world.landscape.indexBuffer, 0,
+  vkCmdBindIndexBuffer(commandBuffer, world.landscape.indexBuffer.buffer, 0,
                        VK_INDEX_TYPE_UINT32);
   vkCmdDrawIndexed(commandBuffer,
                    static_cast<uint32_t>(world.landscape.indices.size()), 1, 0,
@@ -821,9 +821,9 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
   // Pipeline 3
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                     _pipelines.graphics.water);
-  VkBuffer vertexBuffers[] = {world.rectangle.vertexBuffer};
+  VkBuffer vertexBuffers[] = {world.rectangle.vertexBuffer.buffer};
   vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
-  vkCmdBindIndexBuffer(commandBuffer, world.rectangle.indexBuffer, 0,
+  vkCmdBindIndexBuffer(commandBuffer, world.rectangle.indexBuffer.buffer, 0,
                        VK_INDEX_TYPE_UINT32);
   vkCmdDrawIndexed(commandBuffer,
                    static_cast<uint32_t>(world.rectangle.indices.size()), 1, 0,
