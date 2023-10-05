@@ -9,8 +9,10 @@ class Resources;
 
 class Pipelines {
  public:
-  Pipelines(VulkanMechanics& mechanics);
+  Pipelines(VulkanMechanics& mechanics, Resources& resources);
   ~Pipelines();
+
+  Resources& _resources;
 
   const std::unordered_map<std::string, std::vector<std::string>> shaders = {
       {"Engine", {"Comp"}},
@@ -55,7 +57,8 @@ class Pipelines {
 
   void createGraphicsPipeline_Cells(VkSampleCountFlagBits& msaaSamples);
   void createGraphicsPipeline_Landscape(VkSampleCountFlagBits& msaaSamples);
-  void createGraphicsPipeline_LandscapeWireframe(VkSampleCountFlagBits& msaaSamples);
+  void createGraphicsPipeline_LandscapeWireframe(
+      VkSampleCountFlagBits& msaaSamples);
   void createGraphicsPipeline_Water(VkSampleCountFlagBits& msaaSamples);
   void createGraphicsPipeline_Texture(VkSampleCountFlagBits& msaaSamples);
   void createGraphicsPipeline_Cube(VkSampleCountFlagBits& msaaSamples);

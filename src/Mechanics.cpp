@@ -24,6 +24,25 @@ VulkanMechanics::VulkanMechanics()
 
 VulkanMechanics::~VulkanMechanics() {
   Log::text("{ Vk. }", "destructing Vulkan Mechanics");
+  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+    vkDestroySemaphore(mainDevice.logical,
+                       syncObjects.renderFinishedSemaphores[i], nullptr);
+    vkDestroySemaphore(mainDevice.logical,
+                       syncObjects.imageAvailableSemaphores[i], nullptr);
+    vkDestroySemaphore(mainDevice.logical,
+                       syncObjects.computeFinishedSemaphores[i], nullptr);
+    vkDestroyFence(mainDevice.logical, syncObjects.inFlightFences[i], nullptr);
+    vkDestroyFence(mainDevice.logical, syncObjects.computeInFlightFences[i],
+                   nullptr);
+  }
+  vkDestroyDevice(mainDevice.logical, nullptr);
+
+  if (validation.enableValidationLayers) {
+    validation.DestroyDebugUtilsMessengerEXT(
+        instance, validation.debugMessenger, nullptr);
+  }
+  vkDestroySurfaceKHR(instance, surface, nullptr);
+  vkDestroyInstance(instance, nullptr);
 }
 
 void VulkanMechanics::setupVulkan(Pipelines& _pipelines,

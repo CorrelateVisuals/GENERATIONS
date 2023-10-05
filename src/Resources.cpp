@@ -8,8 +8,9 @@ World Resources::world;
 VkDevice* Image::_logicalDevice = nullptr;
 VkDevice* Geometry::_logicalDevice = nullptr;
 
-Resources::Resources(VulkanMechanics& mechanics)
+Resources::Resources(VulkanMechanics& mechanics, Pipelines& pipelines)
     : _mechanics(mechanics),
+      _pipelines(pipelines),
       pushConstants{},
       depthImage{},
       msaaImage{},
@@ -26,6 +27,64 @@ Resources::Resources(VulkanMechanics& mechanics)
 
 Resources::~Resources() {
   Log::text("{ /// }", "destructing Resources");
+  // vkDestroySampler(_mechanics.mainDevice.logical, textureImage.imageSampler,
+  //                  nullptr);
+  // vkDestroyImageView(_mechanics.mainDevice.logical, textureImage.imageView,
+  //                    nullptr);
+  // vkDestroyImage(_mechanics.mainDevice.logical, textureImage.image, nullptr);
+  // vkFreeMemory(_mechanics.mainDevice.logical, textureImage.imageMemory,
+  //              nullptr);
+
+  // vkFreeMemory(_mechanics.mainDevice.logical, world.cube.vertexBufferMemory,
+  //              nullptr);
+  // vkFreeMemory(_mechanics.mainDevice.logical,
+  //              world.rectangle.vertexBufferMemory, nullptr);
+  // vkFreeMemory(_mechanics.mainDevice.logical,
+  // world.rectangle.indexBufferMemory,
+  //              nullptr);
+  // vkFreeMemory(_mechanics.mainDevice.logical,
+  //              world.landscape.vertexBufferMemory, nullptr);
+  // vkFreeMemory(_mechanics.mainDevice.logical,
+  // world.landscape.indexBufferMemory,
+  //              nullptr);
+
+  // vkDestroyBuffer(_mechanics.mainDevice.logical, world.cube.vertexBuffer,
+  //                 nullptr);
+  // vkDestroyBuffer(_mechanics.mainDevice.logical,
+  // world.rectangle.vertexBuffer,
+  //                 nullptr);
+  // vkDestroyBuffer(_mechanics.mainDevice.logical, world.rectangle.indexBuffer,
+  //                 nullptr);
+  // vkDestroyBuffer(_mechanics.mainDevice.logical,
+  // world.landscape.vertexBuffer,
+  //                 nullptr);
+  // vkDestroyBuffer(_mechanics.mainDevice.logical, world.landscape.indexBuffer,
+  //                 nullptr);
+
+  //_pipelines.~Pipelines();
+
+  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+    vkDestroyBuffer(_mechanics.mainDevice.logical, buffers.uniforms[i],
+                    nullptr);
+    vkFreeMemory(_mechanics.mainDevice.logical, buffers.uniformsMemory[i],
+                 nullptr);
+  }
+
+  vkDestroyDescriptorPool(_mechanics.mainDevice.logical, descriptor.pool,
+                          nullptr);
+
+  vkDestroyDescriptorSetLayout(_mechanics.mainDevice.logical,
+                               descriptor.setLayout, nullptr);
+
+  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+    vkDestroyBuffer(_mechanics.mainDevice.logical, buffers.shaderStorage[i],
+                    nullptr);
+    vkFreeMemory(_mechanics.mainDevice.logical, buffers.shaderStorageMemory[i],
+                 nullptr);
+  }
+
+  vkDestroyCommandPool(_mechanics.mainDevice.logical, buffers.command.pool,
+                       nullptr);
 }
 
 void Resources::setupResources(Pipelines& _pipelines) {

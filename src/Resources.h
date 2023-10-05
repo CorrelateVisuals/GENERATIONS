@@ -16,11 +16,12 @@ class Pipelines;
 
 class Resources {
  public:
-  Resources(VulkanMechanics& mechanics);
+  Resources(VulkanMechanics& mechanics, Pipelines& pipelines);
   ~Resources();
 
   static World world;
   VulkanMechanics& _mechanics;
+  Pipelines& _pipelines;
 
   const std::unordered_map<Geometry*, VkVertexInputRate> vertexBuffers = {
       {&world.landscape, VK_VERTEX_INPUT_RATE_INSTANCE},

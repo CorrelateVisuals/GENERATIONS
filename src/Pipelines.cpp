@@ -8,35 +8,61 @@
 #include <cstring>
 #include <random>
 
-Pipelines::Pipelines(VulkanMechanics& mechanics)
-    : compute{}, graphics{}, _mechanics(mechanics) {
+Pipelines::Pipelines(VulkanMechanics& mechanics, Resources& resources)
+    : compute{}, graphics{}, _mechanics(mechanics), _resources(resources) {
   Log::text("{ === }", "constructing Pipelines");
 }
 
 Pipelines::~Pipelines() {
   Log::text("{ === }", "destructing Pipelines");
-  vkDestroyPipeline(_mechanics.mainDevice.logical, graphics.cells,
-      nullptr);
-  vkDestroyPipeline(_mechanics.mainDevice.logical, graphics.landscape,
-      nullptr);
-  vkDestroyPipeline(_mechanics.mainDevice.logical,
-      graphics.landscapeWireframe, nullptr);
-  vkDestroyPipeline(_mechanics.mainDevice.logical, graphics.water,
-      nullptr);
-  vkDestroyPipeline(_mechanics.mainDevice.logical, graphics.texture,
-      nullptr);
-  vkDestroyPipelineLayout(_mechanics.mainDevice.logical,
-      graphics.layout, nullptr);
 
-  vkDestroyPipeline(_mechanics.mainDevice.logical, compute.engine,
-      nullptr);
-  vkDestroyPipeline(_mechanics.mainDevice.logical, compute.postFX,
-      nullptr);
-  vkDestroyPipelineLayout(_mechanics.mainDevice.logical,
-      compute.layout, nullptr);
+  vkDestroySampler(_mechanics.mainDevice.logical,
+                   _resources.textureImage.imageSampler, nullptr);
+  vkDestroyImageView(_mechanics.mainDevice.logical,
+                     _resources.textureImage.imageView, nullptr);
+  vkDestroyImage(_mechanics.mainDevice.logical, _resources.textureImage.image,
+                 nullptr);
+  vkFreeMemory(_mechanics.mainDevice.logical,
+               _resources.textureImage.imageMemory, nullptr);
 
-  vkDestroyRenderPass(_mechanics.mainDevice.logical,
-      graphics.renderPass, nullptr);
+  vkFreeMemory(_mechanics.mainDevice.logical,
+               _resources.world.cube.vertexBufferMemory, nullptr);
+  vkFreeMemory(_mechanics.mainDevice.logical,
+               _resources.world.rectangle.vertexBufferMemory, nullptr);
+  vkFreeMemory(_mechanics.mainDevice.logical,
+               _resources.world.rectangle.indexBufferMemory, nullptr);
+  vkFreeMemory(_mechanics.mainDevice.logical,
+               _resources.world.landscape.vertexBufferMemory, nullptr);
+  vkFreeMemory(_mechanics.mainDevice.logical,
+               _resources.world.landscape.indexBufferMemory, nullptr);
+
+  vkDestroyBuffer(_mechanics.mainDevice.logical,
+                  _resources.world.cube.vertexBuffer, nullptr);
+  vkDestroyBuffer(_mechanics.mainDevice.logical,
+                  _resources.world.rectangle.vertexBuffer, nullptr);
+  vkDestroyBuffer(_mechanics.mainDevice.logical,
+                  _resources.world.rectangle.indexBuffer, nullptr);
+  vkDestroyBuffer(_mechanics.mainDevice.logical,
+                  _resources.world.landscape.vertexBuffer, nullptr);
+  vkDestroyBuffer(_mechanics.mainDevice.logical,
+                  _resources.world.landscape.indexBuffer, nullptr);
+
+  vkDestroyPipeline(_mechanics.mainDevice.logical, graphics.cells, nullptr);
+  vkDestroyPipeline(_mechanics.mainDevice.logical, graphics.landscape, nullptr);
+  vkDestroyPipeline(_mechanics.mainDevice.logical, graphics.landscapeWireframe,
+                    nullptr);
+  vkDestroyPipeline(_mechanics.mainDevice.logical, graphics.water, nullptr);
+  vkDestroyPipeline(_mechanics.mainDevice.logical, graphics.texture, nullptr);
+  vkDestroyPipelineLayout(_mechanics.mainDevice.logical, graphics.layout,
+                          nullptr);
+
+  vkDestroyPipeline(_mechanics.mainDevice.logical, compute.engine, nullptr);
+  vkDestroyPipeline(_mechanics.mainDevice.logical, compute.postFX, nullptr);
+  vkDestroyPipelineLayout(_mechanics.mainDevice.logical, compute.layout,
+                          nullptr);
+
+  vkDestroyRenderPass(_mechanics.mainDevice.logical, graphics.renderPass,
+                      nullptr);
 }
 
 void Pipelines::setupPipelines(Resources& _resources) {

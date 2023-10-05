@@ -24,5 +24,4 @@ class CapitalEngine {
   Resources resources;
 
   void drawFrame();
-  void cleanup();
 };
