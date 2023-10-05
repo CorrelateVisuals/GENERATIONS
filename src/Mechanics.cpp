@@ -62,7 +62,7 @@ void VulkanMechanics::setupVulkan(Pipelines& _pipelines,
   createSwapChain();
   createSwapChainImageViews(_resources);
 
-  createCommandPool(&_resources.buffers.command.pool);
+  createCommandPool(&_resources.command.pool);
 }
 
 void VulkanMechanics::createInstance() {

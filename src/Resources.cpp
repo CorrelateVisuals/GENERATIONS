@@ -8,7 +8,7 @@ Resources::Resources(VulkanMechanics& mechanics)
     : _mechanics(mechanics),
       pushConstants{},
       textureImage{},
-      buffers{},
+      command{},
       descriptor{} {
   Log::text("{ /// }", "constructing Resources");
 
@@ -21,31 +21,13 @@ Resources::Resources(VulkanMechanics& mechanics)
 Resources::~Resources() {
   Log::text("{ /// }", "destructing Resources");
 
-  // for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-  //   vkDestroyBuffer(_mechanics.mainDevice.logical, buffers.uniform[i],
-  //                   nullptr);
-  //   vkFreeMemory(_mechanics.mainDevice.logical, buffers.uniformsMemory[i],
-  //                nullptr);
-  // }
-
   vkDestroyDescriptorPool(_mechanics.mainDevice.logical, descriptor.pool,
                           nullptr);
 
   vkDestroyDescriptorSetLayout(_mechanics.mainDevice.logical,
                                descriptor.setLayout, nullptr);
 
-  // for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-  //   std::cout << shaderStorage[i].buffer << std::endl;
-  //   std::cout << shaderStorage[i].bufferMemory << std::endl;
-
-  //  vkDestroyBuffer(_mechanics.mainDevice.logical, shaderStorage[i].buffer,
-  //                  nullptr);
-  //  vkFreeMemory(_mechanics.mainDevice.logical, shaderStorage[i].bufferMemory,
-  //               nullptr);
-  //}
-
-  vkDestroyCommandPool(_mechanics.mainDevice.logical, buffers.command.pool,
-                       nullptr);
+  vkDestroyCommandPool(_mechanics.mainDevice.logical, command.pool, nullptr);
 }
 
 void Resources::setupResources(Pipelines& _pipelines) {
@@ -103,33 +85,31 @@ void Resources::createFramebuffers(Pipelines& _pipelines) {
 void Resources::createCommandBuffers() {
   Log::text("{ cmd }", "Command Buffers");
 
-  buffers.command.graphic.resize(MAX_FRAMES_IN_FLIGHT);
+  command.graphic.resize(MAX_FRAMES_IN_FLIGHT);
 
   VkCommandBufferAllocateInfo allocateInfo{
       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-      .commandPool = buffers.command.pool,
+      .commandPool = command.pool,
       .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-      .commandBufferCount =
-          static_cast<uint32_t>(buffers.command.graphic.size())};
+      .commandBufferCount = static_cast<uint32_t>(command.graphic.size())};
 
   _mechanics.result(vkAllocateCommandBuffers, _mechanics.mainDevice.logical,
-                    &allocateInfo, buffers.command.graphic.data());
+                    &allocateInfo, command.graphic.data());
 }
 
 void Resources::createComputeCommandBuffers() {
   Log::text("{ cmd }", "Compute Command Buffers");
 
-  buffers.command.compute.resize(MAX_FRAMES_IN_FLIGHT);
+  command.compute.resize(MAX_FRAMES_IN_FLIGHT);
 
   VkCommandBufferAllocateInfo allocateInfo{
       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-      .commandPool = buffers.command.pool,
+      .commandPool = command.pool,
       .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-      .commandBufferCount =
-          static_cast<uint32_t>(buffers.command.compute.size())};
+      .commandBufferCount = static_cast<uint32_t>(command.compute.size())};
 
   _mechanics.result(vkAllocateCommandBuffers, _mechanics.mainDevice.logical,
-                    &allocateInfo, buffers.command.compute.data());
+                    &allocateInfo, command.compute.data());
 }
 
 void Resources::createShaderStorageBuffers() {
@@ -470,7 +450,7 @@ VkCommandBuffer Resources::beginSingleTimeCommands() {
 
   VkCommandBufferAllocateInfo allocInfo{
       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-      .commandPool = buffers.command.pool,
+      .commandPool = command.pool,
       .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
       .commandBufferCount = 1};
 
@@ -499,7 +479,7 @@ void Resources::endSingleTimeCommands(VkCommandBuffer commandBuffer) {
   vkQueueSubmit(_mechanics.queues.graphics, 1, &submitInfo, VK_NULL_HANDLE);
   vkQueueWaitIdle(_mechanics.queues.graphics);
 
-  vkFreeCommandBuffers(_mechanics.mainDevice.logical, buffers.command.pool, 1,
+  vkFreeCommandBuffers(_mechanics.mainDevice.logical, command.pool, 1,
                        &commandBuffer);
 }
 
@@ -714,7 +694,7 @@ void Resources::recordComputeCommandBuffer(VkCommandBuffer commandBuffer,
   }
 
   // vkCmdPipelineBarrier(
-  //     buffers.command.compute[_mechanics.syncObjects.currentFrame],
+  //     command.compute[_mechanics.syncObjects.currentFrame],
   //     VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
   //     VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, 0, 0, nullptr, 0, nullptr, 0,
   //     nullptr);

@@ -33,6 +33,9 @@ class Resources {
   struct Texture : public Image {
   } textureImage;
 
+  std::vector<Buffer> shaderStorage;
+  std::vector<Buffer> uniform;
+
   struct PushConstants {
     VkShaderStageFlags shaderStage = {VK_SHADER_STAGE_COMPUTE_BIT};
     uint32_t count = 1;
@@ -41,16 +44,11 @@ class Resources {
     std::array<uint64_t, 32> data;
   } pushConstants;
 
-  std::vector<Buffer> shaderStorage;
-  std::vector<Buffer> uniform;
-
-  struct Buffers {
-    struct CommandBuffers {
-      VkCommandPool pool;
-      std::vector<VkCommandBuffer> graphic;
-      std::vector<VkCommandBuffer> compute;
-    } command;
-  } buffers;
+  struct CommandBuffers {
+    VkCommandPool pool;
+    std::vector<VkCommandBuffer> graphic;
+    std::vector<VkCommandBuffer> compute;
+  } command;
 
   struct DescriptorSets {
     VkDescriptorPool pool;
