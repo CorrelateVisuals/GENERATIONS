@@ -45,10 +45,6 @@ class Resources {
   std::vector<Buffer> uniform;
 
   struct Buffers {
-    std::vector<VkBuffer> uniforms;
-    std::vector<VkDeviceMemory> uniformsMemory;
-    std::vector<void*> uniformsMapped;
-
     struct CommandBuffers {
       VkCommandPool pool;
       std::vector<VkCommandBuffer> graphic;

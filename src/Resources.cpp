@@ -21,12 +21,12 @@ Resources::Resources(VulkanMechanics& mechanics)
 Resources::~Resources() {
   Log::text("{ /// }", "destructing Resources");
 
-  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-    vkDestroyBuffer(_mechanics.mainDevice.logical, buffers.uniforms[i],
-                    nullptr);
-    vkFreeMemory(_mechanics.mainDevice.logical, buffers.uniformsMemory[i],
-                 nullptr);
-  }
+  // for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+  //   vkDestroyBuffer(_mechanics.mainDevice.logical, buffers.uniform[i],
+  //                   nullptr);
+  //   vkFreeMemory(_mechanics.mainDevice.logical, buffers.uniformsMemory[i],
+  //                nullptr);
+  // }
 
   vkDestroyDescriptorPool(_mechanics.mainDevice.logical, descriptor.pool,
                           nullptr);
@@ -176,18 +176,16 @@ void Resources::createUniformBuffers() {
   Log::text("{ 101 }", MAX_FRAMES_IN_FLIGHT, "Uniform Buffers");
   VkDeviceSize bufferSize = sizeof(World::UniformBufferObject);
 
-  buffers.uniforms.resize(MAX_FRAMES_IN_FLIGHT);
-  buffers.uniformsMemory.resize(MAX_FRAMES_IN_FLIGHT);
-  buffers.uniformsMapped.resize(MAX_FRAMES_IN_FLIGHT);
+  uniform.resize(MAX_FRAMES_IN_FLIGHT);
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
     createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
                  VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                      VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                 buffers.uniforms[i], buffers.uniformsMemory[i]);
+                 uniform[i].buffer, uniform[i].bufferMemory);
 
-    vkMapMemory(_mechanics.mainDevice.logical, buffers.uniformsMemory[i], 0,
-                bufferSize, 0, &buffers.uniformsMapped[i]);
+    vkMapMemory(_mechanics.mainDevice.logical, uniform[i].bufferMemory, 0,
+                bufferSize, 0, &uniform[i].mapped);
   }
 }
 
@@ -626,7 +624,7 @@ void Resources::createDescriptorSets() {
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
     VkDescriptorBufferInfo uniformBufferInfo{
-        .buffer = buffers.uniforms[i],
+        .buffer = uniform[i].buffer,
         .offset = 0,
         .range = sizeof(World::UniformBufferObject)};
 
@@ -701,7 +699,7 @@ void Resources::createDescriptorSets() {
 void Resources::updateUniformBuffer(uint32_t currentImage) {
   World::UniformBufferObject uniformObject =
       world.updateUniforms(_mechanics.swapChain.extent);
-  std::memcpy(buffers.uniformsMapped[currentImage], &uniformObject,
+  std::memcpy(uniform[currentImage].mapped, &uniformObject,
               sizeof(uniformObject));
 }
 
