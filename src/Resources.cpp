@@ -4,10 +4,9 @@
 #include "CapitalEngine.h"
 #include "Resources.h"
 
-VkDevice* Image::_logicalDevice = nullptr;
-VkDevice* Buffer::_logicalDevice = nullptr;
 Resources::DepthImage Resources::depthImage;
 Resources::MultiSamplingImage Resources::msaaImage;
+// std::vector<Buffer> Resources::shaderStorage;
 
 Resources::Resources(VulkanMechanics& mechanics)
     : _mechanics(mechanics),
@@ -39,12 +38,15 @@ Resources::~Resources() {
   vkDestroyDescriptorSetLayout(_mechanics.mainDevice.logical,
                                descriptor.setLayout, nullptr);
 
-  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-    vkDestroyBuffer(_mechanics.mainDevice.logical, buffers.shaderStorage[i],
-                    nullptr);
-    vkFreeMemory(_mechanics.mainDevice.logical, buffers.shaderStorageMemory[i],
-                 nullptr);
-  }
+  // for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+  //   std::cout << shaderStorage[i].buffer << std::endl;
+  //   std::cout << shaderStorage[i].bufferMemory << std::endl;
+
+  //  vkDestroyBuffer(_mechanics.mainDevice.logical, shaderStorage[i].buffer,
+  //                  nullptr);
+  //  vkFreeMemory(_mechanics.mainDevice.logical, shaderStorage[i].bufferMemory,
+  //               nullptr);
+  //}
 
   vkDestroyCommandPool(_mechanics.mainDevice.logical, buffers.command.pool,
                        nullptr);
@@ -156,8 +158,8 @@ void Resources::createShaderStorageBuffers() {
   std::memcpy(data, cells.data(), static_cast<size_t>(bufferSize));
   vkUnmapMemory(_mechanics.mainDevice.logical, stagingBufferMemory);
 
-  buffers.shaderStorage.resize(MAX_FRAMES_IN_FLIGHT);
-  buffers.shaderStorageMemory.resize(MAX_FRAMES_IN_FLIGHT);
+  shaderStorage.resize(MAX_FRAMES_IN_FLIGHT);
+  Log::text("     !312312123", shaderStorage.size());
 
   // Copy initial Cell data to all storage buffers
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
@@ -165,9 +167,9 @@ void Resources::createShaderStorageBuffers() {
                  VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
                      VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
                      VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, buffers.shaderStorage[i],
-                 buffers.shaderStorageMemory[i]);
-    copyBuffer(stagingBuffer, buffers.shaderStorage[i], bufferSize);
+                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, shaderStorage[i].buffer,
+                 shaderStorage[i].bufferMemory);
+    copyBuffer(stagingBuffer, shaderStorage[i].buffer, bufferSize);
   }
 
   vkDestroyBuffer(_mechanics.mainDevice.logical, stagingBuffer, nullptr);
@@ -633,12 +635,12 @@ void Resources::createDescriptorSets() {
         .range = sizeof(World::UniformBufferObject)};
 
     VkDescriptorBufferInfo storageBufferInfoLastFrame{
-        .buffer = buffers.shaderStorage[(i - 1) % MAX_FRAMES_IN_FLIGHT],
+        .buffer = shaderStorage[(i - 1) % MAX_FRAMES_IN_FLIGHT].buffer,
         .offset = 0,
         .range = sizeof(World::Cell) * world.grid.size.x * world.grid.size.y};
 
     VkDescriptorBufferInfo storageBufferInfoCurrentFrame{
-        .buffer = buffers.shaderStorage[i],
+        .buffer = shaderStorage[i].buffer,
         .offset = 0,
         .range = sizeof(World::Cell) * world.grid.size.x * world.grid.size.y};
 
@@ -794,7 +796,7 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
 
   VkDeviceSize offsets0[]{0, 0};
   VkBuffer vertexBuffers0[] = {
-      buffers.shaderStorage[_mechanics.syncObjects.currentFrame],
+      shaderStorage[_mechanics.syncObjects.currentFrame].buffer,
       world.cube.vertexBuffer.buffer};
   vkCmdBindVertexBuffers(commandBuffer, 0, 2, vertexBuffers0, offsets0);
   vkCmdDraw(commandBuffer, static_cast<uint32_t>(world.cube.allVertices.size()),

@@ -1,4 +1,5 @@
 #pragma once
+#include "Buffer.h"
 #include "vulkan/vulkan.h"
 
 class Image {
