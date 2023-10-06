@@ -33,39 +33,46 @@ public:
     struct Texture : public Image {
     } textureImage;
 
+    static std::vector<VkDescriptorSetLayoutBinding> descriptorSetLayoutBindings;
     struct Uniform : DescriptorSetLayout {
         std::vector<Buffer> buffers;
         Uniform() {
-            descriptorSetLayoutBinding.binding = 0;
-            descriptorSetLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-            descriptorSetLayoutBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT | VK_SHADER_STAGE_VERTEX_BIT;
+            layoutBinding.binding = 0;
+            layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+            layoutBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT | VK_SHADER_STAGE_VERTEX_BIT;
+            descriptorSetLayoutBindings.push_back(layoutBinding);
         }
     } uniform;
 
     struct ShaderStorage : DescriptorSetLayout {
         std::vector<Buffer> buffers;
         ShaderStorage() {
-            descriptorSetLayoutBinding.binding = 1;
-            descriptorSetLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-            descriptorSetLayoutBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+            layoutBinding.binding = 1;
+            layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+            layoutBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+            descriptorSetLayoutBindings.push_back(layoutBinding);
+            layoutBinding.binding = 2;
+            descriptorSetLayoutBindings.push_back(layoutBinding);
         }
     } shaderStorage;
 
     struct ImageSampler : DescriptorSetLayout {
         Buffer buffer;
         ImageSampler() {
-            descriptorSetLayoutBinding.binding = 3;
-            descriptorSetLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-            descriptorSetLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+            layoutBinding.binding = 3;
+            layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            layoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+            descriptorSetLayoutBindings.push_back(layoutBinding);
         }
     } imageSampler;
 
     struct StorageImage : DescriptorSetLayout {
         Buffer buffer;
         StorageImage() {
-            descriptorSetLayoutBinding.binding = 4;
-            descriptorSetLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-            descriptorSetLayoutBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+            layoutBinding.binding = 4;
+            layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+            layoutBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+            descriptorSetLayoutBindings.push_back(layoutBinding);
         }
     } storageImage;
 
@@ -92,7 +99,7 @@ public:
  public:
   void setupResources(Pipelines& _pipelines);
   void createFramebuffers(Pipelines& _pipelines);
-  void createDescriptorSetLayout();
+  void createDescriptorSetLayout(const std::vector<VkDescriptorSetLayoutBinding>& layoutBindings);
   void createDescriptorSets();
   void recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
                                    uint32_t imageIndex,

@@ -4,6 +4,8 @@
 #include "CapitalEngine.h"
 #include "Resources.h"
 
+std::vector<VkDescriptorSetLayoutBinding> Resources::descriptorSetLayoutBindings;
+
 Resources::Resources(VulkanMechanics& mechanics)
     : _mechanics(mechanics),
       pushConstants{},
@@ -166,15 +168,7 @@ void Resources::createUniformBuffers() {
   }
 }
 
-void Resources::createDescriptorSetLayout() {
-    std::vector<VkDescriptorSetLayoutBinding> layoutBindings;
-    layoutBindings.push_back(uniform.descriptorSetLayoutBinding);
-    layoutBindings.push_back(shaderStorage.descriptorSetLayoutBinding);
-    shaderStorage.descriptorSetLayoutBinding.binding = 2;
-    layoutBindings.push_back(shaderStorage.descriptorSetLayoutBinding);
-    layoutBindings.push_back(imageSampler.descriptorSetLayoutBinding);
-    layoutBindings.push_back(storageImage.descriptorSetLayoutBinding);
-
+void Resources::createDescriptorSetLayout(const std::vector<VkDescriptorSetLayoutBinding>& layoutBindings) {
   Log::text("{ |=| }", "Descriptor Set Layout:", layoutBindings.size(),
             "bindings");
   for (const VkDescriptorSetLayoutBinding& item : layoutBindings) {

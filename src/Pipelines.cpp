@@ -38,7 +38,7 @@ void Pipelines::setupPipelines(Resources& _resources) {
   Log::text(Log::Style::headerGuard);
   Log::text("{ === }", "Setup Pipelines");
 
-  _resources.createDescriptorSetLayout();
+  _resources.createDescriptorSetLayout(_resources.descriptorSetLayoutBindings);
   createRenderPass(_resources);
 
   _resources.createColorResources();

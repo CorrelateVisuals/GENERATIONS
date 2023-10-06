@@ -15,9 +15,9 @@ class Buffer {
 };
 
 struct DescriptorSetLayout {
-    VkDescriptorSetLayoutBinding descriptorSetLayoutBinding{
+    VkDescriptorSetLayoutBinding layoutBinding{
         .binding = 0,
-        .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+        .descriptorType = VK_DESCRIPTOR_TYPE_MAX_ENUM,
         .descriptorCount = 1,
         .stageFlags = VK_SHADER_STAGE_ALL
     };
