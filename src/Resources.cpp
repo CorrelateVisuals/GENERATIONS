@@ -132,7 +132,7 @@ void Resources::createShaderStorageBuffers() {
   std::memcpy(data, cells.data(), static_cast<size_t>(bufferSize));
   vkUnmapMemory(_mechanics.mainDevice.logical, stagingBufferMemory);
 
-  shaderStorage.resize(MAX_FRAMES_IN_FLIGHT);
+  shaderStorage.buffers.resize(MAX_FRAMES_IN_FLIGHT);
 
   // Copy initial Cell data to all storage buffers
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
@@ -140,9 +140,9 @@ void Resources::createShaderStorageBuffers() {
                  VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
                      VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
                      VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, shaderStorage[i].buffer,
-                 shaderStorage[i].bufferMemory);
-    copyBuffer(stagingBuffer, shaderStorage[i].buffer, bufferSize);
+                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, shaderStorage.buffers[i].buffer,
+                 shaderStorage.buffers[i].bufferMemory);
+    copyBuffer(stagingBuffer, shaderStorage.buffers[i].buffer, bufferSize);
   }
 
   vkDestroyBuffer(_mechanics.mainDevice.logical, stagingBuffer, nullptr);
@@ -153,47 +153,27 @@ void Resources::createUniformBuffers() {
   Log::text("{ 101 }", MAX_FRAMES_IN_FLIGHT, "Uniform Buffers");
   VkDeviceSize bufferSize = sizeof(World::UniformBufferObject);
 
-  uniform.resize(MAX_FRAMES_IN_FLIGHT);
+  uniform.buffers.resize(MAX_FRAMES_IN_FLIGHT);
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
     createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
                  VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                      VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                 uniform[i].buffer, uniform[i].bufferMemory);
+                 uniform.buffers[i].buffer, uniform.buffers[i].bufferMemory);
 
-    vkMapMemory(_mechanics.mainDevice.logical, uniform[i].bufferMemory, 0,
-                bufferSize, 0, &uniform[i].mapped);
+    vkMapMemory(_mechanics.mainDevice.logical, uniform.buffers[i].bufferMemory, 0,
+                bufferSize, 0, &uniform.buffers[i].mapped);
   }
 }
 
 void Resources::createDescriptorSetLayout() {
-  std::vector<VkDescriptorSetLayoutBinding> layoutBindings = {
-      {.binding = 0,
-       .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-       .descriptorCount = 1,
-       .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT | VK_SHADER_STAGE_VERTEX_BIT,
-       .pImmutableSamplers = nullptr},
-      {.binding = 1,
-       .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-       .descriptorCount = 1,
-       .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
-       .pImmutableSamplers = nullptr},
-      {.binding = 2,
-       .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-       .descriptorCount = 1,
-       .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
-       .pImmutableSamplers = nullptr},
-      {.binding = 3,
-       .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-       .descriptorCount = 1,
-       .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
-       .pImmutableSamplers = nullptr},
-      {.binding = 4,
-       .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
-       .descriptorCount = 1,
-       .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
-       .pImmutableSamplers = nullptr},
-  };
+    std::vector<VkDescriptorSetLayoutBinding> layoutBindings;
+    layoutBindings.push_back(uniform.descriptorSetLayoutBinding);
+    layoutBindings.push_back(shaderStorage.descriptorSetLayoutBinding);
+    shaderStorage.descriptorSetLayoutBinding.binding = 2;
+    layoutBindings.push_back(shaderStorage.descriptorSetLayoutBinding);
+    layoutBindings.push_back(imageSampler.descriptorSetLayoutBinding);
+    layoutBindings.push_back(storageImage.descriptorSetLayoutBinding);
 
   Log::text("{ |=| }", "Descriptor Set Layout:", layoutBindings.size(),
             "bindings");
@@ -599,17 +579,17 @@ void Resources::createDescriptorSets() {
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
     VkDescriptorBufferInfo uniformBufferInfo{
-        .buffer = uniform[i].buffer,
+        .buffer = uniform.buffers[i].buffer,
         .offset = 0,
         .range = sizeof(World::UniformBufferObject)};
 
     VkDescriptorBufferInfo storageBufferInfoLastFrame{
-        .buffer = shaderStorage[(i - 1) % MAX_FRAMES_IN_FLIGHT].buffer,
+        .buffer = shaderStorage.buffers[(i - 1) % MAX_FRAMES_IN_FLIGHT].buffer,
         .offset = 0,
         .range = sizeof(World::Cell) * world.grid.size.x * world.grid.size.y};
 
     VkDescriptorBufferInfo storageBufferInfoCurrentFrame{
-        .buffer = shaderStorage[i].buffer,
+        .buffer = shaderStorage.buffers[i].buffer,
         .offset = 0,
         .range = sizeof(World::Cell) * world.grid.size.x * world.grid.size.y};
 
@@ -674,7 +654,7 @@ void Resources::createDescriptorSets() {
 void Resources::updateUniformBuffer(uint32_t currentImage) {
   World::UniformBufferObject uniformObject =
       world.updateUniforms(_mechanics.swapChain.extent);
-  std::memcpy(uniform[currentImage].mapped, &uniformObject,
+  std::memcpy(uniform.buffers[currentImage].mapped, &uniformObject,
               sizeof(uniformObject));
 }
 
@@ -765,7 +745,7 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
 
   VkDeviceSize offsets0[]{0, 0};
   VkBuffer vertexBuffers0[] = {
-      shaderStorage[_mechanics.syncObjects.currentFrame].buffer,
+      shaderStorage.buffers[_mechanics.syncObjects.currentFrame].buffer,
       world.cube.vertexBuffer.buffer};
   vkCmdBindVertexBuffers(commandBuffer, 0, 2, vertexBuffers0, offsets0);
   vkCmdDraw(commandBuffer, static_cast<uint32_t>(world.cube.allVertices.size()),
