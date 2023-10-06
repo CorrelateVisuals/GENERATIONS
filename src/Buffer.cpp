@@ -2,7 +2,7 @@
 
 VkDevice* Buffer::_logicalDevice = nullptr;
 
-Buffer::Buffer() : buffer{}, bufferMemory{} {}
+Buffer::Buffer() : buffer{}, bufferMemory{}, mapped{} {}
 
 Buffer::~Buffer() {
   if (*_logicalDevice != VK_NULL_HANDLE) {
@@ -16,3 +16,7 @@ Buffer::~Buffer() {
     }
   }
 }
+
+VkDevice* Buffer::setLogicalDevice(VkDevice* logicalDevice) {
+  return logicalDevice;
+};

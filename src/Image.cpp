@@ -31,3 +31,7 @@ Image::~Image() {
     };
   }
 }
+
+VkDevice* Image::setLogicalDevice(VkDevice* logicalDevice){
+    return logicalDevice;
+};

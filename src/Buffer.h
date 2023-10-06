@@ -11,7 +11,5 @@ class Buffer {
   void* mapped;
 
   static VkDevice* _logicalDevice;
-  static VkDevice* setLogicalDevice(VkDevice* logicalDevice) {
-    return logicalDevice;
-  };
+  static VkDevice* setLogicalDevice(VkDevice* logicalDevice);
 };

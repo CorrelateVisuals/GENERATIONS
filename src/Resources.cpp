@@ -23,10 +23,8 @@ Resources::~Resources() {
 
   vkDestroyDescriptorPool(_mechanics.mainDevice.logical, descriptor.pool,
                           nullptr);
-
   vkDestroyDescriptorSetLayout(_mechanics.mainDevice.logical,
                                descriptor.setLayout, nullptr);
-
   vkDestroyCommandPool(_mechanics.mainDevice.logical, command.pool, nullptr);
 }
 
@@ -135,7 +133,6 @@ void Resources::createShaderStorageBuffers() {
   vkUnmapMemory(_mechanics.mainDevice.logical, stagingBufferMemory);
 
   shaderStorage.resize(MAX_FRAMES_IN_FLIGHT);
-  Log::text("     !312312123", shaderStorage.size());
 
   // Copy initial Cell data to all storage buffers
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
@@ -414,8 +411,6 @@ void Resources::createIndexBuffer(VkBuffer& buffer,
                                   VkDeviceMemory& bufferMemory,
                                   const auto& indices) {
   VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
-
-  Log::text("", indices[0], indices.size());
 
   VkBuffer stagingBuffer;
   VkDeviceMemory stagingBufferMemory;
