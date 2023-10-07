@@ -14,11 +14,10 @@ class CEbuffer {
   static VkDevice* setLogicalDevice(VkDevice* logicalDevice);
 };
 
-struct DescriptorSetLayout {
-    VkDescriptorSetLayoutBinding layoutBinding{
-        .binding = 0,
-        .descriptorType = VK_DESCRIPTOR_TYPE_MAX_ENUM,
-        .descriptorCount = 1,
-        .stageFlags = VK_SHADER_STAGE_ALL
-    };
+struct CEdescriptorSetLayout {
+  VkDescriptorSetLayoutBinding layoutBinding{
+      .binding = 0,
+      .descriptorType = VK_DESCRIPTOR_TYPE_MAX_ENUM,
+      .descriptorCount = 1,
+      .stageFlags = VK_SHADER_STAGE_ALL};
 };

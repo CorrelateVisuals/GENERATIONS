@@ -15,66 +15,67 @@ class VulkanMechanics;
 class Pipelines;
 
 class Resources {
-public:
-    Resources(VulkanMechanics& mechanics);
-    ~Resources();
+ public:
+  Resources(VulkanMechanics& mechanics);
+  ~Resources();
 
-    World world;
+  World world;
 
-    const std::unordered_map<Geometry*, VkVertexInputRate> vertexBuffers = {
-        {&world.landscape, VK_VERTEX_INPUT_RATE_INSTANCE},
-        {&world.rectangle, VK_VERTEX_INPUT_RATE_INSTANCE},
-        {&world.cube, VK_VERTEX_INPUT_RATE_VERTEX} };
+  const std::unordered_map<Geometry*, VkVertexInputRate> vertexBuffers = {
+      {&world.landscape, VK_VERTEX_INPUT_RATE_INSTANCE},
+      {&world.rectangle, VK_VERTEX_INPUT_RATE_INSTANCE},
+      {&world.cube, VK_VERTEX_INPUT_RATE_VERTEX}};
 
-    struct DepthImage : public CEimage {
-    } depthImage;
-    struct MultiSamplingImage : public CEimage {
-    } msaaImage;
-    struct Texture : public CEimage {
-    } textureImage;
+  struct DepthImage : public CEimage {
+  } depthImage;
+  struct MultiSamplingImage : public CEimage {
+  } msaaImage;
+  struct Texture : public CEimage {
+  } textureImage;
 
-    static std::vector<VkDescriptorSetLayoutBinding> descriptorSetLayoutBindings;
-    struct Uniform : DescriptorSetLayout {
-        std::vector<CEbuffer> buffers;
-        Uniform() {
-            layoutBinding.binding = 0;
-            layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-            layoutBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT | VK_SHADER_STAGE_VERTEX_BIT;
-            descriptorSetLayoutBindings.push_back(layoutBinding);
-        }
-    } uniform;
+  static std::vector<VkDescriptorSetLayoutBinding> descriptorSetLayoutBindings;
+  struct Uniform : CEdescriptorSetLayout {
+    std::vector<CEbuffer> buffers;
+    Uniform() {
+      layoutBinding.binding = 0;
+      layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+      layoutBinding.stageFlags =
+          VK_SHADER_STAGE_COMPUTE_BIT | VK_SHADER_STAGE_VERTEX_BIT;
+      descriptorSetLayoutBindings.push_back(layoutBinding);
+    }
+  } uniform;
 
-    struct ShaderStorage : DescriptorSetLayout {
-        std::vector<CEbuffer> buffers;
-        ShaderStorage() {
-            layoutBinding.binding = 1;
-            layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-            layoutBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-            descriptorSetLayoutBindings.push_back(layoutBinding);
-            layoutBinding.binding = 2;
-            descriptorSetLayoutBindings.push_back(layoutBinding);
-        }
-    } shaderStorage;
+  struct ShaderStorage : CEdescriptorSetLayout {
+    std::vector<CEbuffer> buffers;
+    ShaderStorage() {
+      layoutBinding.binding = 1;
+      layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+      layoutBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+      descriptorSetLayoutBindings.push_back(layoutBinding);
+      layoutBinding.binding = 2;
+      descriptorSetLayoutBindings.push_back(layoutBinding);
+    }
+  } shaderStorage;
 
-    struct ImageSampler : DescriptorSetLayout {
-        CEbuffer buffer;
-        ImageSampler() {
-            layoutBinding.binding = 3;
-            layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-            layoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-            descriptorSetLayoutBindings.push_back(layoutBinding);
-        }
-    } imageSampler;
+  struct ImageSampler : CEdescriptorSetLayout {
+    CEbuffer buffer;
+    ImageSampler() {
+      layoutBinding.binding = 3;
+      layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+      layoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+      descriptorSetLayoutBindings.push_back(layoutBinding);
+    }
+  } imageSampler;
 
-    struct StorageImage : DescriptorSetLayout {
-        CEbuffer buffer;
-        StorageImage() {
-            layoutBinding.binding = 4;
-            layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-            layoutBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-            descriptorSetLayoutBindings.push_back(layoutBinding);
-        }
-    } storageImage;
+  struct StorageImage : CEdescriptorSetLayout {
+    CEbuffer buffer;
+    StorageImage() {
+      layoutBinding.binding = 4;
+      layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+      layoutBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+      descriptorSetLayoutBindings.push_back(layoutBinding);
+    }
+  } storageImage;
 
   struct PushConstants {
     VkShaderStageFlags shaderStage = {VK_SHADER_STAGE_COMPUTE_BIT};
@@ -99,7 +100,8 @@ public:
  public:
   void setupResources(Pipelines& _pipelines);
   void createFramebuffers(Pipelines& _pipelines);
-  void createDescriptorSetLayout(const std::vector<VkDescriptorSetLayoutBinding>& layoutBindings);
+  void createDescriptorSetLayout(
+      const std::vector<VkDescriptorSetLayoutBinding>& layoutBindings);
   void createDescriptorSets();
   void recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
                                    uint32_t imageIndex,
