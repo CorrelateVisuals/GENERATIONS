@@ -87,6 +87,7 @@ class Resources {
 
   struct CommandBuffers {
     VkCommandPool pool;
+    VkCommandBuffer singleTime;
     std::vector<VkCommandBuffer> graphic;
     std::vector<VkCommandBuffer> compute;
   } command;
@@ -140,8 +141,10 @@ class Resources {
                          const auto& indices);
 
   void setPushConstants();
-  VkCommandBuffer beginSingleTimeCommands();
-  void endSingleTimeCommands(VkCommandBuffer commandBuffer);
+
+  VkCommandBuffer beginSingleTimeCommands(VkCommandBuffer& commandBuffer);
+  void endSingleTimeCommands(VkCommandBuffer& commandBuffer);
+
   void createCommandBuffers();
   void createComputeCommandBuffers();
   void createDescriptorPool();

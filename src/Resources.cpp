@@ -4,7 +4,8 @@
 #include "CapitalEngine.h"
 #include "Resources.h"
 
-std::vector<VkDescriptorSetLayoutBinding> Resources::descriptorSetLayoutBindings;
+std::vector<VkDescriptorSetLayoutBinding>
+    Resources::descriptorSetLayoutBindings;
 
 Resources::Resources(VulkanMechanics& mechanics)
     : _mechanics(mechanics),
@@ -138,12 +139,12 @@ void Resources::createShaderStorageBuffers() {
 
   // Copy initial Cell data to all storage buffers
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-    createBuffer(static_cast<VkDeviceSize>(bufferSize),
-                 VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
-                     VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
-                     VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, shaderStorage.buffers[i].buffer,
-                 shaderStorage.buffers[i].bufferMemory);
+    createBuffer(
+        static_cast<VkDeviceSize>(bufferSize),
+        VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
+            VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, shaderStorage.buffers[i].buffer,
+        shaderStorage.buffers[i].bufferMemory);
     copyBuffer(stagingBuffer, shaderStorage.buffers[i].buffer, bufferSize);
   }
 
@@ -163,12 +164,13 @@ void Resources::createUniformBuffers() {
                      VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                  uniform.buffers[i].buffer, uniform.buffers[i].bufferMemory);
 
-    vkMapMemory(_mechanics.mainDevice.logical, uniform.buffers[i].bufferMemory, 0,
-                bufferSize, 0, &uniform.buffers[i].mapped);
+    vkMapMemory(_mechanics.mainDevice.logical, uniform.buffers[i].bufferMemory,
+                0, bufferSize, 0, &uniform.buffers[i].mapped);
   }
 }
 
-void Resources::createDescriptorSetLayout(const std::vector<VkDescriptorSetLayoutBinding>& layoutBindings) {
+void Resources::createDescriptorSetLayout(
+    const std::vector<VkDescriptorSetLayoutBinding>& layoutBindings) {
   Log::text("{ |=| }", "Descriptor Set Layout:", layoutBindings.size(),
             "bindings");
   for (const VkDescriptorSetLayoutBinding& item : layoutBindings) {
@@ -196,8 +198,7 @@ void Resources::createDescriptorPool() {
       {.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
        .descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT)},
       {.type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
-       .descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT)}
-  };
+       .descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT)}};
 
   Log::text("{ |=| }", "Descriptor Pool");
   for (size_t i = 0; i < poolSizes.size(); i++) {
@@ -314,22 +315,22 @@ void Resources::createTextureImage(std::string imagePath) {
               VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage.image,
               textureImage.imageMemory);
 
-  VkCommandBuffer commandBuffer1 = beginSingleTimeCommands();
-  transitionImageLayout(commandBuffer1, textureImage.image,
+  beginSingleTimeCommands(command.singleTime);
+  transitionImageLayout(command.singleTime, textureImage.image,
                         VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED,
                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-  endSingleTimeCommands(commandBuffer1);
+  endSingleTimeCommands(command.singleTime);
 
   copyBufferToImage(stagingBuffer, textureImage.image,
                     static_cast<uint32_t>(texWidth),
                     static_cast<uint32_t>(texHeight));
 
-  VkCommandBuffer commandBuffer2 = beginSingleTimeCommands();
-  transitionImageLayout(commandBuffer2, textureImage.image,
+  beginSingleTimeCommands(command.singleTime);
+  transitionImageLayout(command.singleTime, textureImage.image,
                         VK_FORMAT_R8G8B8A8_SRGB,
                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                         VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-  endSingleTimeCommands(commandBuffer2);
+  endSingleTimeCommands(command.singleTime);
 
   vkDestroyBuffer(_mechanics.mainDevice.logical, stagingBuffer, nullptr);
   vkFreeMemory(_mechanics.mainDevice.logical, stagingBufferMemory, nullptr);
@@ -417,7 +418,8 @@ void Resources::setPushConstants() {
   pushConstants.data = {world.time.passedHours};
 }
 
-VkCommandBuffer Resources::beginSingleTimeCommands() {
+VkCommandBuffer Resources::beginSingleTimeCommands(
+    VkCommandBuffer& commandBuffer) {
   Log::text("{ 1.. }", "Begin Single Time Commands");
 
   VkCommandBufferAllocateInfo allocInfo{
@@ -426,7 +428,6 @@ VkCommandBuffer Resources::beginSingleTimeCommands() {
       .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
       .commandBufferCount = 1};
 
-  VkCommandBuffer commandBuffer;
   vkAllocateCommandBuffers(_mechanics.mainDevice.logical, &allocInfo,
                            &commandBuffer);
 
@@ -439,7 +440,7 @@ VkCommandBuffer Resources::beginSingleTimeCommands() {
   return commandBuffer;
 }
 
-void Resources::endSingleTimeCommands(VkCommandBuffer commandBuffer) {
+void Resources::endSingleTimeCommands(VkCommandBuffer& commandBuffer) {
   Log::text("{ ..1 }", "End Single Time Commands");
 
   vkEndCommandBuffer(commandBuffer);
@@ -499,8 +500,8 @@ void Resources::transitionImageLayout(VkCommandBuffer commandBuffer,
     barrier.dstAccessMask =
         VK_ACCESS_MEMORY_READ_BIT |
         VK_ACCESS_MEMORY_WRITE_BIT;  // ... before it is safe to read or write
-                                     // (CEimage Layout Transitions perform both,
-                                     // read AND write access.)
+                                     // (CEimage Layout Transitions perform
+                                     // both, read AND write access.)
 
     sourceStage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;  // All commands must have
                                                        // finished...
@@ -520,7 +521,7 @@ void Resources::copyBufferToImage(VkBuffer buffer,
                                   uint32_t height) {
   Log::text("{ >>> }", "CEbuffer To CEimage", width, height);
 
-  VkCommandBuffer commandBuffer = beginSingleTimeCommands();
+  beginSingleTimeCommands(command.singleTime);
 
   VkBufferImageCopy region{.bufferOffset = 0,
                            .bufferRowLength = 0,
@@ -532,10 +533,10 @@ void Resources::copyBufferToImage(VkBuffer buffer,
   region.imageSubresource.baseArrayLayer = 0,
   region.imageSubresource.layerCount = 1,
 
-  vkCmdCopyBufferToImage(commandBuffer, buffer, image,
+  vkCmdCopyBufferToImage(command.singleTime, buffer, image,
                          VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 
-  endSingleTimeCommands(commandBuffer);
+  endSingleTimeCommands(command.singleTime);
 }
 
 void Resources::createTextureImageView() {
@@ -941,13 +942,13 @@ void Resources::copyBuffer(VkBuffer srcBuffer,
                            VkDeviceSize size) {
   Log::text("{ ... }", "copying", size, "bytes");
 
-  VkCommandBuffer commandBuffer = beginSingleTimeCommands();
+  beginSingleTimeCommands(command.singleTime);
 
   VkBufferCopy copyRegion{};
   copyRegion.size = size;
-  vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
+  vkCmdCopyBuffer(command.singleTime, srcBuffer, dstBuffer, 1, &copyRegion);
 
-  endSingleTimeCommands(commandBuffer);
+  endSingleTimeCommands(command.singleTime);
 }
 
 uint32_t Resources::findMemoryType(uint32_t typeFilter,
