@@ -5,7 +5,7 @@
 class Image {
  public:
   Image();
-  ~Image();
+  virtual ~Image();
 
   VkImage image;
   VkDeviceMemory imageMemory;

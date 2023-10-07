@@ -4,7 +4,7 @@
 class Buffer {
  public:
   Buffer();
-  ~Buffer();
+  virtual ~Buffer();
 
   VkBuffer buffer;
   VkDeviceMemory bufferMemory;
