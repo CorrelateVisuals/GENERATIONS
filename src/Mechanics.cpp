@@ -24,6 +24,26 @@ VulkanMechanics::VulkanMechanics()
 
 VulkanMechanics::~VulkanMechanics() {
   Log::text("{ Vk. }", "destructing Vulkan Mechanics");
+  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+    vkDestroySemaphore(mainDevice.logical,
+                       syncObjects.renderFinishedSemaphores[i], nullptr);
+    vkDestroySemaphore(mainDevice.logical,
+                       syncObjects.imageAvailableSemaphores[i], nullptr);
+    vkDestroySemaphore(mainDevice.logical,
+                       syncObjects.computeFinishedSemaphores[i], nullptr);
+    vkDestroyFence(mainDevice.logical, syncObjects.inFlightFences[i], nullptr);
+    vkDestroyFence(mainDevice.logical, syncObjects.computeInFlightFences[i],
+                   nullptr);
+  }
+  vkDestroyDevice(mainDevice.logical, nullptr);
+  mainDevice.logical = VK_NULL_HANDLE;
+
+  if (validation.enableValidationLayers) {
+    validation.DestroyDebugUtilsMessengerEXT(
+        instance, validation.debugMessenger, nullptr);
+  }
+  vkDestroySurfaceKHR(instance, surface, nullptr);
+  vkDestroyInstance(instance, nullptr);
 }
 
 void VulkanMechanics::setupVulkan(Pipelines& _pipelines,
@@ -42,7 +62,7 @@ void VulkanMechanics::setupVulkan(Pipelines& _pipelines,
   createSwapChain();
   createSwapChainImageViews(_resources);
 
-  createCommandPool(&_resources.buffers.command.pool);
+  createCommandPool(&_resources.command.pool);
 }
 
 void VulkanMechanics::createInstance() {
@@ -108,7 +128,7 @@ void VulkanMechanics::pickPhysicalDevice(
   for (const auto& device : devices) {
     if (isDeviceSuitable(device)) {
       mainDevice.physical = device;
-      msaaImage.samples = getMaxUsableSampleCount();
+      msaaImage.sampleCount = getMaxUsableSampleCount();
       break;
     }
   }
@@ -349,16 +369,6 @@ void VulkanMechanics::createSyncObjects() {
 }
 
 void VulkanMechanics::cleanupSwapChain(Resources& _resources) {
-  vkDestroyImageView(mainDevice.logical, _resources.depthImage.imageView,
-                     nullptr);
-  vkDestroyImage(mainDevice.logical, _resources.depthImage.image, nullptr);
-  vkFreeMemory(mainDevice.logical, _resources.depthImage.imageMemory, nullptr);
-
-  vkDestroyImageView(mainDevice.logical, _resources.msaaImage.imageView,
-                     nullptr);
-  vkDestroyImage(mainDevice.logical, _resources.msaaImage.image, nullptr);
-  vkFreeMemory(mainDevice.logical, _resources.msaaImage.imageMemory, nullptr);
-
   for (auto framebuffer : swapChain.framebuffers) {
     vkDestroyFramebuffer(mainDevice.logical, framebuffer, nullptr);
   }
@@ -452,7 +462,7 @@ void VulkanMechanics::createSwapChain() {
 }
 
 void VulkanMechanics::createSwapChainImageViews(Resources& resources) {
-  Log::text("{ <-> }", swapChain.images.size(), "Swap Chain Image Views");
+  Log::text("{ <-> }", swapChain.images.size(), "Swap Chain CEimage Views");
 
   swapChain.imageViews.resize(swapChain.images.size());
 

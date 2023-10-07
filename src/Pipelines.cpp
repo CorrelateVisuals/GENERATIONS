@@ -8,20 +8,37 @@
 #include <cstring>
 #include <random>
 
-Pipelines::Pipelines(VulkanMechanics& mechanics)
-    : compute{}, graphics{}, _mechanics(mechanics) {
+Pipelines::Pipelines(VulkanMechanics& mechanics, Resources& resources)
+    : compute{}, graphics{}, _mechanics(mechanics), _resources(resources) {
   Log::text("{ === }", "constructing Pipelines");
 }
 
 Pipelines::~Pipelines() {
   Log::text("{ === }", "destructing Pipelines");
+
+  vkDestroyPipeline(_mechanics.mainDevice.logical, graphics.cells, nullptr);
+  vkDestroyPipeline(_mechanics.mainDevice.logical, graphics.landscape, nullptr);
+  vkDestroyPipeline(_mechanics.mainDevice.logical, graphics.landscapeWireframe,
+                    nullptr);
+  vkDestroyPipeline(_mechanics.mainDevice.logical, graphics.water, nullptr);
+  vkDestroyPipeline(_mechanics.mainDevice.logical, graphics.texture, nullptr);
+  vkDestroyPipelineLayout(_mechanics.mainDevice.logical, graphics.layout,
+                          nullptr);
+
+  vkDestroyPipeline(_mechanics.mainDevice.logical, compute.engine, nullptr);
+  vkDestroyPipeline(_mechanics.mainDevice.logical, compute.postFX, nullptr);
+  vkDestroyPipelineLayout(_mechanics.mainDevice.logical, compute.layout,
+                          nullptr);
+
+  vkDestroyRenderPass(_mechanics.mainDevice.logical, graphics.renderPass,
+                      nullptr);
 }
 
 void Pipelines::setupPipelines(Resources& _resources) {
   Log::text(Log::Style::headerGuard);
   Log::text("{ === }", "Setup Pipelines");
 
-  _resources.createDescriptorSetLayout();
+  _resources.createDescriptorSetLayout(_resources.descriptorSetLayoutBindings);
   createRenderPass(_resources);
 
   _resources.createColorResources();
@@ -29,11 +46,11 @@ void Pipelines::setupPipelines(Resources& _resources) {
 
   createGraphicsPipeline_Layout(_resources.descriptor);
 
-  createGraphicsPipeline_Cells(_resources.msaaImage.samples);
-  createGraphicsPipeline_Landscape(_resources.msaaImage.samples);
-  createGraphicsPipeline_LandscapeWireframe(_resources.msaaImage.samples);
-  createGraphicsPipeline_Water(_resources.msaaImage.samples);
-  createGraphicsPipeline_Texture(_resources.msaaImage.samples);
+  createGraphicsPipeline_Cells(_resources.msaaImage.sampleCount);
+  createGraphicsPipeline_Landscape(_resources.msaaImage.sampleCount);
+  createGraphicsPipeline_LandscapeWireframe(_resources.msaaImage.sampleCount);
+  createGraphicsPipeline_Water(_resources.msaaImage.sampleCount);
+  createGraphicsPipeline_Texture(_resources.msaaImage.sampleCount);
 
   createComputePipeline_Layout(_resources.descriptor, _resources.pushConstants);
 
@@ -48,7 +65,7 @@ void Pipelines::createRenderPass(Resources& _resources) {
 
   VkAttachmentDescription colorAttachment{
       .format = _mechanics.swapChain.imageFormat,
-      .samples = _resources.msaaImage.samples,
+      .samples = _resources.msaaImage.sampleCount,
       .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
       .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
       .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
@@ -58,7 +75,7 @@ void Pipelines::createRenderPass(Resources& _resources) {
 
   VkAttachmentDescription depthAttachment{
       .format = _resources.findDepthFormat(),
-      .samples = _resources.msaaImage.samples,
+      .samples = _resources.msaaImage.sampleCount,
       .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
       .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
       .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,

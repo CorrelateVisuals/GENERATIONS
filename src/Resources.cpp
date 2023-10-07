@@ -4,21 +4,30 @@
 #include "CapitalEngine.h"
 #include "Resources.h"
 
-World Resources::world;
+std::vector<VkDescriptorSetLayoutBinding> Resources::descriptorSetLayoutBindings;
 
 Resources::Resources(VulkanMechanics& mechanics)
     : _mechanics(mechanics),
       pushConstants{},
-      depthImage(_mechanics.mainDevice.logical),
-      msaaImage(_mechanics.mainDevice.logical),
-      texture(_mechanics.mainDevice.logical),
-      buffers{},
+      textureImage{},
+      command{},
       descriptor{} {
   Log::text("{ /// }", "constructing Resources");
+
+  CEimage::_logicalDevice =
+      CEimage::setLogicalDevice(&_mechanics.mainDevice.logical);
+  CEbuffer::_logicalDevice =
+      CEbuffer::setLogicalDevice(&_mechanics.mainDevice.logical);
 }
 
 Resources::~Resources() {
   Log::text("{ /// }", "destructing Resources");
+
+  vkDestroyDescriptorPool(_mechanics.mainDevice.logical, descriptor.pool,
+                          nullptr);
+  vkDestroyDescriptorSetLayout(_mechanics.mainDevice.logical,
+                               descriptor.setLayout, nullptr);
+  vkDestroyCommandPool(_mechanics.mainDevice.logical, command.pool, nullptr);
 }
 
 void Resources::setupResources(Pipelines& _pipelines) {
@@ -76,33 +85,31 @@ void Resources::createFramebuffers(Pipelines& _pipelines) {
 void Resources::createCommandBuffers() {
   Log::text("{ cmd }", "Command Buffers");
 
-  buffers.command.graphic.resize(MAX_FRAMES_IN_FLIGHT);
+  command.graphic.resize(MAX_FRAMES_IN_FLIGHT);
 
   VkCommandBufferAllocateInfo allocateInfo{
       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-      .commandPool = buffers.command.pool,
+      .commandPool = command.pool,
       .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-      .commandBufferCount =
-          static_cast<uint32_t>(buffers.command.graphic.size())};
+      .commandBufferCount = static_cast<uint32_t>(command.graphic.size())};
 
   _mechanics.result(vkAllocateCommandBuffers, _mechanics.mainDevice.logical,
-                    &allocateInfo, buffers.command.graphic.data());
+                    &allocateInfo, command.graphic.data());
 }
 
 void Resources::createComputeCommandBuffers() {
   Log::text("{ cmd }", "Compute Command Buffers");
 
-  buffers.command.compute.resize(MAX_FRAMES_IN_FLIGHT);
+  command.compute.resize(MAX_FRAMES_IN_FLIGHT);
 
   VkCommandBufferAllocateInfo allocateInfo{
       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-      .commandPool = buffers.command.pool,
+      .commandPool = command.pool,
       .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-      .commandBufferCount =
-          static_cast<uint32_t>(buffers.command.compute.size())};
+      .commandBufferCount = static_cast<uint32_t>(command.compute.size())};
 
   _mechanics.result(vkAllocateCommandBuffers, _mechanics.mainDevice.logical,
-                    &allocateInfo, buffers.command.compute.data());
+                    &allocateInfo, command.compute.data());
 }
 
 void Resources::createShaderStorageBuffers() {
@@ -127,8 +134,7 @@ void Resources::createShaderStorageBuffers() {
   std::memcpy(data, cells.data(), static_cast<size_t>(bufferSize));
   vkUnmapMemory(_mechanics.mainDevice.logical, stagingBufferMemory);
 
-  buffers.shaderStorage.resize(MAX_FRAMES_IN_FLIGHT);
-  buffers.shaderStorageMemory.resize(MAX_FRAMES_IN_FLIGHT);
+  shaderStorage.buffers.resize(MAX_FRAMES_IN_FLIGHT);
 
   // Copy initial Cell data to all storage buffers
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
@@ -136,9 +142,9 @@ void Resources::createShaderStorageBuffers() {
                  VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
                      VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
                      VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, buffers.shaderStorage[i],
-                 buffers.shaderStorageMemory[i]);
-    copyBuffer(stagingBuffer, buffers.shaderStorage[i], bufferSize);
+                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, shaderStorage.buffers[i].buffer,
+                 shaderStorage.buffers[i].bufferMemory);
+    copyBuffer(stagingBuffer, shaderStorage.buffers[i].buffer, bufferSize);
   }
 
   vkDestroyBuffer(_mechanics.mainDevice.logical, stagingBuffer, nullptr);
@@ -149,50 +155,20 @@ void Resources::createUniformBuffers() {
   Log::text("{ 101 }", MAX_FRAMES_IN_FLIGHT, "Uniform Buffers");
   VkDeviceSize bufferSize = sizeof(World::UniformBufferObject);
 
-  buffers.uniforms.resize(MAX_FRAMES_IN_FLIGHT);
-  buffers.uniformsMemory.resize(MAX_FRAMES_IN_FLIGHT);
-  buffers.uniformsMapped.resize(MAX_FRAMES_IN_FLIGHT);
+  uniform.buffers.resize(MAX_FRAMES_IN_FLIGHT);
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
     createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
                  VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                      VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                 buffers.uniforms[i], buffers.uniformsMemory[i]);
+                 uniform.buffers[i].buffer, uniform.buffers[i].bufferMemory);
 
-    vkMapMemory(_mechanics.mainDevice.logical, buffers.uniformsMemory[i], 0,
-                bufferSize, 0, &buffers.uniformsMapped[i]);
+    vkMapMemory(_mechanics.mainDevice.logical, uniform.buffers[i].bufferMemory, 0,
+                bufferSize, 0, &uniform.buffers[i].mapped);
   }
 }
 
-void Resources::createDescriptorSetLayout() {
-  std::vector<VkDescriptorSetLayoutBinding> layoutBindings = {
-      {.binding = 0,
-       .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-       .descriptorCount = 1,
-       .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT | VK_SHADER_STAGE_VERTEX_BIT,
-       .pImmutableSamplers = nullptr},
-      {.binding = 1,
-       .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-       .descriptorCount = 1,
-       .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
-       .pImmutableSamplers = nullptr},
-      {.binding = 2,
-       .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-       .descriptorCount = 1,
-       .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
-       .pImmutableSamplers = nullptr},
-      {.binding = 3,
-       .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-       .descriptorCount = 1,
-       .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
-       .pImmutableSamplers = nullptr},
-      {.binding = 4,
-       .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
-       .descriptorCount = 1,
-       .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
-       .pImmutableSamplers = nullptr},
-  };
-
+void Resources::createDescriptorSetLayout(const std::vector<VkDescriptorSetLayoutBinding>& layoutBindings) {
   Log::text("{ |=| }", "Descriptor Set Layout:", layoutBindings.size(),
             "bindings");
   for (const VkDescriptorSetLayoutBinding& item : layoutBindings) {
@@ -218,7 +194,10 @@ void Resources::createDescriptorPool() {
       {.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
        .descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT) * 2},
       {.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-       .descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT)}};
+       .descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT)},
+      {.type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
+       .descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT)}
+  };
 
   Log::text("{ |=| }", "Descriptor Pool");
   for (size_t i = 0; i < poolSizes.size(); i++) {
@@ -259,7 +238,7 @@ void Resources::createImage(uint32_t width,
                             VkMemoryPropertyFlags properties,
                             VkImage& image,
                             VkDeviceMemory& imageMemory) {
-  Log::text("{ img }", "Image", width, height);
+  Log::text("{ img }", "CEimage", width, height);
   Log::text(Log::Style::charLeader, Log::getSampleCountString(numSamples));
   Log::text(Log::Style::charLeader, Log::getImageUsageString(usage));
   Log::text(Log::Style::charLeader, Log::getMemoryPropertyString(properties));
@@ -300,7 +279,7 @@ void Resources::createImage(uint32_t width,
 }
 
 void Resources::createTextureImage(std::string imagePath) {
-  Log::text("{ img }", "Image Texture: ", imagePath);
+  Log::text("{ img }", "CEimage Texture: ", imagePath);
   int texWidth{0}, texHeight{0}, texChannels{0};
   int rgba = 4;
   stbi_uc* pixels = stbi_load(imagePath.c_str(), &texWidth, &texHeight,
@@ -332,21 +311,22 @@ void Resources::createTextureImage(std::string imagePath) {
   createImage(texWidth, texHeight, VK_SAMPLE_COUNT_1_BIT,
               VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL,
               VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-              VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, texture.image,
-              texture.imageMemory);
+              VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage.image,
+              textureImage.imageMemory);
 
   VkCommandBuffer commandBuffer1 = beginSingleTimeCommands();
-  transitionImageLayout(commandBuffer1, texture.image, VK_FORMAT_R8G8B8A8_SRGB,
-                        VK_IMAGE_LAYOUT_UNDEFINED,
+  transitionImageLayout(commandBuffer1, textureImage.image,
+                        VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED,
                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
   endSingleTimeCommands(commandBuffer1);
 
-  copyBufferToImage(stagingBuffer, texture.image,
+  copyBufferToImage(stagingBuffer, textureImage.image,
                     static_cast<uint32_t>(texWidth),
                     static_cast<uint32_t>(texHeight));
 
   VkCommandBuffer commandBuffer2 = beginSingleTimeCommands();
-  transitionImageLayout(commandBuffer2, texture.image, VK_FORMAT_R8G8B8A8_SRGB,
+  transitionImageLayout(commandBuffer2, textureImage.image,
+                        VK_FORMAT_R8G8B8A8_SRGB,
                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                         VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
   endSingleTimeCommands(commandBuffer2);
@@ -361,15 +341,15 @@ void Resources::createVertexBuffers(
     Geometry* currentGeometry = resource.first;
 
     if (resource.second == VK_VERTEX_INPUT_RATE_INSTANCE) {
-      createVertexBuffer(currentGeometry->vertexBuffer,
-                         currentGeometry->vertexBufferMemory,
+      createVertexBuffer(currentGeometry->vertexBuffer.buffer,
+                         currentGeometry->vertexBuffer.bufferMemory,
                          currentGeometry->uniqueVertices);
-      createIndexBuffer(currentGeometry->indexBuffer,
-                        currentGeometry->indexBufferMemory,
+      createIndexBuffer(currentGeometry->indexBuffer.buffer,
+                        currentGeometry->indexBuffer.bufferMemory,
                         currentGeometry->indices);
     } else if (resource.second == VK_VERTEX_INPUT_RATE_VERTEX) {
-      createVertexBuffer(currentGeometry->vertexBuffer,
-                         currentGeometry->vertexBufferMemory,
+      createVertexBuffer(currentGeometry->vertexBuffer.buffer,
+                         currentGeometry->vertexBuffer.bufferMemory,
                          currentGeometry->allVertices);
     }
   }
@@ -409,8 +389,6 @@ void Resources::createIndexBuffer(VkBuffer& buffer,
                                   const auto& indices) {
   VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
 
-  Log::text("", indices[0], indices.size());
-
   VkBuffer stagingBuffer;
   VkDeviceMemory stagingBufferMemory;
   createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
@@ -444,7 +422,7 @@ VkCommandBuffer Resources::beginSingleTimeCommands() {
 
   VkCommandBufferAllocateInfo allocInfo{
       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-      .commandPool = buffers.command.pool,
+      .commandPool = command.pool,
       .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
       .commandBufferCount = 1};
 
@@ -473,7 +451,7 @@ void Resources::endSingleTimeCommands(VkCommandBuffer commandBuffer) {
   vkQueueSubmit(_mechanics.queues.graphics, 1, &submitInfo, VK_NULL_HANDLE);
   vkQueueWaitIdle(_mechanics.queues.graphics);
 
-  vkFreeCommandBuffers(_mechanics.mainDevice.logical, buffers.command.pool, 1,
+  vkFreeCommandBuffers(_mechanics.mainDevice.logical, command.pool, 1,
                        &commandBuffer);
 }
 
@@ -482,7 +460,7 @@ void Resources::transitionImageLayout(VkCommandBuffer commandBuffer,
                                       VkFormat format,
                                       VkImageLayout oldLayout,
                                       VkImageLayout newLayout) {
-  // Log::text("{ >>> }", "Transition Image Layout");
+  // Log::text("{ >>> }", "Transition CEimage Layout");
 
   VkImageMemoryBarrier barrier{.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
                                .oldLayout = oldLayout,
@@ -521,7 +499,7 @@ void Resources::transitionImageLayout(VkCommandBuffer commandBuffer,
     barrier.dstAccessMask =
         VK_ACCESS_MEMORY_READ_BIT |
         VK_ACCESS_MEMORY_WRITE_BIT;  // ... before it is safe to read or write
-                                     // (Image Layout Transitions perform both,
+                                     // (CEimage Layout Transitions perform both,
                                      // read AND write access.)
 
     sourceStage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;  // All commands must have
@@ -540,7 +518,7 @@ void Resources::copyBufferToImage(VkBuffer buffer,
                                   VkImage image,
                                   uint32_t width,
                                   uint32_t height) {
-  Log::text("{ >>> }", "Buffer To Image", width, height);
+  Log::text("{ >>> }", "CEbuffer To CEimage", width, height);
 
   VkCommandBuffer commandBuffer = beginSingleTimeCommands();
 
@@ -561,9 +539,9 @@ void Resources::copyBufferToImage(VkBuffer buffer,
 }
 
 void Resources::createTextureImageView() {
-  Log::text("{ ... }", ":  Texture Image View");
-  texture.imageView = createImageView(texture.image, VK_FORMAT_R8G8B8A8_SRGB,
-                                      VK_IMAGE_ASPECT_COLOR_BIT);
+  Log::text("{ ... }", ":  Texture CEimage View");
+  textureImage.imageView = createImageView(
+      textureImage.image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
 }
 
 VkFormat Resources::findDepthFormat() {
@@ -598,23 +576,23 @@ void Resources::createDescriptorSets() {
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
     VkDescriptorBufferInfo uniformBufferInfo{
-        .buffer = buffers.uniforms[i],
+        .buffer = uniform.buffers[i].buffer,
         .offset = 0,
         .range = sizeof(World::UniformBufferObject)};
 
     VkDescriptorBufferInfo storageBufferInfoLastFrame{
-        .buffer = buffers.shaderStorage[(i - 1) % MAX_FRAMES_IN_FLIGHT],
+        .buffer = shaderStorage.buffers[(i - 1) % MAX_FRAMES_IN_FLIGHT].buffer,
         .offset = 0,
         .range = sizeof(World::Cell) * world.grid.size.x * world.grid.size.y};
 
     VkDescriptorBufferInfo storageBufferInfoCurrentFrame{
-        .buffer = buffers.shaderStorage[i],
+        .buffer = shaderStorage.buffers[i].buffer,
         .offset = 0,
         .range = sizeof(World::Cell) * world.grid.size.x * world.grid.size.y};
 
     VkDescriptorImageInfo imageInfo{
-        .sampler = texture.imageSampler,
-        .imageView = texture.imageView,
+        .sampler = textureImage.imageSampler,
+        .imageView = textureImage.imageView,
         .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL};
 
     VkDescriptorImageInfo swapchainImageInfo{
@@ -673,7 +651,7 @@ void Resources::createDescriptorSets() {
 void Resources::updateUniformBuffer(uint32_t currentImage) {
   World::UniformBufferObject uniformObject =
       world.updateUniforms(_mechanics.swapChain.extent);
-  std::memcpy(buffers.uniformsMapped[currentImage], &uniformObject,
+  std::memcpy(uniform.buffers[currentImage].mapped, &uniformObject,
               sizeof(uniformObject));
 }
 
@@ -688,7 +666,7 @@ void Resources::recordComputeCommandBuffer(VkCommandBuffer commandBuffer,
   }
 
   // vkCmdPipelineBarrier(
-  //     buffers.command.compute[_mechanics.syncObjects.currentFrame],
+  //     command.compute[_mechanics.syncObjects.currentFrame],
   //     VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
   //     VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, 0, 0, nullptr, 0, nullptr, 0,
   //     nullptr);
@@ -764,8 +742,8 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
 
   VkDeviceSize offsets0[]{0, 0};
   VkBuffer vertexBuffers0[] = {
-      buffers.shaderStorage[_mechanics.syncObjects.currentFrame],
-      world.cube.vertexBuffer};
+      shaderStorage.buffers[_mechanics.syncObjects.currentFrame].buffer,
+      world.cube.vertexBuffer.buffer};
   vkCmdBindVertexBuffers(commandBuffer, 0, 2, vertexBuffers0, offsets0);
   vkCmdDraw(commandBuffer, static_cast<uint32_t>(world.cube.allVertices.size()),
             world.grid.size.x * world.grid.size.y, 0, 0);
@@ -773,9 +751,9 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
   // Landscape
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                     _pipelines.graphics.landscape);
-  VkBuffer vertexBuffers1[] = {world.landscape.vertexBuffer};
+  VkBuffer vertexBuffers1[] = {world.landscape.vertexBuffer.buffer};
   vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers1, offsets);
-  vkCmdBindIndexBuffer(commandBuffer, world.landscape.indexBuffer, 0,
+  vkCmdBindIndexBuffer(commandBuffer, world.landscape.indexBuffer.buffer, 0,
                        VK_INDEX_TYPE_UINT32);
   vkCmdDrawIndexed(commandBuffer,
                    static_cast<uint32_t>(world.landscape.indices.size()), 1, 0,
@@ -791,9 +769,9 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
   // Pipeline 3
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                     _pipelines.graphics.water);
-  VkBuffer vertexBuffers[] = {world.rectangle.vertexBuffer};
+  VkBuffer vertexBuffers[] = {world.rectangle.vertexBuffer.buffer};
   vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
-  vkCmdBindIndexBuffer(commandBuffer, world.rectangle.indexBuffer, 0,
+  vkCmdBindIndexBuffer(commandBuffer, world.rectangle.indexBuffer.buffer, 0,
                        VK_INDEX_TYPE_UINT32);
   vkCmdDrawIndexed(commandBuffer,
                    static_cast<uint32_t>(world.rectangle.indices.size()), 1, 0,
@@ -849,7 +827,7 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
 VkImageView Resources::createImageView(VkImage image,
                                        VkFormat format,
                                        VkImageAspectFlags aspectFlags) {
-  Log::text("{ ... }", ":  Image View");
+  Log::text("{ ... }", ":  CEimage View");
 
   VkImageViewCreateInfo viewInfo{
       .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
@@ -874,7 +852,7 @@ void Resources::createDepthResources() {
   VkFormat depthFormat = findDepthFormat();
 
   createImage(_mechanics.swapChain.extent.width,
-              _mechanics.swapChain.extent.height, msaaImage.samples,
+              _mechanics.swapChain.extent.height, msaaImage.sampleCount,
               depthFormat, VK_IMAGE_TILING_OPTIMAL,
               VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
               VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, depthImage.image,
@@ -889,7 +867,7 @@ void Resources::createColorResources() {
   VkFormat colorFormat = _mechanics.swapChain.imageFormat;
 
   createImage(_mechanics.swapChain.extent.width,
-              _mechanics.swapChain.extent.height, msaaImage.samples,
+              _mechanics.swapChain.extent.height, msaaImage.sampleCount,
               colorFormat, VK_IMAGE_TILING_OPTIMAL,
               VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT |
                   VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
@@ -920,7 +898,7 @@ void Resources::createTextureSampler() {
       .unnormalizedCoordinates = VK_FALSE};
 
   if (vkCreateSampler(_mechanics.mainDevice.logical, &samplerInfo, nullptr,
-                      &texture.imageSampler) != VK_SUCCESS) {
+                      &textureImage.imageSampler) != VK_SUCCESS) {
     throw std::runtime_error("failed to create texture sampler!");
   }
 }

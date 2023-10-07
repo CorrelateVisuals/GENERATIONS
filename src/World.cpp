@@ -8,13 +8,11 @@
 #include <random>
 
 World::World() {
-  Log::logTitle();
   Log::text("{ wWw }", "constructing World");
 }
 
 World::~World() {
   Log::text("{ wWw }", "destructing World");
-  Log::logFooter();
 }
 
 std::vector<VkVertexInputBindingDescription>

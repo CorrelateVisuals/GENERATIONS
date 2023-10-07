@@ -9,7 +9,7 @@
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/hash.hpp>
 
-#include "Library.h"
+#include "CEbuffer.h"
 
 #include <string>
 #include <vector>
@@ -21,10 +21,10 @@ class Geometry {
   Geometry(const std::string& modelName = "");
   ~Geometry() = default;
 
-  VkBuffer vertexBuffer;
-  VkDeviceMemory vertexBufferMemory;
-  VkBuffer indexBuffer;
-  VkDeviceMemory indexBufferMemory;
+  struct VertexBuffer : public CEbuffer {
+  } vertexBuffer;
+  struct IndexBuffer : public CEbuffer {
+  } indexBuffer;
 
   struct Vertex {
     glm::vec3 instancePosition;
