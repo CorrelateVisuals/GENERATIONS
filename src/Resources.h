@@ -1,7 +1,7 @@
 #pragma once
 #include "vulkan/vulkan.h"
 
-#include "Image.h"
+#include "CEimage.h"
 #include "Mechanics.h"
 #include "Pipelines.h"
 #include "World.h"
@@ -26,16 +26,16 @@ public:
         {&world.rectangle, VK_VERTEX_INPUT_RATE_INSTANCE},
         {&world.cube, VK_VERTEX_INPUT_RATE_VERTEX} };
 
-    struct DepthImage : public Image {
+    struct DepthImage : public CEimage {
     } depthImage;
-    struct MultiSamplingImage : public Image {
+    struct MultiSamplingImage : public CEimage {
     } msaaImage;
-    struct Texture : public Image {
+    struct Texture : public CEimage {
     } textureImage;
 
     static std::vector<VkDescriptorSetLayoutBinding> descriptorSetLayoutBindings;
     struct Uniform : DescriptorSetLayout {
-        std::vector<Buffer> buffers;
+        std::vector<CEbuffer> buffers;
         Uniform() {
             layoutBinding.binding = 0;
             layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -45,7 +45,7 @@ public:
     } uniform;
 
     struct ShaderStorage : DescriptorSetLayout {
-        std::vector<Buffer> buffers;
+        std::vector<CEbuffer> buffers;
         ShaderStorage() {
             layoutBinding.binding = 1;
             layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
@@ -57,7 +57,7 @@ public:
     } shaderStorage;
 
     struct ImageSampler : DescriptorSetLayout {
-        Buffer buffer;
+        CEbuffer buffer;
         ImageSampler() {
             layoutBinding.binding = 3;
             layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -67,7 +67,7 @@ public:
     } imageSampler;
 
     struct StorageImage : DescriptorSetLayout {
-        Buffer buffer;
+        CEbuffer buffer;
         StorageImage() {
             layoutBinding.binding = 4;
             layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;

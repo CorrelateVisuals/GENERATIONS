@@ -1,17 +1,17 @@
-#include "Image.h"
+#include "CEimage.h"
 
 #include <iostream>
 
-VkDevice* Image::_logicalDevice = nullptr;
+VkDevice* CEimage::_logicalDevice = nullptr;
 
-Image::Image()
+CEimage::CEimage()
     : image{},
       imageMemory{},
       imageView{},
       imageSampler{},
       sampleCount{VK_SAMPLE_COUNT_1_BIT} {}
 
-Image::~Image() {
+CEimage::~CEimage() {
   if (*_logicalDevice != VK_NULL_HANDLE) {
     if (imageSampler != VK_NULL_HANDLE) {
       vkDestroySampler(*_logicalDevice, imageSampler, nullptr);
@@ -32,6 +32,6 @@ Image::~Image() {
   }
 }
 
-VkDevice* Image::setLogicalDevice(VkDevice* logicalDevice){
+VkDevice* CEimage::setLogicalDevice(VkDevice* logicalDevice){
     return logicalDevice;
 };

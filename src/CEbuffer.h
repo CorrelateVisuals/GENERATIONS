@@ -1,10 +1,10 @@
 #pragma once
 #include <vulkan/vulkan.h>
 
-class Buffer {
+class CEbuffer {
  public:
-  Buffer();
-  virtual ~Buffer();
+  CEbuffer();
+  virtual ~CEbuffer();
 
   VkBuffer buffer;
   VkDeviceMemory bufferMemory;

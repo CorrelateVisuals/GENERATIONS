@@ -1,11 +1,11 @@
 #pragma once
-#include "Buffer.h"
+#include "CEbuffer.h"
 #include "vulkan/vulkan.h"
 
-class Image {
+class CEimage {
  public:
-  Image();
-  virtual ~Image();
+  CEimage();
+  virtual ~CEimage();
 
   VkImage image;
   VkDeviceMemory imageMemory;

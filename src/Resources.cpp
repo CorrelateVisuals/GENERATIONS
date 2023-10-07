@@ -14,10 +14,10 @@ Resources::Resources(VulkanMechanics& mechanics)
       descriptor{} {
   Log::text("{ /// }", "constructing Resources");
 
-  Image::_logicalDevice =
-      Image::setLogicalDevice(&_mechanics.mainDevice.logical);
-  Buffer::_logicalDevice =
-      Buffer::setLogicalDevice(&_mechanics.mainDevice.logical);
+  CEimage::_logicalDevice =
+      CEimage::setLogicalDevice(&_mechanics.mainDevice.logical);
+  CEbuffer::_logicalDevice =
+      CEbuffer::setLogicalDevice(&_mechanics.mainDevice.logical);
 }
 
 Resources::~Resources() {
@@ -238,7 +238,7 @@ void Resources::createImage(uint32_t width,
                             VkMemoryPropertyFlags properties,
                             VkImage& image,
                             VkDeviceMemory& imageMemory) {
-  Log::text("{ img }", "Image", width, height);
+  Log::text("{ img }", "CEimage", width, height);
   Log::text(Log::Style::charLeader, Log::getSampleCountString(numSamples));
   Log::text(Log::Style::charLeader, Log::getImageUsageString(usage));
   Log::text(Log::Style::charLeader, Log::getMemoryPropertyString(properties));
@@ -279,7 +279,7 @@ void Resources::createImage(uint32_t width,
 }
 
 void Resources::createTextureImage(std::string imagePath) {
-  Log::text("{ img }", "Image Texture: ", imagePath);
+  Log::text("{ img }", "CEimage Texture: ", imagePath);
   int texWidth{0}, texHeight{0}, texChannels{0};
   int rgba = 4;
   stbi_uc* pixels = stbi_load(imagePath.c_str(), &texWidth, &texHeight,
@@ -460,7 +460,7 @@ void Resources::transitionImageLayout(VkCommandBuffer commandBuffer,
                                       VkFormat format,
                                       VkImageLayout oldLayout,
                                       VkImageLayout newLayout) {
-  // Log::text("{ >>> }", "Transition Image Layout");
+  // Log::text("{ >>> }", "Transition CEimage Layout");
 
   VkImageMemoryBarrier barrier{.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
                                .oldLayout = oldLayout,
@@ -499,7 +499,7 @@ void Resources::transitionImageLayout(VkCommandBuffer commandBuffer,
     barrier.dstAccessMask =
         VK_ACCESS_MEMORY_READ_BIT |
         VK_ACCESS_MEMORY_WRITE_BIT;  // ... before it is safe to read or write
-                                     // (Image Layout Transitions perform both,
+                                     // (CEimage Layout Transitions perform both,
                                      // read AND write access.)
 
     sourceStage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;  // All commands must have
@@ -518,7 +518,7 @@ void Resources::copyBufferToImage(VkBuffer buffer,
                                   VkImage image,
                                   uint32_t width,
                                   uint32_t height) {
-  Log::text("{ >>> }", "Buffer To Image", width, height);
+  Log::text("{ >>> }", "CEbuffer To CEimage", width, height);
 
   VkCommandBuffer commandBuffer = beginSingleTimeCommands();
 
@@ -539,7 +539,7 @@ void Resources::copyBufferToImage(VkBuffer buffer,
 }
 
 void Resources::createTextureImageView() {
-  Log::text("{ ... }", ":  Texture Image View");
+  Log::text("{ ... }", ":  Texture CEimage View");
   textureImage.imageView = createImageView(
       textureImage.image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
 }
@@ -827,7 +827,7 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
 VkImageView Resources::createImageView(VkImage image,
                                        VkFormat format,
                                        VkImageAspectFlags aspectFlags) {
-  Log::text("{ ... }", ":  Image View");
+  Log::text("{ ... }", ":  CEimage View");
 
   VkImageViewCreateInfo viewInfo{
       .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,

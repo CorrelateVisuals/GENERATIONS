@@ -1,10 +1,10 @@
-#include "Buffer.h"
+#include "CEbuffer.h"
 
-VkDevice* Buffer::_logicalDevice = nullptr;
+VkDevice* CEbuffer::_logicalDevice = nullptr;
 
-Buffer::Buffer() : buffer{}, bufferMemory{}, mapped{} {}
+CEbuffer::CEbuffer() : buffer{}, bufferMemory{}, mapped{} {}
 
-Buffer::~Buffer() {
+CEbuffer::~CEbuffer() {
   if (*_logicalDevice != VK_NULL_HANDLE) {
     if (buffer != VK_NULL_HANDLE) {
       vkDestroyBuffer(*_logicalDevice, buffer, nullptr);
@@ -17,6 +17,6 @@ Buffer::~Buffer() {
   }
 }
 
-VkDevice* Buffer::setLogicalDevice(VkDevice* logicalDevice) {
+VkDevice* CEbuffer::setLogicalDevice(VkDevice* logicalDevice) {
   return logicalDevice;
 };

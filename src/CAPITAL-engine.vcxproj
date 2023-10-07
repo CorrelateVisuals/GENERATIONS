@@ -167,10 +167,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Buffer.cpp" />
+    <ClCompile Include="CEbuffer.cpp" />
     <ClCompile Include="CapitalEngine.cpp" />
     <ClCompile Include="Geometry.cpp" />
-    <ClCompile Include="Image.cpp" />
+    <ClCompile Include="CEimage.cpp" />
     <ClCompile Include="Log.cpp" />
     <ClCompile Include="Library.cpp" />
     <ClCompile Include="main.cpp" />
@@ -184,9 +184,9 @@
     <ClCompile Include="World.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Buffer.h" />
+    <ClInclude Include="CEbuffer.h" />
     <ClInclude Include="Geometry.h" />
-    <ClInclude Include="Image.h" />
+    <ClInclude Include="CEimage.h" />
     <ClInclude Include="Log.h" />
     <ClInclude Include="CapitalEngine.h" />
     <ClInclude Include="Library.h" />
