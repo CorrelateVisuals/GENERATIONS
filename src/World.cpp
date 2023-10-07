@@ -8,13 +8,11 @@
 #include <random>
 
 World::World() {
-  Log::logTitle();
   Log::text("{ wWw }", "constructing World");
 }
 
 World::~World() {
   Log::text("{ wWw }", "destructing World");
-  Log::logFooter();
 }
 
 std::vector<VkVertexInputBindingDescription>
@@ -90,7 +88,7 @@ std::vector<World::Cell> World::initializeGrid() {
     landscape.addVertexPosition(glm::vec3(posX, posY, landscapeHeight[i]));
   }
   landscape.indices =
-      Lib::createGridPolygons(tempIndices, static_cast<int>(grid.size.x));
+      Geometry::createGridPolygons(tempIndices, static_cast<int>(grid.size.x));
 
   return cells;
 }

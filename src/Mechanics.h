@@ -1,6 +1,5 @@
 #pragma once
 #include <GLFW/glfw3.h>
-#include <vk_mem_alloc.h>
 
 #include "CapitalEngine.h"
 #include "Pipelines.h"
@@ -19,7 +18,6 @@ class VulkanMechanics {
   VulkanMechanics();
   ~VulkanMechanics();
 
-  VmaAllocator memAllocator;
   VkSurfaceKHR surface;
   VkInstance instance;
   ValidationLayers validation;
@@ -81,22 +79,17 @@ class VulkanMechanics {
  public:
   void setupVulkan(Pipelines& _pipelines, Resources& _resources);
   void recreateSwapChain(Pipelines& _pipelines, Resources& _resources);
-  void cleanupSwapChain(Pipelines& _pipelines);
+  void cleanupSwapChain(Resources& _resources);
   void createSyncObjects();
 
   template <typename Checkresult, typename... Args>
   void result(Checkresult vkResult, Args&&... args);
 
-  template <typename VmaResultFunc, typename... Args>
-  void resultVma(VmaResultFunc vmaResultFunc,
-                 VmaAllocator allocator,
-                 Args&&... args);
-
  private:
   void compileShaders(const Pipelines& _pipelines);
   void createInstance();
   void createSurface(GLFWwindow* window);
-  void pickPhysicalDevice(Pipelines::Graphics::MultiSampling& msaa);
+  void pickPhysicalDevice(Resources::MultiSamplingImage& msaaImage);
   void createLogicalDevice();
   void createSwapChain();
   void createSwapChainImageViews(Resources& resources);
@@ -122,20 +115,6 @@ inline void VulkanMechanics::result(Checkresult vkResult, Args&&... args) {
   std::string objectName = typeid(ObjectType).name();
 
   VkResult result = vkResult(std::forward<Args>(args)...);
-  if (result != VK_SUCCESS) {
-    throw std::runtime_error("\n!ERROR! result != VK_SUCCESS " + objectName +
-                             "!");
-  }
-}
-
-template <typename VmaResultFunc, typename... Args>
-inline void VulkanMechanics::resultVma(VmaResultFunc vmaResultFunc,
-                                       VmaAllocator allocator,
-                                       Args&&... args) {
-  using ObjectType = std::remove_pointer_t<std::decay_t<VmaResultFunc>>;
-  std::string objectName = typeid(ObjectType).name();
-
-  VkResult result = vmaResultFunc(allocator, std::forward<Args>(args)...);
   if (result != VK_SUCCESS) {
     throw std::runtime_error("\n!ERROR! result != VK_SUCCESS " + objectName +
                              "!");

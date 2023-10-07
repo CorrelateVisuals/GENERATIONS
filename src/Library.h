@@ -11,8 +11,6 @@ struct vec2_uint_fast16_t {
 
 namespace Lib {
 std::vector<float> generateRandomValues(int amount, float min, float max);
-std::vector<uint32_t> createGridPolygons(const std::vector<uint32_t>& vertices,
-                                         uint32_t gridWidth);
 
 double lowFrequencyOscillator(double frequency);
 glm::vec2 smoothstep(const glm::vec2& xy);

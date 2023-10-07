@@ -1,6 +1,7 @@
 #pragma once
 #include "vulkan/vulkan.h"
 
+#include "CEimage.h"
 #include "Mechanics.h"
 #include "Pipelines.h"
 #include "World.h"
@@ -18,20 +19,63 @@ class Resources {
   Resources(VulkanMechanics& mechanics);
   ~Resources();
 
-  static World world;
+  World world;
 
-  VkBuffer vertexBuffer;
-  VkDeviceMemory vertexBufferMemory;
-  VkBuffer indexBuffer;
-  VkDeviceMemory indexBufferMemory;
+  const std::unordered_map<Geometry*, VkVertexInputRate> vertexBuffers = {
+      {&world.landscape, VK_VERTEX_INPUT_RATE_INSTANCE},
+      {&world.rectangle, VK_VERTEX_INPUT_RATE_INSTANCE},
+      {&world.cube, VK_VERTEX_INPUT_RATE_VERTEX}};
 
-  VkBuffer vertexBufferLandscape;
-  VkDeviceMemory vertexBufferMemoryLandscape;
-  VkBuffer indexBufferLandscape;
-  VkDeviceMemory indexBufferMemoryLandscape;
+  struct DepthImage : public CEimage {
+  } depthImage;
+  struct MultiSamplingImage : public CEimage {
+  } msaaImage;
+  struct Texture : public CEimage {
+  } textureImage;
 
-  VkBuffer vertexBufferCube;
-  VkDeviceMemory vertexBufferMemoryCube;
+  static std::vector<VkDescriptorSetLayoutBinding> descriptorSetLayoutBindings;
+  struct Uniform : CEdescriptorSetLayout {
+    std::vector<CEbuffer> buffers;
+    Uniform() {
+      layoutBinding.binding = 0;
+      layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+      layoutBinding.stageFlags =
+          VK_SHADER_STAGE_COMPUTE_BIT | VK_SHADER_STAGE_VERTEX_BIT;
+      descriptorSetLayoutBindings.push_back(layoutBinding);
+    }
+  } uniform;
+
+  struct ShaderStorage : CEdescriptorSetLayout {
+    std::vector<CEbuffer> buffers;
+    ShaderStorage() {
+      layoutBinding.binding = 1;
+      layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+      layoutBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+      descriptorSetLayoutBindings.push_back(layoutBinding);
+      layoutBinding.binding = 2;
+      descriptorSetLayoutBindings.push_back(layoutBinding);
+    }
+  } shaderStorage;
+
+  struct ImageSampler : CEdescriptorSetLayout {
+    CEbuffer buffer;
+    ImageSampler() {
+      layoutBinding.binding = 3;
+      layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+      layoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+      descriptorSetLayoutBindings.push_back(layoutBinding);
+    }
+  } imageSampler;
+
+  struct StorageImage : CEdescriptorSetLayout {
+    CEbuffer buffer;
+    StorageImage() {
+      layoutBinding.binding = 4;
+      layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+      layoutBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+      descriptorSetLayoutBindings.push_back(layoutBinding);
+    }
+  } storageImage;
 
   struct PushConstants {
     VkShaderStageFlags shaderStage = {VK_SHADER_STAGE_COMPUTE_BIT};
@@ -41,27 +85,11 @@ class Resources {
     std::array<uint64_t, 32> data;
   } pushConstants;
 
-  struct Images {
-    VkImage texture;
-    VkDeviceMemory textureMemory;
-    VkImageView textureView;
-    VkSampler textureSampler;
-  } image;
-
-  struct Buffers {
-    std::vector<VkBuffer> shaderStorage;
-    std::vector<VkDeviceMemory> shaderStorageMemory;
-
-    std::vector<VkBuffer> uniforms;
-    std::vector<VkDeviceMemory> uniformsMemory;
-    std::vector<void*> uniformsMapped;
-
-    struct CommandBuffers {
-      VkCommandPool pool;
-      std::vector<VkCommandBuffer> graphic;
-      std::vector<VkCommandBuffer> compute;
-    } command;
-  } buffers;
+  struct CommandBuffers {
+    VkCommandPool pool;
+    std::vector<VkCommandBuffer> graphic;
+    std::vector<VkCommandBuffer> compute;
+  } command;
 
   struct DescriptorSets {
     VkDescriptorPool pool;
@@ -72,7 +100,8 @@ class Resources {
  public:
   void setupResources(Pipelines& _pipelines);
   void createFramebuffers(Pipelines& _pipelines);
-  void createDescriptorSetLayout();
+  void createDescriptorSetLayout(
+      const std::vector<VkDescriptorSetLayoutBinding>& layoutBindings);
   void createDescriptorSets();
   void recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
                                    uint32_t imageIndex,
@@ -93,8 +122,15 @@ class Resources {
                               VkFormat format,
                               VkImageAspectFlags aspectFlags);
 
+  void createColorResources();
+  void createDepthResources();
+  VkFormat findDepthFormat();
+
  private:
   VulkanMechanics& _mechanics;
+
+  void createVertexBuffers(
+      const std::unordered_map<Geometry*, VkVertexInputRate>& buffers);
 
   void createVertexBuffer(VkBuffer& buffer,
                           VkDeviceMemory& bufferMemory,
@@ -102,10 +138,6 @@ class Resources {
   void createIndexBuffer(VkBuffer& buffer,
                          VkDeviceMemory& bufferMemory,
                          const auto& indices);
-  void createIndexBufferCube(VkBuffer& buffer,
-                             VkDeviceMemory& bufferMemory,
-                             const auto& indices,
-                             std::vector<uint32_t> oneCube);
 
   void setPushConstants();
   VkCommandBuffer beginSingleTimeCommands();
@@ -137,4 +169,8 @@ class Resources {
   void createTextureImage(std::string imagePath);
   void createTextureSampler();
   void createTextureImageView();
+
+  VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates,
+                               VkImageTiling tiling,
+                               VkFormatFeatureFlags features);
 };

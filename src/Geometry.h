@@ -9,7 +9,7 @@
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/hash.hpp>
 
-#include "Library.h"
+#include "CEbuffer.h"
 
 #include <string>
 #include <vector>
@@ -18,6 +18,14 @@ const enum ORIENTATION_ORDER { ROTATE_SCALE_TRANSLATE, ROTATE_TRANSLATE_SCALE };
 
 class Geometry {
  public:
+  Geometry(const std::string& modelName = "");
+  ~Geometry() = default;
+
+  struct VertexBuffer : public CEbuffer {
+  } vertexBuffer;
+  struct IndexBuffer : public CEbuffer {
+  } indexBuffer;
+
   struct Vertex {
     glm::vec3 instancePosition;
     glm::vec3 vertexPosition;
@@ -39,10 +47,10 @@ class Geometry {
   std::vector<Vertex> uniqueVertices;
   std::vector<uint32_t> indices;
 
-  Geometry(const std::string& modelName = "");
-  ~Geometry() = default;
-
   void addVertexPosition(const glm::vec3& position);
+  static std::vector<uint32_t> createGridPolygons(
+      const std::vector<uint32_t>& vertices,
+      uint32_t gridWidth);
 
  private:
   void loadModel(const std::string& modelName, Geometry& geometry);

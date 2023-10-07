@@ -24,6 +24,26 @@ VulkanMechanics::VulkanMechanics()
 
 VulkanMechanics::~VulkanMechanics() {
   Log::text("{ Vk. }", "destructing Vulkan Mechanics");
+  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+    vkDestroySemaphore(mainDevice.logical,
+                       syncObjects.renderFinishedSemaphores[i], nullptr);
+    vkDestroySemaphore(mainDevice.logical,
+                       syncObjects.imageAvailableSemaphores[i], nullptr);
+    vkDestroySemaphore(mainDevice.logical,
+                       syncObjects.computeFinishedSemaphores[i], nullptr);
+    vkDestroyFence(mainDevice.logical, syncObjects.inFlightFences[i], nullptr);
+    vkDestroyFence(mainDevice.logical, syncObjects.computeInFlightFences[i],
+                   nullptr);
+  }
+  vkDestroyDevice(mainDevice.logical, nullptr);
+  mainDevice.logical = VK_NULL_HANDLE;
+
+  if (validation.enableValidationLayers) {
+    validation.DestroyDebugUtilsMessengerEXT(
+        instance, validation.debugMessenger, nullptr);
+  }
+  vkDestroySurfaceKHR(instance, surface, nullptr);
+  vkDestroyInstance(instance, nullptr);
 }
 
 void VulkanMechanics::setupVulkan(Pipelines& _pipelines,
@@ -36,13 +56,13 @@ void VulkanMechanics::setupVulkan(Pipelines& _pipelines,
   validation.setupDebugMessenger(instance);
   createSurface(Window::get().window);
 
-  pickPhysicalDevice(_pipelines.graphics.msaa);
+  pickPhysicalDevice(_resources.msaaImage);
   createLogicalDevice();
 
   createSwapChain();
   createSwapChainImageViews(_resources);
 
-  createCommandPool(&_resources.buffers.command.pool);
+  createCommandPool(&_resources.command.pool);
 }
 
 void VulkanMechanics::createInstance() {
@@ -92,7 +112,7 @@ void VulkanMechanics::createSurface(GLFWwindow* window) {
 }
 
 void VulkanMechanics::pickPhysicalDevice(
-    Pipelines::Graphics::MultiSampling& msaa) {
+    Resources::MultiSamplingImage& msaaImage) {
   Log::text("{ ### }", "Physical Device");
   uint32_t deviceCount = 0;
   vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
@@ -108,7 +128,7 @@ void VulkanMechanics::pickPhysicalDevice(
   for (const auto& device : devices) {
     if (isDeviceSuitable(device)) {
       mainDevice.physical = device;
-      msaa.samples = getMaxUsableSampleCount();
+      msaaImage.sampleCount = getMaxUsableSampleCount();
       break;
     }
   }
@@ -348,19 +368,7 @@ void VulkanMechanics::createSyncObjects() {
   }
 }
 
-void VulkanMechanics::cleanupSwapChain(Pipelines& _pipelines) {
-  vkDestroyImageView(mainDevice.logical, _pipelines.graphics.depth.imageView,
-                     nullptr);
-  vkDestroyImage(mainDevice.logical, _pipelines.graphics.depth.image, nullptr);
-  vkFreeMemory(mainDevice.logical, _pipelines.graphics.depth.imageMemory,
-               nullptr);
-
-  vkDestroyImageView(mainDevice.logical, _pipelines.graphics.msaa.imageView,
-                     nullptr);
-  vkDestroyImage(mainDevice.logical, _pipelines.graphics.msaa.image, nullptr);
-  vkFreeMemory(mainDevice.logical, _pipelines.graphics.msaa.imageMemory,
-               nullptr);
-
+void VulkanMechanics::cleanupSwapChain(Resources& _resources) {
   for (auto framebuffer : swapChain.framebuffers) {
     vkDestroyFramebuffer(mainDevice.logical, framebuffer, nullptr);
   }
@@ -454,7 +462,7 @@ void VulkanMechanics::createSwapChain() {
 }
 
 void VulkanMechanics::createSwapChainImageViews(Resources& resources) {
-  Log::text("{ <-> }", swapChain.images.size(), "Swap Chain Image Views");
+  Log::text("{ <-> }", swapChain.images.size(), "Swap Chain CEimage Views");
 
   swapChain.imageViews.resize(swapChain.images.size());
 
@@ -490,12 +498,12 @@ void VulkanMechanics::recreateSwapChain(Pipelines& _pipelines,
 
   vkDeviceWaitIdle(mainDevice.logical);
 
-  cleanupSwapChain(_pipelines);
+  cleanupSwapChain(_resources);
   createSwapChain();
   createSwapChainImageViews(_resources);
 
-  _pipelines.createDepthResources(_resources);
-  _pipelines.createColorResources(_resources);
+  _resources.createDepthResources();
+  _resources.createColorResources();
   _resources.createFramebuffers(_pipelines);
 
   _resources.createDescriptorSets();

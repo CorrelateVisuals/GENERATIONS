@@ -54,6 +54,12 @@
     <ClCompile Include="Geometry.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="CEimage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CEbuffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CapitalEngine.h">
@@ -90,6 +96,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Geometry.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CEimage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CEbuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

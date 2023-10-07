@@ -7,12 +7,15 @@
 Window Window::mainWindow;
 
 Window::Window() : window{nullptr}, framebufferResized{false}, mouse{} {
+  Log::logTitle();
   Log::text("{ [-] }", "constructing Window");
   initWindow();
 }
 
 Window::~Window() {
   Log::text("{ [-] }", "destructing Window");
+  Log::logFooter();
+
   glfwDestroyWindow(window);
   glfwTerminate();
 }

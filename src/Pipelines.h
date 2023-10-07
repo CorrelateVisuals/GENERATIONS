@@ -9,8 +9,10 @@ class Resources;
 
 class Pipelines {
  public:
-  Pipelines(VulkanMechanics& mechanics);
+  Pipelines(VulkanMechanics& mechanics, Resources& resources);
   ~Pipelines();
+
+  Resources& _resources;
 
   const std::unordered_map<std::string, std::vector<std::string>> shaders = {
       {"Engine", {"Comp"}},
@@ -39,28 +41,13 @@ class Pipelines {
     VkPipeline cube;
     VkPipelineLayout layout;
     VkRenderPass renderPass;
-
-    struct Depth {
-      VkImage image;
-      VkDeviceMemory imageMemory;
-      VkImageView imageView;
-    } depth;
-
-    struct MultiSampling {
-      VkSampleCountFlagBits samples = VK_SAMPLE_COUNT_1_BIT;
-      VkImage image;
-      VkDeviceMemory imageMemory;
-      VkImageView imageView;
-    } msaa;
   } graphics;
 
  public:
   void setupPipelines(Resources& _resources);
-  void createColorResources(Resources& _resources);
-  void createDepthResources(Resources& _resources);
 
  private:
-  void createRenderPass();
+  void createRenderPass(Resources& _resources);
 
   void createGraphicsPipeline_Layout(
       const Resources::DescriptorSets& _descriptorSets);
@@ -68,21 +55,18 @@ class Pipelines {
       const Resources::DescriptorSets& _descriptorSets,
       const Resources::PushConstants& _pushConstants);
 
-  void createGraphicsPipeline_Cells();
-  void createGraphicsPipeline_Landscape();
-  void createGraphicsPipeline_LandscapeWireframe();
-  void createGraphicsPipeline_Water();
-  void createGraphicsPipeline_Texture();
-  void createGraphicsPipeline_Cube();
+  void createGraphicsPipeline_Cells(VkSampleCountFlagBits& msaaSamples);
+  void createGraphicsPipeline_Landscape(VkSampleCountFlagBits& msaaSamples);
+  void createGraphicsPipeline_LandscapeWireframe(
+      VkSampleCountFlagBits& msaaSamples);
+  void createGraphicsPipeline_Water(VkSampleCountFlagBits& msaaSamples);
+  void createGraphicsPipeline_Texture(VkSampleCountFlagBits& msaaSamples);
+  void createGraphicsPipeline_Cube(VkSampleCountFlagBits& msaaSamples);
 
   void createComputePipeline_Engine();
   void createComputePipeline_PostFX();
 
-  VkFormat findDepthFormat();
   bool hasStencilComponent(VkFormat format);
-  VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates,
-                               VkImageTiling tiling,
-                               VkFormatFeatureFlags features);
 
   static std::vector<char> readShaderFile(const std::string& filename);
   VkShaderModule createShaderModule(const std::vector<char>& code);
