@@ -122,18 +122,18 @@ void Resources::createShaderStorageBuffers() {
       sizeof(World::Cell) * world.grid.size.x * world.grid.size.y;
 
   // Create a staging buffer used to upload data to the gpu
-  VkBuffer stagingBuffer;
-  VkDeviceMemory stagingBufferMemory;
+  CEbuffer stagingResources;
+
   createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                    VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-               stagingBuffer, stagingBufferMemory);
+               stagingResources.buffer, stagingResources.bufferMemory);
 
   void* data;
-  vkMapMemory(_mechanics.mainDevice.logical, stagingBufferMemory, 0, bufferSize,
-              0, &data);
+  vkMapMemory(_mechanics.mainDevice.logical, stagingResources.bufferMemory, 0,
+              bufferSize, 0, &data);
   std::memcpy(data, cells.data(), static_cast<size_t>(bufferSize));
-  vkUnmapMemory(_mechanics.mainDevice.logical, stagingBufferMemory);
+  vkUnmapMemory(_mechanics.mainDevice.logical, stagingResources.bufferMemory);
 
   shaderStorage.buffers.resize(MAX_FRAMES_IN_FLIGHT);
 
@@ -145,11 +145,9 @@ void Resources::createShaderStorageBuffers() {
             VK_BUFFER_USAGE_TRANSFER_DST_BIT,
         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, shaderStorage.buffers[i].buffer,
         shaderStorage.buffers[i].bufferMemory);
-    copyBuffer(stagingBuffer, shaderStorage.buffers[i].buffer, bufferSize);
+    copyBuffer(stagingResources.buffer, shaderStorage.buffers[i].buffer,
+               bufferSize);
   }
-
-  vkDestroyBuffer(_mechanics.mainDevice.logical, stagingBuffer, nullptr);
-  vkFreeMemory(_mechanics.mainDevice.logical, stagingBufferMemory, nullptr);
 }
 
 void Resources::createUniformBuffers() {
@@ -293,19 +291,18 @@ void Resources::createTextureImage(std::string imagePath) {
     throw std::runtime_error("failed to load texture image!");
   }
 
-  VkBuffer stagingBuffer;
-  VkDeviceMemory stagingBufferMemory;
+  CEbuffer stagingResources;
 
   createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                    VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-               stagingBuffer, stagingBufferMemory);
+               stagingResources.buffer, stagingResources.bufferMemory);
 
   void* data;
-  vkMapMemory(_mechanics.mainDevice.logical, stagingBufferMemory, 0, imageSize,
-              0, &data);
+  vkMapMemory(_mechanics.mainDevice.logical, stagingResources.bufferMemory, 0,
+              imageSize, 0, &data);
   memcpy(data, pixels, static_cast<size_t>(imageSize));
-  vkUnmapMemory(_mechanics.mainDevice.logical, stagingBufferMemory);
+  vkUnmapMemory(_mechanics.mainDevice.logical, stagingResources.bufferMemory);
 
   stbi_image_free(pixels);
 
@@ -321,7 +318,7 @@ void Resources::createTextureImage(std::string imagePath) {
                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
   endSingleTimeCommands(command.singleTime);
 
-  copyBufferToImage(stagingBuffer, textureImage.image,
+  copyBufferToImage(stagingResources.buffer, textureImage.image,
                     static_cast<uint32_t>(texWidth),
                     static_cast<uint32_t>(texHeight));
 
@@ -331,9 +328,6 @@ void Resources::createTextureImage(std::string imagePath) {
                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                         VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
   endSingleTimeCommands(command.singleTime);
-
-  vkDestroyBuffer(_mechanics.mainDevice.logical, stagingBuffer, nullptr);
-  vkFreeMemory(_mechanics.mainDevice.logical, stagingBufferMemory, nullptr);
 }
 
 void Resources::createVertexBuffers(
@@ -361,28 +355,25 @@ void Resources::createVertexBuffer(VkBuffer& buffer,
                                    const auto& vertices) {
   VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
 
-  VkBuffer stagingBuffer;
-  VkDeviceMemory stagingBufferMemory;
+  CEbuffer stagingResources;
+
   createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                    VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-               stagingBuffer, stagingBufferMemory);
+               stagingResources.buffer, stagingResources.bufferMemory);
 
   void* data;
-  vkMapMemory(_mechanics.mainDevice.logical, stagingBufferMemory, 0, bufferSize,
-              0, &data);
+  vkMapMemory(_mechanics.mainDevice.logical, stagingResources.bufferMemory, 0,
+              bufferSize, 0, &data);
   memcpy(data, vertices.data(), (size_t)bufferSize);
-  vkUnmapMemory(_mechanics.mainDevice.logical, stagingBufferMemory);
+  vkUnmapMemory(_mechanics.mainDevice.logical, stagingResources.bufferMemory);
 
   createBuffer(
       bufferSize,
       VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, buffer, bufferMemory);
 
-  copyBuffer(stagingBuffer, buffer, bufferSize);
-
-  vkDestroyBuffer(_mechanics.mainDevice.logical, stagingBuffer, nullptr);
-  vkFreeMemory(_mechanics.mainDevice.logical, stagingBufferMemory, nullptr);
+  copyBuffer(stagingResources.buffer, buffer, bufferSize);
 }
 
 void Resources::createIndexBuffer(VkBuffer& buffer,
@@ -390,36 +381,32 @@ void Resources::createIndexBuffer(VkBuffer& buffer,
                                   const auto& indices) {
   VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
 
-  VkBuffer stagingBuffer;
-  VkDeviceMemory stagingBufferMemory;
+  CEbuffer stagingResources;
+
   createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                    VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-               stagingBuffer, stagingBufferMemory);
+               stagingResources.buffer, stagingResources.bufferMemory);
 
   void* data;
-  vkMapMemory(_mechanics.mainDevice.logical, stagingBufferMemory, 0, bufferSize,
-              0, &data);
+  vkMapMemory(_mechanics.mainDevice.logical, stagingResources.bufferMemory, 0,
+              bufferSize, 0, &data);
   memcpy(data, indices.data(), (size_t)bufferSize);
-  vkUnmapMemory(_mechanics.mainDevice.logical, stagingBufferMemory);
+  vkUnmapMemory(_mechanics.mainDevice.logical, stagingResources.bufferMemory);
 
   createBuffer(
       bufferSize,
       VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, buffer, bufferMemory);
 
-  copyBuffer(stagingBuffer, buffer, bufferSize);
-
-  vkDestroyBuffer(_mechanics.mainDevice.logical, stagingBuffer, nullptr);
-  vkFreeMemory(_mechanics.mainDevice.logical, stagingBufferMemory, nullptr);
+  copyBuffer(stagingResources.buffer, buffer, bufferSize);
 }
 
 void Resources::setPushConstants() {
   pushConstants.data = {world.time.passedHours};
 }
 
-VkCommandBuffer Resources::beginSingleTimeCommands(
-    VkCommandBuffer& commandBuffer) {
+void Resources::beginSingleTimeCommands(VkCommandBuffer& commandBuffer) {
   Log::text("{ 1.. }", "Begin Single Time Commands");
 
   VkCommandBufferAllocateInfo allocInfo{
@@ -437,7 +424,7 @@ VkCommandBuffer Resources::beginSingleTimeCommands(
 
   vkBeginCommandBuffer(commandBuffer, &beginInfo);
 
-  return commandBuffer;
+  return;
 }
 
 void Resources::endSingleTimeCommands(VkCommandBuffer& commandBuffer) {

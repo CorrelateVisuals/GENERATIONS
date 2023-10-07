@@ -142,7 +142,7 @@ class Resources {
 
   void setPushConstants();
 
-  VkCommandBuffer beginSingleTimeCommands(VkCommandBuffer& commandBuffer);
+  void beginSingleTimeCommands(VkCommandBuffer& commandBuffer);
   void endSingleTimeCommands(VkCommandBuffer& commandBuffer);
 
   void createCommandBuffers();
