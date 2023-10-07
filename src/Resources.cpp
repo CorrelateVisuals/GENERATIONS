@@ -49,7 +49,7 @@ void Resources::setupResources(Pipelines& _pipelines) {
   allocateDescriptorSets();
   createDescriptorSets();
 
-  createCommandBuffers();
+  createGraphicsCommandBuffers();
   createComputeCommandBuffers();
   _mechanics.createSyncObjects();
 }
@@ -83,19 +83,19 @@ void Resources::createFramebuffers(Pipelines& _pipelines) {
   }
 }
 
-void Resources::createCommandBuffers() {
+void Resources::createGraphicsCommandBuffers() {
   Log::text("{ cmd }", "Command Buffers");
 
-  command.graphic.resize(MAX_FRAMES_IN_FLIGHT);
+  command.graphics.resize(MAX_FRAMES_IN_FLIGHT);
 
   VkCommandBufferAllocateInfo allocateInfo{
       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
       .commandPool = command.pool,
       .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-      .commandBufferCount = static_cast<uint32_t>(command.graphic.size())};
+      .commandBufferCount = static_cast<uint32_t>(command.graphics.size())};
 
   _mechanics.result(vkAllocateCommandBuffers, _mechanics.mainDevice.logical,
-                    &allocateInfo, command.graphic.data());
+                    &allocateInfo, command.graphics.data());
 }
 
 void Resources::createComputeCommandBuffers() {
@@ -118,11 +118,10 @@ void Resources::createShaderStorageBuffers() {
 
   std::vector<World::Cell> cells = world.initializeGrid();
 
-  VkDeviceSize bufferSize =
-      sizeof(World::Cell) * world.grid.size.x * world.grid.size.y;
-
   // Create a staging buffer used to upload data to the gpu
   CEbuffer stagingResources;
+  VkDeviceSize bufferSize =
+      sizeof(World::Cell) * world.grid.size.x * world.grid.size.y;
 
   createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
@@ -353,9 +352,8 @@ void Resources::createVertexBuffers(
 void Resources::createVertexBuffer(VkBuffer& buffer,
                                    VkDeviceMemory& bufferMemory,
                                    const auto& vertices) {
-  VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
-
   CEbuffer stagingResources;
+  VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
 
   createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
@@ -379,9 +377,8 @@ void Resources::createVertexBuffer(VkBuffer& buffer,
 void Resources::createIndexBuffer(VkBuffer& buffer,
                                   VkDeviceMemory& bufferMemory,
                                   const auto& indices) {
-  VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
-
   CEbuffer stagingResources;
+  VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
 
   createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |

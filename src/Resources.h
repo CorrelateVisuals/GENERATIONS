@@ -88,7 +88,7 @@ class Resources {
   struct CommandBuffers {
     VkCommandPool pool;
     VkCommandBuffer singleTime;
-    std::vector<VkCommandBuffer> graphic;
+    std::vector<VkCommandBuffer> graphics;
     std::vector<VkCommandBuffer> compute;
   } command;
 
@@ -145,7 +145,7 @@ class Resources {
   void beginSingleTimeCommands(VkCommandBuffer& commandBuffer);
   void endSingleTimeCommands(VkCommandBuffer& commandBuffer);
 
-  void createCommandBuffers();
+  void createGraphicsCommandBuffers();
   void createComputeCommandBuffers();
   void createDescriptorPool();
   void allocateDescriptorSets();
