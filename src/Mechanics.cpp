@@ -467,7 +467,7 @@ void VulkanMechanics::createSwapChainImageViews(Resources& resources) {
   swapChain.imageViews.resize(swapChain.images.size());
 
   for (size_t i = 0; i < swapChain.images.size(); i++) {
-    swapChain.imageViews[i] = resources.createImageView(
+    swapChain.imageViews[i] = CE::Image::createImageView(
         swapChain.images[i], swapChain.imageFormat, VK_IMAGE_ASPECT_COLOR_BIT);
   }
 }

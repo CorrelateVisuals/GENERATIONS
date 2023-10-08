@@ -228,55 +228,6 @@ void Resources::allocateDescriptorSets() {
                    &allocateInfo, descriptor.sets.data());
 }
 
-//void Resources::createImage(uint32_t width,
-//                            uint32_t height,
-//                            VkSampleCountFlagBits numSamples,
-//                            VkFormat format,
-//                            VkImageTiling tiling,
-//                            VkImageUsageFlags usage,
-//                            VkMemoryPropertyFlags properties,
-//                            VkImage& image,
-//                            VkDeviceMemory& imageMemory) {
-//  Log::text("{ img }", "Image", width, height);
-//  Log::text(Log::Style::charLeader, Log::getSampleCountString(numSamples));
-//  Log::text(Log::Style::charLeader, Log::getImageUsageString(usage));
-//  Log::text(Log::Style::charLeader, Log::getMemoryPropertyString(properties));
-//
-//  VkImageCreateInfo imageInfo{
-//      .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
-//      .pNext = nullptr,
-//      .flags = 0,
-//      .imageType = VK_IMAGE_TYPE_2D,
-//      .format = format,
-//      .extent = {.width = width, .height = height, .depth = 1},
-//      .mipLevels = 1,
-//      .arrayLayers = 1,
-//      .samples = numSamples,
-//      .tiling = tiling,
-//      .usage = usage,
-//      .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-//      .queueFamilyIndexCount = 0,
-//      .pQueueFamilyIndices = nullptr,
-//      .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED};
-//
-//  CE::vulkanResult(vkCreateImage, _mechanics.mainDevice.logical, &imageInfo,
-//                   nullptr, &image);
-//
-//  VkMemoryRequirements memRequirements;
-//  vkGetImageMemoryRequirements(_mechanics.mainDevice.logical, image,
-//                               &memRequirements);
-//
-//  VkMemoryAllocateInfo allocateInfo{
-//      .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-//      .allocationSize = memRequirements.size,
-//      .memoryTypeIndex =
-//          findMemoryType(memRequirements.memoryTypeBits, properties)};
-//
-//  CE::vulkanResult(vkAllocateMemory, _mechanics.mainDevice.logical,
-//                   &allocateInfo, nullptr, &imageMemory);
-//  vkBindImageMemory(_mechanics.mainDevice.logical, image, imageMemory, 0);
-//}
-
 void Resources::createTextureImage(std::string imagePath) {
   Log::text("{ img }", "Image Texture: ", imagePath);
   int texWidth{0}, texHeight{0}, texChannels{0};
@@ -307,14 +258,15 @@ void Resources::createTextureImage(std::string imagePath) {
 
   stbi_image_free(pixels);
 
-  CE::Image::createImage(texWidth, texHeight, VK_SAMPLE_COUNT_1_BIT,
-              VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL,
-              VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-              VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage.image,
-              textureImage.imageMemory);
+  CE::Image::createImage(
+      texWidth, texHeight, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_SRGB,
+      VK_IMAGE_TILING_OPTIMAL,
+      VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage.image,
+      textureImage.imageMemory);
 
   beginSingleTimeCommands(command.singleTime);
-  transitionImageLayout(command.singleTime, textureImage.image,
+  CE::Image::transitionImageLayout(command.singleTime, textureImage.image,
                         VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED,
                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
   endSingleTimeCommands(command.singleTime);
@@ -324,7 +276,7 @@ void Resources::createTextureImage(std::string imagePath) {
                     static_cast<uint32_t>(texHeight));
 
   beginSingleTimeCommands(command.singleTime);
-  transitionImageLayout(command.singleTime, textureImage.image,
+  CE::Image::transitionImageLayout(command.singleTime, textureImage.image,
                         VK_FORMAT_R8G8B8A8_SRGB,
                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                         VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
@@ -444,65 +396,6 @@ void Resources::endSingleTimeCommands(VkCommandBuffer& commandBuffer) {
                        &commandBuffer);
 }
 
-void Resources::transitionImageLayout(VkCommandBuffer commandBuffer,
-                                      VkImage image,
-                                      VkFormat format,
-                                      VkImageLayout oldLayout,
-                                      VkImageLayout newLayout) {
-  // Log::text("{ >>> }", "Transition Image Layout");
-
-  VkImageMemoryBarrier barrier{.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-                               .oldLayout = oldLayout,
-                               .newLayout = newLayout,
-                               .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-                               .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-                               .image = image};
-  barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-  barrier.subresourceRange.baseMipLevel = 0;
-  barrier.subresourceRange.levelCount = 1;
-  barrier.subresourceRange.baseArrayLayer = 0;
-  barrier.subresourceRange.layerCount = 1;
-
-  VkPipelineStageFlags sourceStage;
-  VkPipelineStageFlags destinationStage;
-
-  if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED &&
-      newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
-    barrier.srcAccessMask = 0;
-    barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-    sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-    destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-  } else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL &&
-             newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
-    barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-    barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-
-    sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-    destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT |
-                       VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
-  } else {
-    // throw std::invalid_argument("unsupported layout transition!");
-
-    barrier.srcAccessMask =
-        VK_ACCESS_MEMORY_WRITE_BIT;  // Every write must have finished...
-    barrier.dstAccessMask =
-        VK_ACCESS_MEMORY_READ_BIT |
-        VK_ACCESS_MEMORY_WRITE_BIT;  // ... before it is safe to read or write
-                                     // (Image Layout Transitions perform
-                                     // both, read AND write access.)
-
-    sourceStage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;  // All commands must have
-                                                       // finished...
-    destinationStage =
-        VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;  // ...before any command may
-                                             // continue. (Very heavy
-                                             // barrier.)
-  }
-
-  vkCmdPipelineBarrier(commandBuffer, sourceStage, destinationStage, 0, 0,
-                       nullptr, 0, nullptr, 1, &barrier);
-}
-
 void Resources::copyBufferToImage(VkBuffer buffer,
                                   VkImage image,
                                   uint32_t width,
@@ -529,7 +422,7 @@ void Resources::copyBufferToImage(VkBuffer buffer,
 
 void Resources::createTextureImageView() {
   Log::text("{ ... }", ":  Texture Image View");
-  textureImage.imageView = createImageView(
+  textureImage.imageView = CE::Image::createImageView(
       textureImage.image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
 }
 
@@ -752,12 +645,12 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
                    static_cast<uint32_t>(world.landscape.indices.size()), 1, 0,
                    0, 0);
 
-  // Landscape Wireframe
-  // vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-  //                  _pipelines.graphics.landscapeWireframe);
-  // vkCmdDrawIndexed(commandBuffer,
-  //                 static_cast<uint32_t>(world.landscape.indices.size()), 1,
-  //                 0, 0, 0);
+   // Landscape Wireframe
+   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                    _pipelines.graphics.landscapeWireframe);
+   vkCmdDrawIndexed(commandBuffer,
+                   static_cast<uint32_t>(world.landscape.indices.size()), 1,
+                   0, 0, 0);
 
   // Pipeline 3
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -781,7 +674,7 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
   //       This is part of an image memory barrier (i.e., vkCmdPipelineBarrier
   //       with the VkImageMemoryBarrier parameter set)
 
-  transitionImageLayout(
+  CE::Image::transitionImageLayout(
       commandBuffer,
       _mechanics.swapChain.images[_mechanics.syncObjects.currentFrame],
       VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
@@ -808,36 +701,13 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
 
   vkCmdDispatch(commandBuffer, workgroupSizeX, workgroupSizeY, 1);
 
-  transitionImageLayout(
+  CE::Image::transitionImageLayout(
       commandBuffer,
       _mechanics.swapChain.images[_mechanics.syncObjects.currentFrame],
       VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_GENERAL,
       /* -> */ VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
   CE::vulkanResult(vkEndCommandBuffer, commandBuffer);
-}
-
-VkImageView Resources::createImageView(VkImage image,
-                                       VkFormat format,
-                                       VkImageAspectFlags aspectFlags) {
-  Log::text("{ ... }", ":  Image View");
-
-  VkImageViewCreateInfo viewInfo{
-      .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-      .image = image,
-      .viewType = VK_IMAGE_VIEW_TYPE_2D,
-      .format = format,
-      .subresourceRange = {.aspectMask = aspectFlags,
-                           .baseMipLevel = 0,
-                           .levelCount = 1,
-                           .baseArrayLayer = 0,
-                           .layerCount = 1}};
-
-  VkImageView imageView{};
-  CE::vulkanResult(vkCreateImageView, _mechanics.mainDevice.logical, &viewInfo,
-                   nullptr, &imageView);
-
-  return imageView;
 }
 
 void Resources::createDepthResources() {
@@ -847,14 +717,14 @@ void Resources::createDepthResources() {
 
   VkFormat depthFormat = findDepthFormat();
 
-  CE::Image::createImage(_mechanics.swapChain.extent.width,
-              _mechanics.swapChain.extent.height, msaaImage.sampleCount,
-              depthFormat, VK_IMAGE_TILING_OPTIMAL,
-              VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
-              VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, depthImage.image,
-              depthImage.imageMemory);
-  depthImage.imageView =
-      createImageView(depthImage.image, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
+  CE::Image::createImage(
+      _mechanics.swapChain.extent.width, _mechanics.swapChain.extent.height,
+      msaaImage.sampleCount, depthFormat, VK_IMAGE_TILING_OPTIMAL,
+      VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, depthImage.image,
+      depthImage.imageMemory);
+  depthImage.imageView = CE::Image::createImageView(
+      depthImage.image, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
 }
 
 void Resources::createColorResources() {
@@ -864,15 +734,15 @@ void Resources::createColorResources() {
 
   VkFormat colorFormat = _mechanics.swapChain.imageFormat;
 
-  CE::Image::createImage(_mechanics.swapChain.extent.width,
-              _mechanics.swapChain.extent.height, msaaImage.sampleCount,
-              colorFormat, VK_IMAGE_TILING_OPTIMAL,
-              VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT |
-                  VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-              VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, msaaImage.image,
-              msaaImage.imageMemory);
-  msaaImage.imageView =
-      createImageView(msaaImage.image, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT);
+  CE::Image::createImage(
+      _mechanics.swapChain.extent.width, _mechanics.swapChain.extent.height,
+      msaaImage.sampleCount, colorFormat, VK_IMAGE_TILING_OPTIMAL,
+      VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT |
+          VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, msaaImage.image,
+      msaaImage.imageMemory);
+  msaaImage.imageView = CE::Image::createImageView(msaaImage.image, colorFormat,
+                                                   VK_IMAGE_ASPECT_COLOR_BIT);
 }
 
 void Resources::createTextureSampler() {

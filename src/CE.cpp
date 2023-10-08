@@ -52,8 +52,7 @@ void CE::Buffer::createBuffer(VkDeviceSize size,
   Log::text(Log::Style::charLeader, Log::getMemoryPropertyString(properties));
   Log::text(Log::Style::charLeader, size, "bytes");
 
-  CE::vulkanResult(vkCreateBuffer, *Device::logical, &bufferInfo, nullptr,
-                   &buffer);
+  vulkanResult(vkCreateBuffer, *Device::logical, &bufferInfo, nullptr, &buffer);
 
   VkMemoryRequirements memRequirements;
   vkGetBufferMemoryRequirements(*Device::logical, buffer, &memRequirements);
@@ -64,8 +63,8 @@ void CE::Buffer::createBuffer(VkDeviceSize size,
       .memoryTypeIndex =
           CE::findMemoryType(memRequirements.memoryTypeBits, properties)};
 
-  CE::vulkanResult(vkAllocateMemory, *Device::logical, &allocateInfo,
-                   nullptr, &bufferMemory);
+  vulkanResult(vkAllocateMemory, *Device::logical, &allocateInfo, nullptr,
+               &bufferMemory);
   vkBindBufferMemory(*Device::logical, buffer, bufferMemory, 0);
 }
 
@@ -126,12 +125,10 @@ void CE::Image::createImage(uint32_t width,
       .pQueueFamilyIndices = nullptr,
       .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED};
 
-  vulkanResult(vkCreateImage, *Device::logical, &imageInfo,
-                   nullptr, &image);
+  vulkanResult(vkCreateImage, *Device::logical, &imageInfo, nullptr, &image);
 
   VkMemoryRequirements memRequirements;
-  vkGetImageMemoryRequirements(*Device::logical, image,
-                               &memRequirements);
+  vkGetImageMemoryRequirements(*Device::logical, image, &memRequirements);
 
   VkMemoryAllocateInfo allocateInfo{
       .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
@@ -139,9 +136,89 @@ void CE::Image::createImage(uint32_t width,
       .memoryTypeIndex =
           findMemoryType(memRequirements.memoryTypeBits, properties)};
 
-  vulkanResult(vkAllocateMemory, *Device::logical,
-                   &allocateInfo, nullptr, &imageMemory);
+  vulkanResult(vkAllocateMemory, *Device::logical, &allocateInfo, nullptr,
+               &imageMemory);
   vkBindImageMemory(*Device::logical, image, imageMemory, 0);
+}
+
+VkImageView CE::Image::createImageView(VkImage image,
+                                       VkFormat format,
+                                       VkImageAspectFlags aspectFlags) {
+  Log::text("{ ... }", ":  Image View");
+
+  VkImageViewCreateInfo viewInfo{
+      .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+      .image = image,
+      .viewType = VK_IMAGE_VIEW_TYPE_2D,
+      .format = format,
+      .subresourceRange = {.aspectMask = aspectFlags,
+                           .baseMipLevel = 0,
+                           .levelCount = 1,
+                           .baseArrayLayer = 0,
+                           .layerCount = 1}};
+
+  VkImageView imageView;
+  vulkanResult(vkCreateImageView, *Device::logical, &viewInfo, nullptr,
+               &imageView);
+
+  return imageView;
+}
+
+void CE::Image::transitionImageLayout(VkCommandBuffer commandBuffer,
+                                      VkImage image,
+                                      VkFormat format,
+                                      VkImageLayout oldLayout,
+                                      VkImageLayout newLayout) {
+  VkImageMemoryBarrier barrier{.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+                               .oldLayout = oldLayout,
+                               .newLayout = newLayout,
+                               .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                               .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                               .image = image};
+  barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+  barrier.subresourceRange.baseMipLevel = 0;
+  barrier.subresourceRange.levelCount = 1;
+  barrier.subresourceRange.baseArrayLayer = 0;
+  barrier.subresourceRange.layerCount = 1;
+
+  VkPipelineStageFlags sourceStage;
+  VkPipelineStageFlags destinationStage;
+
+  if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED &&
+      newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
+    barrier.srcAccessMask = 0;
+    barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+    sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+    destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+  } else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL &&
+             newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+    barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+    barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+    sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+    destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT |
+                       VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+  } else {
+    // throw std::invalid_argument("unsupported layout transition!");
+
+    barrier.srcAccessMask =
+        VK_ACCESS_MEMORY_WRITE_BIT;  // Every write must have finished...
+    barrier.dstAccessMask =
+        VK_ACCESS_MEMORY_READ_BIT |
+        VK_ACCESS_MEMORY_WRITE_BIT;  // ... before it is safe to read or write
+    // (Image Layout Transitions perform
+    // both, read AND write access.)
+
+    sourceStage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;  // All commands must have
+    // finished...
+    destinationStage =
+        VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;  // ...before any command may
+                                             // continue. (Very heavy
+                                             // barrier.)
+  }
+
+  vkCmdPipelineBarrier(commandBuffer, sourceStage, destinationStage, 0, 0,
+                       nullptr, 0, nullptr, 1, &barrier);
 }
 
 CE::Descriptor::Descriptor() {
@@ -230,7 +307,7 @@ void CE::CommandBuffer::createCommandPool(VkCommandPool* commandPool) {
   //     .queueFamilyIndex =
   //     queueFamilyIndices.graphicsAndComputeFamily.value() };
 
-  // CE::vulkanResult(vkCreateCommandPool, *Device::logical, &poolInfo,
+  // vulkanResult(vkCreateCommandPool, *Device::logical, &poolInfo,
   //     nullptr, commandPool);
 }
 

@@ -67,6 +67,14 @@ class CE {
         VkMemoryPropertyFlags properties,
         VkImage& image,
         VkDeviceMemory& imageMemory);
+    static VkImageView createImageView(VkImage image,
+        VkFormat format,
+        VkImageAspectFlags aspectFlags);
+    static void transitionImageLayout(VkCommandBuffer commandBuffer,
+        VkImage image,
+        VkFormat format,
+        VkImageLayout oldLayout,
+        VkImageLayout newLayout);
   };
 
   class Descriptor {
