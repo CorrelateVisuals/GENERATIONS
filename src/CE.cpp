@@ -9,15 +9,13 @@ void CE::setLogicalDevice(VkDevice* logicalDevice) {
 CE::Buffer::Buffer() : buffer{}, bufferMemory{}, mapped{} {}
 
 CE::Buffer::~Buffer() {
-  if (*_logicalDevice != VK_NULL_HANDLE) {
-    if (buffer != VK_NULL_HANDLE) {
-      vkDestroyBuffer(*_logicalDevice, buffer, nullptr);
-      buffer = VK_NULL_HANDLE;
-    }
-    if (bufferMemory != VK_NULL_HANDLE) {
-      vkFreeMemory(*_logicalDevice, bufferMemory, nullptr);
-      bufferMemory = VK_NULL_HANDLE;
-    }
+  if (buffer != VK_NULL_HANDLE) {
+    vkDestroyBuffer(*_logicalDevice, buffer, nullptr);
+    buffer = VK_NULL_HANDLE;
+  }
+  if (bufferMemory != VK_NULL_HANDLE) {
+    vkFreeMemory(*_logicalDevice, bufferMemory, nullptr);
+    bufferMemory = VK_NULL_HANDLE;
   }
 }
 
@@ -29,24 +27,22 @@ CE::Image::Image()
       sampleCount{VK_SAMPLE_COUNT_1_BIT} {}
 
 CE::Image::~Image() {
-  if (*_logicalDevice != VK_NULL_HANDLE) {
-    if (imageSampler != VK_NULL_HANDLE) {
-      vkDestroySampler(*_logicalDevice, imageSampler, nullptr);
-      imageSampler = VK_NULL_HANDLE;
-    };
-    if (imageView != VK_NULL_HANDLE) {
-      vkDestroyImageView(*_logicalDevice, imageView, nullptr);
-      imageView = VK_NULL_HANDLE;
-    };
-    if (image != VK_NULL_HANDLE) {
-      vkDestroyImage(*_logicalDevice, image, nullptr);
-      image = VK_NULL_HANDLE;
-    };
-    if (imageMemory != VK_NULL_HANDLE) {
-      vkFreeMemory(*_logicalDevice, imageMemory, nullptr);
-      imageMemory = VK_NULL_HANDLE;
-    };
-  }
+  if (imageSampler != VK_NULL_HANDLE) {
+    vkDestroySampler(*_logicalDevice, imageSampler, nullptr);
+    imageSampler = VK_NULL_HANDLE;
+  };
+  if (imageView != VK_NULL_HANDLE) {
+    vkDestroyImageView(*_logicalDevice, imageView, nullptr);
+    imageView = VK_NULL_HANDLE;
+  };
+  if (image != VK_NULL_HANDLE) {
+    vkDestroyImage(*_logicalDevice, image, nullptr);
+    image = VK_NULL_HANDLE;
+  };
+  if (imageMemory != VK_NULL_HANDLE) {
+    vkFreeMemory(*_logicalDevice, imageMemory, nullptr);
+    imageMemory = VK_NULL_HANDLE;
+  };
 }
 
 CE::Descriptors::Descriptors() {
@@ -56,8 +52,12 @@ CE::Descriptors::Descriptors() {
 }
 
 CE::Descriptors::~Descriptors() {
-  vkDestroyDescriptorPool(*_logicalDevice, pool, nullptr);
-  vkDestroyDescriptorSetLayout(*_logicalDevice, setLayout, nullptr);
+  if (pool != VK_NULL_HANDLE) {
+    vkDestroyDescriptorPool(*_logicalDevice, pool, nullptr);
+  };
+  if (setLayout != VK_NULL_HANDLE) {
+    vkDestroyDescriptorSetLayout(*_logicalDevice, setLayout, nullptr);
+  };
 }
 
 void CE::Descriptors::createDescriptorPool() {
