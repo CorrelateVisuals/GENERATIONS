@@ -31,7 +31,7 @@ class World {
   } rectangle;
 
   struct Cube : public Geometry {
-    Cube() : Geometry("Sphere"){};
+    Cube() : Geometry("SphereHR"){};
     const float size = 0.5f;
   } cube;
 

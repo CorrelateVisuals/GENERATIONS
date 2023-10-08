@@ -8,8 +8,8 @@
 class CE {
  public:
   struct Device {
-    static VkPhysicalDevice* physical;
-    static VkDevice* logical;
+    static VkPhysicalDevice* _physical;
+    static VkDevice* _logical;
 
     static void linkDevice(VkDevice* logicalDevice,
                            VkPhysicalDevice* physicalDevice);
@@ -21,14 +21,14 @@ class CE {
   static uint32_t findMemoryType(uint32_t typeFilter,
                                  VkMemoryPropertyFlags properties);
 
-  struct CommandBuffer {
-      static VkCommandPool commandPool;
-      static VkCommandBuffer commandBuffer;
+  //struct CommandBuffer {
+  //    static VkCommandPool commandPool;
+  //    static VkCommandBuffer commandBuffer;
 
-      static void createCommandPool(VkCommandPool* commandPool);
-      static void beginSingularCommands(VkCommandBuffer& commandBuffer);
-      static void endSingluarCommands(VkCommandBuffer& commandBuffer);
-  };
+  //    static void createCommandPool(VkCommandPool* commandPool);
+  //    static void beginSingularCommands(VkCommandBuffer& commandBuffer);
+  //    static void endSingluarCommands(VkCommandBuffer& commandBuffer);
+  //};
  
 
   class Buffer {

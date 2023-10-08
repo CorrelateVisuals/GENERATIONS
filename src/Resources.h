@@ -75,9 +75,11 @@ class Resources {
  public:
   void setupResources(Pipelines& _pipelines);
   void createFramebuffers(Pipelines& _pipelines);
+
   void createDescriptorSetLayout(
       const std::vector<VkDescriptorSetLayoutBinding>& layoutBindings);
   void createDescriptorSets();
+
   void recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
                                    uint32_t imageIndex,
                                    Pipelines& _pipelines);
@@ -109,8 +111,10 @@ class Resources {
 
   void createGraphicsCommandBuffers();
   void createComputeCommandBuffers();
+
   void createDescriptorPool();
   void allocateDescriptorSets();
+
   void createShaderStorageBuffers();
   void createUniformBuffers();
 
