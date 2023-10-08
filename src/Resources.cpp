@@ -133,19 +133,23 @@ void Resources::createShaderStorageBuffers() {
   std::memcpy(data, cells.data(), static_cast<size_t>(bufferSize));
   vkUnmapMemory(_mechanics.mainDevice.logical, stagingResources.bufferMemory);
 
-  shaderStorage.buffers.resize(MAX_FRAMES_IN_FLIGHT);
+  createBuffer(
+      static_cast<VkDeviceSize>(bufferSize),
+      VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
+          VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, shaderStorage.bufferIn.buffer,
+      shaderStorage.bufferIn.bufferMemory);
+  copyBuffer(stagingResources.buffer, shaderStorage.bufferIn.buffer,
+             bufferSize);
 
-  // Copy initial Cell data to all storage buffers
-  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-    createBuffer(
-        static_cast<VkDeviceSize>(bufferSize),
-        VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
-            VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, shaderStorage.buffers[i].buffer,
-        shaderStorage.buffers[i].bufferMemory);
-    copyBuffer(stagingResources.buffer, shaderStorage.buffers[i].buffer,
-               bufferSize);
-  }
+  createBuffer(
+      static_cast<VkDeviceSize>(bufferSize),
+      VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
+          VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, shaderStorage.bufferOut.buffer,
+      shaderStorage.bufferOut.bufferMemory);
+  copyBuffer(stagingResources.buffer, shaderStorage.bufferOut.buffer,
+             bufferSize);
 }
 
 void Resources::createUniformBuffers() {
@@ -561,12 +565,12 @@ void Resources::createDescriptorSets() {
         .range = sizeof(World::UniformBufferObject)};
 
     VkDescriptorBufferInfo storageBufferInfoLastFrame{
-        .buffer = shaderStorage.buffers[(i - 1) % MAX_FRAMES_IN_FLIGHT].buffer,
+        .buffer = shaderStorage.bufferIn.buffer,
         .offset = 0,
         .range = sizeof(World::Cell) * world.grid.size.x * world.grid.size.y};
 
     VkDescriptorBufferInfo storageBufferInfoCurrentFrame{
-        .buffer = shaderStorage.buffers[i].buffer,
+        .buffer = shaderStorage.bufferOut.buffer,
         .offset = 0,
         .range = sizeof(World::Cell) * world.grid.size.x * world.grid.size.y};
 
@@ -591,7 +595,7 @@ void Resources::createDescriptorSets() {
 
         {.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
          .dstSet = descriptor.sets[i],
-         .dstBinding = 1,
+         .dstBinding = static_cast<uint32_t>(i ? 1 : 2),
          .dstArrayElement = 0,
          .descriptorCount = 1,
          .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
@@ -599,7 +603,7 @@ void Resources::createDescriptorSets() {
 
         {.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
          .dstSet = descriptor.sets[i],
-         .dstBinding = 2,
+         .dstBinding = static_cast<uint32_t>(i ? 2 : 1),
          .dstArrayElement = 0,
          .descriptorCount = 1,
          .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
@@ -720,9 +724,14 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
   VkDeviceSize offsets[]{0};
 
   VkDeviceSize offsets0[]{0, 0};
+
+  VkBuffer currentShaderStorageBuffer[] = {shaderStorage.bufferIn.buffer,
+                                           shaderStorage.bufferOut.buffer};
+
   VkBuffer vertexBuffers0[] = {
-      shaderStorage.buffers[_mechanics.syncObjects.currentFrame].buffer,
+      currentShaderStorageBuffer[_mechanics.syncObjects.currentFrame],
       world.cube.vertexBuffer.buffer};
+
   vkCmdBindVertexBuffers(commandBuffer, 0, 2, vertexBuffers0, offsets0);
   vkCmdDraw(commandBuffer, static_cast<uint32_t>(world.cube.allVertices.size()),
             world.grid.size.x * world.grid.size.y, 0, 0);

@@ -40,7 +40,8 @@ class Resources {
   } uniform;
 
   struct ShaderStorage : CE::Descriptor::SetLayout {
-    std::vector<CE::Buffer> buffers;
+    CE::Buffer bufferIn;
+    CE::Buffer bufferOut;
     ShaderStorage();
   } shaderStorage;
 
