@@ -228,54 +228,54 @@ void Resources::allocateDescriptorSets() {
                    &allocateInfo, descriptor.sets.data());
 }
 
-void Resources::createImage(uint32_t width,
-                            uint32_t height,
-                            VkSampleCountFlagBits numSamples,
-                            VkFormat format,
-                            VkImageTiling tiling,
-                            VkImageUsageFlags usage,
-                            VkMemoryPropertyFlags properties,
-                            VkImage& image,
-                            VkDeviceMemory& imageMemory) {
-  Log::text("{ img }", "Image", width, height);
-  Log::text(Log::Style::charLeader, Log::getSampleCountString(numSamples));
-  Log::text(Log::Style::charLeader, Log::getImageUsageString(usage));
-  Log::text(Log::Style::charLeader, Log::getMemoryPropertyString(properties));
-
-  VkImageCreateInfo imageInfo{
-      .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
-      .pNext = nullptr,
-      .flags = 0,
-      .imageType = VK_IMAGE_TYPE_2D,
-      .format = format,
-      .extent = {.width = width, .height = height, .depth = 1},
-      .mipLevels = 1,
-      .arrayLayers = 1,
-      .samples = numSamples,
-      .tiling = tiling,
-      .usage = usage,
-      .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-      .queueFamilyIndexCount = 0,
-      .pQueueFamilyIndices = nullptr,
-      .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED};
-
-  CE::vulkanResult(vkCreateImage, _mechanics.mainDevice.logical, &imageInfo,
-                   nullptr, &image);
-
-  VkMemoryRequirements memRequirements;
-  vkGetImageMemoryRequirements(_mechanics.mainDevice.logical, image,
-                               &memRequirements);
-
-  VkMemoryAllocateInfo allocateInfo{
-      .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-      .allocationSize = memRequirements.size,
-      .memoryTypeIndex =
-          findMemoryType(memRequirements.memoryTypeBits, properties)};
-
-  CE::vulkanResult(vkAllocateMemory, _mechanics.mainDevice.logical,
-                   &allocateInfo, nullptr, &imageMemory);
-  vkBindImageMemory(_mechanics.mainDevice.logical, image, imageMemory, 0);
-}
+//void Resources::createImage(uint32_t width,
+//                            uint32_t height,
+//                            VkSampleCountFlagBits numSamples,
+//                            VkFormat format,
+//                            VkImageTiling tiling,
+//                            VkImageUsageFlags usage,
+//                            VkMemoryPropertyFlags properties,
+//                            VkImage& image,
+//                            VkDeviceMemory& imageMemory) {
+//  Log::text("{ img }", "Image", width, height);
+//  Log::text(Log::Style::charLeader, Log::getSampleCountString(numSamples));
+//  Log::text(Log::Style::charLeader, Log::getImageUsageString(usage));
+//  Log::text(Log::Style::charLeader, Log::getMemoryPropertyString(properties));
+//
+//  VkImageCreateInfo imageInfo{
+//      .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+//      .pNext = nullptr,
+//      .flags = 0,
+//      .imageType = VK_IMAGE_TYPE_2D,
+//      .format = format,
+//      .extent = {.width = width, .height = height, .depth = 1},
+//      .mipLevels = 1,
+//      .arrayLayers = 1,
+//      .samples = numSamples,
+//      .tiling = tiling,
+//      .usage = usage,
+//      .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+//      .queueFamilyIndexCount = 0,
+//      .pQueueFamilyIndices = nullptr,
+//      .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED};
+//
+//  CE::vulkanResult(vkCreateImage, _mechanics.mainDevice.logical, &imageInfo,
+//                   nullptr, &image);
+//
+//  VkMemoryRequirements memRequirements;
+//  vkGetImageMemoryRequirements(_mechanics.mainDevice.logical, image,
+//                               &memRequirements);
+//
+//  VkMemoryAllocateInfo allocateInfo{
+//      .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+//      .allocationSize = memRequirements.size,
+//      .memoryTypeIndex =
+//          findMemoryType(memRequirements.memoryTypeBits, properties)};
+//
+//  CE::vulkanResult(vkAllocateMemory, _mechanics.mainDevice.logical,
+//                   &allocateInfo, nullptr, &imageMemory);
+//  vkBindImageMemory(_mechanics.mainDevice.logical, image, imageMemory, 0);
+//}
 
 void Resources::createTextureImage(std::string imagePath) {
   Log::text("{ img }", "Image Texture: ", imagePath);
@@ -307,7 +307,7 @@ void Resources::createTextureImage(std::string imagePath) {
 
   stbi_image_free(pixels);
 
-  createImage(texWidth, texHeight, VK_SAMPLE_COUNT_1_BIT,
+  CE::Image::createImage(texWidth, texHeight, VK_SAMPLE_COUNT_1_BIT,
               VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL,
               VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
               VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage.image,
@@ -847,7 +847,7 @@ void Resources::createDepthResources() {
 
   VkFormat depthFormat = findDepthFormat();
 
-  createImage(_mechanics.swapChain.extent.width,
+  CE::Image::createImage(_mechanics.swapChain.extent.width,
               _mechanics.swapChain.extent.height, msaaImage.sampleCount,
               depthFormat, VK_IMAGE_TILING_OPTIMAL,
               VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
@@ -864,7 +864,7 @@ void Resources::createColorResources() {
 
   VkFormat colorFormat = _mechanics.swapChain.imageFormat;
 
-  createImage(_mechanics.swapChain.extent.width,
+  CE::Image::createImage(_mechanics.swapChain.extent.width,
               _mechanics.swapChain.extent.height, msaaImage.sampleCount,
               colorFormat, VK_IMAGE_TILING_OPTIMAL,
               VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT |

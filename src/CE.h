@@ -57,6 +57,16 @@ class CE {
     VkImageView imageView;
     VkSampler imageSampler;
     VkSampleCountFlagBits sampleCount;
+
+    static void createImage(uint32_t width,
+        uint32_t height,
+        VkSampleCountFlagBits numSamples,
+        VkFormat format,
+        VkImageTiling tiling,
+        VkImageUsageFlags usage,
+        VkMemoryPropertyFlags properties,
+        VkImage& image,
+        VkDeviceMemory& imageMemory);
   };
 
   class Descriptor {

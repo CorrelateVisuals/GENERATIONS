@@ -88,15 +88,15 @@ class Resources {
   void recordComputeCommandBuffer(VkCommandBuffer commandBuffer,
                                   Pipelines& _pipelines);
   void updateUniformBuffer(uint32_t currentImage);
-  void createImage(uint32_t width,
-                   uint32_t height,
-                   VkSampleCountFlagBits numSamples,
-                   VkFormat format,
-                   VkImageTiling tiling,
-                   VkImageUsageFlags usage,
-                   VkMemoryPropertyFlags properties,
-                   VkImage& image,
-                   VkDeviceMemory& imageMemory);
+  //void createImage(uint32_t width,
+  //                 uint32_t height,
+  //                 VkSampleCountFlagBits numSamples,
+  //                 VkFormat format,
+  //                 VkImageTiling tiling,
+  //                 VkImageUsageFlags usage,
+  //                 VkMemoryPropertyFlags properties,
+  //                 VkImage& image,
+  //                 VkDeviceMemory& imageMemory);
   VkImageView createImageView(VkImage image,
                               VkFormat format,
                               VkImageAspectFlags aspectFlags);
