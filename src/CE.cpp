@@ -1,9 +1,29 @@
 #include "CE.h"
+#include "Log.h"
 
 VkDevice* CE::_logicalDevice = nullptr;
+VkPhysicalDevice* CE::_physicalDevice = nullptr;
 
 void CE::linkLogicalDevice(VkDevice* logicalDevice) {
   _logicalDevice = logicalDevice;
+}
+
+void CE::linkPhysicalDevice(VkPhysicalDevice* physicalDevice) {
+  _physicalDevice = physicalDevice;
+}
+
+uint32_t CE::findMemoryType(uint32_t typeFilter,
+                            VkMemoryPropertyFlags properties) {
+  VkPhysicalDeviceMemoryProperties memProperties;
+  vkGetPhysicalDeviceMemoryProperties(*_physicalDevice, &memProperties);
+
+  for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
+    if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags &
+                                    properties) == properties) {
+      return i;
+    }
+  }
+  throw std::runtime_error("\n!ERROR! failed to find suitable memory type!");
 }
 
 CE::Buffer::Buffer() : buffer{}, bufferMemory{}, mapped{} {}
@@ -17,6 +37,36 @@ CE::Buffer::~Buffer() {
     vkFreeMemory(*_logicalDevice, bufferMemory, nullptr);
     bufferMemory = VK_NULL_HANDLE;
   }
+}
+
+void CE::Buffer::createBuffer(VkDeviceSize size,
+                              VkBufferUsageFlags usage,
+                              VkMemoryPropertyFlags properties,
+                              VkBuffer& buffer,
+                              VkDeviceMemory& bufferMemory) {
+  VkBufferCreateInfo bufferInfo{.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+                                .size = size,
+                                .usage = usage,
+                                .sharingMode = VK_SHARING_MODE_EXCLUSIVE};
+  Log::text("{ ... }", Log::getBufferUsageString(usage));
+  Log::text(Log::Style::charLeader, Log::getMemoryPropertyString(properties));
+  Log::text(Log::Style::charLeader, size, "bytes");
+
+  CE::vulkanResult(vkCreateBuffer, *_logicalDevice, &bufferInfo, nullptr,
+                   &buffer);
+
+  VkMemoryRequirements memRequirements;
+  vkGetBufferMemoryRequirements(*_logicalDevice, buffer, &memRequirements);
+
+  VkMemoryAllocateInfo allocateInfo{
+      .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+      .allocationSize = memRequirements.size,
+      .memoryTypeIndex =
+          CE::findMemoryType(memRequirements.memoryTypeBits, properties)};
+
+  CE::vulkanResult(vkAllocateMemory, *_logicalDevice, &allocateInfo, nullptr,
+                   &bufferMemory);
+  vkBindBufferMemory(*_logicalDevice, buffer, bufferMemory, 0);
 }
 
 CE::Image::Image()

@@ -18,6 +18,7 @@ Resources::Resources(VulkanMechanics& mechanics)
   Log::text("{ /// }", "constructing Resources");
 
   CE::linkLogicalDevice(&_mechanics.mainDevice.logical);
+  CE::linkPhysicalDevice(&_mechanics.mainDevice.physical);
 }
 
 Resources::~Resources() {
@@ -122,10 +123,11 @@ void Resources::createShaderStorageBuffers() {
   VkDeviceSize bufferSize =
       sizeof(World::Cell) * world.grid.size.x * world.grid.size.y;
 
-  createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-               VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                   VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-               stagingResources.buffer, stagingResources.bufferMemory);
+  CE::Buffer::createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                           VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                               VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                           stagingResources.buffer,
+                           stagingResources.bufferMemory);
 
   void* data;
   vkMapMemory(_mechanics.mainDevice.logical, stagingResources.bufferMemory, 0,
@@ -133,7 +135,7 @@ void Resources::createShaderStorageBuffers() {
   std::memcpy(data, cells.data(), static_cast<size_t>(bufferSize));
   vkUnmapMemory(_mechanics.mainDevice.logical, stagingResources.bufferMemory);
 
-  createBuffer(
+  CE::Buffer::createBuffer(
       static_cast<VkDeviceSize>(bufferSize),
       VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
           VK_BUFFER_USAGE_TRANSFER_DST_BIT,
@@ -142,7 +144,7 @@ void Resources::createShaderStorageBuffers() {
   copyBuffer(stagingResources.buffer, shaderStorage.bufferIn.buffer,
              bufferSize);
 
-  createBuffer(
+  CE::Buffer::createBuffer(
       static_cast<VkDeviceSize>(bufferSize),
       VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
           VK_BUFFER_USAGE_TRANSFER_DST_BIT,
@@ -156,10 +158,10 @@ void Resources::createUniformBuffers() {
   Log::text("{ 101 }", MAX_FRAMES_IN_FLIGHT, "Uniform Buffers");
   VkDeviceSize bufferSize = sizeof(World::UniformBufferObject);
 
-  createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-               VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                   VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-               uniform.buffer.buffer, uniform.buffer.bufferMemory);
+  CE::Buffer::createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+                           VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                               VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                           uniform.buffer.buffer, uniform.buffer.bufferMemory);
 
   vkMapMemory(_mechanics.mainDevice.logical, uniform.buffer.bufferMemory, 0,
               bufferSize, 0, &uniform.buffer.mapped);
@@ -291,10 +293,11 @@ void Resources::createTextureImage(std::string imagePath) {
 
   CE::Buffer stagingResources;
 
-  createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-               VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                   VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-               stagingResources.buffer, stagingResources.bufferMemory);
+  CE::Buffer::createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                           VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                               VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                           stagingResources.buffer,
+                           stagingResources.bufferMemory);
 
   void* data;
   vkMapMemory(_mechanics.mainDevice.logical, stagingResources.bufferMemory, 0,
@@ -354,10 +357,11 @@ void Resources::createVertexBuffer(VkBuffer& buffer,
   CE::Buffer stagingResources;
   VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
 
-  createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-               VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                   VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-               stagingResources.buffer, stagingResources.bufferMemory);
+  CE::Buffer::createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                           VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                               VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                           stagingResources.buffer,
+                           stagingResources.bufferMemory);
 
   void* data;
   vkMapMemory(_mechanics.mainDevice.logical, stagingResources.bufferMemory, 0,
@@ -365,7 +369,7 @@ void Resources::createVertexBuffer(VkBuffer& buffer,
   memcpy(data, vertices.data(), (size_t)bufferSize);
   vkUnmapMemory(_mechanics.mainDevice.logical, stagingResources.bufferMemory);
 
-  createBuffer(
+  CE::Buffer::createBuffer(
       bufferSize,
       VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, buffer, bufferMemory);
@@ -379,10 +383,11 @@ void Resources::createIndexBuffer(VkBuffer& buffer,
   CE::Buffer stagingResources;
   VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
 
-  createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-               VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                   VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-               stagingResources.buffer, stagingResources.bufferMemory);
+  CE::Buffer::createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                           VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                               VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                           stagingResources.buffer,
+                           stagingResources.bufferMemory);
 
   void* data;
   vkMapMemory(_mechanics.mainDevice.logical, stagingResources.bufferMemory, 0,
@@ -390,7 +395,7 @@ void Resources::createIndexBuffer(VkBuffer& buffer,
   memcpy(data, indices.data(), (size_t)bufferSize);
   vkUnmapMemory(_mechanics.mainDevice.logical, stagingResources.bufferMemory);
 
-  createBuffer(
+  CE::Buffer::createBuffer(
       bufferSize,
       VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, buffer, bufferMemory);
@@ -595,7 +600,7 @@ void Resources::createDescriptorSets() {
 
         {.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
          .dstSet = descriptor.sets[i],
-         .dstBinding = static_cast<uint32_t>(i ? 1 : 2),
+         .dstBinding = static_cast<uint32_t>(i ? 2 : 1),
          .dstArrayElement = 0,
          .descriptorCount = 1,
          .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
@@ -603,7 +608,7 @@ void Resources::createDescriptorSets() {
 
         {.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
          .dstSet = descriptor.sets[i],
-         .dstBinding = static_cast<uint32_t>(i ? 2 : 1),
+         .dstBinding = static_cast<uint32_t>(i ? 1 : 2),
          .dstArrayElement = 0,
          .descriptorCount = 1,
          .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
@@ -896,38 +901,41 @@ void Resources::createTextureSampler() {
   }
 }
 
-void Resources::createBuffer(VkDeviceSize size,
-                             VkBufferUsageFlags usage,
-                             VkMemoryPropertyFlags properties,
-                             VkBuffer& buffer,
-                             VkDeviceMemory& bufferMemory) {
-  VkBufferCreateInfo bufferInfo{.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-                                .size = size,
-                                .usage = usage,
-                                .sharingMode = VK_SHARING_MODE_EXCLUSIVE};
-
-  Log::text("{ ... }", Log::getBufferUsageString(usage));
-  Log::text(Log::Style::charLeader, Log::getMemoryPropertyString(properties));
-  Log::text(Log::Style::charLeader, size, "bytes");
-
-  CE::vulkanResult(vkCreateBuffer, _mechanics.mainDevice.logical, &bufferInfo,
-                   nullptr, &buffer);
-
-  VkMemoryRequirements memRequirements;
-  vkGetBufferMemoryRequirements(_mechanics.mainDevice.logical, buffer,
-                                &memRequirements);
-
-  VkMemoryAllocateInfo allocateInfo{
-      .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-      .allocationSize = memRequirements.size,
-      .memoryTypeIndex =
-          findMemoryType(memRequirements.memoryTypeBits, properties)};
-
-  CE::vulkanResult(vkAllocateMemory, _mechanics.mainDevice.logical,
-                   &allocateInfo, nullptr, &bufferMemory);
-
-  vkBindBufferMemory(_mechanics.mainDevice.logical, buffer, bufferMemory, 0);
-}
+// void Resources::createBuffer(VkDeviceSize size,
+//                              VkBufferUsageFlags usage,
+//                              VkMemoryPropertyFlags properties,
+//                              VkBuffer& buffer,
+//                              VkDeviceMemory& bufferMemory) {
+//   VkBufferCreateInfo bufferInfo{.sType =
+//   VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+//                                 .size = size,
+//                                 .usage = usage,
+//                                 .sharingMode = VK_SHARING_MODE_EXCLUSIVE};
+//
+//   Log::text("{ ... }", Log::getBufferUsageString(usage));
+//   Log::text(Log::Style::charLeader,
+//   Log::getMemoryPropertyString(properties));
+//   Log::text(Log::Style::charLeader, size, "bytes");
+//
+//   CE::vulkanResult(vkCreateBuffer, _mechanics.mainDevice.logical,
+//   &bufferInfo,
+//                    nullptr, &buffer);
+//
+//   VkMemoryRequirements memRequirements;
+//   vkGetBufferMemoryRequirements(_mechanics.mainDevice.logical, buffer,
+//                                 &memRequirements);
+//
+//   VkMemoryAllocateInfo allocateInfo{
+//       .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+//       .allocationSize = memRequirements.size,
+//       .memoryTypeIndex =
+//           findMemoryType(memRequirements.memoryTypeBits, properties)};
+//
+//   CE::vulkanResult(vkAllocateMemory, _mechanics.mainDevice.logical,
+//                    &allocateInfo, nullptr, &bufferMemory);
+//
+//   vkBindBufferMemory(_mechanics.mainDevice.logical, buffer, bufferMemory, 0);
+// }
 
 void Resources::copyBuffer(VkBuffer srcBuffer,
                            VkBuffer dstBuffer,

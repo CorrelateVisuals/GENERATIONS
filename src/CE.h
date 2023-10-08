@@ -1,17 +1,22 @@
 #pragma once
 #include <vulkan/vulkan.h>
 
-#include <vector>
-#include <string>
 #include <stdexcept>
+#include <string>
+#include <vector>
 
 class CE {
  public:
   static VkDevice* _logicalDevice;
+  static VkPhysicalDevice* _physicalDevice;
   static void linkLogicalDevice(VkDevice* logicalDevice);
+  static void linkPhysicalDevice(VkPhysicalDevice* physicalDevice);
 
   template <typename Checkresult, typename... Args>
   static void vulkanResult(Checkresult vkResult, Args&&... args);
+
+  static uint32_t findMemoryType(uint32_t typeFilter,
+                                 VkMemoryPropertyFlags properties);
 
   class Buffer {
    public:
@@ -21,6 +26,12 @@ class CE {
     VkBuffer buffer;
     VkDeviceMemory bufferMemory;
     void* mapped;
+
+    static void createBuffer(VkDeviceSize size,
+                             VkBufferUsageFlags usage,
+                             VkMemoryPropertyFlags properties,
+                             VkBuffer& buffer,
+                             VkDeviceMemory& bufferMemory);
   };
 
   class Image {
@@ -60,14 +71,13 @@ class CE {
 };
 
 template <typename Checkresult, typename... Args>
-void CE::vulkanResult(Checkresult vkResult,
-    Args&&... args) {
-    using ObjectType = std::remove_pointer_t<std::decay_t<Checkresult>>;
-    std::string objectName = typeid(ObjectType).name();
+void CE::vulkanResult(Checkresult vkResult, Args&&... args) {
+  using ObjectType = std::remove_pointer_t<std::decay_t<Checkresult>>;
+  std::string objectName = typeid(ObjectType).name();
 
-    VkResult result = vkResult(std::forward<Args>(args)...);
-    if (result != VK_SUCCESS) {
-        throw std::runtime_error("\n!ERROR! result != VK_SUCCESS " + objectName +
-            "!");
-    }
+  VkResult result = vkResult(std::forward<Args>(args)...);
+  if (result != VK_SUCCESS) {
+    throw std::runtime_error("\n!ERROR! result != VK_SUCCESS " + objectName +
+                             "!");
+  }
 }
