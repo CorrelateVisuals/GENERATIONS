@@ -2,11 +2,16 @@
 #include <vulkan/vulkan.h>
 
 #include <vector>
+#include <string>
+#include <stdexcept>
 
 class CE {
  public:
   static VkDevice* _logicalDevice;
   static void linkLogicalDevice(VkDevice* logicalDevice);
+
+  template <typename Checkresult, typename... Args>
+  static void vulkanResult(Checkresult vkResult, Args&&... args);
 
   class Buffer {
    public:
@@ -53,3 +58,16 @@ class CE {
     void createDescriptorSets();
   };
 };
+
+template <typename Checkresult, typename... Args>
+void CE::vulkanResult(Checkresult vkResult,
+    Args&&... args) {
+    using ObjectType = std::remove_pointer_t<std::decay_t<Checkresult>>;
+    std::string objectName = typeid(ObjectType).name();
+
+    VkResult result = vkResult(std::forward<Args>(args)...);
+    if (result != VK_SUCCESS) {
+        throw std::runtime_error("\n!ERROR! result != VK_SUCCESS " + objectName +
+            "!");
+    }
+}

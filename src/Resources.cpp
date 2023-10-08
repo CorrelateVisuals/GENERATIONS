@@ -74,7 +74,7 @@ void Resources::createFramebuffers(Pipelines& _pipelines) {
         .height = _mechanics.swapChain.extent.height,
         .layers = 1};
 
-    _mechanics.result(vkCreateFramebuffer, _mechanics.mainDevice.logical,
+    CE::vulkanResult(vkCreateFramebuffer, _mechanics.mainDevice.logical,
                       &framebufferInfo, nullptr,
                       &_mechanics.swapChain.framebuffers[i]);
   }
@@ -91,7 +91,7 @@ void Resources::createGraphicsCommandBuffers() {
       .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
       .commandBufferCount = static_cast<uint32_t>(command.graphics.size())};
 
-  _mechanics.result(vkAllocateCommandBuffers, _mechanics.mainDevice.logical,
+  CE::vulkanResult(vkAllocateCommandBuffers, _mechanics.mainDevice.logical,
                     &allocateInfo, command.graphics.data());
 }
 
@@ -106,7 +106,7 @@ void Resources::createComputeCommandBuffers() {
       .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
       .commandBufferCount = static_cast<uint32_t>(command.compute.size())};
 
-  _mechanics.result(vkAllocateCommandBuffers, _mechanics.mainDevice.logical,
+  CE::vulkanResult(vkAllocateCommandBuffers, _mechanics.mainDevice.logical,
                     &allocateInfo, command.compute.data());
 }
 
@@ -179,7 +179,7 @@ void Resources::createDescriptorSetLayout(
       .bindingCount = static_cast<uint32_t>(layoutBindings.size()),
       .pBindings = layoutBindings.data()};
 
-  _mechanics.result(vkCreateDescriptorSetLayout, _mechanics.mainDevice.logical,
+  CE::vulkanResult(vkCreateDescriptorSetLayout, _mechanics.mainDevice.logical,
                     &layoutInfo, nullptr, &descriptor.setLayout);
 }
 
@@ -206,7 +206,7 @@ void Resources::createDescriptorPool() {
       .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
       .pPoolSizes = poolSizes.data()};
 
-  _mechanics.result(vkCreateDescriptorPool, _mechanics.mainDevice.logical,
+  CE::vulkanResult(vkCreateDescriptorPool, _mechanics.mainDevice.logical,
                     &poolInfo, nullptr, &descriptor.pool);
 }
 
@@ -220,7 +220,7 @@ void Resources::allocateDescriptorSets() {
       .pSetLayouts = layouts.data()};
 
   descriptor.sets.resize(MAX_FRAMES_IN_FLIGHT);
-  _mechanics.result(vkAllocateDescriptorSets, _mechanics.mainDevice.logical,
+  CE::vulkanResult(vkAllocateDescriptorSets, _mechanics.mainDevice.logical,
                     &allocateInfo, descriptor.sets.data());
 }
 
@@ -255,7 +255,7 @@ void Resources::createImage(uint32_t width,
       .pQueueFamilyIndices = nullptr,
       .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED};
 
-  _mechanics.result(vkCreateImage, _mechanics.mainDevice.logical, &imageInfo,
+  CE::vulkanResult(vkCreateImage, _mechanics.mainDevice.logical, &imageInfo,
                     nullptr, &image);
 
   VkMemoryRequirements memRequirements;
@@ -268,7 +268,7 @@ void Resources::createImage(uint32_t width,
       .memoryTypeIndex =
           findMemoryType(memRequirements.memoryTypeBits, properties)};
 
-  _mechanics.result(vkAllocateMemory, _mechanics.mainDevice.logical,
+  CE::vulkanResult(vkAllocateMemory, _mechanics.mainDevice.logical,
                     &allocateInfo, nullptr, &imageMemory);
   vkBindImageMemory(_mechanics.mainDevice.logical, image, imageMemory, 0);
 }
@@ -675,7 +675,7 @@ void Resources::recordComputeCommandBuffer(VkCommandBuffer commandBuffer,
   vkCmdDispatch(commandBuffer, workgroupSizeX, workgroupSizeY,
                 _pipelines.compute.workGroups[2]);
 
-  _mechanics.result(vkEndCommandBuffer, commandBuffer);
+  CE::vulkanResult(vkEndCommandBuffer, commandBuffer);
 }
 
 void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
@@ -684,7 +684,7 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
   VkCommandBufferBeginInfo beginInfo{
       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO};
 
-  _mechanics.result(vkBeginCommandBuffer, commandBuffer, &beginInfo);
+  CE::vulkanResult(vkBeginCommandBuffer, commandBuffer, &beginInfo);
 
   std::vector<VkClearValue> clearValues{{.color = {{0.0f, 0.0f, 0.0f, 1.0f}}},
                                         {.depthStencil = {1.0f, 0}}};
@@ -803,7 +803,7 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
       VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_GENERAL,
       /* -> */ VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
-  _mechanics.result(vkEndCommandBuffer, commandBuffer);
+  CE::vulkanResult(vkEndCommandBuffer, commandBuffer);
 }
 
 VkImageView Resources::createImageView(VkImage image,
@@ -823,7 +823,7 @@ VkImageView Resources::createImageView(VkImage image,
                            .layerCount = 1}};
 
   VkImageView imageView{};
-  _mechanics.result(vkCreateImageView, _mechanics.mainDevice.logical, &viewInfo,
+  CE::vulkanResult(vkCreateImageView, _mechanics.mainDevice.logical, &viewInfo,
                     nullptr, &imageView);
 
   return imageView;
@@ -899,7 +899,7 @@ void Resources::createBuffer(VkDeviceSize size,
   Log::text(Log::Style::charLeader, Log::getMemoryPropertyString(properties));
   Log::text(Log::Style::charLeader, size, "bytes");
 
-  _mechanics.result(vkCreateBuffer, _mechanics.mainDevice.logical, &bufferInfo,
+  CE::vulkanResult(vkCreateBuffer, _mechanics.mainDevice.logical, &bufferInfo,
                     nullptr, &buffer);
 
   VkMemoryRequirements memRequirements;
@@ -912,7 +912,7 @@ void Resources::createBuffer(VkDeviceSize size,
       .memoryTypeIndex =
           findMemoryType(memRequirements.memoryTypeBits, properties)};
 
-  _mechanics.result(vkAllocateMemory, _mechanics.mainDevice.logical,
+  CE::vulkanResult(vkAllocateMemory, _mechanics.mainDevice.logical,
                     &allocateInfo, nullptr, &bufferMemory);
 
   vkBindBufferMemory(_mechanics.mainDevice.logical, buffer, bufferMemory, 0);

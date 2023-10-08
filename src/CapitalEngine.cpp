@@ -75,8 +75,7 @@ void CapitalEngine::drawFrame() {
           &mechanics.syncObjects
                .computeFinishedSemaphores[mechanics.syncObjects.currentFrame]};
 
-  mechanics.result(
-      vkQueueSubmit, mechanics.queues.compute, 1, &computeSubmitInfo,
+  CE::vulkanResult(vkQueueSubmit, mechanics.queues.compute, 1, &computeSubmitInfo,
       mechanics.syncObjects
           .computeInFlightFences[mechanics.syncObjects.currentFrame]);
 
@@ -133,7 +132,7 @@ void CapitalEngine::drawFrame() {
           &mechanics.syncObjects
                .renderFinishedSemaphores[mechanics.syncObjects.currentFrame]};
 
-  mechanics.result(
+  CE::vulkanResult(
       vkQueueSubmit, mechanics.queues.graphics, 1, &graphicsSubmitInfo,
       mechanics.syncObjects.inFlightFences[mechanics.syncObjects.currentFrame]);
 

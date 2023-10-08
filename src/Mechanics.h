@@ -82,9 +82,6 @@ class VulkanMechanics {
   void cleanupSwapChain(Resources& _resources);
   void createSyncObjects();
 
-  template <typename Checkresult, typename... Args>
-  void result(Checkresult vkResult, Args&&... args);
-
  private:
   void compileShaders(const Pipelines& _pipelines);
   void createInstance();
@@ -108,16 +105,3 @@ class VulkanMechanics {
   VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
   Queues::FamilyIndices findQueueFamilies(VkPhysicalDevice physicalDevice);
 };
-
-template <typename Checkresult, typename... Args>
-inline void VulkanMechanics::result(Checkresult vkResult,
-                                           Args&&... args) {
-  using ObjectType = std::remove_pointer_t<std::decay_t<Checkresult>>;
-  std::string objectName = typeid(ObjectType).name();
-
-  VkResult result = vkResult(std::forward<Args>(args)...);
-  if (result != VK_SUCCESS) {
-    throw std::runtime_error("\n!ERROR! result != VK_SUCCESS " + objectName +
-                             "!");
-  }
-}

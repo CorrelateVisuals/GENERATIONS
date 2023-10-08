@@ -103,12 +103,12 @@ void VulkanMechanics::createInstance() {
     createInfo.pNext = &debugCreateInfo;
   }
 
-  result(vkCreateInstance, &createInfo, nullptr, &instance);
+  CE::vulkanResult(vkCreateInstance, &createInfo, nullptr, &instance);
 }
 
 void VulkanMechanics::createSurface(GLFWwindow* window) {
   Log::text("{ [ ] }", "Surface");
-  result(glfwCreateWindowSurface, instance, window, nullptr, &surface);
+  CE::vulkanResult(glfwCreateWindowSurface, instance, window, nullptr, &surface);
 }
 
 void VulkanMechanics::pickPhysicalDevice(
@@ -280,7 +280,7 @@ void VulkanMechanics::createLogicalDevice() {
     createInfo.ppEnabledLayerNames = validation.validation.data();
   }
 
-  result(vkCreateDevice, mainDevice.physical, &createInfo, nullptr,
+  CE::vulkanResult(vkCreateDevice, mainDevice.physical, &createInfo, nullptr,
          &mainDevice.logical);
 
   vkGetDeviceQueue(mainDevice.logical, indices.graphicsAndComputeFamily.value(),
@@ -355,15 +355,15 @@ void VulkanMechanics::createSyncObjects() {
                               .flags = VK_FENCE_CREATE_SIGNALED_BIT};
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-    result(vkCreateSemaphore, mainDevice.logical, &semaphoreInfo, nullptr,
+    CE::vulkanResult(vkCreateSemaphore, mainDevice.logical, &semaphoreInfo, nullptr,
            &syncObjects.imageAvailableSemaphores[i]);
-    result(vkCreateSemaphore, mainDevice.logical, &semaphoreInfo, nullptr,
+    CE::vulkanResult(vkCreateSemaphore, mainDevice.logical, &semaphoreInfo, nullptr,
            &syncObjects.renderFinishedSemaphores[i]);
-    result(vkCreateFence, mainDevice.logical, &fenceInfo, nullptr,
+    CE::vulkanResult(vkCreateFence, mainDevice.logical, &fenceInfo, nullptr,
            &syncObjects.inFlightFences[i]);
-    result(vkCreateSemaphore, mainDevice.logical, &semaphoreInfo, nullptr,
+    CE::vulkanResult(vkCreateSemaphore, mainDevice.logical, &semaphoreInfo, nullptr,
            &syncObjects.computeFinishedSemaphores[i]);
-    result(vkCreateFence, mainDevice.logical, &fenceInfo, nullptr,
+    CE::vulkanResult(vkCreateFence, mainDevice.logical, &fenceInfo, nullptr,
            &syncObjects.computeInFlightFences[i]);
   }
 }
@@ -447,7 +447,7 @@ void VulkanMechanics::createSwapChain() {
     createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
   }
 
-  result(vkCreateSwapchainKHR, mainDevice.logical, &createInfo, nullptr,
+  CE::vulkanResult(vkCreateSwapchainKHR, mainDevice.logical, &createInfo, nullptr,
          &swapChain.swapChain);
 
   vkGetSwapchainImagesKHR(mainDevice.logical, swapChain.swapChain, &imageCount,
@@ -483,7 +483,7 @@ void VulkanMechanics::createCommandPool(VkCommandPool* commandPool) {
       .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
       .queueFamilyIndex = queueFamilyIndices.graphicsAndComputeFamily.value()};
 
-  result(vkCreateCommandPool, mainDevice.logical, &poolInfo, nullptr,
+  CE::vulkanResult(vkCreateCommandPool, mainDevice.logical, &poolInfo, nullptr,
          commandPool);
 }
 

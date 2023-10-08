@@ -133,16 +133,16 @@ void Pipelines::createRenderPass(Resources& _resources) {
       .dependencyCount = 1,
       .pDependencies = &dependency};
 
-  _mechanics.result(vkCreateRenderPass, _mechanics.mainDevice.logical,
-                    &renderPassInfo, nullptr, &graphics.renderPass);
+  CE::vulkanResult(vkCreateRenderPass, _mechanics.mainDevice.logical,
+                   &renderPassInfo, nullptr, &graphics.renderPass);
 }
 
 void Pipelines::createGraphicsPipeline_Layout(
     const Resources::DescriptorSets& _descriptorSets) {
   VkPipelineLayoutCreateInfo graphicsLayout{layoutDefault};
   graphicsLayout.pSetLayouts = &_descriptorSets.setLayout;
-  _mechanics.result(vkCreatePipelineLayout, _mechanics.mainDevice.logical,
-                    &graphicsLayout, nullptr, &graphics.layout);
+  CE::vulkanResult(vkCreatePipelineLayout, _mechanics.mainDevice.logical,
+                   &graphicsLayout, nullptr, &graphics.layout);
 }
 
 void Pipelines::createComputePipeline_Layout(
@@ -155,8 +155,8 @@ void Pipelines::createComputePipeline_Layout(
   computeLayout.pSetLayouts = &_descriptorSets.setLayout;
   computeLayout.pushConstantRangeCount = _pushConstants.count;
   computeLayout.pPushConstantRanges = &constants;
-  _mechanics.result(vkCreatePipelineLayout, _mechanics.mainDevice.logical,
-                    &computeLayout, nullptr, &compute.layout);
+  CE::vulkanResult(vkCreatePipelineLayout, _mechanics.mainDevice.logical,
+                   &computeLayout, nullptr, &compute.layout);
 }
 
 void Pipelines::createGraphicsPipeline_Cells(
@@ -212,8 +212,8 @@ void Pipelines::createGraphicsPipeline_Cells(
       .subpass = 0,
       .basePipelineHandle = VK_NULL_HANDLE};
 
-  _mechanics.result(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
-                    VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphics.cells);
+  CE::vulkanResult(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
+                   VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphics.cells);
   destroyShaderModules(shaderModules);
 }
 
@@ -268,9 +268,9 @@ void Pipelines::createGraphicsPipeline_Landscape(
       .subpass = 0,
       .basePipelineHandle = VK_NULL_HANDLE};
 
-  _mechanics.result(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
-                    VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
-                    &graphics.landscape);
+  CE::vulkanResult(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
+                   VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
+                   &graphics.landscape);
   destroyShaderModules(shaderModules);
 }
 
@@ -335,9 +335,9 @@ void Pipelines::createGraphicsPipeline_LandscapeWireframe(
       .subpass = 0,
       .basePipelineHandle = VK_NULL_HANDLE};
 
-  _mechanics.result(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
-                    VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
-                    &graphics.landscapeWireframe);
+  CE::vulkanResult(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
+                   VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
+                   &graphics.landscapeWireframe);
   destroyShaderModules(shaderModules);
 }
 
@@ -393,8 +393,8 @@ void Pipelines::createGraphicsPipeline_Water(
       .subpass = 0,
       .basePipelineHandle = VK_NULL_HANDLE};
 
-  _mechanics.result(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
-                    VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphics.water);
+  CE::vulkanResult(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
+                   VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphics.water);
   destroyShaderModules(shaderModules);
 }
 
@@ -450,9 +450,9 @@ void Pipelines::createGraphicsPipeline_Texture(
       .subpass = 0,
       .basePipelineHandle = VK_NULL_HANDLE};
 
-  _mechanics.result(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
-                    VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
-                    &graphics.texture);
+  CE::vulkanResult(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
+                   VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
+                   &graphics.texture);
   destroyShaderModules(shaderModules);
 }
 
@@ -508,9 +508,9 @@ void Pipelines::createGraphicsPipeline_Cube(
       .subpass = 0,
       .basePipelineHandle = VK_NULL_HANDLE};
 
-  _mechanics.result(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
-                    VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
-                    &graphics.texture);
+  CE::vulkanResult(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
+                   VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
+                   &graphics.texture);
   destroyShaderModules(shaderModules);
 }
 
@@ -566,8 +566,8 @@ void Pipelines::createComputePipeline_Engine() {
       .stage = shaderStage,
       .layout = compute.layout};
 
-  _mechanics.result(vkCreateComputePipelines, _mechanics.mainDevice.logical,
-                    VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &compute.engine);
+  CE::vulkanResult(vkCreateComputePipelines, _mechanics.mainDevice.logical,
+                   VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &compute.engine);
 
   destroyShaderModules(shaderModules);
 }
@@ -583,8 +583,8 @@ void Pipelines::createComputePipeline_PostFX() {
       .stage = shaderStage,
       .layout = compute.layout};
 
-  _mechanics.result(vkCreateComputePipelines, _mechanics.mainDevice.logical,
-                    VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &compute.postFX);
+  CE::vulkanResult(vkCreateComputePipelines, _mechanics.mainDevice.logical,
+                   VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &compute.postFX);
 
   destroyShaderModules(shaderModules);
 }
@@ -597,8 +597,8 @@ VkShaderModule Pipelines::createShaderModule(const std::vector<char>& code) {
 
   VkShaderModule shaderModule{};
 
-  _mechanics.result(vkCreateShaderModule, _mechanics.mainDevice.logical,
-                    &createInfo, nullptr, &shaderModule);
+  CE::vulkanResult(vkCreateShaderModule, _mechanics.mainDevice.logical,
+                   &createInfo, nullptr, &shaderModule);
 
   return shaderModule;
 }
