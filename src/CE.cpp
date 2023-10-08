@@ -1,21 +1,19 @@
 #include "CE.h"
 #include "Log.h"
 
-VkDevice* CE::_logicalDevice = nullptr;
-VkPhysicalDevice* CE::_physicalDevice = nullptr;
+VkPhysicalDevice* CE::Device::physical = VK_NULL_HANDLE;
+VkDevice* CE::Device::logical = VK_NULL_HANDLE;
+// VkCommandBuffer CE::CommandBuffer::singleTime = VK_NULL_HANDLE;
 
-void CE::linkLogicalDevice(VkDevice* logicalDevice) {
-  _logicalDevice = logicalDevice;
+void CE::Device::linkDevice(VkDevice* logicalDevice,
+                            VkPhysicalDevice* physicalDevice) {
+  CE::Device::physical = physicalDevice;
+  CE::Device::logical = logicalDevice;
 }
-
-void CE::linkPhysicalDevice(VkPhysicalDevice* physicalDevice) {
-  _physicalDevice = physicalDevice;
-}
-
 uint32_t CE::findMemoryType(uint32_t typeFilter,
                             VkMemoryPropertyFlags properties) {
   VkPhysicalDeviceMemoryProperties memProperties;
-  vkGetPhysicalDeviceMemoryProperties(*_physicalDevice, &memProperties);
+  vkGetPhysicalDeviceMemoryProperties(*CE::Device::physical, &memProperties);
 
   for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
     if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags &
@@ -30,11 +28,11 @@ CE::Buffer::Buffer() : buffer{}, bufferMemory{}, mapped{} {}
 
 CE::Buffer::~Buffer() {
   if (buffer != VK_NULL_HANDLE) {
-    vkDestroyBuffer(*_logicalDevice, buffer, nullptr);
+    vkDestroyBuffer(*CE::Device::logical, buffer, nullptr);
     buffer = VK_NULL_HANDLE;
   }
   if (bufferMemory != VK_NULL_HANDLE) {
-    vkFreeMemory(*_logicalDevice, bufferMemory, nullptr);
+    vkFreeMemory(*CE::Device::logical, bufferMemory, nullptr);
     bufferMemory = VK_NULL_HANDLE;
   }
 }
@@ -52,11 +50,11 @@ void CE::Buffer::createBuffer(VkDeviceSize size,
   Log::text(Log::Style::charLeader, Log::getMemoryPropertyString(properties));
   Log::text(Log::Style::charLeader, size, "bytes");
 
-  CE::vulkanResult(vkCreateBuffer, *_logicalDevice, &bufferInfo, nullptr,
+  CE::vulkanResult(vkCreateBuffer, *CE::Device::logical, &bufferInfo, nullptr,
                    &buffer);
 
   VkMemoryRequirements memRequirements;
-  vkGetBufferMemoryRequirements(*_logicalDevice, buffer, &memRequirements);
+  vkGetBufferMemoryRequirements(*CE::Device::logical, buffer, &memRequirements);
 
   VkMemoryAllocateInfo allocateInfo{
       .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
@@ -64,9 +62,9 @@ void CE::Buffer::createBuffer(VkDeviceSize size,
       .memoryTypeIndex =
           CE::findMemoryType(memRequirements.memoryTypeBits, properties)};
 
-  CE::vulkanResult(vkAllocateMemory, *_logicalDevice, &allocateInfo, nullptr,
-                   &bufferMemory);
-  vkBindBufferMemory(*_logicalDevice, buffer, bufferMemory, 0);
+  CE::vulkanResult(vkAllocateMemory, *CE::Device::logical, &allocateInfo,
+                   nullptr, &bufferMemory);
+  vkBindBufferMemory(*CE::Device::logical, buffer, bufferMemory, 0);
 }
 
 CE::Image::Image()
@@ -78,19 +76,19 @@ CE::Image::Image()
 
 CE::Image::~Image() {
   if (imageSampler != VK_NULL_HANDLE) {
-    vkDestroySampler(*_logicalDevice, imageSampler, nullptr);
+    vkDestroySampler(*CE::Device::logical, imageSampler, nullptr);
     imageSampler = VK_NULL_HANDLE;
   };
   if (imageView != VK_NULL_HANDLE) {
-    vkDestroyImageView(*_logicalDevice, imageView, nullptr);
+    vkDestroyImageView(*CE::Device::logical, imageView, nullptr);
     imageView = VK_NULL_HANDLE;
   };
   if (image != VK_NULL_HANDLE) {
-    vkDestroyImage(*_logicalDevice, image, nullptr);
+    vkDestroyImage(*CE::Device::logical, image, nullptr);
     image = VK_NULL_HANDLE;
   };
   if (imageMemory != VK_NULL_HANDLE) {
-    vkFreeMemory(*_logicalDevice, imageMemory, nullptr);
+    vkFreeMemory(*CE::Device::logical, imageMemory, nullptr);
     imageMemory = VK_NULL_HANDLE;
   };
 }
@@ -103,10 +101,10 @@ CE::Descriptor::Descriptor() {
 
 CE::Descriptor::~Descriptor() {
   if (pool != VK_NULL_HANDLE) {
-    vkDestroyDescriptorPool(*_logicalDevice, pool, nullptr);
+    vkDestroyDescriptorPool(*CE::Device::logical, pool, nullptr);
   };
   if (setLayout != VK_NULL_HANDLE) {
-    vkDestroyDescriptorSetLayout(*_logicalDevice, setLayout, nullptr);
+    vkDestroyDescriptorSetLayout(*CE::Device::logical, setLayout, nullptr);
   };
 }
 
@@ -168,3 +166,41 @@ void CE::Descriptor::createDescriptorSets() {
   //_mechanics.mainDevice.logical,
   //                  &layoutInfo, nullptr, &setLayout);
 }
+
+void CE::CommandBuffer::createCommandPool(VkCommandPool* commandPool) {
+  // Log::text("{ cmd }", "Command Pool");
+
+  // VulkanMechanics::Queues::FamilyIndices queueFamilyIndices =
+  //     findQueueFamilies(mainDevice.physical);
+
+  // VkCommandPoolCreateInfo poolInfo{
+  //     .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+  //     .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
+  //     .queueFamilyIndex =
+  //     queueFamilyIndices.graphicsAndComputeFamily.value()};
+
+  // CE::vulkanResult(vkCreateCommandPool, *CE::Device::logical, &poolInfo,
+  //                  nullptr, commandPool);
+}
+
+void CE::CommandBuffer::beginSingularCommands(VkCommandBuffer& commandBuffer) {
+  // Log::text("{ 1.. }", "Begin Single Time Commands");
+
+  // VkCommandBufferAllocateInfo allocInfo{
+  //     .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+  //     .commandPool = command.pool,
+  //     .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+  //     .commandBufferCount = 1};
+
+  // vkAllocateCommandBuffers(*CE::Device::logical, &allocInfo, &commandBuffer);
+
+  // VkCommandBufferBeginInfo beginInfo{
+  //     .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+  //     .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT};
+
+  // vkBeginCommandBuffer(commandBuffer, &beginInfo);
+
+  // return;
+}
+
+void CE::CommandBuffer::endSingluarCommands(VkCommandBuffer& commandBuffer) {}

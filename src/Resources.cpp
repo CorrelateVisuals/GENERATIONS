@@ -17,8 +17,8 @@ Resources::Resources(VulkanMechanics& mechanics)
       descriptor{} {
   Log::text("{ /// }", "constructing Resources");
 
-  CE::linkLogicalDevice(&_mechanics.mainDevice.logical);
-  CE::linkPhysicalDevice(&_mechanics.mainDevice.physical);
+  CE::Device::linkDevice(&_mechanics.mainDevice.logical,
+                         &_mechanics.mainDevice.physical);
 }
 
 Resources::~Resources() {
@@ -900,42 +900,6 @@ void Resources::createTextureSampler() {
     throw std::runtime_error("failed to create texture sampler!");
   }
 }
-
-// void Resources::createBuffer(VkDeviceSize size,
-//                              VkBufferUsageFlags usage,
-//                              VkMemoryPropertyFlags properties,
-//                              VkBuffer& buffer,
-//                              VkDeviceMemory& bufferMemory) {
-//   VkBufferCreateInfo bufferInfo{.sType =
-//   VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-//                                 .size = size,
-//                                 .usage = usage,
-//                                 .sharingMode = VK_SHARING_MODE_EXCLUSIVE};
-//
-//   Log::text("{ ... }", Log::getBufferUsageString(usage));
-//   Log::text(Log::Style::charLeader,
-//   Log::getMemoryPropertyString(properties));
-//   Log::text(Log::Style::charLeader, size, "bytes");
-//
-//   CE::vulkanResult(vkCreateBuffer, _mechanics.mainDevice.logical,
-//   &bufferInfo,
-//                    nullptr, &buffer);
-//
-//   VkMemoryRequirements memRequirements;
-//   vkGetBufferMemoryRequirements(_mechanics.mainDevice.logical, buffer,
-//                                 &memRequirements);
-//
-//   VkMemoryAllocateInfo allocateInfo{
-//       .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-//       .allocationSize = memRequirements.size,
-//       .memoryTypeIndex =
-//           findMemoryType(memRequirements.memoryTypeBits, properties)};
-//
-//   CE::vulkanResult(vkAllocateMemory, _mechanics.mainDevice.logical,
-//                    &allocateInfo, nullptr, &bufferMemory);
-//
-//   vkBindBufferMemory(_mechanics.mainDevice.logical, buffer, bufferMemory, 0);
-// }
 
 void Resources::copyBuffer(VkBuffer srcBuffer,
                            VkBuffer dstBuffer,

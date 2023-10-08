@@ -7,16 +7,30 @@
 
 class CE {
  public:
-  static VkDevice* _logicalDevice;
-  static VkPhysicalDevice* _physicalDevice;
-  static void linkLogicalDevice(VkDevice* logicalDevice);
-  static void linkPhysicalDevice(VkPhysicalDevice* physicalDevice);
+  struct Device {
+    static VkPhysicalDevice* physical;
+    static VkDevice* logical;
+
+    static void linkDevice(VkDevice* logicalDevice,
+                           VkPhysicalDevice* physicalDevice);
+  };
 
   template <typename Checkresult, typename... Args>
   static void vulkanResult(Checkresult vkResult, Args&&... args);
 
   static uint32_t findMemoryType(uint32_t typeFilter,
                                  VkMemoryPropertyFlags properties);
+
+  struct CommandBuffer {
+      static VkCommandPool commandPool;
+      static VkCommandBuffer commandBuffer;
+
+      static void createCommandPool(VkCommandPool* commandPool);
+
+      static void beginSingularCommands(VkCommandBuffer& commandBuffer);
+      static void endSingluarCommands(VkCommandBuffer& commandBuffer);
+  };
+ 
 
   class Buffer {
    public:
