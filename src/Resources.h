@@ -1,7 +1,7 @@
 #pragma once
 #include "vulkan/vulkan.h"
 
-#include "CEimage.h"
+#include "CE.h"
 #include "Mechanics.h"
 #include "Pipelines.h"
 #include "World.h"
@@ -26,32 +26,32 @@ class Resources {
       {&world.rectangle, VK_VERTEX_INPUT_RATE_INSTANCE},
       {&world.cube, VK_VERTEX_INPUT_RATE_VERTEX}};
 
-  struct DepthImage : public CEimage {
+  struct DepthImage : public CE::Image {
   } depthImage;
-  struct MultiSamplingImage : public CEimage {
+  struct MultiSamplingImage : public CE::Image {
   } msaaImage;
-  struct Texture : public CEimage {
+  struct Texture : public CE::Image {
   } textureImage;
 
   static std::vector<VkDescriptorSetLayoutBinding> descriptorSetLayoutBindings;
 
-  struct Uniform : CEdescriptorSetLayout {
-    std::vector<CEbuffer> buffers;
+  struct Uniform : CE::DescriptorSetLayout {
+    std::vector<CE::Buffer> buffers;
     Uniform();
   } uniform;
 
-  struct ShaderStorage : CEdescriptorSetLayout {
-    std::vector<CEbuffer> buffers;
+  struct ShaderStorage : CE::DescriptorSetLayout {
+    std::vector<CE::Buffer> buffers;
     ShaderStorage();
   } shaderStorage;
 
-  struct ImageSampler : CEdescriptorSetLayout {
-    CEbuffer buffer;
+  struct ImageSampler : CE::DescriptorSetLayout {
+    CE::Buffer buffer;
     ImageSampler();
   } imageSampler;
 
-  struct StorageImage : CEdescriptorSetLayout {
-    CEbuffer buffer;
+  struct StorageImage : CE::DescriptorSetLayout {
+    CE::Buffer buffer;
     StorageImage();
   } storageImage;
 

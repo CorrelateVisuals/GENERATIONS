@@ -9,7 +9,7 @@
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/hash.hpp>
 
-#include "CEbuffer.h"
+#include "CE.h"
 
 #include <string>
 #include <vector>
@@ -21,9 +21,9 @@ class Geometry {
   Geometry(const std::string& modelName = "");
   ~Geometry() = default;
 
-  struct VertexBuffer : public CEbuffer {
+  struct VertexBuffer : public CE::Buffer {
   } vertexBuffer;
-  struct IndexBuffer : public CEbuffer {
+  struct IndexBuffer : public CE::Buffer {
   } indexBuffer;
 
   struct Vertex {

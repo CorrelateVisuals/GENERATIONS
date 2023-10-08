@@ -15,10 +15,7 @@ Resources::Resources(VulkanMechanics& mechanics)
       descriptor{} {
   Log::text("{ /// }", "constructing Resources");
 
-  CEimage::_logicalDevice =
-      CEimage::setLogicalDevice(&_mechanics.mainDevice.logical);
-  CEbuffer::_logicalDevice =
-      CEbuffer::setLogicalDevice(&_mechanics.mainDevice.logical);
+  CE::setLogicalDevice(&_mechanics.mainDevice.logical);
 }
 
 Resources::~Resources() {
@@ -119,7 +116,7 @@ void Resources::createShaderStorageBuffers() {
   std::vector<World::Cell> cells = world.initializeGrid();
 
   // Create a staging buffer used to upload data to the gpu
-  CEbuffer stagingResources;
+  CE::Buffer stagingResources;
   VkDeviceSize bufferSize =
       sizeof(World::Cell) * world.grid.size.x * world.grid.size.y;
 
@@ -290,7 +287,7 @@ void Resources::createTextureImage(std::string imagePath) {
     throw std::runtime_error("failed to load texture image!");
   }
 
-  CEbuffer stagingResources;
+  CE::Buffer stagingResources;
 
   createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
@@ -352,7 +349,7 @@ void Resources::createVertexBuffers(
 void Resources::createVertexBuffer(VkBuffer& buffer,
                                    VkDeviceMemory& bufferMemory,
                                    const auto& vertices) {
-  CEbuffer stagingResources;
+  CE::Buffer stagingResources;
   VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
 
   createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
@@ -377,7 +374,7 @@ void Resources::createVertexBuffer(VkBuffer& buffer,
 void Resources::createIndexBuffer(VkBuffer& buffer,
                                   VkDeviceMemory& bufferMemory,
                                   const auto& indices) {
-  CEbuffer stagingResources;
+  CE::Buffer stagingResources;
   VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
 
   createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,

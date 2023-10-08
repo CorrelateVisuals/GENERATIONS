@@ -110,7 +110,8 @@ class VulkanMechanics {
 };
 
 template <typename Checkresult, typename... Args>
-inline void VulkanMechanics::result(Checkresult vkResult, Args&&... args) {
+inline void VulkanMechanics::result(Checkresult vkResult,
+                                           Args&&... args) {
   using ObjectType = std::remove_pointer_t<std::decay_t<Checkresult>>;
   std::string objectName = typeid(ObjectType).name();
 
