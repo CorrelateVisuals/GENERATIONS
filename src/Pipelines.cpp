@@ -11,6 +11,8 @@
 Pipelines::Pipelines(VulkanMechanics& mechanics, Resources& resources)
     : compute{}, graphics{}, _mechanics(mechanics), _resources(resources) {
   Log::text("{ === }", "constructing Pipelines");
+
+  compileShaders();
 }
 
 Pipelines::~Pipelines() {
@@ -536,6 +538,21 @@ VkPipelineShaderStageCreateInfo Pipelines::setShaderStage(
       .pName = "main"};
 
   return shaderStageInfo;
+}
+
+void Pipelines::compileShaders() {
+  Log::text("{ GLSL }", "Compile Shaders");
+
+  std::string systemCommand = "";
+  for (const auto& name : shaders) {
+    for (const auto& shader : name.second) {
+      std::string shaderExtension = Lib::upperToLowerCase(shader);
+      systemCommand =
+          Lib::path(shaderDir + name.first + "." + shaderExtension + " -o " +
+                    shaderDir + name.first + shader + ".spv");
+      system(systemCommand.c_str());
+    }
+  }
 }
 
 std::vector<char> Pipelines::readShaderFile(const std::string& filename) {

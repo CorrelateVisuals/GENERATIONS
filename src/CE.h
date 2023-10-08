@@ -26,7 +26,6 @@ class CE {
       static VkCommandBuffer commandBuffer;
 
       static void createCommandPool(VkCommandPool* commandPool);
-
       static void beginSingularCommands(VkCommandBuffer& commandBuffer);
       static void endSingluarCommands(VkCommandBuffer& commandBuffer);
   };

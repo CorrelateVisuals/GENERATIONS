@@ -83,7 +83,6 @@ class VulkanMechanics {
   void createSyncObjects();
 
  private:
-  void compileShaders(const Pipelines& _pipelines);
   void createInstance();
   void createSurface(GLFWwindow* window);
   void pickPhysicalDevice(Resources::MultiSamplingImage& msaaImage);

@@ -3,7 +3,14 @@
 
 VkPhysicalDevice* CE::Device::physical = VK_NULL_HANDLE;
 VkDevice* CE::Device::logical = VK_NULL_HANDLE;
-// VkCommandBuffer CE::CommandBuffer::singleTime = VK_NULL_HANDLE;
+
+VkCommandPool CE::CommandBuffer::commandPool = VK_NULL_HANDLE;
+VkCommandBuffer CE::CommandBuffer::commandBuffer = VK_NULL_HANDLE;
+
+
+
+
+
 
 void CE::Device::linkDevice(VkDevice* logicalDevice,
                             VkPhysicalDevice* physicalDevice) {
@@ -168,19 +175,19 @@ void CE::Descriptor::createDescriptorSets() {
 }
 
 void CE::CommandBuffer::createCommandPool(VkCommandPool* commandPool) {
-  // Log::text("{ cmd }", "Command Pool");
+    //Log::text("{ cmd }", "Command Pool");
 
-  // VulkanMechanics::Queues::FamilyIndices queueFamilyIndices =
-  //     findQueueFamilies(mainDevice.physical);
+    //VulkanMechanics::Queues::FamilyIndices queueFamilyIndices =
+    //    findQueueFamilies(mainDevice.physical);
 
-  // VkCommandPoolCreateInfo poolInfo{
-  //     .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
-  //     .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
-  //     .queueFamilyIndex =
-  //     queueFamilyIndices.graphicsAndComputeFamily.value()};
+    //VkCommandPoolCreateInfo poolInfo{
+    //    .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+    //    .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
+    //    .queueFamilyIndex =
+    //    queueFamilyIndices.graphicsAndComputeFamily.value() };
 
-  // CE::vulkanResult(vkCreateCommandPool, *CE::Device::logical, &poolInfo,
-  //                  nullptr, commandPool);
+    //CE::vulkanResult(vkCreateCommandPool, *CE::Device::logical, &poolInfo,
+    //    nullptr, commandPool);
 }
 
 void CE::CommandBuffer::beginSingularCommands(VkCommandBuffer& commandBuffer) {

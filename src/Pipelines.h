@@ -68,6 +68,7 @@ class Pipelines {
 
   bool hasStencilComponent(VkFormat format);
 
+  void compileShaders();
   static std::vector<char> readShaderFile(const std::string& filename);
   VkShaderModule createShaderModule(const std::vector<char>& code);
   void destroyShaderModules(std::vector<VkShaderModule>& shaderModules);

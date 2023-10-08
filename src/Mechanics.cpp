@@ -51,7 +51,6 @@ void VulkanMechanics::setupVulkan(Pipelines& _pipelines,
   Log::text(Log::Style::headerGuard);
   Log::text("{ Vk. }", "Setup Vulkan");
 
-  compileShaders(_pipelines);
   createInstance();
   validation.setupDebugMessenger(instance);
   createSurface(Window::get().window);
@@ -108,7 +107,8 @@ void VulkanMechanics::createInstance() {
 
 void VulkanMechanics::createSurface(GLFWwindow* window) {
   Log::text("{ [ ] }", "Surface");
-  CE::vulkanResult(glfwCreateWindowSurface, instance, window, nullptr, &surface);
+  CE::vulkanResult(glfwCreateWindowSurface, instance, window, nullptr,
+                   &surface);
 }
 
 void VulkanMechanics::pickPhysicalDevice(
@@ -281,7 +281,7 @@ void VulkanMechanics::createLogicalDevice() {
   }
 
   CE::vulkanResult(vkCreateDevice, mainDevice.physical, &createInfo, nullptr,
-         &mainDevice.logical);
+                   &mainDevice.logical);
 
   vkGetDeviceQueue(mainDevice.logical, indices.graphicsAndComputeFamily.value(),
                    0, &queues.graphics);
@@ -355,16 +355,16 @@ void VulkanMechanics::createSyncObjects() {
                               .flags = VK_FENCE_CREATE_SIGNALED_BIT};
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-    CE::vulkanResult(vkCreateSemaphore, mainDevice.logical, &semaphoreInfo, nullptr,
-           &syncObjects.imageAvailableSemaphores[i]);
-    CE::vulkanResult(vkCreateSemaphore, mainDevice.logical, &semaphoreInfo, nullptr,
-           &syncObjects.renderFinishedSemaphores[i]);
+    CE::vulkanResult(vkCreateSemaphore, mainDevice.logical, &semaphoreInfo,
+                     nullptr, &syncObjects.imageAvailableSemaphores[i]);
+    CE::vulkanResult(vkCreateSemaphore, mainDevice.logical, &semaphoreInfo,
+                     nullptr, &syncObjects.renderFinishedSemaphores[i]);
     CE::vulkanResult(vkCreateFence, mainDevice.logical, &fenceInfo, nullptr,
-           &syncObjects.inFlightFences[i]);
-    CE::vulkanResult(vkCreateSemaphore, mainDevice.logical, &semaphoreInfo, nullptr,
-           &syncObjects.computeFinishedSemaphores[i]);
+                     &syncObjects.inFlightFences[i]);
+    CE::vulkanResult(vkCreateSemaphore, mainDevice.logical, &semaphoreInfo,
+                     nullptr, &syncObjects.computeFinishedSemaphores[i]);
     CE::vulkanResult(vkCreateFence, mainDevice.logical, &fenceInfo, nullptr,
-           &syncObjects.computeInFlightFences[i]);
+                     &syncObjects.computeInFlightFences[i]);
   }
 }
 
@@ -447,8 +447,8 @@ void VulkanMechanics::createSwapChain() {
     createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
   }
 
-  CE::vulkanResult(vkCreateSwapchainKHR, mainDevice.logical, &createInfo, nullptr,
-         &swapChain.swapChain);
+  CE::vulkanResult(vkCreateSwapchainKHR, mainDevice.logical, &createInfo,
+                   nullptr, &swapChain.swapChain);
 
   vkGetSwapchainImagesKHR(mainDevice.logical, swapChain.swapChain, &imageCount,
                           nullptr);
@@ -484,7 +484,7 @@ void VulkanMechanics::createCommandPool(VkCommandPool* commandPool) {
       .queueFamilyIndex = queueFamilyIndices.graphicsAndComputeFamily.value()};
 
   CE::vulkanResult(vkCreateCommandPool, mainDevice.logical, &poolInfo, nullptr,
-         commandPool);
+                   commandPool);
 }
 
 void VulkanMechanics::recreateSwapChain(Pipelines& _pipelines,
@@ -509,21 +509,6 @@ void VulkanMechanics::recreateSwapChain(Pipelines& _pipelines,
   _resources.createDescriptorSets();
   uint32_t reset = 1;
   syncObjects.currentFrame = reset;
-}
-
-void VulkanMechanics::compileShaders(const Pipelines& _pipelines) {
-  Log::text("{ GLSL }", "Compile Shaders");
-
-  std::string systemCommand = "";
-  for (const auto& name : _pipelines.shaders) {
-    for (const auto& shader : name.second) {
-      std::string shaderExtension = Lib::upperToLowerCase(shader);
-      systemCommand = Lib::path(
-          _pipelines.shaderDir + name.first + "." + shaderExtension + " -o " +
-          _pipelines.shaderDir + name.first + shader + ".spv");
-      system(systemCommand.c_str());
-    }
-  }
 }
 
 std::vector<const char*> VulkanMechanics::getRequiredExtensions() {
