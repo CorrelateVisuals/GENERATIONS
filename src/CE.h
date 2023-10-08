@@ -95,9 +95,9 @@ class CE {
     };
 
    private:
-    void createDescriptorPool();
-    void allocateDescriptorSets();
-    void createDescriptorSets();
+    //void createDescriptorPool();
+    //void allocateDescriptorSets();
+    //void createDescriptorSets();
   };
 };
 
