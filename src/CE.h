@@ -6,7 +6,7 @@
 class CE {
  public:
   static VkDevice* _logicalDevice;
-  static void setLogicalDevice(VkDevice* logicalDevice);
+  static void linkLogicalDevice(VkDevice* logicalDevice);
 
   class Buffer {
    public:

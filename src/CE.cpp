@@ -2,7 +2,7 @@
 
 VkDevice* CE::_logicalDevice = nullptr;
 
-void CE::setLogicalDevice(VkDevice* logicalDevice) {
+void CE::linkLogicalDevice(VkDevice* logicalDevice) {
   _logicalDevice = logicalDevice;
 }
 

@@ -15,7 +15,7 @@ Resources::Resources(VulkanMechanics& mechanics)
       descriptor{} {
   Log::text("{ /// }", "constructing Resources");
 
-  CE::setLogicalDevice(&_mechanics.mainDevice.logical);
+  CE::linkLogicalDevice(&_mechanics.mainDevice.logical);
 }
 
 Resources::~Resources() {
