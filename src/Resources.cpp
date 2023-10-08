@@ -23,11 +23,6 @@ Resources::Resources(VulkanMechanics& mechanics)
 
 Resources::~Resources() {
   Log::text("{ /// }", "destructing Resources");
-
-  vkDestroyDescriptorPool(_mechanics.mainDevice.logical, descriptor.pool,
-                          nullptr);
-  vkDestroyDescriptorSetLayout(_mechanics.mainDevice.logical,
-                               descriptor.setLayout, nullptr);
   vkDestroyCommandPool(_mechanics.mainDevice.logical, command.pool, nullptr);
 }
 

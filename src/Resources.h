@@ -33,7 +33,6 @@ class Resources {
   } textureImage;
 
   static std::vector<VkDescriptorSetLayoutBinding> descriptorSetLayoutBindings;
-
   struct Uniform : CE::Descriptor::SetLayout {
     CE::Buffer buffer;
     Uniform();
@@ -70,10 +69,7 @@ class Resources {
     std::vector<VkCommandBuffer> compute;
   } command;
 
-  struct DescriptorSets {
-    VkDescriptorPool pool;
-    VkDescriptorSetLayout setLayout;
-    std::vector<VkDescriptorSet> sets;
+  struct DescriptorSets : CE::Descriptor {
   } descriptor;
 
  public:
@@ -120,12 +116,15 @@ class Resources {
 
   uint32_t findMemoryType(uint32_t typeFilter,
                           VkMemoryPropertyFlags properties);
+
+  // add to buffer
   void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
   void copyBufferToImage(VkBuffer buffer,
                          VkImage image,
                          uint32_t width,
                          uint32_t height);
 
+  // add to image
   void createTextureImage(std::string imagePath);
   void createTextureSampler();
   void createTextureImageView();
