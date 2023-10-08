@@ -45,13 +45,13 @@ CE::Image::~Image() {
   };
 }
 
-CE::Descriptors::Descriptors() {
+CE::Descriptor::Descriptor() {
   createDescriptorPool();
   allocateDescriptorSets();
   createDescriptorSets();
 }
 
-CE::Descriptors::~Descriptors() {
+CE::Descriptor::~Descriptor() {
   if (pool != VK_NULL_HANDLE) {
     vkDestroyDescriptorPool(*_logicalDevice, pool, nullptr);
   };
@@ -60,7 +60,7 @@ CE::Descriptors::~Descriptors() {
   };
 }
 
-void CE::Descriptors::createDescriptorPool() {
+void CE::Descriptor::createDescriptorPool() {
   // std::vector<VkDescriptorPoolSize> poolSizes{
   //     {.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
   //      .descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT)},
@@ -86,7 +86,7 @@ void CE::Descriptors::createDescriptorPool() {
   // result(vkCreateDescriptorPool, _logicalDevice, &poolInfo, nullptr, &pool);
 }
 
-void CE::Descriptors::allocateDescriptorSets() {
+void CE::Descriptor::allocateDescriptorSets() {
   // std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT,
   // setLayout); VkDescriptorSetAllocateInfo allocateInfo{
   //     .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
@@ -99,7 +99,7 @@ void CE::Descriptors::allocateDescriptorSets() {
   //                   &allocateInfo, sets.data());
 }
 
-void CE::Descriptors::createDescriptorSets() {
+void CE::Descriptor::createDescriptorSets() {
   // Log::text("{ |=| }", "Descriptor Set Layout:", layoutBindings.size(),
   //           "bindings");
   // for (const VkDescriptorSetLayoutBinding& item : layoutBindings) {

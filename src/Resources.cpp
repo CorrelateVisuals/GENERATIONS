@@ -233,7 +233,7 @@ void Resources::createImage(uint32_t width,
                             VkMemoryPropertyFlags properties,
                             VkImage& image,
                             VkDeviceMemory& imageMemory) {
-  Log::text("{ img }", "CEimage", width, height);
+  Log::text("{ img }", "Image", width, height);
   Log::text(Log::Style::charLeader, Log::getSampleCountString(numSamples));
   Log::text(Log::Style::charLeader, Log::getImageUsageString(usage));
   Log::text(Log::Style::charLeader, Log::getMemoryPropertyString(properties));
@@ -274,7 +274,7 @@ void Resources::createImage(uint32_t width,
 }
 
 void Resources::createTextureImage(std::string imagePath) {
-  Log::text("{ img }", "CEimage Texture: ", imagePath);
+  Log::text("{ img }", "Image Texture: ", imagePath);
   int texWidth{0}, texHeight{0}, texChannels{0};
   int rgba = 4;
   stbi_uc* pixels = stbi_load(imagePath.c_str(), &texWidth, &texHeight,
@@ -442,7 +442,7 @@ void Resources::transitionImageLayout(VkCommandBuffer commandBuffer,
                                       VkFormat format,
                                       VkImageLayout oldLayout,
                                       VkImageLayout newLayout) {
-  // Log::text("{ >>> }", "Transition CEimage Layout");
+  // Log::text("{ >>> }", "Transition Image Layout");
 
   VkImageMemoryBarrier barrier{.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
                                .oldLayout = oldLayout,
@@ -481,7 +481,7 @@ void Resources::transitionImageLayout(VkCommandBuffer commandBuffer,
     barrier.dstAccessMask =
         VK_ACCESS_MEMORY_READ_BIT |
         VK_ACCESS_MEMORY_WRITE_BIT;  // ... before it is safe to read or write
-                                     // (CEimage Layout Transitions perform
+                                     // (Image Layout Transitions perform
                                      // both, read AND write access.)
 
     sourceStage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;  // All commands must have
@@ -500,7 +500,7 @@ void Resources::copyBufferToImage(VkBuffer buffer,
                                   VkImage image,
                                   uint32_t width,
                                   uint32_t height) {
-  Log::text("{ >>> }", "CEbuffer To CEimage", width, height);
+  Log::text("{ >>> }", "Buffer To Image", width, height);
 
   beginSingleTimeCommands(command.singleTime);
 
@@ -521,7 +521,7 @@ void Resources::copyBufferToImage(VkBuffer buffer,
 }
 
 void Resources::createTextureImageView() {
-  Log::text("{ ... }", ":  Texture CEimage View");
+  Log::text("{ ... }", ":  Texture Image View");
   textureImage.imageView = createImageView(
       textureImage.image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
 }
@@ -809,7 +809,7 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
 VkImageView Resources::createImageView(VkImage image,
                                        VkFormat format,
                                        VkImageAspectFlags aspectFlags) {
-  Log::text("{ ... }", ":  CEimage View");
+  Log::text("{ ... }", ":  Image View");
 
   VkImageViewCreateInfo viewInfo{
       .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,

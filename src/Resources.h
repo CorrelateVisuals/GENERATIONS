@@ -35,22 +35,22 @@ class Resources {
 
   static std::vector<VkDescriptorSetLayoutBinding> descriptorSetLayoutBindings;
 
-  struct Uniform : CE::DescriptorSetLayout {
+  struct Uniform : CE::Descriptor::SetLayout {
     std::vector<CE::Buffer> buffers;
     Uniform();
   } uniform;
 
-  struct ShaderStorage : CE::DescriptorSetLayout {
+  struct ShaderStorage : CE::Descriptor::SetLayout {
     std::vector<CE::Buffer> buffers;
     ShaderStorage();
   } shaderStorage;
 
-  struct ImageSampler : CE::DescriptorSetLayout {
+  struct ImageSampler : CE::Descriptor::SetLayout {
     CE::Buffer buffer;
     ImageSampler();
   } imageSampler;
 
-  struct StorageImage : CE::DescriptorSetLayout {
+  struct StorageImage : CE::Descriptor::SetLayout {
     CE::Buffer buffer;
     StorageImage();
   } storageImage;
