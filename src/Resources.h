@@ -35,7 +35,7 @@ class Resources {
   static std::vector<VkDescriptorSetLayoutBinding> descriptorSetLayoutBindings;
 
   struct Uniform : CE::Descriptor::SetLayout {
-    std::vector<CE::Buffer> buffers;
+    CE::Buffer buffer;
     Uniform();
   } uniform;
 

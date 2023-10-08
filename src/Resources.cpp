@@ -1,6 +1,8 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
+#include "VulkanInitializers.hpp"
+
 #include "CapitalEngine.h"
 #include "Resources.h"
 
@@ -75,8 +77,8 @@ void Resources::createFramebuffers(Pipelines& _pipelines) {
         .layers = 1};
 
     CE::vulkanResult(vkCreateFramebuffer, _mechanics.mainDevice.logical,
-                      &framebufferInfo, nullptr,
-                      &_mechanics.swapChain.framebuffers[i]);
+                     &framebufferInfo, nullptr,
+                     &_mechanics.swapChain.framebuffers[i]);
   }
 }
 
@@ -92,7 +94,7 @@ void Resources::createGraphicsCommandBuffers() {
       .commandBufferCount = static_cast<uint32_t>(command.graphics.size())};
 
   CE::vulkanResult(vkAllocateCommandBuffers, _mechanics.mainDevice.logical,
-                    &allocateInfo, command.graphics.data());
+                   &allocateInfo, command.graphics.data());
 }
 
 void Resources::createComputeCommandBuffers() {
@@ -107,7 +109,7 @@ void Resources::createComputeCommandBuffers() {
       .commandBufferCount = static_cast<uint32_t>(command.compute.size())};
 
   CE::vulkanResult(vkAllocateCommandBuffers, _mechanics.mainDevice.logical,
-                    &allocateInfo, command.compute.data());
+                   &allocateInfo, command.compute.data());
 }
 
 void Resources::createShaderStorageBuffers() {
@@ -150,17 +152,13 @@ void Resources::createUniformBuffers() {
   Log::text("{ 101 }", MAX_FRAMES_IN_FLIGHT, "Uniform Buffers");
   VkDeviceSize bufferSize = sizeof(World::UniformBufferObject);
 
-  uniform.buffers.resize(MAX_FRAMES_IN_FLIGHT);
+  createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+               VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                   VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+               uniform.buffer.buffer, uniform.buffer.bufferMemory);
 
-  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-    createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                     VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                 uniform.buffers[i].buffer, uniform.buffers[i].bufferMemory);
-
-    vkMapMemory(_mechanics.mainDevice.logical, uniform.buffers[i].bufferMemory,
-                0, bufferSize, 0, &uniform.buffers[i].mapped);
-  }
+  vkMapMemory(_mechanics.mainDevice.logical, uniform.buffer.bufferMemory, 0,
+              bufferSize, 0, &uniform.buffer.mapped);
 }
 
 void Resources::createDescriptorSetLayout(
@@ -180,7 +178,7 @@ void Resources::createDescriptorSetLayout(
       .pBindings = layoutBindings.data()};
 
   CE::vulkanResult(vkCreateDescriptorSetLayout, _mechanics.mainDevice.logical,
-                    &layoutInfo, nullptr, &descriptor.setLayout);
+                   &layoutInfo, nullptr, &descriptor.setLayout);
 }
 
 void Resources::createDescriptorPool() {
@@ -207,7 +205,7 @@ void Resources::createDescriptorPool() {
       .pPoolSizes = poolSizes.data()};
 
   CE::vulkanResult(vkCreateDescriptorPool, _mechanics.mainDevice.logical,
-                    &poolInfo, nullptr, &descriptor.pool);
+                   &poolInfo, nullptr, &descriptor.pool);
 }
 
 void Resources::allocateDescriptorSets() {
@@ -221,7 +219,7 @@ void Resources::allocateDescriptorSets() {
 
   descriptor.sets.resize(MAX_FRAMES_IN_FLIGHT);
   CE::vulkanResult(vkAllocateDescriptorSets, _mechanics.mainDevice.logical,
-                    &allocateInfo, descriptor.sets.data());
+                   &allocateInfo, descriptor.sets.data());
 }
 
 void Resources::createImage(uint32_t width,
@@ -256,7 +254,7 @@ void Resources::createImage(uint32_t width,
       .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED};
 
   CE::vulkanResult(vkCreateImage, _mechanics.mainDevice.logical, &imageInfo,
-                    nullptr, &image);
+                   nullptr, &image);
 
   VkMemoryRequirements memRequirements;
   vkGetImageMemoryRequirements(_mechanics.mainDevice.logical, image,
@@ -269,7 +267,7 @@ void Resources::createImage(uint32_t width,
           findMemoryType(memRequirements.memoryTypeBits, properties)};
 
   CE::vulkanResult(vkAllocateMemory, _mechanics.mainDevice.logical,
-                    &allocateInfo, nullptr, &imageMemory);
+                   &allocateInfo, nullptr, &imageMemory);
   vkBindImageMemory(_mechanics.mainDevice.logical, image, imageMemory, 0);
 }
 
@@ -558,7 +556,7 @@ void Resources::createDescriptorSets() {
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
     VkDescriptorBufferInfo uniformBufferInfo{
-        .buffer = uniform.buffers[i].buffer,
+        .buffer = uniform.buffer.buffer,
         .offset = 0,
         .range = sizeof(World::UniformBufferObject)};
 
@@ -633,8 +631,7 @@ void Resources::createDescriptorSets() {
 void Resources::updateUniformBuffer(uint32_t currentImage) {
   World::UniformBufferObject uniformObject =
       world.updateUniforms(_mechanics.swapChain.extent);
-  std::memcpy(uniform.buffers[currentImage].mapped, &uniformObject,
-              sizeof(uniformObject));
+  std::memcpy(uniform.buffer.mapped, &uniformObject, sizeof(uniformObject));
 }
 
 void Resources::recordComputeCommandBuffer(VkCommandBuffer commandBuffer,
@@ -824,13 +821,16 @@ VkImageView Resources::createImageView(VkImage image,
 
   VkImageView imageView{};
   CE::vulkanResult(vkCreateImageView, _mechanics.mainDevice.logical, &viewInfo,
-                    nullptr, &imageView);
+                   nullptr, &imageView);
 
   return imageView;
 }
 
 void Resources::createDepthResources() {
   Log::text("{ []< }", "Depth Resources ");
+
+  depthImage.~DepthImage();  // to make RAII
+
   VkFormat depthFormat = findDepthFormat();
 
   createImage(_mechanics.swapChain.extent.width,
@@ -845,6 +845,8 @@ void Resources::createDepthResources() {
 
 void Resources::createColorResources() {
   Log::text("{ []< }", "Color Resources ");
+
+  msaaImage.~MultiSamplingImage();  // to make RAII
 
   VkFormat colorFormat = _mechanics.swapChain.imageFormat;
 
@@ -900,7 +902,7 @@ void Resources::createBuffer(VkDeviceSize size,
   Log::text(Log::Style::charLeader, size, "bytes");
 
   CE::vulkanResult(vkCreateBuffer, _mechanics.mainDevice.logical, &bufferInfo,
-                    nullptr, &buffer);
+                   nullptr, &buffer);
 
   VkMemoryRequirements memRequirements;
   vkGetBufferMemoryRequirements(_mechanics.mainDevice.logical, buffer,
@@ -913,7 +915,7 @@ void Resources::createBuffer(VkDeviceSize size,
           findMemoryType(memRequirements.memoryTypeBits, properties)};
 
   CE::vulkanResult(vkAllocateMemory, _mechanics.mainDevice.logical,
-                    &allocateInfo, nullptr, &bufferMemory);
+                   &allocateInfo, nullptr, &bufferMemory);
 
   vkBindBufferMemory(_mechanics.mainDevice.logical, buffer, bufferMemory, 0);
 }
