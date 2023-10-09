@@ -134,15 +134,15 @@ CE::Image::~Image() {
   };
 }
 
-void CE::Image::createImage(uint32_t width,
-                            uint32_t height,
-                            VkSampleCountFlagBits numSamples,
-                            VkFormat format,
-                            VkImageTiling tiling,
-                            VkImageUsageFlags usage,
-                            VkMemoryPropertyFlags properties,
-                            VkImage& image,
-                            VkDeviceMemory& imageMemory) {
+void CE::Image::create(uint32_t width,
+                       uint32_t height,
+                       VkSampleCountFlagBits numSamples,
+                       VkFormat format,
+                       VkImageTiling tiling,
+                       VkImageUsageFlags usage,
+                       VkMemoryPropertyFlags properties,
+                       VkImage& image,
+                       VkDeviceMemory& imageMemory) {
   Log::text("{ img }", "Image", width, height);
   Log::text(Log::Style::charLeader, Log::getSampleCountString(numSamples));
   Log::text(Log::Style::charLeader, Log::getImageUsageString(usage));
@@ -181,9 +181,9 @@ void CE::Image::createImage(uint32_t width,
   vkBindImageMemory(*Device::_logical, image, imageMemory, 0);
 }
 
-VkImageView CE::Image::createImageView(VkImage image,
-                                       VkFormat format,
-                                       VkImageAspectFlags aspectFlags) {
+VkImageView CE::Image::createView(VkImage image,
+                                  VkFormat format,
+                                  VkImageAspectFlags aspectFlags) {
   Log::text("{ ... }", ":  Image View");
 
   VkImageViewCreateInfo viewInfo{
@@ -204,11 +204,11 @@ VkImageView CE::Image::createImageView(VkImage image,
   return imageView;
 }
 
-void CE::Image::transitionImageLayout(VkCommandBuffer commandBuffer,
-                                      VkImage image,
-                                      VkFormat format,
-                                      VkImageLayout oldLayout,
-                                      VkImageLayout newLayout) {
+void CE::Image::transitionLayout(VkCommandBuffer commandBuffer,
+                                 VkImage image,
+                                 VkFormat format,
+                                 VkImageLayout oldLayout,
+                                 VkImageLayout newLayout) {
   VkImageMemoryBarrier barrier{.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
                                .oldLayout = oldLayout,
                                .newLayout = newLayout,
@@ -294,14 +294,14 @@ void CE::Image::transitionImageLayout(VkCommandBuffer commandBuffer,
 //   vkUnmapMemory(*Device::_logical, stagingResources.bufferMemory);
 //   stbi_image_free(pixels);
 //
-//   Image::createImage(
+//   Image::create(
 //       texWidth, texHeight, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_SRGB,
 //       VK_IMAGE_TILING_OPTIMAL,
 //       VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
 //       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, image.image, image.imageMemory);
 //
 //   Commands::beginSingularCommands(commandBuffer, commandPool, queue);
-//   Image::transitionImageLayout(
+//   Image::transitionLayout(
 //       commandBuffer, image.image, VK_FORMAT_R8G8B8A8_SRGB,
 //       VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 //   Commands::endSingularCommands(commandBuffer, commandPool, queue);
@@ -311,7 +311,7 @@ void CE::Image::transitionImageLayout(VkCommandBuffer commandBuffer,
 //       static_cast<uint32_t>(texHeight), commandBuffer, commandPool, queue);
 //
 //   Commands::beginSingularCommands(commandBuffer, commandPool, queue);
-//   Image::transitionImageLayout(commandBuffer, image.image,
+//   Image::transitionLayout(commandBuffer, image.image,
 //                                VK_FORMAT_R8G8B8A8_SRGB,
 //                                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 //                                VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);

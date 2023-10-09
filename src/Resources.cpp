@@ -253,7 +253,7 @@ void Resources::createTextureImage(std::string imagePath) {
 
   stbi_image_free(pixels);
 
-  CE::Image::createImage(
+  CE::Image::create(
       texWidth, texHeight, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_SRGB,
       VK_IMAGE_TILING_OPTIMAL,
       VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
@@ -263,7 +263,7 @@ void Resources::createTextureImage(std::string imagePath) {
   CE::Commands::beginSingularCommands(command.singleTime, command.pool,
                                       _mechanics.queues.graphics);
 
-  CE::Image::transitionImageLayout(
+  CE::Image::transitionLayout(
       command.singleTime, textureImage.image, VK_FORMAT_R8G8B8A8_SRGB,
       VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
   CE::Commands::endSingularCommands(command.singleTime, command.pool,
@@ -276,10 +276,10 @@ void Resources::createTextureImage(std::string imagePath) {
 
   CE::Commands::beginSingularCommands(command.singleTime, command.pool,
                                       _mechanics.queues.graphics);
-  CE::Image::transitionImageLayout(command.singleTime, textureImage.image,
-                                   VK_FORMAT_R8G8B8A8_SRGB,
-                                   VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                                   VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+  CE::Image::transitionLayout(command.singleTime, textureImage.image,
+                              VK_FORMAT_R8G8B8A8_SRGB,
+                              VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                              VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
   CE::Commands::endSingularCommands(command.singleTime, command.pool,
                                     _mechanics.queues.graphics);
 }
@@ -362,10 +362,9 @@ void Resources::setPushConstants() {
   pushConstants.data = {world.time.passedHours};
 }
 
-
 void Resources::createTextureImageView() {
   Log::text("{ ... }", ":  Texture Image View");
-  textureImage.imageView = CE::Image::createImageView(
+  textureImage.imageView = CE::Image::createView(
       textureImage.image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
 }
 
@@ -617,7 +616,7 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
   //       This is part of an image memory barrier (i.e., vkCmdPipelineBarrier
   //       with the VkImageMemoryBarrier parameter set)
 
-  CE::Image::transitionImageLayout(
+  CE::Image::transitionLayout(
       commandBuffer,
       _mechanics.swapChain.images[_mechanics.syncObjects.currentFrame],
       VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
@@ -644,7 +643,7 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
 
   vkCmdDispatch(commandBuffer, workgroupSizeX, workgroupSizeY, 1);
 
-  CE::Image::transitionImageLayout(
+  CE::Image::transitionLayout(
       commandBuffer,
       _mechanics.swapChain.images[_mechanics.syncObjects.currentFrame],
       VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_GENERAL,
@@ -660,14 +659,14 @@ void Resources::createDepthResources() {
 
   VkFormat depthFormat = findDepthFormat();
 
-  CE::Image::createImage(
-      _mechanics.swapChain.extent.width, _mechanics.swapChain.extent.height,
-      msaaImage.sampleCount, depthFormat, VK_IMAGE_TILING_OPTIMAL,
-      VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
-      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, depthImage.image,
-      depthImage.imageMemory);
-  depthImage.imageView = CE::Image::createImageView(
-      depthImage.image, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
+  CE::Image::create(_mechanics.swapChain.extent.width,
+                    _mechanics.swapChain.extent.height, msaaImage.sampleCount,
+                    depthFormat, VK_IMAGE_TILING_OPTIMAL,
+                    VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+                    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, depthImage.image,
+                    depthImage.imageMemory);
+  depthImage.imageView = CE::Image::createView(depthImage.image, depthFormat,
+                                               VK_IMAGE_ASPECT_DEPTH_BIT);
 }
 
 void Resources::createColorResources() {
@@ -677,15 +676,15 @@ void Resources::createColorResources() {
 
   VkFormat colorFormat = _mechanics.swapChain.imageFormat;
 
-  CE::Image::createImage(
-      _mechanics.swapChain.extent.width, _mechanics.swapChain.extent.height,
-      msaaImage.sampleCount, colorFormat, VK_IMAGE_TILING_OPTIMAL,
-      VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT |
-          VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, msaaImage.image,
-      msaaImage.imageMemory);
-  msaaImage.imageView = CE::Image::createImageView(msaaImage.image, colorFormat,
-                                                   VK_IMAGE_ASPECT_COLOR_BIT);
+  CE::Image::create(_mechanics.swapChain.extent.width,
+                    _mechanics.swapChain.extent.height, msaaImage.sampleCount,
+                    colorFormat, VK_IMAGE_TILING_OPTIMAL,
+                    VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT |
+                        VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+                    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, msaaImage.image,
+                    msaaImage.imageMemory);
+  msaaImage.imageView = CE::Image::createView(msaaImage.image, colorFormat,
+                                              VK_IMAGE_ASPECT_COLOR_BIT);
 }
 
 void Resources::createTextureSampler() {

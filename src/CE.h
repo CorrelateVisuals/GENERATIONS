@@ -65,23 +65,23 @@ class CE {
     VkSampler imageSampler;
     VkSampleCountFlagBits sampleCount;
 
-    static void createImage(uint32_t width,
-                            uint32_t height,
-                            VkSampleCountFlagBits numSamples,
-                            VkFormat format,
-                            VkImageTiling tiling,
-                            VkImageUsageFlags usage,
-                            VkMemoryPropertyFlags properties,
-                            VkImage& image,
-                            VkDeviceMemory& imageMemory);
-    static VkImageView createImageView(VkImage image,
-                                       VkFormat format,
-                                       VkImageAspectFlags aspectFlags);
-    static void transitionImageLayout(VkCommandBuffer commandBuffer,
-                                      VkImage image,
-                                      VkFormat format,
-                                      VkImageLayout oldLayout,
-                                      VkImageLayout newLayout);
+    static void create(uint32_t width,
+                       uint32_t height,
+                       VkSampleCountFlagBits numSamples,
+                       VkFormat format,
+                       VkImageTiling tiling,
+                       VkImageUsageFlags usage,
+                       VkMemoryPropertyFlags properties,
+                       VkImage& image,
+                       VkDeviceMemory& imageMemory);
+    static VkImageView createView(VkImage image,
+                                  VkFormat format,
+                                  VkImageAspectFlags aspectFlags);
+    static void transitionLayout(VkCommandBuffer commandBuffer,
+                                 VkImage image,
+                                 VkFormat format,
+                                 VkImageLayout oldLayout,
+                                 VkImageLayout newLayout);
     // static void loadTexture(const std::string& imagePath,
     //                         CE::Image& image,
     //                         VkCommandBuffer& commandBuffer,
