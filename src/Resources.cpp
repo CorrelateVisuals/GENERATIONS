@@ -30,9 +30,9 @@ void Resources::setupResources(Pipelines& _pipelines) {
   CE::Image::loadTexture(Lib::path("assets/Avatar.PNG"), textureImage,
                          command.singleTime, command.pool,
                          _mechanics.queues.graphics);
-  textureImage.imageView = CE::Image::createView(
+  textureImage.view = CE::Image::createView(
       textureImage.image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
-  CE::Image::createSampler(textureImage.imageSampler);
+  CE::Image::createSampler(textureImage.sampler);
 
   createFramebuffers(_pipelines);
   createShaderStorageBuffers();
@@ -59,8 +59,7 @@ void Resources::createFramebuffers(Pipelines& _pipelines) {
   Log::text(Log::Style::charLeader,
             "attachments: msaaImage., depthImage, swapChain imageViews");
   for (size_t i = 0; i < _mechanics.swapChain.imageViews.size(); i++) {
-    std::vector<VkImageView> attachments{msaaImage.imageView,
-                                         depthImage.imageView,
+    std::vector<VkImageView> attachments{msaaImage.view, depthImage.view,
                                          _mechanics.swapChain.imageViews[i]};
 
     VkFramebufferCreateInfo framebufferInfo{
@@ -121,20 +120,20 @@ void Resources::createShaderStorageBuffers() {
   CE::Buffer::create(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                          VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                     stagingResources.buffer, stagingResources.bufferMemory);
+                     stagingResources.buffer, stagingResources.memory);
 
   void* data;
-  vkMapMemory(_mechanics.mainDevice.logical, stagingResources.bufferMemory, 0,
+  vkMapMemory(_mechanics.mainDevice.logical, stagingResources.memory, 0,
               bufferSize, 0, &data);
   std::memcpy(data, cells.data(), static_cast<size_t>(bufferSize));
-  vkUnmapMemory(_mechanics.mainDevice.logical, stagingResources.bufferMemory);
+  vkUnmapMemory(_mechanics.mainDevice.logical, stagingResources.memory);
 
   CE::Buffer::create(
       static_cast<VkDeviceSize>(bufferSize),
       VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
           VK_BUFFER_USAGE_TRANSFER_DST_BIT,
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, shaderStorage.bufferIn.buffer,
-      shaderStorage.bufferIn.bufferMemory);
+      shaderStorage.bufferIn.memory);
   CE::Buffer::copy(stagingResources.buffer, shaderStorage.bufferIn.buffer,
                    bufferSize, command.singleTime, command.pool,
                    _mechanics.queues.graphics);
@@ -144,7 +143,7 @@ void Resources::createShaderStorageBuffers() {
       VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
           VK_BUFFER_USAGE_TRANSFER_DST_BIT,
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, shaderStorage.bufferOut.buffer,
-      shaderStorage.bufferOut.bufferMemory);
+      shaderStorage.bufferOut.memory);
   CE::Buffer::copy(stagingResources.buffer, shaderStorage.bufferOut.buffer,
                    bufferSize, command.singleTime, command.pool,
                    _mechanics.queues.graphics);
@@ -157,9 +156,9 @@ void Resources::createUniformBuffers() {
   CE::Buffer::create(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
                      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                          VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                     uniform.buffer.buffer, uniform.buffer.bufferMemory);
+                     uniform.buffer.buffer, uniform.buffer.memory);
 
-  vkMapMemory(_mechanics.mainDevice.logical, uniform.buffer.bufferMemory, 0,
+  vkMapMemory(_mechanics.mainDevice.logical, uniform.buffer.memory, 0,
               bufferSize, 0, &uniform.buffer.mapped);
 }
 
@@ -231,14 +230,14 @@ void Resources::createVertexBuffers(
 
     if (resource.second == VK_VERTEX_INPUT_RATE_INSTANCE) {
       createVertexBuffer(currentGeometry->vertexBuffer.buffer,
-                         currentGeometry->vertexBuffer.bufferMemory,
+                         currentGeometry->vertexBuffer.memory,
                          currentGeometry->uniqueVertices);
       createIndexBuffer(currentGeometry->indexBuffer.buffer,
-                        currentGeometry->indexBuffer.bufferMemory,
+                        currentGeometry->indexBuffer.memory,
                         currentGeometry->indices);
     } else if (resource.second == VK_VERTEX_INPUT_RATE_VERTEX) {
       createVertexBuffer(currentGeometry->vertexBuffer.buffer,
-                         currentGeometry->vertexBuffer.bufferMemory,
+                         currentGeometry->vertexBuffer.memory,
                          currentGeometry->allVertices);
     }
   }
@@ -253,13 +252,13 @@ void Resources::createVertexBuffer(VkBuffer& buffer,
   CE::Buffer::create(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                          VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                     stagingResources.buffer, stagingResources.bufferMemory);
+                     stagingResources.buffer, stagingResources.memory);
 
   void* data;
-  vkMapMemory(_mechanics.mainDevice.logical, stagingResources.bufferMemory, 0,
+  vkMapMemory(_mechanics.mainDevice.logical, stagingResources.memory, 0,
               bufferSize, 0, &data);
   memcpy(data, vertices.data(), (size_t)bufferSize);
-  vkUnmapMemory(_mechanics.mainDevice.logical, stagingResources.bufferMemory);
+  vkUnmapMemory(_mechanics.mainDevice.logical, stagingResources.memory);
 
   CE::Buffer::create(
       bufferSize,
@@ -280,13 +279,13 @@ void Resources::createIndexBuffer(VkBuffer& buffer,
   CE::Buffer::create(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                          VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                     stagingResources.buffer, stagingResources.bufferMemory);
+                     stagingResources.buffer, stagingResources.memory);
 
   void* data;
-  vkMapMemory(_mechanics.mainDevice.logical, stagingResources.bufferMemory, 0,
+  vkMapMemory(_mechanics.mainDevice.logical, stagingResources.memory, 0,
               bufferSize, 0, &data);
   memcpy(data, indices.data(), (size_t)bufferSize);
-  vkUnmapMemory(_mechanics.mainDevice.logical, stagingResources.bufferMemory);
+  vkUnmapMemory(_mechanics.mainDevice.logical, stagingResources.memory);
 
   CE::Buffer::create(
       bufferSize,
@@ -349,8 +348,8 @@ void Resources::createDescriptorSets() {
         .range = sizeof(World::Cell) * world.grid.size.x * world.grid.size.y};
 
     VkDescriptorImageInfo imageInfo{
-        .sampler = textureImage.imageSampler,
-        .imageView = textureImage.imageView,
+        .sampler = textureImage.sampler,
+        .imageView = textureImage.view,
         .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL};
 
     VkDescriptorImageInfo swapchainImageInfo{
@@ -593,14 +592,13 @@ void Resources::createDepthResources() {
 
   VkFormat depthFormat = findDepthFormat();
 
-  CE::Image::create(_mechanics.swapChain.extent.width,
-                    _mechanics.swapChain.extent.height, msaaImage.sampleCount,
-                    depthFormat, VK_IMAGE_TILING_OPTIMAL,
-                    VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
-                    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, depthImage.image,
-                    depthImage.imageMemory);
-  depthImage.imageView = CE::Image::createView(depthImage.image, depthFormat,
-                                               VK_IMAGE_ASPECT_DEPTH_BIT);
+  CE::Image::create(
+      _mechanics.swapChain.extent.width, _mechanics.swapChain.extent.height,
+      msaaImage.sampleCount, depthFormat, VK_IMAGE_TILING_OPTIMAL,
+      VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, depthImage.image, depthImage.memory);
+  depthImage.view = CE::Image::createView(depthImage.image, depthFormat,
+                                          VK_IMAGE_ASPECT_DEPTH_BIT);
 }
 
 void Resources::createColorResources() {
@@ -610,15 +608,14 @@ void Resources::createColorResources() {
 
   VkFormat colorFormat = _mechanics.swapChain.imageFormat;
 
-  CE::Image::create(_mechanics.swapChain.extent.width,
-                    _mechanics.swapChain.extent.height, msaaImage.sampleCount,
-                    colorFormat, VK_IMAGE_TILING_OPTIMAL,
-                    VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT |
-                        VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-                    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, msaaImage.image,
-                    msaaImage.imageMemory);
-  msaaImage.imageView = CE::Image::createView(msaaImage.image, colorFormat,
-                                              VK_IMAGE_ASPECT_COLOR_BIT);
+  CE::Image::create(
+      _mechanics.swapChain.extent.width, _mechanics.swapChain.extent.height,
+      msaaImage.sampleCount, colorFormat, VK_IMAGE_TILING_OPTIMAL,
+      VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT |
+          VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, msaaImage.image, msaaImage.memory);
+  msaaImage.view = CE::Image::createView(msaaImage.image, colorFormat,
+                                         VK_IMAGE_ASPECT_COLOR_BIT);
 }
 
 Resources::Uniform::Uniform() {

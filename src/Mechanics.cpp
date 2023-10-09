@@ -373,8 +373,8 @@ void VulkanMechanics::cleanupSwapChain(Resources& _resources) {
     vkDestroyFramebuffer(mainDevice.logical, framebuffer, nullptr);
   }
 
-  for (auto imageView : swapChain.imageViews) {
-    vkDestroyImageView(mainDevice.logical, imageView, nullptr);
+  for (auto view : swapChain.imageViews) {
+    vkDestroyImageView(mainDevice.logical, view, nullptr);
   }
 
   vkDestroySwapchainKHR(mainDevice.logical, swapChain.swapChain, nullptr);

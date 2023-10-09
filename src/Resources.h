@@ -47,7 +47,7 @@ class Resources {
   struct ImageSampler : CE::Descriptor::SetLayout {
     CE::Buffer buffer;
     ImageSampler();
-  } imageSampler;
+  } sampler;
 
   struct StorageImage : CE::Descriptor::SetLayout {
     CE::Buffer buffer;
@@ -114,9 +114,6 @@ class Resources {
 
   void createShaderStorageBuffers();
   void createUniformBuffers();
-
-  // add to image
-  // createTextureSampler();
 
   VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates,
                                VkImageTiling tiling,

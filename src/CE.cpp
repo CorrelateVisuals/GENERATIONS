@@ -29,16 +29,16 @@ uint32_t CE::findMemoryType(uint32_t typeFilter,
   throw std::runtime_error("\n!ERROR! failed to find suitable memory type!");
 }
 
-CE::Buffer::Buffer() : buffer{}, bufferMemory{}, mapped{} {}
+CE::Buffer::Buffer() : buffer{}, memory{}, mapped{} {}
 
 CE::Buffer::~Buffer() {
   if (buffer != VK_NULL_HANDLE) {
     vkDestroyBuffer(*Device::_logical, buffer, nullptr);
     buffer = VK_NULL_HANDLE;
   }
-  if (bufferMemory != VK_NULL_HANDLE) {
-    vkFreeMemory(*Device::_logical, bufferMemory, nullptr);
-    bufferMemory = VK_NULL_HANDLE;
+  if (memory != VK_NULL_HANDLE) {
+    vkFreeMemory(*Device::_logical, memory, nullptr);
+    memory = VK_NULL_HANDLE;
   }
 }
 
@@ -46,7 +46,7 @@ void CE::Buffer::create(VkDeviceSize size,
                         VkBufferUsageFlags usage,
                         VkMemoryPropertyFlags properties,
                         VkBuffer& buffer,
-                        VkDeviceMemory& bufferMemory) {
+                        VkDeviceMemory& memory) {
   VkBufferCreateInfo bufferInfo{.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
                                 .size = size,
                                 .usage = usage,
@@ -68,8 +68,8 @@ void CE::Buffer::create(VkDeviceSize size,
           CE::findMemoryType(memRequirements.memoryTypeBits, properties)};
 
   vulkanResult(vkAllocateMemory, *Device::_logical, &allocateInfo, nullptr,
-               &bufferMemory);
-  vkBindBufferMemory(*Device::_logical, buffer, bufferMemory, 0);
+               &memory);
+  vkBindBufferMemory(*Device::_logical, buffer, memory, 0);
 }
 
 void CE::Buffer::copy(VkBuffer srcBuffer,
@@ -113,27 +113,27 @@ void CE::Buffer::copyToImage(VkBuffer buffer,
 
 CE::Image::Image()
     : image{},
-      imageMemory{},
-      imageView{},
-      imageSampler{},
+      memory{},
+      view{},
+      sampler{},
       sampleCount{VK_SAMPLE_COUNT_1_BIT} {}
 
 CE::Image::~Image() {
-  if (imageSampler != VK_NULL_HANDLE) {
-    vkDestroySampler(*Device::_logical, imageSampler, nullptr);
-    imageSampler = VK_NULL_HANDLE;
+  if (sampler != VK_NULL_HANDLE) {
+    vkDestroySampler(*Device::_logical, sampler, nullptr);
+    sampler = VK_NULL_HANDLE;
   };
-  if (imageView != VK_NULL_HANDLE) {
-    vkDestroyImageView(*Device::_logical, imageView, nullptr);
-    imageView = VK_NULL_HANDLE;
+  if (view != VK_NULL_HANDLE) {
+    vkDestroyImageView(*Device::_logical, view, nullptr);
+    view = VK_NULL_HANDLE;
   };
   if (image != VK_NULL_HANDLE) {
     vkDestroyImage(*Device::_logical, image, nullptr);
     image = VK_NULL_HANDLE;
   };
-  if (imageMemory != VK_NULL_HANDLE) {
-    vkFreeMemory(*Device::_logical, imageMemory, nullptr);
-    imageMemory = VK_NULL_HANDLE;
+  if (memory != VK_NULL_HANDLE) {
+    vkFreeMemory(*Device::_logical, memory, nullptr);
+    memory = VK_NULL_HANDLE;
   };
 }
 
@@ -145,7 +145,7 @@ void CE::Image::create(uint32_t width,
                        VkImageUsageFlags usage,
                        VkMemoryPropertyFlags properties,
                        VkImage& image,
-                       VkDeviceMemory& imageMemory) {
+                       VkDeviceMemory& memory) {
   Log::text("{ img }", "Image", width, height);
   Log::text(Log::Style::charLeader, Log::getSampleCountString(numSamples));
   Log::text(Log::Style::charLeader, Log::getImageUsageString(usage));
@@ -180,8 +180,8 @@ void CE::Image::create(uint32_t width,
           findMemoryType(memRequirements.memoryTypeBits, properties)};
 
   vulkanResult(vkAllocateMemory, *Device::_logical, &allocateInfo, nullptr,
-               &imageMemory);
-  vkBindImageMemory(*Device::_logical, image, imageMemory, 0);
+               &memory);
+  vkBindImageMemory(*Device::_logical, image, memory, 0);
 }
 
 VkImageView CE::Image::createView(VkImage image,
@@ -200,11 +200,10 @@ VkImageView CE::Image::createView(VkImage image,
                            .baseArrayLayer = 0,
                            .layerCount = 1}};
 
-  VkImageView imageView;
-  vulkanResult(vkCreateImageView, *Device::_logical, &viewInfo, nullptr,
-               &imageView);
+  VkImageView view;
+  vulkanResult(vkCreateImageView, *Device::_logical, &viewInfo, nullptr, &view);
 
-  return imageView;
+  return view;
 }
 
 void CE::Image::transitionLayout(VkCommandBuffer commandBuffer,
@@ -287,20 +286,19 @@ void CE::Image::loadTexture(const std::string& imagePath,
   Buffer::create(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                  VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                      VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                 stagingResources.buffer, stagingResources.bufferMemory);
+                 stagingResources.buffer, stagingResources.memory);
 
   void* data;
-  vkMapMemory(*Device::_logical, stagingResources.bufferMemory, 0, imageSize, 0,
+  vkMapMemory(*Device::_logical, stagingResources.memory, 0, imageSize, 0,
               &data);
   memcpy(data, pixels, static_cast<size_t>(imageSize));
-  vkUnmapMemory(*Device::_logical, stagingResources.bufferMemory);
+  vkUnmapMemory(*Device::_logical, stagingResources.memory);
   stbi_image_free(pixels);
 
   Image::create(texWidth, texHeight, VK_SAMPLE_COUNT_1_BIT,
                 VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL,
                 VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, image.image,
-                image.imageMemory);
+                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, image.image, image.memory);
 
   Commands::beginSingularCommands(commandBuffer, commandPool, queue);
   Image::transitionLayout(commandBuffer, image.image, VK_FORMAT_R8G8B8A8_SRGB,
@@ -319,7 +317,7 @@ void CE::Image::loadTexture(const std::string& imagePath,
   Commands::endSingularCommands(commandBuffer, commandPool, queue);
 }
 
-void CE::Image::createSampler(VkSampler& imageSampler) {
+void CE::Image::createSampler(VkSampler& sampler) {
   Log::text("{ img }", "Texture Sampler");
   VkPhysicalDeviceProperties properties;
   vkGetPhysicalDeviceProperties(*Device::_physical, &properties);
@@ -339,8 +337,8 @@ void CE::Image::createSampler(VkSampler& imageSampler) {
       .borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK,
       .unnormalizedCoordinates = VK_FALSE};
 
-  if (vkCreateSampler(*Device::_logical, &samplerInfo, nullptr,
-                      &imageSampler) != VK_SUCCESS) {
+  if (vkCreateSampler(*Device::_logical, &samplerInfo, nullptr, &sampler) !=
+      VK_SUCCESS) {
     throw std::runtime_error("failed to create texture sampler!");
   }
 }

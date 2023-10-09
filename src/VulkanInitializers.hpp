@@ -288,11 +288,11 @@ inline VkDescriptorSetAllocateInfo descriptorSetAllocateInfo(
 }
 
 inline VkDescriptorImageInfo descriptorImageInfo(VkSampler sampler,
-                                                 VkImageView imageView,
+                                                 VkImageView view,
                                                  VkImageLayout imageLayout) {
   VkDescriptorImageInfo descriptorImageInfo{};
   descriptorImageInfo.sampler = sampler;
-  descriptorImageInfo.imageView = imageView;
+  descriptorImageInfo.imageView = view;
   descriptorImageInfo.imageLayout = imageLayout;
   return descriptorImageInfo;
 }

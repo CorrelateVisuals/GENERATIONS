@@ -31,14 +31,14 @@ class CE {
     virtual ~Buffer();
 
     VkBuffer buffer;
-    VkDeviceMemory bufferMemory;
+    VkDeviceMemory memory;
     void* mapped;
 
     static void create(VkDeviceSize size,
                        VkBufferUsageFlags usage,
                        VkMemoryPropertyFlags properties,
                        VkBuffer& buffer,
-                       VkDeviceMemory& bufferMemory);
+                       VkDeviceMemory& memory);
     static void copy(VkBuffer srcBuffer,
                      VkBuffer dstBuffer,
                      VkDeviceSize size,
@@ -60,9 +60,9 @@ class CE {
     virtual ~Image();
 
     VkImage image;
-    VkDeviceMemory imageMemory;
-    VkImageView imageView;
-    VkSampler imageSampler;
+    VkDeviceMemory memory;
+    VkImageView view;
+    VkSampler sampler;
     VkSampleCountFlagBits sampleCount;
 
     static void create(uint32_t width,
@@ -73,7 +73,7 @@ class CE {
                        VkImageUsageFlags usage,
                        VkMemoryPropertyFlags properties,
                        VkImage& image,
-                       VkDeviceMemory& imageMemory);
+                       VkDeviceMemory& memory);
     static VkImageView createView(VkImage image,
                                   VkFormat format,
                                   VkImageAspectFlags aspectFlags);
@@ -87,7 +87,7 @@ class CE {
                             VkCommandBuffer& commandBuffer,
                             VkCommandPool& commandPool,
                             VkQueue& queue);
-    static void createSampler(VkSampler& imageSampler);
+    static void createSampler(VkSampler& sampler);
   };
 
   class Descriptor {
