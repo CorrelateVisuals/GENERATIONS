@@ -116,8 +116,7 @@ class Resources {
   void createUniformBuffers();
 
   // add to image
-  void createTextureSampler();
-  void createTextureImageView();
+  // createTextureSampler();
 
   VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates,
                                VkImageTiling tiling,

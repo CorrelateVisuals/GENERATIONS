@@ -30,8 +30,9 @@ void Resources::setupResources(Pipelines& _pipelines) {
   CE::Image::loadTexture(Lib::path("assets/Avatar.PNG"), textureImage,
                          command.singleTime, command.pool,
                          _mechanics.queues.graphics);
-  createTextureImageView();
-  createTextureSampler();
+  textureImage.imageView = CE::Image::createView(
+      textureImage.image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
+  CE::Image::createSampler(textureImage.imageSampler);
 
   createFramebuffers(_pipelines);
   createShaderStorageBuffers();
@@ -299,12 +300,6 @@ void Resources::createIndexBuffer(VkBuffer& buffer,
 
 void Resources::setPushConstants() {
   pushConstants.data = {world.time.passedHours};
-}
-
-void Resources::createTextureImageView() {
-  Log::text("{ ... }", ":  Texture Image View");
-  textureImage.imageView = CE::Image::createView(
-      textureImage.image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
 }
 
 VkFormat Resources::findDepthFormat() {
@@ -624,32 +619,6 @@ void Resources::createColorResources() {
                     msaaImage.imageMemory);
   msaaImage.imageView = CE::Image::createView(msaaImage.image, colorFormat,
                                               VK_IMAGE_ASPECT_COLOR_BIT);
-}
-
-void Resources::createTextureSampler() {
-  Log::text("{ img }", "Texture Sampler");
-  VkPhysicalDeviceProperties properties{};
-  vkGetPhysicalDeviceProperties(_mechanics.mainDevice.physical, &properties);
-
-  VkSamplerCreateInfo samplerInfo{
-      .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
-      .magFilter = VK_FILTER_LINEAR,
-      .minFilter = VK_FILTER_LINEAR,
-      .mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR,
-      .addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT,
-      .addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT,
-      .addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT,
-      .anisotropyEnable = VK_TRUE,
-      .maxAnisotropy = properties.limits.maxSamplerAnisotropy,
-      .compareEnable = VK_FALSE,
-      .compareOp = VK_COMPARE_OP_ALWAYS,
-      .borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK,
-      .unnormalizedCoordinates = VK_FALSE};
-
-  if (vkCreateSampler(_mechanics.mainDevice.logical, &samplerInfo, nullptr,
-                      &textureImage.imageSampler) != VK_SUCCESS) {
-    throw std::runtime_error("failed to create texture sampler!");
-  }
 }
 
 Resources::Uniform::Uniform() {

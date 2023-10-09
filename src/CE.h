@@ -87,6 +87,7 @@ class CE {
                             VkCommandBuffer& commandBuffer,
                             VkCommandPool& commandPool,
                             VkQueue& queue);
+    static void createSampler(VkSampler& imageSampler);
   };
 
   class Descriptor {

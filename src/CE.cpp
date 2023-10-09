@@ -264,62 +264,86 @@ void CE::Image::transitionLayout(VkCommandBuffer commandBuffer,
                        nullptr, 0, nullptr, 1, &barrier);
 }
 
- void CE::Image::loadTexture(const std::string& imagePath,
-                             CE::Image& image,
-                             VkCommandBuffer& commandBuffer,
-                             VkCommandPool& commandPool,
-                             VkQueue& queue) {
-   Log::text("{ img }", "Image Texture: ", imagePath);
-   int texWidth{0}, texHeight{0}, texChannels{0};
-   int rgba = 4;
-   stbi_uc* pixels = stbi_load(imagePath.c_str(), &texWidth, &texHeight,
-                               &texChannels, STBI_rgb_alpha);
-   VkDeviceSize imageSize = static_cast<VkDeviceSize>(texWidth) *
-                            static_cast<VkDeviceSize>(texHeight) *
-                            static_cast<VkDeviceSize>(rgba);
+void CE::Image::loadTexture(const std::string& imagePath,
+                            CE::Image& image,
+                            VkCommandBuffer& commandBuffer,
+                            VkCommandPool& commandPool,
+                            VkQueue& queue) {
+  Log::text("{ img }", "Image Texture: ", imagePath);
+  int texWidth{0}, texHeight{0}, texChannels{0};
+  int rgba = 4;
+  stbi_uc* pixels = stbi_load(imagePath.c_str(), &texWidth, &texHeight,
+                              &texChannels, STBI_rgb_alpha);
+  VkDeviceSize imageSize = static_cast<VkDeviceSize>(texWidth) *
+                           static_cast<VkDeviceSize>(texHeight) *
+                           static_cast<VkDeviceSize>(rgba);
 
-   if (!pixels) {
-     throw std::runtime_error("failed to load texture image!");
-   }
+  if (!pixels) {
+    throw std::runtime_error("failed to load texture image!");
+  }
 
-   Buffer stagingResources;
+  Buffer stagingResources;
 
-   Buffer::create(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                  VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                      VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                  stagingResources.buffer, stagingResources.bufferMemory);
+  Buffer::create(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                     VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                 stagingResources.buffer, stagingResources.bufferMemory);
 
-   void* data;
-   vkMapMemory(*Device::_logical, stagingResources.bufferMemory, 0, imageSize,
-   0,
-               &data);
-   memcpy(data, pixels, static_cast<size_t>(imageSize));
-   vkUnmapMemory(*Device::_logical, stagingResources.bufferMemory);
-   stbi_image_free(pixels);
+  void* data;
+  vkMapMemory(*Device::_logical, stagingResources.bufferMemory, 0, imageSize, 0,
+              &data);
+  memcpy(data, pixels, static_cast<size_t>(imageSize));
+  vkUnmapMemory(*Device::_logical, stagingResources.bufferMemory);
+  stbi_image_free(pixels);
 
-   Image::create(
-       texWidth, texHeight, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_SRGB,
-       VK_IMAGE_TILING_OPTIMAL,
-       VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, image.image, image.imageMemory);
+  Image::create(texWidth, texHeight, VK_SAMPLE_COUNT_1_BIT,
+                VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL,
+                VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, image.image,
+                image.imageMemory);
 
-   Commands::beginSingularCommands(commandBuffer, commandPool, queue);
-   Image::transitionLayout(
-       commandBuffer, image.image, VK_FORMAT_R8G8B8A8_SRGB,
-       VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-   Commands::endSingularCommands(commandBuffer, commandPool, queue);
+  Commands::beginSingularCommands(commandBuffer, commandPool, queue);
+  Image::transitionLayout(commandBuffer, image.image, VK_FORMAT_R8G8B8A8_SRGB,
+                          VK_IMAGE_LAYOUT_UNDEFINED,
+                          VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+  Commands::endSingularCommands(commandBuffer, commandPool, queue);
 
-   Buffer::copyToImage(
-       stagingResources.buffer, image.image, static_cast<uint32_t>(texWidth),
-       static_cast<uint32_t>(texHeight), commandBuffer, commandPool, queue);
+  Buffer::copyToImage(
+      stagingResources.buffer, image.image, static_cast<uint32_t>(texWidth),
+      static_cast<uint32_t>(texHeight), commandBuffer, commandPool, queue);
 
-   Commands::beginSingularCommands(commandBuffer, commandPool, queue);
-   Image::transitionLayout(commandBuffer, image.image,
-                                VK_FORMAT_R8G8B8A8_SRGB,
-                                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                                VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-   Commands::endSingularCommands(commandBuffer, commandPool, queue);
- }
+  Commands::beginSingularCommands(commandBuffer, commandPool, queue);
+  Image::transitionLayout(commandBuffer, image.image, VK_FORMAT_R8G8B8A8_SRGB,
+                          VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                          VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+  Commands::endSingularCommands(commandBuffer, commandPool, queue);
+}
+
+void CE::Image::createSampler(VkSampler& imageSampler) {
+  Log::text("{ img }", "Texture Sampler");
+  VkPhysicalDeviceProperties properties;
+  vkGetPhysicalDeviceProperties(*Device::_physical, &properties);
+
+  VkSamplerCreateInfo samplerInfo{
+      .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
+      .magFilter = VK_FILTER_LINEAR,
+      .minFilter = VK_FILTER_LINEAR,
+      .mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR,
+      .addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+      .addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+      .addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+      .anisotropyEnable = VK_TRUE,
+      .maxAnisotropy = properties.limits.maxSamplerAnisotropy,
+      .compareEnable = VK_FALSE,
+      .compareOp = VK_COMPARE_OP_ALWAYS,
+      .borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK,
+      .unnormalizedCoordinates = VK_FALSE};
+
+  if (vkCreateSampler(*Device::_logical, &samplerInfo, nullptr,
+                      &imageSampler) != VK_SUCCESS) {
+    throw std::runtime_error("failed to create texture sampler!");
+  }
+}
 
 CE::Descriptor::Descriptor() {
   // createDescriptorPool();
