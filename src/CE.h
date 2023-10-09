@@ -18,11 +18,11 @@ class CE {
   class Commands {
    public:
     static void beginSingularCommands(VkCommandBuffer& commandBuffer,
-                                      VkCommandPool& commandPool,
-                                      VkQueue& queue);
-    static void endSingularCommands(VkCommandBuffer& commandBuffer,
-                                    VkCommandPool& commandPool,
-                                    VkQueue& queue);
+                                      const VkCommandPool& commandPool,
+                                      const VkQueue& queue);
+    static void endSingularCommands(const VkCommandBuffer& commandBuffer,
+                                    const VkCommandPool& commandPool,
+                                    const VkQueue& queue);
   };
 
   class Buffer {
@@ -45,13 +45,13 @@ class CE {
                      VkCommandBuffer& commandBuffer,
                      VkCommandPool& commandPool,
                      VkQueue& queue);
-    static void copyToImage(VkBuffer buffer,
-                            VkImage image,
-                            uint32_t width,
-                            uint32_t height,
+    static void copyToImage(const VkBuffer buffer,
+                            VkImage& image,
+                            const uint32_t width,
+                            const uint32_t height,
                             VkCommandBuffer& commandBuffer,
-                            VkCommandPool& commandPool,
-                            VkQueue& queue);
+                            const VkCommandPool& commandPool,
+                            const VkQueue& queue);
   };
 
   class Image {
@@ -65,28 +65,30 @@ class CE {
     VkSampler sampler;
     VkSampleCountFlagBits sampleCount;
 
-    static void create(uint32_t width,
-                       uint32_t height,
-                       VkSampleCountFlagBits numSamples,
-                       VkFormat format,
-                       VkImageTiling tiling,
-                       VkImageUsageFlags usage,
-                       VkMemoryPropertyFlags properties,
+    static void create(const uint32_t width,
+                       const uint32_t height,
+                       const VkSampleCountFlagBits numSamples,
+                       const VkFormat format,
+                       const VkImageTiling tiling,
+                       const VkImageUsageFlags& usage,
+                       const VkMemoryPropertyFlags properties,
                        VkImage& image,
                        VkDeviceMemory& memory);
-    static VkImageView createView(VkImage image,
-                                  VkFormat format,
-                                  VkImageAspectFlags aspectFlags);
-    static void transitionLayout(VkCommandBuffer commandBuffer,
-                                 VkImage image,
-                                 VkFormat format,
-                                 VkImageLayout oldLayout,
-                                 VkImageLayout newLayout);
+    static void recreate(){};
+    static void createView(const VkImage& image,
+                           VkImageView& imageView,
+                           const VkFormat format,
+                           const VkImageAspectFlags aspectFlags);
+    static void transitionLayout(const VkCommandBuffer commandBuffer,
+                                 const VkImage image,
+                                 const VkFormat format,
+                                 const VkImageLayout oldLayout,
+                                 const VkImageLayout newLayout);
     static void loadTexture(const std::string& imagePath,
                             CE::Image& image,
                             VkCommandBuffer& commandBuffer,
-                            VkCommandPool& commandPool,
-                            VkQueue& queue);
+                            const VkCommandPool& commandPool,
+                            const VkQueue& queue);
     static void createSampler(VkSampler& sampler);
   };
 

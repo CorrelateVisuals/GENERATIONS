@@ -467,8 +467,8 @@ void VulkanMechanics::createSwapChainImageViews(Resources& resources) {
   swapChain.imageViews.resize(swapChain.images.size());
 
   for (size_t i = 0; i < swapChain.images.size(); i++) {
-    swapChain.imageViews[i] = CE::Image::createView(
-        swapChain.images[i], swapChain.imageFormat, VK_IMAGE_ASPECT_COLOR_BIT);
+    CE::Image::createView(swapChain.images[i], swapChain.imageViews[i],
+                          swapChain.imageFormat, VK_IMAGE_ASPECT_COLOR_BIT);
   }
 }
 
@@ -503,7 +503,20 @@ void VulkanMechanics::recreateSwapChain(Pipelines& _pipelines,
   createSwapChainImageViews(_resources);
 
   _resources.createDepthResources();
-  _resources.createColorResources();
+
+  //_resources.createColorResources();
+
+  _resources.msaaImage.~MultiSamplingImage();
+  CE::Image::create(swapChain.extent.width, swapChain.extent.height,
+                    _resources.msaaImage.sampleCount, swapChain.imageFormat,
+                    VK_IMAGE_TILING_OPTIMAL,
+                    VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT |
+                        VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+                    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                    _resources.msaaImage.image, _resources.msaaImage.memory);
+  CE::Image::createView(_resources.msaaImage.image, _resources.msaaImage.view,
+                        swapChain.imageFormat, VK_IMAGE_ASPECT_COLOR_BIT);
+
   _resources.createFramebuffers(_pipelines);
 
   _resources.createDescriptorSets();

@@ -11,7 +11,8 @@ Resources::Resources(VulkanMechanics& mechanics)
       pushConstants{},
       textureImage{},
       command{},
-      descriptor{} {
+      descriptor{},
+      msaaImage{} {
   Log::text("{ /// }", "constructing Resources");
 
   CE::Device::linkDevice(&_mechanics.mainDevice.logical,
@@ -30,8 +31,8 @@ void Resources::setupResources(Pipelines& _pipelines) {
   CE::Image::loadTexture(Lib::path("assets/Avatar.PNG"), textureImage,
                          command.singleTime, command.pool,
                          _mechanics.queues.graphics);
-  textureImage.view = CE::Image::createView(
-      textureImage.image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
+  CE::Image::createView(textureImage.image, textureImage.view,
+                        VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
   CE::Image::createSampler(textureImage.sampler);
 
   createFramebuffers(_pipelines);
@@ -597,8 +598,8 @@ void Resources::createDepthResources() {
       msaaImage.sampleCount, depthFormat, VK_IMAGE_TILING_OPTIMAL,
       VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, depthImage.image, depthImage.memory);
-  depthImage.view = CE::Image::createView(depthImage.image, depthFormat,
-                                          VK_IMAGE_ASPECT_DEPTH_BIT);
+  CE::Image::createView(depthImage.image, depthImage.view, depthFormat,
+                        VK_IMAGE_ASPECT_DEPTH_BIT);
 }
 
 void Resources::createColorResources() {
@@ -614,8 +615,8 @@ void Resources::createColorResources() {
       VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT |
           VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, msaaImage.image, msaaImage.memory);
-  msaaImage.view = CE::Image::createView(msaaImage.image, colorFormat,
-                                         VK_IMAGE_ASPECT_COLOR_BIT);
+  CE::Image::createView(msaaImage.image, msaaImage.view, colorFormat,
+                        VK_IMAGE_ASPECT_COLOR_BIT);
 }
 
 Resources::Uniform::Uniform() {

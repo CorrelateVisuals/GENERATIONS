@@ -86,13 +86,13 @@ void CE::Buffer::copy(VkBuffer srcBuffer,
   CE::Commands::endSingularCommands(commandBuffer, commandPool, queue);
 }
 
-void CE::Buffer::copyToImage(VkBuffer buffer,
-                             VkImage image,
-                             uint32_t width,
-                             uint32_t height,
+void CE::Buffer::copyToImage(const VkBuffer buffer,
+                             VkImage& image,
+                             const uint32_t width,
+                             const uint32_t height,
                              VkCommandBuffer& commandBuffer,
-                             VkCommandPool& commandPool,
-                             VkQueue& queue) {
+                             const VkCommandPool& commandPool,
+                             const VkQueue& queue) {
   Log::text("{ >>> }", "Buffer To Image", width, height);
 
   CE::Commands::beginSingularCommands(commandBuffer, commandPool, queue);
@@ -137,13 +137,13 @@ CE::Image::~Image() {
   };
 }
 
-void CE::Image::create(uint32_t width,
-                       uint32_t height,
-                       VkSampleCountFlagBits numSamples,
-                       VkFormat format,
-                       VkImageTiling tiling,
-                       VkImageUsageFlags usage,
-                       VkMemoryPropertyFlags properties,
+void CE::Image::create(const uint32_t width,
+                       const uint32_t height,
+                       const VkSampleCountFlagBits numSamples,
+                       const VkFormat format,
+                       const VkImageTiling tiling,
+                       const VkImageUsageFlags& usage,
+                       const VkMemoryPropertyFlags properties,
                        VkImage& image,
                        VkDeviceMemory& memory) {
   Log::text("{ img }", "Image", width, height);
@@ -184,9 +184,10 @@ void CE::Image::create(uint32_t width,
   vkBindImageMemory(*Device::_logical, image, memory, 0);
 }
 
-VkImageView CE::Image::createView(VkImage image,
-                                  VkFormat format,
-                                  VkImageAspectFlags aspectFlags) {
+void CE::Image::createView(const VkImage& image,
+                           VkImageView& imageView,
+                           const VkFormat format,
+                           const VkImageAspectFlags aspectFlags) {
   Log::text("{ ... }", ":  Image View");
 
   VkImageViewCreateInfo viewInfo{
@@ -200,17 +201,16 @@ VkImageView CE::Image::createView(VkImage image,
                            .baseArrayLayer = 0,
                            .layerCount = 1}};
 
-  VkImageView view;
-  vulkanResult(vkCreateImageView, *Device::_logical, &viewInfo, nullptr, &view);
-
-  return view;
+  vulkanResult(vkCreateImageView, *Device::_logical, &viewInfo, nullptr,
+               &imageView);
+  return;
 }
 
-void CE::Image::transitionLayout(VkCommandBuffer commandBuffer,
-                                 VkImage image,
-                                 VkFormat format,
-                                 VkImageLayout oldLayout,
-                                 VkImageLayout newLayout) {
+void CE::Image::transitionLayout(const VkCommandBuffer commandBuffer,
+                                 const VkImage image,
+                                 const VkFormat format,
+                                 const VkImageLayout oldLayout,
+                                 const VkImageLayout newLayout) {
   VkImageMemoryBarrier barrier{.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
                                .oldLayout = oldLayout,
                                .newLayout = newLayout,
@@ -266,8 +266,8 @@ void CE::Image::transitionLayout(VkCommandBuffer commandBuffer,
 void CE::Image::loadTexture(const std::string& imagePath,
                             CE::Image& image,
                             VkCommandBuffer& commandBuffer,
-                            VkCommandPool& commandPool,
-                            VkQueue& queue) {
+                            const VkCommandPool& commandPool,
+                            const VkQueue& queue) {
   Log::text("{ img }", "Image Texture: ", imagePath);
   int texWidth{0}, texHeight{0}, texChannels{0};
   int rgba = 4;
@@ -434,8 +434,8 @@ CE::Descriptor::~Descriptor() {
 //}
 
 void CE::Commands::beginSingularCommands(VkCommandBuffer& commandBuffer,
-                                         VkCommandPool& commandPool,
-                                         VkQueue& queue) {
+                                         const VkCommandPool& commandPool,
+                                         const VkQueue& queue) {
   Log::text("{ 1.. }", "Begin Single Time Commands");
 
   VkCommandBufferAllocateInfo allocInfo{
@@ -455,9 +455,9 @@ void CE::Commands::beginSingularCommands(VkCommandBuffer& commandBuffer,
   return;
 }
 
-void CE::Commands::endSingularCommands(VkCommandBuffer& commandBuffer,
-                                       VkCommandPool& commandPool,
-                                       VkQueue& queue) {
+void CE::Commands::endSingularCommands(const VkCommandBuffer& commandBuffer,
+                                       const VkCommandPool& commandPool,
+                                       const VkQueue& queue) {
   Log::text("{ ..1 }", "End Single Time Commands");
 
   vkEndCommandBuffer(commandBuffer);
