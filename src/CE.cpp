@@ -39,11 +39,11 @@ CE::Buffer::~Buffer() {
   }
 }
 
-void CE::Buffer::createBuffer(VkDeviceSize size,
-                              VkBufferUsageFlags usage,
-                              VkMemoryPropertyFlags properties,
-                              VkBuffer& buffer,
-                              VkDeviceMemory& bufferMemory) {
+void CE::Buffer::create(VkDeviceSize size,
+                        VkBufferUsageFlags usage,
+                        VkMemoryPropertyFlags properties,
+                        VkBuffer& buffer,
+                        VkDeviceMemory& bufferMemory) {
   VkBufferCreateInfo bufferInfo{.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
                                 .size = size,
                                 .usage = usage,
@@ -67,6 +67,20 @@ void CE::Buffer::createBuffer(VkDeviceSize size,
   vulkanResult(vkAllocateMemory, *Device::_logical, &allocateInfo, nullptr,
                &bufferMemory);
   vkBindBufferMemory(*Device::_logical, buffer, bufferMemory, 0);
+}
+
+void CE::Buffer::copy(VkBuffer srcBuffer,
+                      VkBuffer dstBuffer,
+                      VkDeviceSize size,
+                      VkCommandBuffer& commandBuffer,
+                      VkCommandPool& commandPool,
+                      VkQueue& queue) {
+  Log::text("{ ... }", "copying", size, "bytes");
+
+  CE::Commands::beginSingularCommands(commandBuffer, commandPool, queue);
+  VkBufferCopy copyRegion{.size = size};
+  vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
+  CE::Commands::endSingularCommands(commandBuffer, commandPool, queue);
 }
 
 CE::Image::Image()

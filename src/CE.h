@@ -21,11 +21,8 @@ class CE {
   static uint32_t findMemoryType(uint32_t typeFilter,
                                  VkMemoryPropertyFlags properties);
 
-  struct Commands {
-    //    static VkCommandPool commandPool;
-    //    static VkCommandBuffer commandBuffer;
-
-    //    static void createCommandPool(VkCommandPool* commandPool);
+  class Commands {
+   public:
     static void beginSingularCommands(VkCommandBuffer& commandBuffer,
                                       VkCommandPool& commandPool,
                                       VkQueue& queue);
@@ -43,11 +40,17 @@ class CE {
     VkDeviceMemory bufferMemory;
     void* mapped;
 
-    static void createBuffer(VkDeviceSize size,
-                             VkBufferUsageFlags usage,
-                             VkMemoryPropertyFlags properties,
-                             VkBuffer& buffer,
-                             VkDeviceMemory& bufferMemory);
+    static void create(VkDeviceSize size,
+                       VkBufferUsageFlags usage,
+                       VkMemoryPropertyFlags properties,
+                       VkBuffer& buffer,
+                       VkDeviceMemory& bufferMemory);
+    static void copy(VkBuffer srcBuffer,
+                     VkBuffer dstBuffer,
+                     VkDeviceSize size,
+                     VkCommandBuffer& commandBuffer,
+                     VkCommandPool& commandPool,
+                     VkQueue& queue);
   };
 
   class Image {

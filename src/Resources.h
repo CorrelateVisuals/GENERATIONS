@@ -106,9 +106,6 @@ class Resources {
 
   void setPushConstants();
 
-  // void beginSingleTimeCommands(VkCommandBuffer& commandBuffer);
-  // void endSingleTimeCommands(VkCommandBuffer& commandBuffer);
-
   void createGraphicsCommandBuffers();
   void createComputeCommandBuffers();
 
@@ -118,11 +115,7 @@ class Resources {
   void createShaderStorageBuffers();
   void createUniformBuffers();
 
-  uint32_t findMemoryType(uint32_t typeFilter,
-                          VkMemoryPropertyFlags properties);
-
   // add to buffer
-  void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
   void copyBufferToImage(VkBuffer buffer,
                          VkImage image,
                          uint32_t width,
