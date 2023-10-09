@@ -15,12 +15,6 @@ class CE {
                            VkPhysicalDevice* physicalDevice);
   };
 
-  template <typename Checkresult, typename... Args>
-  static void vulkanResult(Checkresult vkResult, Args&&... args);
-
-  static uint32_t findMemoryType(uint32_t typeFilter,
-                                 VkMemoryPropertyFlags properties);
-
   class Commands {
    public:
     static void beginSingularCommands(VkCommandBuffer& commandBuffer,
@@ -51,6 +45,13 @@ class CE {
                      VkCommandBuffer& commandBuffer,
                      VkCommandPool& commandPool,
                      VkQueue& queue);
+    static void copyToImage(VkBuffer buffer,
+                            VkImage image,
+                            uint32_t width,
+                            uint32_t height,
+                            VkCommandBuffer& commandBuffer,
+                            VkCommandPool& commandPool,
+                            VkQueue& queue);
   };
 
   class Image {
@@ -81,6 +82,11 @@ class CE {
                                       VkFormat format,
                                       VkImageLayout oldLayout,
                                       VkImageLayout newLayout);
+    // static void loadTexture(const std::string& imagePath,
+    //                         CE::Image& image,
+    //                         VkCommandBuffer& commandBuffer,
+    //                         VkCommandPool& commandPool,
+    //                         VkQueue& queue);
   };
 
   class Descriptor {
@@ -105,6 +111,12 @@ class CE {
     // void allocateDescriptorSets();
     // void createDescriptorSets();
   };
+
+  template <typename Checkresult, typename... Args>
+  static void vulkanResult(Checkresult vkResult, Args&&... args);
+
+  static uint32_t findMemoryType(uint32_t typeFilter,
+                                 VkMemoryPropertyFlags properties);
 };
 
 template <typename Checkresult, typename... Args>

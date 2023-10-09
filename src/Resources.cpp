@@ -269,9 +269,10 @@ void Resources::createTextureImage(std::string imagePath) {
   CE::Commands::endSingularCommands(command.singleTime, command.pool,
                                     _mechanics.queues.graphics);
 
-  copyBufferToImage(stagingResources.buffer, textureImage.image,
-                    static_cast<uint32_t>(texWidth),
-                    static_cast<uint32_t>(texHeight));
+  CE::Buffer::copyToImage(stagingResources.buffer, textureImage.image,
+                          static_cast<uint32_t>(texWidth),
+                          static_cast<uint32_t>(texHeight), command.singleTime,
+                          command.pool, _mechanics.queues.graphics);
 
   CE::Commands::beginSingularCommands(command.singleTime, command.pool,
                                       _mechanics.queues.graphics);
@@ -361,31 +362,6 @@ void Resources::setPushConstants() {
   pushConstants.data = {world.time.passedHours};
 }
 
-void Resources::copyBufferToImage(VkBuffer buffer,
-                                  VkImage image,
-                                  uint32_t width,
-                                  uint32_t height) {
-  Log::text("{ >>> }", "Buffer To Image", width, height);
-
-  CE::Commands::beginSingularCommands(command.singleTime, command.pool,
-                                      _mechanics.queues.graphics);
-
-  VkBufferImageCopy region{.bufferOffset = 0,
-                           .bufferRowLength = 0,
-                           .bufferImageHeight = 0,
-                           .imageOffset = {0, 0, 0},
-                           .imageExtent = {width, height, 1}};
-  region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-  region.imageSubresource.mipLevel = 0,
-  region.imageSubresource.baseArrayLayer = 0,
-  region.imageSubresource.layerCount = 1,
-
-  vkCmdCopyBufferToImage(command.singleTime, buffer, image,
-                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
-
-  CE::Commands::endSingularCommands(command.singleTime, command.pool,
-                                    _mechanics.queues.graphics);
-}
 
 void Resources::createTextureImageView() {
   Log::text("{ ... }", ":  Texture Image View");
@@ -737,8 +713,6 @@ void Resources::createTextureSampler() {
     throw std::runtime_error("failed to create texture sampler!");
   }
 }
-
-
 
 Resources::Uniform::Uniform() {
   layoutBinding.binding = 0;

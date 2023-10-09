@@ -115,12 +115,6 @@ class Resources {
   void createShaderStorageBuffers();
   void createUniformBuffers();
 
-  // add to buffer
-  void copyBufferToImage(VkBuffer buffer,
-                         VkImage image,
-                         uint32_t width,
-                         uint32_t height);
-
   // add to image
   void createTextureImage(std::string imagePath);
   void createTextureSampler();

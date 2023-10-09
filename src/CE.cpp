@@ -83,6 +83,31 @@ void CE::Buffer::copy(VkBuffer srcBuffer,
   CE::Commands::endSingularCommands(commandBuffer, commandPool, queue);
 }
 
+void CE::Buffer::copyToImage(VkBuffer buffer,
+                             VkImage image,
+                             uint32_t width,
+                             uint32_t height,
+                             VkCommandBuffer& commandBuffer,
+                             VkCommandPool& commandPool,
+                             VkQueue& queue) {
+  Log::text("{ >>> }", "Buffer To Image", width, height);
+
+  CE::Commands::beginSingularCommands(commandBuffer, commandPool, queue);
+  VkBufferImageCopy region{.bufferOffset = 0,
+                           .bufferRowLength = 0,
+                           .bufferImageHeight = 0,
+                           .imageOffset = {0, 0, 0},
+                           .imageExtent = {width, height, 1}};
+  region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+  region.imageSubresource.mipLevel = 0,
+  region.imageSubresource.baseArrayLayer = 0,
+  region.imageSubresource.layerCount = 1,
+
+  vkCmdCopyBufferToImage(commandBuffer, buffer, image,
+                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+  CE::Commands::endSingularCommands(commandBuffer, commandPool, queue);
+}
+
 CE::Image::Image()
     : image{},
       imageMemory{},
@@ -235,6 +260,63 @@ void CE::Image::transitionImageLayout(VkCommandBuffer commandBuffer,
   vkCmdPipelineBarrier(commandBuffer, sourceStage, destinationStage, 0, 0,
                        nullptr, 0, nullptr, 1, &barrier);
 }
+
+// void CE::Image::loadTexture(const std::string& imagePath,
+//                             CE::Image& image,
+//                             VkCommandBuffer& commandBuffer,
+//                             VkCommandPool& commandPool,
+//                             VkQueue& queue) {
+//   Log::text("{ img }", "Image Texture: ", imagePath);
+//   int texWidth{0}, texHeight{0}, texChannels{0};
+//   int rgba = 4;
+//   stbi_uc* pixels = stbi_load(imagePath.c_str(), &texWidth, &texHeight,
+//                               &texChannels, STBI_rgb_alpha);
+//   VkDeviceSize imageSize = static_cast<VkDeviceSize>(texWidth) *
+//                            static_cast<VkDeviceSize>(texHeight) *
+//                            static_cast<VkDeviceSize>(rgba);
+//
+//   if (!pixels) {
+//     throw std::runtime_error("failed to load texture image!");
+//   }
+//
+//   Buffer stagingResources;
+//
+//   Buffer::create(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+//                  VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+//                      VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+//                  stagingResources.buffer, stagingResources.bufferMemory);
+//
+//   void* data;
+//   vkMapMemory(*Device::_logical, stagingResources.bufferMemory, 0, imageSize,
+//   0,
+//               &data);
+//   memcpy(data, pixels, static_cast<size_t>(imageSize));
+//   vkUnmapMemory(*Device::_logical, stagingResources.bufferMemory);
+//   stbi_image_free(pixels);
+//
+//   Image::createImage(
+//       texWidth, texHeight, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_SRGB,
+//       VK_IMAGE_TILING_OPTIMAL,
+//       VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+//       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, image.image, image.imageMemory);
+//
+//   Commands::beginSingularCommands(commandBuffer, commandPool, queue);
+//   Image::transitionImageLayout(
+//       commandBuffer, image.image, VK_FORMAT_R8G8B8A8_SRGB,
+//       VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+//   Commands::endSingularCommands(commandBuffer, commandPool, queue);
+//
+//   Buffer::copyToImage(
+//       stagingResources.buffer, image.image, static_cast<uint32_t>(texWidth),
+//       static_cast<uint32_t>(texHeight), commandBuffer, commandPool, queue);
+//
+//   Commands::beginSingularCommands(commandBuffer, commandPool, queue);
+//   Image::transitionImageLayout(commandBuffer, image.image,
+//                                VK_FORMAT_R8G8B8A8_SRGB,
+//                                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+//                                VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+//   Commands::endSingularCommands(commandBuffer, commandPool, queue);
+// }
 
 CE::Descriptor::Descriptor() {
   // createDescriptorPool();
