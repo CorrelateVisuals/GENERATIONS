@@ -82,11 +82,11 @@ class CE {
                                  VkFormat format,
                                  VkImageLayout oldLayout,
                                  VkImageLayout newLayout);
-    // static void loadTexture(const std::string& imagePath,
-    //                         CE::Image& image,
-    //                         VkCommandBuffer& commandBuffer,
-    //                         VkCommandPool& commandPool,
-    //                         VkQueue& queue);
+    static void loadTexture(const std::string& imagePath,
+                            CE::Image& image,
+                            VkCommandBuffer& commandBuffer,
+                            VkCommandPool& commandPool,
+                            VkQueue& queue);
   };
 
   class Descriptor {

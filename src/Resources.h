@@ -116,7 +116,6 @@ class Resources {
   void createUniformBuffers();
 
   // add to image
-  void createTextureImage(std::string imagePath);
   void createTextureSampler();
   void createTextureImageView();
 
