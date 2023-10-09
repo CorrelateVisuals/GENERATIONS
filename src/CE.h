@@ -21,15 +21,18 @@ class CE {
   static uint32_t findMemoryType(uint32_t typeFilter,
                                  VkMemoryPropertyFlags properties);
 
-  //struct CommandBuffer {
-  //    static VkCommandPool commandPool;
-  //    static VkCommandBuffer commandBuffer;
+  struct Commands {
+    //    static VkCommandPool commandPool;
+    //    static VkCommandBuffer commandBuffer;
 
-  //    static void createCommandPool(VkCommandPool* commandPool);
-  //    static void beginSingularCommands(VkCommandBuffer& commandBuffer);
-  //    static void endSingluarCommands(VkCommandBuffer& commandBuffer);
-  //};
- 
+    //    static void createCommandPool(VkCommandPool* commandPool);
+    static void beginSingularCommands(VkCommandBuffer& commandBuffer,
+                                      VkCommandPool& commandPool,
+                                      VkQueue& queue);
+    static void endSingularCommands(VkCommandBuffer& commandBuffer,
+                                    VkCommandPool& commandPool,
+                                    VkQueue& queue);
+  };
 
   class Buffer {
    public:
@@ -59,22 +62,22 @@ class CE {
     VkSampleCountFlagBits sampleCount;
 
     static void createImage(uint32_t width,
-        uint32_t height,
-        VkSampleCountFlagBits numSamples,
-        VkFormat format,
-        VkImageTiling tiling,
-        VkImageUsageFlags usage,
-        VkMemoryPropertyFlags properties,
-        VkImage& image,
-        VkDeviceMemory& imageMemory);
+                            uint32_t height,
+                            VkSampleCountFlagBits numSamples,
+                            VkFormat format,
+                            VkImageTiling tiling,
+                            VkImageUsageFlags usage,
+                            VkMemoryPropertyFlags properties,
+                            VkImage& image,
+                            VkDeviceMemory& imageMemory);
     static VkImageView createImageView(VkImage image,
-        VkFormat format,
-        VkImageAspectFlags aspectFlags);
+                                       VkFormat format,
+                                       VkImageAspectFlags aspectFlags);
     static void transitionImageLayout(VkCommandBuffer commandBuffer,
-        VkImage image,
-        VkFormat format,
-        VkImageLayout oldLayout,
-        VkImageLayout newLayout);
+                                      VkImage image,
+                                      VkFormat format,
+                                      VkImageLayout oldLayout,
+                                      VkImageLayout newLayout);
   };
 
   class Descriptor {
@@ -95,9 +98,9 @@ class CE {
     };
 
    private:
-    //void createDescriptorPool();
-    //void allocateDescriptorSets();
-    //void createDescriptorSets();
+    // void createDescriptorPool();
+    // void allocateDescriptorSets();
+    // void createDescriptorSets();
   };
 };
 

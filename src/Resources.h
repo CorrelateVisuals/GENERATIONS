@@ -106,8 +106,8 @@ class Resources {
 
   void setPushConstants();
 
-  void beginSingleTimeCommands(VkCommandBuffer& commandBuffer);
-  void endSingleTimeCommands(VkCommandBuffer& commandBuffer);
+  // void beginSingleTimeCommands(VkCommandBuffer& commandBuffer);
+  // void endSingleTimeCommands(VkCommandBuffer& commandBuffer);
 
   void createGraphicsCommandBuffers();
   void createComputeCommandBuffers();

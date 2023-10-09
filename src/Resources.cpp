@@ -260,22 +260,27 @@ void Resources::createTextureImage(std::string imagePath) {
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage.image,
       textureImage.imageMemory);
 
-  beginSingleTimeCommands(command.singleTime);
-  CE::Image::transitionImageLayout(command.singleTime, textureImage.image,
-                        VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED,
-                        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-  endSingleTimeCommands(command.singleTime);
+  CE::Commands::beginSingularCommands(command.singleTime, command.pool,
+                                      _mechanics.queues.graphics);
+
+  CE::Image::transitionImageLayout(
+      command.singleTime, textureImage.image, VK_FORMAT_R8G8B8A8_SRGB,
+      VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+  CE::Commands::endSingularCommands(command.singleTime, command.pool,
+                                    _mechanics.queues.graphics);
 
   copyBufferToImage(stagingResources.buffer, textureImage.image,
                     static_cast<uint32_t>(texWidth),
                     static_cast<uint32_t>(texHeight));
 
-  beginSingleTimeCommands(command.singleTime);
+  CE::Commands::beginSingularCommands(command.singleTime, command.pool,
+                                      _mechanics.queues.graphics);
   CE::Image::transitionImageLayout(command.singleTime, textureImage.image,
-                        VK_FORMAT_R8G8B8A8_SRGB,
-                        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-  endSingleTimeCommands(command.singleTime);
+                                   VK_FORMAT_R8G8B8A8_SRGB,
+                                   VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                                   VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+  CE::Commands::endSingularCommands(command.singleTime, command.pool,
+                                    _mechanics.queues.graphics);
 }
 
 void Resources::createVertexBuffers(
@@ -354,50 +359,51 @@ void Resources::setPushConstants() {
   pushConstants.data = {world.time.passedHours};
 }
 
-void Resources::beginSingleTimeCommands(VkCommandBuffer& commandBuffer) {
-  Log::text("{ 1.. }", "Begin Single Time Commands");
+// void Resources::beginSingleTimeCommands(VkCommandBuffer& commandBuffer) {
+//   Log::text("{ 1.. }", "Begin Single Time Commands");
+//
+//   VkCommandBufferAllocateInfo allocInfo{
+//       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+//       .commandPool = command.pool,
+//       .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+//       .commandBufferCount = 1};
+//
+//   vkAllocateCommandBuffers(_mechanics.mainDevice.logical, &allocInfo,
+//                            &commandBuffer);
+//
+//   VkCommandBufferBeginInfo beginInfo{
+//       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+//       .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT};
+//
+//   vkBeginCommandBuffer(commandBuffer, &beginInfo);
+//
+//   return;
+// }
 
-  VkCommandBufferAllocateInfo allocInfo{
-      .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-      .commandPool = command.pool,
-      .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-      .commandBufferCount = 1};
-
-  vkAllocateCommandBuffers(_mechanics.mainDevice.logical, &allocInfo,
-                           &commandBuffer);
-
-  VkCommandBufferBeginInfo beginInfo{
-      .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
-      .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT};
-
-  vkBeginCommandBuffer(commandBuffer, &beginInfo);
-
-  return;
-}
-
-void Resources::endSingleTimeCommands(VkCommandBuffer& commandBuffer) {
-  Log::text("{ ..1 }", "End Single Time Commands");
-
-  vkEndCommandBuffer(commandBuffer);
-
-  VkSubmitInfo submitInfo{.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-                          .commandBufferCount = 1,
-                          .pCommandBuffers = &commandBuffer};
-
-  vkQueueSubmit(_mechanics.queues.graphics, 1, &submitInfo, VK_NULL_HANDLE);
-  vkQueueWaitIdle(_mechanics.queues.graphics);
-
-  vkFreeCommandBuffers(_mechanics.mainDevice.logical, command.pool, 1,
-                       &commandBuffer);
-}
-
+// void Resources::endSingleTimeCommands(VkCommandBuffer& commandBuffer) {
+//   Log::text("{ ..1 }", "End Single Time Commands");
+//
+//   vkEndCommandBuffer(commandBuffer);
+//
+//   VkSubmitInfo submitInfo{.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+//                           .commandBufferCount = 1,
+//                           .pCommandBuffers = &commandBuffer};
+//
+//   vkQueueSubmit(_mechanics.queues.graphics, 1, &submitInfo, VK_NULL_HANDLE);
+//   vkQueueWaitIdle(_mechanics.queues.graphics);
+//
+//   vkFreeCommandBuffers(_mechanics.mainDevice.logical, command.pool, 1,
+//                        &commandBuffer);
+// }
+//
 void Resources::copyBufferToImage(VkBuffer buffer,
                                   VkImage image,
                                   uint32_t width,
                                   uint32_t height) {
   Log::text("{ >>> }", "Buffer To Image", width, height);
 
-  beginSingleTimeCommands(command.singleTime);
+  CE::Commands::beginSingularCommands(command.singleTime, command.pool,
+                                      _mechanics.queues.graphics);
 
   VkBufferImageCopy region{.bufferOffset = 0,
                            .bufferRowLength = 0,
@@ -412,7 +418,8 @@ void Resources::copyBufferToImage(VkBuffer buffer,
   vkCmdCopyBufferToImage(command.singleTime, buffer, image,
                          VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 
-  endSingleTimeCommands(command.singleTime);
+  CE::Commands::endSingularCommands(command.singleTime, command.pool,
+                                    _mechanics.queues.graphics);
 }
 
 void Resources::createTextureImageView() {
@@ -640,12 +647,12 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
                    static_cast<uint32_t>(world.landscape.indices.size()), 1, 0,
                    0, 0);
 
-   // Landscape Wireframe
-   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+  // Landscape Wireframe
+  vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                     _pipelines.graphics.landscapeWireframe);
-   vkCmdDrawIndexed(commandBuffer,
-                   static_cast<uint32_t>(world.landscape.indices.size()), 1,
-                   0, 0, 0);
+  vkCmdDrawIndexed(commandBuffer,
+                   static_cast<uint32_t>(world.landscape.indices.size()), 1, 0,
+                   0, 0);
 
   // Pipeline 3
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -771,13 +778,15 @@ void Resources::copyBuffer(VkBuffer srcBuffer,
                            VkDeviceSize size) {
   Log::text("{ ... }", "copying", size, "bytes");
 
-  beginSingleTimeCommands(command.singleTime);
+  CE::Commands::beginSingularCommands(command.singleTime, command.pool,
+                                      _mechanics.queues.graphics);
 
   VkBufferCopy copyRegion{};
   copyRegion.size = size;
   vkCmdCopyBuffer(command.singleTime, srcBuffer, dstBuffer, 1, &copyRegion);
 
-  endSingleTimeCommands(command.singleTime);
+  CE::Commands::endSingularCommands(command.singleTime, command.pool,
+                                    _mechanics.queues.graphics);
 }
 
 uint32_t Resources::findMemoryType(uint32_t typeFilter,
