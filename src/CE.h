@@ -59,7 +59,7 @@ class Image {
  public:
   Image();
   virtual ~Image();
-  void destroyVulkanObjects();
+  void destroyVulkanImages();
 
   VkImage image;
   VkDeviceMemory memory;
@@ -88,7 +88,7 @@ class Image {
               const VkImageTiling tiling,
               const VkImageUsageFlags& usage,
               const VkMemoryPropertyFlags properties);
-  void recreate() { this->destroyVulkanObjects(); };
+  void recreate() { this->destroyVulkanImages(); };
   void createView(const VkImageAspectFlags aspectFlags);
   void createSampler();
   void transitionLayout(const VkCommandBuffer& commandBuffer,

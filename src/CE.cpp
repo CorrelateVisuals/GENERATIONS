@@ -114,10 +114,10 @@ void CE::Buffer::copyToImage(const VkBuffer buffer,
 CE::Image::Image() : image{}, memory{}, view{}, sampler{} {}
 
 CE::Image::~Image() {
-  destroyVulkanObjects();
+  destroyVulkanImages();
 }
 
-void CE::Image::destroyVulkanObjects() {
+void CE::Image::destroyVulkanImages() {
   if (*Device::_logical != VK_NULL_HANDLE) {
     if (sampler != VK_NULL_HANDLE) {
       vkDestroySampler(*Device::_logical, sampler, nullptr);
@@ -334,7 +334,7 @@ void CE::Image::createColorResources(const VkExtent2D& dimensions,
                                      const VkFormat format,
                                      const VkSampleCountFlagBits samples) {
   Log::text("{ []< }", "Color Resources ");
-  this->destroyVulkanObjects();
+  this->destroyVulkanImages();
   this->create(dimensions.width, dimensions.height, samples, format,
                VK_IMAGE_TILING_OPTIMAL,
                VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT |
@@ -347,7 +347,7 @@ void CE::Image::createDepthResources(const VkExtent2D& dimensions,
                                      const VkFormat format,
                                      const VkSampleCountFlagBits samples) {
   Log::text("{ []< }", "Depth Resources ");
-  this->destroyVulkanObjects();
+  this->destroyVulkanImages();
   this->create(dimensions.width, dimensions.height, samples, format,
                VK_IMAGE_TILING_OPTIMAL,
                VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
