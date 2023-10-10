@@ -496,7 +496,7 @@ void VulkanMechanics::recreateSwapChain(Pipelines& _pipelines,
   cleanupSwapChain(_resources);
   createSwapChain();
 
-  Log::text("{ []< }", "Depth Resources ");
+  Log::text("{ []< }", "Recreate Depth Resources ");
   _resources.depthImage.recreate();
   _resources.depthImage.create(
       swapChain.extent.width, swapChain.extent.height,
@@ -505,6 +505,7 @@ void VulkanMechanics::recreateSwapChain(Pipelines& _pipelines,
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
   _resources.depthImage.createView(VK_IMAGE_ASPECT_DEPTH_BIT);
 
+  Log::text("{ []< }", "Recreate Color Resources ");
   _resources.msaaImage.recreate();
   _resources.msaaImage.create(swapChain.extent.width, swapChain.extent.height,
                               _resources.msaaImage.sampleCount,
