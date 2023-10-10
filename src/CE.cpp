@@ -327,11 +327,10 @@ VkFormat CE::Image::findSupportedFormat(const std::vector<VkFormat>& candidates,
 }
 
 void CE::Image::createColorResources(const VkExtent2D& dimensions,
-                                     const VkFormat format,
-                                     const VkSampleCountFlagBits samples) {
+                                     const VkFormat format) {
   Log::text("{ []< }", "Color Resources ");
   recreate();
-  create(dimensions.width, dimensions.height, samples, format,
+  create(dimensions.width, dimensions.height, info.samples, format,
          VK_IMAGE_TILING_OPTIMAL,
          VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT |
              VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
@@ -340,11 +339,10 @@ void CE::Image::createColorResources(const VkExtent2D& dimensions,
 }
 
 void CE::Image::createDepthResources(const VkExtent2D& dimensions,
-                                     const VkFormat format,
-                                     const VkSampleCountFlagBits samples) {
+                                     const VkFormat format) {
   Log::text("{ []< }", "Depth Resources ");
   recreate();
-  create(dimensions.width, dimensions.height, samples, format,
+  create(dimensions.width, dimensions.height, info.samples, format,
          VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
          VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
   createView(VK_IMAGE_ASPECT_DEPTH_BIT);
