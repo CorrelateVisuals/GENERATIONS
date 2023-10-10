@@ -76,18 +76,16 @@ class CE {
                        VkDeviceMemory& memory);
     void recreate() { this->~Image(); };
     void createView(const VkFormat format,
-                           const VkImageAspectFlags aspectFlags);
-    static void transitionLayout(const VkCommandBuffer commandBuffer,
-                                 const VkImage image,
-                                 const VkFormat format,
-                                 const VkImageLayout oldLayout,
-                                 const VkImageLayout newLayout);
-    static void loadTexture(const std::string& imagePath,
-                            CE::Image& image,
-                            VkCommandBuffer& commandBuffer,
-                            const VkCommandPool& commandPool,
-                            const VkQueue& queue);
-    static void createSampler(VkSampler& sampler);
+                    const VkImageAspectFlags aspectFlags);
+    void createSampler();
+    void transitionLayout(const VkCommandBuffer& commandBuffer,
+                          const VkFormat format,
+                          const VkImageLayout oldLayout,
+                          const VkImageLayout newLayout);
+    void loadTexture(const std::string& imagePath,
+                     VkCommandBuffer& commandBuffer,
+                     const VkCommandPool& commandPool,
+                     const VkQueue& queue);
   };
 
   class Descriptor {

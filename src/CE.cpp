@@ -206,8 +206,7 @@ void CE::Image::createView(const VkFormat format,
   return;
 }
 
-void CE::Image::transitionLayout(const VkCommandBuffer commandBuffer,
-                                 const VkImage image,
+void CE::Image::transitionLayout(const VkCommandBuffer& commandBuffer,
                                  const VkFormat format,
                                  const VkImageLayout oldLayout,
                                  const VkImageLayout newLayout) {
@@ -216,7 +215,7 @@ void CE::Image::transitionLayout(const VkCommandBuffer commandBuffer,
                                .newLayout = newLayout,
                                .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
                                .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-                               .image = image};
+                               .image = this->image};
   barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
   barrier.subresourceRange.baseMipLevel = 0;
   barrier.subresourceRange.levelCount = 1;
@@ -264,7 +263,6 @@ void CE::Image::transitionLayout(const VkCommandBuffer commandBuffer,
 }
 
 void CE::Image::loadTexture(const std::string& imagePath,
-                            CE::Image& image,
                             VkCommandBuffer& commandBuffer,
                             const VkCommandPool& commandPool,
                             const VkQueue& queue) {
@@ -298,26 +296,26 @@ void CE::Image::loadTexture(const std::string& imagePath,
   Image::create(texWidth, texHeight, VK_SAMPLE_COUNT_1_BIT,
                 VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL,
                 VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, image.image, image.memory);
+                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, this->image, this->memory);
 
   Commands::beginSingularCommands(commandBuffer, commandPool, queue);
-  Image::transitionLayout(commandBuffer, image.image, VK_FORMAT_R8G8B8A8_SRGB,
-                          VK_IMAGE_LAYOUT_UNDEFINED,
-                          VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+  this->transitionLayout(commandBuffer, VK_FORMAT_R8G8B8A8_SRGB,
+                         VK_IMAGE_LAYOUT_UNDEFINED,
+                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
   Commands::endSingularCommands(commandBuffer, commandPool, queue);
 
   Buffer::copyToImage(
-      stagingResources.buffer, image.image, static_cast<uint32_t>(texWidth),
+      stagingResources.buffer, this->image, static_cast<uint32_t>(texWidth),
       static_cast<uint32_t>(texHeight), commandBuffer, commandPool, queue);
 
   Commands::beginSingularCommands(commandBuffer, commandPool, queue);
-  Image::transitionLayout(commandBuffer, image.image, VK_FORMAT_R8G8B8A8_SRGB,
+  this->transitionLayout(commandBuffer, VK_FORMAT_R8G8B8A8_SRGB,
                           VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                           VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
   Commands::endSingularCommands(commandBuffer, commandPool, queue);
 }
 
-void CE::Image::createSampler(VkSampler& sampler) {
+void CE::Image::createSampler() {
   Log::text("{ img }", "Texture Sampler");
   VkPhysicalDeviceProperties properties;
   vkGetPhysicalDeviceProperties(*Device::_physical, &properties);
@@ -337,7 +335,7 @@ void CE::Image::createSampler(VkSampler& sampler) {
       .borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK,
       .unnormalizedCoordinates = VK_FALSE};
 
-  if (vkCreateSampler(*Device::_logical, &samplerInfo, nullptr, &sampler) !=
+  if (vkCreateSampler(*Device::_logical, &samplerInfo, nullptr, &this->sampler) !=
       VK_SUCCESS) {
     throw std::runtime_error("failed to create texture sampler!");
   }

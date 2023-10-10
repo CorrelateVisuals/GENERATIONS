@@ -28,11 +28,10 @@ void Resources::setupResources(Pipelines& _pipelines) {
   Log::text(Log::Style::headerGuard);
   Log::text("{ /// }", "Setup Resources");
 
-  CE::Image::loadTexture(Lib::path("assets/Avatar.PNG"), textureImage,
-                         command.singleTime, command.pool,
-                         _mechanics.queues.graphics);
+  textureImage.loadTexture(Lib::path("assets/Avatar.PNG"), command.singleTime,
+                           command.pool, _mechanics.queues.graphics);
   textureImage.createView(VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
-  CE::Image::createSampler(textureImage.sampler);
+  textureImage.createSampler();
 
   createFramebuffers(_pipelines);
   createShaderStorageBuffers();
@@ -547,11 +546,10 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
   //       This is part of an image memory barrier (i.e., vkCmdPipelineBarrier
   //       with the VkImageMemoryBarrier parameter set)
 
-  CE::Image::transitionLayout(
-      commandBuffer,
-      _mechanics.swapChain.images[_mechanics.syncObjects.currentFrame].image,
-      VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
-      /* -> */ VK_IMAGE_LAYOUT_GENERAL);
+  _mechanics.swapChain.images[_mechanics.syncObjects.currentFrame]
+      .transitionLayout(commandBuffer, VK_FORMAT_R8G8B8A8_SRGB,
+                        VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+                        /* -> */ VK_IMAGE_LAYOUT_GENERAL);
 
   // vkDeviceWaitIdle(_mechanics.mainDevice.logical);
 
@@ -574,11 +572,10 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
 
   vkCmdDispatch(commandBuffer, workgroupSizeX, workgroupSizeY, 1);
 
-  CE::Image::transitionLayout(
-      commandBuffer,
-      _mechanics.swapChain.images[_mechanics.syncObjects.currentFrame].image,
-      VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_GENERAL,
-      /* -> */ VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+  _mechanics.swapChain.images[_mechanics.syncObjects.currentFrame]
+      .transitionLayout(commandBuffer, VK_FORMAT_R8G8B8A8_SRGB,
+                        VK_IMAGE_LAYOUT_GENERAL,
+                        /* -> */ VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
   CE::vulkanResult(vkEndCommandBuffer, commandBuffer);
 }
