@@ -496,28 +496,15 @@ void VulkanMechanics::recreateSwapChain(Pipelines& _pipelines,
   cleanupSwapChain(_resources);
   createSwapChain();
 
-  Log::text("{ []< }", "Recreate Depth Resources ");
-  _resources.depthImage.recreate();
-  _resources.depthImage.create(
-      swapChain.extent.width, swapChain.extent.height,
-      _resources.msaaImage.info.samples, CE::Image::findDepthFormat(),
-      VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
-      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-  _resources.depthImage.createView(VK_IMAGE_ASPECT_DEPTH_BIT);
-
-  Log::text("{ []< }", "Recreate Color Resources ");
-  _resources.msaaImage.recreate();
-  _resources.msaaImage.create(swapChain.extent.width, swapChain.extent.height,
-                              _resources.msaaImage.info.samples,
-                              swapChain.imageFormat, VK_IMAGE_TILING_OPTIMAL,
-                              VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT |
-                                  VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-                              VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-  _resources.msaaImage.createView(VK_IMAGE_ASPECT_COLOR_BIT);
-
+  _resources.depthImage.createDepthResources(
+      swapChain.extent, CE::Image::findDepthFormat(),
+      _resources.depthImage.info.samples);
+  _resources.msaaImage.createColorResources(swapChain.extent,
+                                            swapChain.imageFormat,
+                                            _resources.msaaImage.info.samples);
   _resources.createFramebuffers(_pipelines);
-
   _resources.createDescriptorSets();
+
   uint32_t reset = 1;
   syncObjects.currentFrame = reset;
 }

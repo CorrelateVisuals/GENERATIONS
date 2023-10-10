@@ -59,6 +59,7 @@ class CE {
    public:
     Image();
     virtual ~Image();
+    void destroyVulkanObjects();
 
     VkImage image;
     VkDeviceMemory memory;
@@ -87,7 +88,7 @@ class CE {
                 const VkImageTiling tiling,
                 const VkImageUsageFlags& usage,
                 const VkMemoryPropertyFlags properties);
-    void recreate() { this->~Image(); };
+    void recreate() { this->destroyVulkanObjects(); };
     void createView(const VkImageAspectFlags aspectFlags);
     void createSampler();
     void transitionLayout(const VkCommandBuffer& commandBuffer,
@@ -103,6 +104,12 @@ class CE {
     static VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates,
                                         VkImageTiling tiling,
                                         VkFormatFeatureFlags features);
+    void createColorResources(const VkExtent2D& dimensions,
+                              const VkFormat format,
+                              const VkSampleCountFlagBits samples);
+    void createDepthResources(const VkExtent2D& dimensions,
+                              const VkFormat format,
+                              const VkSampleCountFlagBits samples);
   };
 
   class Descriptor {
