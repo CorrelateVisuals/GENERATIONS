@@ -51,17 +51,15 @@ void Pipelines::setupPipelines(Resources& _resources) {
       VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT |
           VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-  _resources.msaaImage.createView(_mechanics.swapChain.imageFormat,
-                                  VK_IMAGE_ASPECT_COLOR_BIT);
+  _resources.msaaImage.createView(VK_IMAGE_ASPECT_COLOR_BIT);
 
   Log::text("{ []< }", "Depth Resources ");
-  VkFormat depthFormat = _resources.findDepthFormat();
   _resources.depthImage.create(
       _mechanics.swapChain.extent.width, _mechanics.swapChain.extent.height,
-      _resources.msaaImage.sampleCount, depthFormat, VK_IMAGE_TILING_OPTIMAL,
-      VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+      _resources.msaaImage.sampleCount, CE::Image::findDepthFormat(),
+      VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-  _resources.depthImage.createView(depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
+  _resources.depthImage.createView(VK_IMAGE_ASPECT_DEPTH_BIT);
 
   createGraphicsPipeline_Layout(_resources.descriptor);
 
@@ -93,7 +91,7 @@ void Pipelines::createRenderPass(Resources& _resources) {
       .finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL};
 
   VkAttachmentDescription depthAttachment{
-      .format = _resources.findDepthFormat(),
+      .format = CE::Image::findDepthFormat(),
       .samples = _resources.msaaImage.sampleCount,
       .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
       .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,

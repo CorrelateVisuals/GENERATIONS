@@ -1,6 +1,7 @@
 #pragma once
 #include <vulkan/vulkan.h>
 
+#include <iostream>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -64,6 +65,7 @@ class CE {
     VkImageView view;
     VkSampler sampler;
     VkSampleCountFlagBits sampleCount;
+    VkFormat format;
 
     void create(const uint32_t width,
                 const uint32_t height,
@@ -73,17 +75,21 @@ class CE {
                 const VkImageUsageFlags& usage,
                 const VkMemoryPropertyFlags properties);
     void recreate() { this->~Image(); };
-    void createView(const VkFormat format,
-                    const VkImageAspectFlags aspectFlags);
+    void createView(const VkImageAspectFlags aspectFlags);
     void createSampler();
     void transitionLayout(const VkCommandBuffer& commandBuffer,
                           const VkFormat format,
                           const VkImageLayout oldLayout,
                           const VkImageLayout newLayout);
     void loadTexture(const std::string& imagePath,
+                     const VkFormat format,
                      VkCommandBuffer& commandBuffer,
                      const VkCommandPool& commandPool,
                      const VkQueue& queue);
+    static VkFormat findDepthFormat();
+    static VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates,
+                                        VkImageTiling tiling,
+                                        VkFormatFeatureFlags features);
   };
 
   class Descriptor {

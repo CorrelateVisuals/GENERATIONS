@@ -28,9 +28,10 @@ void Resources::setupResources(Pipelines& _pipelines) {
   Log::text(Log::Style::headerGuard);
   Log::text("{ /// }", "Setup Resources");
 
-  textureImage.loadTexture(Lib::path("assets/Avatar.PNG"), command.singleTime,
+  textureImage.loadTexture(Lib::path("assets/Avatar.PNG"),
+                           VK_FORMAT_R8G8B8A8_SRGB, command.singleTime,
                            command.pool, _mechanics.queues.graphics);
-  textureImage.createView(VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
+  textureImage.createView(VK_IMAGE_ASPECT_COLOR_BIT);
   textureImage.createSampler();
 
   createFramebuffers(_pipelines);
@@ -296,33 +297,6 @@ void Resources::createIndexBuffer(VkBuffer& buffer,
 
 void Resources::setPushConstants() {
   pushConstants.data = {world.time.passedHours};
-}
-
-VkFormat Resources::findDepthFormat() {
-  return findSupportedFormat(
-      {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT,
-       VK_FORMAT_D24_UNORM_S8_UINT},
-      VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
-}
-
-VkFormat Resources::findSupportedFormat(const std::vector<VkFormat>& candidates,
-                                        VkImageTiling tiling,
-                                        VkFormatFeatureFlags features) {
-  for (VkFormat format : candidates) {
-    VkFormatProperties props;
-    vkGetPhysicalDeviceFormatProperties(_mechanics.mainDevice.physical, format,
-                                        &props);
-
-    if (tiling == VK_IMAGE_TILING_LINEAR &&
-        (props.linearTilingFeatures & features) == features) {
-      return format;
-    } else if (tiling == VK_IMAGE_TILING_OPTIMAL &&
-               (props.optimalTilingFeatures & features) == features) {
-      return format;
-    }
-  }
-
-  throw std::runtime_error("\n!ERROR! failed to find supported format!");
 }
 
 void Resources::createDescriptorSets() {

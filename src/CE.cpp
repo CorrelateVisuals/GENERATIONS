@@ -151,6 +151,8 @@ void CE::Image::create(const uint32_t width,
   Log::text(Log::Style::charLeader, Log::getImageUsageString(usage));
   Log::text(Log::Style::charLeader, Log::getMemoryPropertyString(properties));
 
+  this->format = format;
+
   VkImageCreateInfo imageInfo{
       .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
       .pNext = nullptr,
@@ -185,15 +187,14 @@ void CE::Image::create(const uint32_t width,
   vkBindImageMemory(*Device::_logical, this->image, this->memory, 0);
 }
 
-void CE::Image::createView(const VkFormat format,
-                           const VkImageAspectFlags aspectFlags) {
+void CE::Image::createView(const VkImageAspectFlags aspectFlags) {
   Log::text("{ ... }", ":  Image View");
 
   VkImageViewCreateInfo viewInfo{
       .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
       .image = this->image,
       .viewType = VK_IMAGE_VIEW_TYPE_2D,
-      .format = format,
+      .format = this->format,
       .subresourceRange = {.aspectMask = aspectFlags,
                            .baseMipLevel = 0,
                            .levelCount = 1,
@@ -262,10 +263,14 @@ void CE::Image::transitionLayout(const VkCommandBuffer& commandBuffer,
 }
 
 void CE::Image::loadTexture(const std::string& imagePath,
+                            const VkFormat format,
                             VkCommandBuffer& commandBuffer,
                             const VkCommandPool& commandPool,
                             const VkQueue& queue) {
   Log::text("{ img }", "Image Texture: ", imagePath);
+
+  this->format = format;
+
   int texWidth{0}, texHeight{0}, texChannels{0};
   int rgba = 4;
   stbi_uc* pixels = stbi_load(imagePath.c_str(), &texWidth, &texHeight,
@@ -312,6 +317,30 @@ void CE::Image::loadTexture(const std::string& imagePath,
                          VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                          VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
   Commands::endSingularCommands(commandBuffer, commandPool, queue);
+}
+
+VkFormat CE::Image::findDepthFormat() {
+  return findSupportedFormat(
+      {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT,
+       VK_FORMAT_D24_UNORM_S8_UINT},
+      VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
+}
+VkFormat CE::Image::findSupportedFormat(const std::vector<VkFormat>& candidates,
+                                        VkImageTiling tiling,
+                                        VkFormatFeatureFlags features) {
+  for (VkFormat format : candidates) {
+    VkFormatProperties props;
+    vkGetPhysicalDeviceFormatProperties(*Device::_physical, format, &props);
+
+    if (tiling == VK_IMAGE_TILING_LINEAR &&
+        (props.linearTilingFeatures & features) == features) {
+      return format;
+    } else if (tiling == VK_IMAGE_TILING_OPTIMAL &&
+               (props.optimalTilingFeatures & features) == features) {
+      return format;
+    }
+  }
+  throw std::runtime_error("\n!ERROR! failed to find supported format!");
 }
 
 void CE::Image::createSampler() {

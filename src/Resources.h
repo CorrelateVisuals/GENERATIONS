@@ -87,10 +87,6 @@ class Resources {
                                   Pipelines& _pipelines);
   void updateUniformBuffer(uint32_t currentImage);
 
-  void createColorResources();
-  void createDepthResources();
-  VkFormat findDepthFormat();
-
  private:
   VulkanMechanics& _mechanics;
 
@@ -114,8 +110,4 @@ class Resources {
 
   void createShaderStorageBuffers();
   void createUniformBuffers();
-
-  VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates,
-                               VkImageTiling tiling,
-                               VkFormatFeatureFlags features);
 };
