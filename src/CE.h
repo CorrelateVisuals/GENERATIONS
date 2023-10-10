@@ -105,9 +105,10 @@ class CE {
                                         VkImageTiling tiling,
                                         VkFormatFeatureFlags features);
     void createColorResources(const VkExtent2D& dimensions,
-                              const VkFormat format);
+                              const VkFormat format, const VkSampleCountFlagBits samples);
     void createDepthResources(const VkExtent2D& dimensions,
-                              const VkFormat format);
+                              const VkFormat format,
+                              const VkSampleCountFlagBits samples);
   };
 
   class Descriptor {

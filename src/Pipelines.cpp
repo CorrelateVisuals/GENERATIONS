@@ -43,30 +43,12 @@ void Pipelines::setupPipelines(Resources& _resources) {
   _resources.createDescriptorSetLayout(_resources.descriptorSetLayoutBindings);
   createRenderPass(_resources);
 
-  //_resources.depthImage.createDepthResources(
-  //    _mechanics.swapChain.extent, CE::Image::findDepthFormat(),
-  //    _resources.depthImage.info.samples);
-  //_resources.msaaImage.createColorResources(_mechanics.swapChain.extent,
-  //                                          _mechanics.swapChain.imageFormat,
-  //                                          _resources.msaaImage.info.samples);
-
-  Log::text("{ []< }", "Color Resources ");
-  _resources.msaaImage.create(
-      _mechanics.swapChain.extent.width, _mechanics.swapChain.extent.height,
-      _resources.msaaImage.info.samples, _mechanics.swapChain.imageFormat,
-      VK_IMAGE_TILING_OPTIMAL,
-      VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT |
-      VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-  _resources.msaaImage.createView(VK_IMAGE_ASPECT_COLOR_BIT);
-
-  Log::text("{ []< }", "Depth Resources ");
-  _resources.depthImage.create(
-      _mechanics.swapChain.extent.width, _mechanics.swapChain.extent.height,
-      _resources.msaaImage.info.samples, CE::Image::findDepthFormat(),
-      VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
-      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-  _resources.depthImage.createView(VK_IMAGE_ASPECT_DEPTH_BIT);
+  _resources.msaaImage.createColorResources(_mechanics.swapChain.extent,
+                                            _mechanics.swapChain.imageFormat,
+                                            _resources.msaaImage.info.samples);
+  _resources.depthImage.createDepthResources(_mechanics.swapChain.extent,
+                                             CE::Image::findDepthFormat(),
+                                             _resources.msaaImage.info.samples);
 
   createGraphicsPipeline_Layout(_resources.descriptor);
 

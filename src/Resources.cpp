@@ -35,6 +35,7 @@ void Resources::setupResources(Pipelines& _pipelines) {
   textureImage.createSampler();
 
   createFramebuffers(_pipelines);
+
   createShaderStorageBuffers();
   createUniformBuffers();
 

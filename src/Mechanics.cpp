@@ -496,10 +496,13 @@ void VulkanMechanics::recreateSwapChain(Pipelines& _pipelines,
   cleanupSwapChain(_resources);
   createSwapChain();
 
-  _resources.depthImage.createDepthResources(swapChain.extent,
-                                             CE::Image::findDepthFormat());
   _resources.msaaImage.createColorResources(swapChain.extent,
-                                            swapChain.imageFormat);
+                                            swapChain.imageFormat,
+                                            _resources.msaaImage.info.samples);
+  _resources.depthImage.createDepthResources(swapChain.extent,
+                                             CE::Image::findDepthFormat(),
+                                             _resources.msaaImage.info.samples);
+
   _resources.createFramebuffers(_pipelines);
   _resources.createDescriptorSets();
 
