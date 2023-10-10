@@ -74,10 +74,8 @@ class CE {
                        const VkMemoryPropertyFlags properties,
                        VkImage& image,
                        VkDeviceMemory& memory);
-    static void recreate(){};
-    static void createView(const VkImage& image,
-                           VkImageView& imageView,
-                           const VkFormat format,
+    void recreate() { this->~Image(); };
+    void createView(const VkFormat format,
                            const VkImageAspectFlags aspectFlags);
     static void transitionLayout(const VkCommandBuffer commandBuffer,
                                  const VkImage image,

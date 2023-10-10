@@ -31,8 +31,7 @@ void Resources::setupResources(Pipelines& _pipelines) {
   CE::Image::loadTexture(Lib::path("assets/Avatar.PNG"), textureImage,
                          command.singleTime, command.pool,
                          _mechanics.queues.graphics);
-  CE::Image::createView(textureImage.image, textureImage.view,
-                        VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
+  textureImage.createView(VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
   CE::Image::createSampler(textureImage.sampler);
 
   createFramebuffers(_pipelines);
@@ -51,17 +50,15 @@ void Resources::setupResources(Pipelines& _pipelines) {
 }
 
 void Resources::createFramebuffers(Pipelines& _pipelines) {
-  Log::text("{ 101 }",
-            "Frame Buffers:", _mechanics.swapChain.imageViews.size());
+  Log::text("{ 101 }", "Frame Buffers:", _mechanics.swapChain.images.size());
 
-  _mechanics.swapChain.framebuffers.resize(
-      _mechanics.swapChain.imageViews.size());
+  _mechanics.swapChain.framebuffers.resize(_mechanics.swapChain.images.size());
 
   Log::text(Log::Style::charLeader,
             "attachments: msaaImage., depthImage, swapChain imageViews");
-  for (size_t i = 0; i < _mechanics.swapChain.imageViews.size(); i++) {
+  for (size_t i = 0; i < _mechanics.swapChain.images.size(); i++) {
     std::vector<VkImageView> attachments{msaaImage.view, depthImage.view,
-                                         _mechanics.swapChain.imageViews[i]};
+                                         _mechanics.swapChain.images[i].view};
 
     VkFramebufferCreateInfo framebufferInfo{
         .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
@@ -355,7 +352,7 @@ void Resources::createDescriptorSets() {
 
     VkDescriptorImageInfo swapchainImageInfo{
         .sampler = VK_NULL_HANDLE,
-        .imageView = _mechanics.swapChain.imageViews[i],
+        .imageView = _mechanics.swapChain.images[i].view,
         .imageLayout = VK_IMAGE_LAYOUT_GENERAL};
 
     std::vector<VkWriteDescriptorSet> descriptorWrites{
@@ -552,7 +549,7 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
 
   CE::Image::transitionLayout(
       commandBuffer,
-      _mechanics.swapChain.images[_mechanics.syncObjects.currentFrame],
+      _mechanics.swapChain.images[_mechanics.syncObjects.currentFrame].image,
       VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
       /* -> */ VK_IMAGE_LAYOUT_GENERAL);
 
@@ -579,7 +576,7 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
 
   CE::Image::transitionLayout(
       commandBuffer,
-      _mechanics.swapChain.images[_mechanics.syncObjects.currentFrame],
+      _mechanics.swapChain.images[_mechanics.syncObjects.currentFrame].image,
       VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_GENERAL,
       /* -> */ VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
@@ -598,8 +595,7 @@ void Resources::createDepthResources() {
       msaaImage.sampleCount, depthFormat, VK_IMAGE_TILING_OPTIMAL,
       VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, depthImage.image, depthImage.memory);
-  CE::Image::createView(depthImage.image, depthImage.view, depthFormat,
-                        VK_IMAGE_ASPECT_DEPTH_BIT);
+  depthImage.createView(depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
 }
 
 void Resources::createColorResources() {
@@ -615,8 +611,7 @@ void Resources::createColorResources() {
       VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT |
           VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, msaaImage.image, msaaImage.memory);
-  CE::Image::createView(msaaImage.image, msaaImage.view, colorFormat,
-                        VK_IMAGE_ASPECT_COLOR_BIT);
+  msaaImage.createView(colorFormat, VK_IMAGE_ASPECT_COLOR_BIT);
 }
 
 Resources::Uniform::Uniform() {

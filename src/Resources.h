@@ -28,16 +28,6 @@ class Resources {
   struct DepthImage : public CE::Image {
   } depthImage;
   struct MultiSamplingImage : public CE::Image {
-    // MultiSamplingImage(VkFormat format, VkExtent2D extent) {
-    //   create(extent.width, extent.height, this->sampleCount, format,
-    //          VK_IMAGE_TILING_OPTIMAL,
-    //          VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT |
-    //              VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-    //          VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, this->image, this->memory);
-    //   this->view =
-    //       CE::Image::createView(this->image, format,
-    //       VK_IMAGE_ASPECT_COLOR_BIT);
-    // };
   } msaaImage;
   struct Texture : public CE::Image {
   } textureImage;

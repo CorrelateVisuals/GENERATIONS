@@ -18,7 +18,7 @@ VulkanMechanics::VulkanMechanics()
              VK_NULL_HANDLE,
              VK_NULL_HANDLE,
              {std::nullopt, std::nullopt}},
-      swapChain{VK_NULL_HANDLE, {}, VK_FORMAT_UNDEFINED, {}, {0, 0}, {}, {}} {
+      swapChain{VK_NULL_HANDLE, {}, VK_FORMAT_UNDEFINED, {}, {0, 0}, {}} {
   Log::text("{ Vk. }", "constructing Vulkan Mechanics");
 }
 
@@ -369,12 +369,12 @@ void VulkanMechanics::createSyncObjects() {
 }
 
 void VulkanMechanics::cleanupSwapChain(Resources& _resources) {
-  for (auto framebuffer : swapChain.framebuffers) {
+  for (auto& framebuffer : swapChain.framebuffers) {
     vkDestroyFramebuffer(mainDevice.logical, framebuffer, nullptr);
   }
 
-  for (auto view : swapChain.imageViews) {
-    vkDestroyImageView(mainDevice.logical, view, nullptr);
+  for (auto& image : swapChain.images) {
+    vkDestroyImageView(mainDevice.logical, image.view, nullptr);
   }
 
   vkDestroySwapchainKHR(mainDevice.logical, swapChain.swapChain, nullptr);
@@ -454,8 +454,13 @@ void VulkanMechanics::createSwapChain() {
                           nullptr);
   swapChain.images.resize(imageCount);
 
+  std::vector<VkImage> swapChainImages(MAX_FRAMES_IN_FLIGHT);
   vkGetSwapchainImagesKHR(mainDevice.logical, swapChain.swapChain, &imageCount,
-                          swapChain.images.data());
+                          swapChainImages.data());
+
+  for (size_t i = 0; i < imageCount; i++) {
+    swapChain.images[i].image = swapChainImages[i];
+  };
 
   swapChain.imageFormat = surfaceFormat.format;
   swapChain.extent = extent;
@@ -463,12 +468,9 @@ void VulkanMechanics::createSwapChain() {
 
 void VulkanMechanics::createSwapChainImageViews(Resources& resources) {
   Log::text("{ <-> }", swapChain.images.size(), "Swap Chain Image Views");
-
-  swapChain.imageViews.resize(swapChain.images.size());
-
   for (size_t i = 0; i < swapChain.images.size(); i++) {
-    CE::Image::createView(swapChain.images[i], swapChain.imageViews[i],
-                          swapChain.imageFormat, VK_IMAGE_ASPECT_COLOR_BIT);
+    swapChain.images[i].createView(swapChain.imageFormat,
+                                   VK_IMAGE_ASPECT_COLOR_BIT);
   }
 }
 
@@ -506,7 +508,7 @@ void VulkanMechanics::recreateSwapChain(Pipelines& _pipelines,
 
   //_resources.createColorResources();
 
-  _resources.msaaImage.~MultiSamplingImage();
+  _resources.msaaImage.recreate();
   CE::Image::create(swapChain.extent.width, swapChain.extent.height,
                     _resources.msaaImage.sampleCount, swapChain.imageFormat,
                     VK_IMAGE_TILING_OPTIMAL,
@@ -514,8 +516,8 @@ void VulkanMechanics::recreateSwapChain(Pipelines& _pipelines,
                         VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
                     VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
                     _resources.msaaImage.image, _resources.msaaImage.memory);
-  CE::Image::createView(_resources.msaaImage.image, _resources.msaaImage.view,
-                        swapChain.imageFormat, VK_IMAGE_ASPECT_COLOR_BIT);
+  _resources.msaaImage.createView(swapChain.imageFormat,
+                                  VK_IMAGE_ASPECT_COLOR_BIT);
 
   _resources.createFramebuffers(_pipelines);
 

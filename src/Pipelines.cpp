@@ -51,9 +51,8 @@ void Pipelines::setupPipelines(Resources& _resources) {
                         VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
                     VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
                     _resources.msaaImage.image, _resources.msaaImage.memory);
-  CE::Image::createView(_resources.msaaImage.image, _resources.msaaImage.view,
-                        _mechanics.swapChain.imageFormat,
-                        VK_IMAGE_ASPECT_COLOR_BIT);
+  _resources.msaaImage.createView(_mechanics.swapChain.imageFormat,
+                                  VK_IMAGE_ASPECT_COLOR_BIT);
 
   //_resources.createColorResources();
   _resources.createDepthResources();

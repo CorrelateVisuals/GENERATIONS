@@ -119,21 +119,23 @@ CE::Image::Image()
       sampleCount{VK_SAMPLE_COUNT_1_BIT} {}
 
 CE::Image::~Image() {
-  if (sampler != VK_NULL_HANDLE) {
-    vkDestroySampler(*Device::_logical, sampler, nullptr);
-    sampler = VK_NULL_HANDLE;
-  };
-  if (view != VK_NULL_HANDLE) {
-    vkDestroyImageView(*Device::_logical, view, nullptr);
-    view = VK_NULL_HANDLE;
-  };
-  if (image != VK_NULL_HANDLE) {
-    vkDestroyImage(*Device::_logical, image, nullptr);
-    image = VK_NULL_HANDLE;
-  };
-  if (memory != VK_NULL_HANDLE) {
-    vkFreeMemory(*Device::_logical, memory, nullptr);
-    memory = VK_NULL_HANDLE;
+  if (*Device::_logical != VK_NULL_HANDLE) {
+    if (sampler != VK_NULL_HANDLE) {
+      vkDestroySampler(*Device::_logical, sampler, nullptr);
+      sampler = VK_NULL_HANDLE;
+    };
+    if (view != VK_NULL_HANDLE) {
+      vkDestroyImageView(*Device::_logical, view, nullptr);
+      view = VK_NULL_HANDLE;
+    };
+    if (image != VK_NULL_HANDLE) {
+      vkDestroyImage(*Device::_logical, image, nullptr);
+      image = VK_NULL_HANDLE;
+    };
+    if (memory != VK_NULL_HANDLE) {
+      vkFreeMemory(*Device::_logical, memory, nullptr);
+      memory = VK_NULL_HANDLE;
+    };
   };
 }
 
@@ -184,15 +186,13 @@ void CE::Image::create(const uint32_t width,
   vkBindImageMemory(*Device::_logical, image, memory, 0);
 }
 
-void CE::Image::createView(const VkImage& image,
-                           VkImageView& imageView,
-                           const VkFormat format,
+void CE::Image::createView(const VkFormat format,
                            const VkImageAspectFlags aspectFlags) {
   Log::text("{ ... }", ":  Image View");
 
   VkImageViewCreateInfo viewInfo{
       .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-      .image = image,
+      .image = this->image,
       .viewType = VK_IMAGE_VIEW_TYPE_2D,
       .format = format,
       .subresourceRange = {.aspectMask = aspectFlags,
@@ -202,7 +202,7 @@ void CE::Image::createView(const VkImage& image,
                            .layerCount = 1}};
 
   vulkanResult(vkCreateImageView, *Device::_logical, &viewInfo, nullptr,
-               &imageView);
+               &this->view);
   return;
 }
 
