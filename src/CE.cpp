@@ -7,9 +7,6 @@
 VkPhysicalDevice* CE::Device::_physical = VK_NULL_HANDLE;
 VkDevice* CE::Device::_logical = VK_NULL_HANDLE;
 
-// VkCommandPool CE::CommandBuffer::commandPool = VK_NULL_HANDLE;
-// VkCommandBuffer CE::CommandBuffer::commandBuffer = VK_NULL_HANDLE;
-
 void CE::Device::linkDevice(VkDevice* logicalDevice,
                             VkPhysicalDevice* physicalDevice) {
   Device::_physical = physicalDevice;
@@ -111,12 +108,7 @@ void CE::Buffer::copyToImage(const VkBuffer buffer,
   CE::Commands::endSingularCommands(commandBuffer, commandPool, queue);
 }
 
-CE::Image::Image()
-    : image{},
-      memory{},
-      view{},
-      sampler{},
-      sampleCount{VK_SAMPLE_COUNT_1_BIT} {}
+CE::Image::Image() : image{}, memory{}, view{}, sampler{} {}
 
 CE::Image::~Image() {
   if (*Device::_logical != VK_NULL_HANDLE) {
@@ -151,26 +143,15 @@ void CE::Image::create(const uint32_t width,
   Log::text(Log::Style::charLeader, Log::getImageUsageString(usage));
   Log::text(Log::Style::charLeader, Log::getMemoryPropertyString(properties));
 
-  this->format = format;
+  info.format = format;
+  info.extent = {.width = width, .height = height, .depth = 1};
+  info.mipLevels = 1;
+  info.arrayLayers = 1;
+  info.samples = numSamples;
+  info.tiling = tiling;
+  info.usage = usage;
 
-  VkImageCreateInfo imageInfo{
-      .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
-      .pNext = nullptr,
-      .flags = 0,
-      .imageType = VK_IMAGE_TYPE_2D,
-      .format = format,
-      .extent = {.width = width, .height = height, .depth = 1},
-      .mipLevels = 1,
-      .arrayLayers = 1,
-      .samples = numSamples,
-      .tiling = tiling,
-      .usage = usage,
-      .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-      .queueFamilyIndexCount = 0,
-      .pQueueFamilyIndices = nullptr,
-      .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED};
-
-  vulkanResult(vkCreateImage, *Device::_logical, &imageInfo, nullptr, &image);
+  vulkanResult(vkCreateImage, *Device::_logical, &info, nullptr, &image);
 
   VkMemoryRequirements memRequirements;
   vkGetImageMemoryRequirements(*Device::_logical, this->image,
@@ -194,7 +175,7 @@ void CE::Image::createView(const VkImageAspectFlags aspectFlags) {
       .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
       .image = this->image,
       .viewType = VK_IMAGE_VIEW_TYPE_2D,
-      .format = this->format,
+      .format = info.format,
       .subresourceRange = {.aspectMask = aspectFlags,
                            .baseMipLevel = 0,
                            .levelCount = 1,
@@ -269,8 +250,6 @@ void CE::Image::loadTexture(const std::string& imagePath,
                             const VkQueue& queue) {
   Log::text("{ img }", "Image Texture: ", imagePath);
 
-  this->format = format;
-
   int texWidth{0}, texHeight{0}, texChannels{0};
   int rgba = 4;
   stbi_uc* pixels = stbi_load(imagePath.c_str(), &texWidth, &texHeight,
@@ -297,8 +276,8 @@ void CE::Image::loadTexture(const std::string& imagePath,
   vkUnmapMemory(*Device::_logical, stagingResources.memory);
   stbi_image_free(pixels);
 
-  this->create(texWidth, texHeight, VK_SAMPLE_COUNT_1_BIT,
-               VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL,
+  this->create(texWidth, texHeight, VK_SAMPLE_COUNT_1_BIT, format,
+               VK_IMAGE_TILING_OPTIMAL,
                VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 

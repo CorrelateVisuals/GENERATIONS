@@ -127,7 +127,7 @@ void VulkanMechanics::pickPhysicalDevice(
   for (const auto& device : devices) {
     if (isDeviceSuitable(device)) {
       mainDevice.physical = device;
-      msaaImage.sampleCount = getMaxUsableSampleCount();
+      msaaImage.info.samples = getMaxUsableSampleCount();
       break;
     }
   }
@@ -462,7 +462,7 @@ void VulkanMechanics::createSwapChain() {
 
   for (size_t i = 0; i < imageCount; i++) {
     swapChain.images[i].image = swapChainImages[i];
-    swapChain.images[i].format = swapChain.imageFormat;
+    swapChain.images[i].info.format = swapChain.imageFormat;
     swapChain.images[i].createView(VK_IMAGE_ASPECT_COLOR_BIT);
   };
 }
@@ -500,7 +500,7 @@ void VulkanMechanics::recreateSwapChain(Pipelines& _pipelines,
   _resources.depthImage.recreate();
   _resources.depthImage.create(
       swapChain.extent.width, swapChain.extent.height,
-      _resources.msaaImage.sampleCount, CE::Image::findDepthFormat(),
+      _resources.msaaImage.info.samples, CE::Image::findDepthFormat(),
       VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
   _resources.depthImage.createView(VK_IMAGE_ASPECT_DEPTH_BIT);
@@ -508,7 +508,7 @@ void VulkanMechanics::recreateSwapChain(Pipelines& _pipelines,
   Log::text("{ []< }", "Recreate Color Resources ");
   _resources.msaaImage.recreate();
   _resources.msaaImage.create(swapChain.extent.width, swapChain.extent.height,
-                              _resources.msaaImage.sampleCount,
+                              _resources.msaaImage.info.samples,
                               swapChain.imageFormat, VK_IMAGE_TILING_OPTIMAL,
                               VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT |
                                   VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,

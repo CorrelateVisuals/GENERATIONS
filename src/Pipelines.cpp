@@ -46,7 +46,7 @@ void Pipelines::setupPipelines(Resources& _resources) {
   Log::text("{ []< }", "Color Resources ");
   _resources.msaaImage.create(
       _mechanics.swapChain.extent.width, _mechanics.swapChain.extent.height,
-      _resources.msaaImage.sampleCount, _mechanics.swapChain.imageFormat,
+      _resources.msaaImage.info.samples, _mechanics.swapChain.imageFormat,
       VK_IMAGE_TILING_OPTIMAL,
       VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT |
           VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
@@ -56,18 +56,18 @@ void Pipelines::setupPipelines(Resources& _resources) {
   Log::text("{ []< }", "Depth Resources ");
   _resources.depthImage.create(
       _mechanics.swapChain.extent.width, _mechanics.swapChain.extent.height,
-      _resources.msaaImage.sampleCount, CE::Image::findDepthFormat(),
+      _resources.msaaImage.info.samples, CE::Image::findDepthFormat(),
       VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
   _resources.depthImage.createView(VK_IMAGE_ASPECT_DEPTH_BIT);
 
   createGraphicsPipeline_Layout(_resources.descriptor);
 
-  createGraphicsPipeline_Cells(_resources.msaaImage.sampleCount);
-  createGraphicsPipeline_Landscape(_resources.msaaImage.sampleCount);
-  createGraphicsPipeline_LandscapeWireframe(_resources.msaaImage.sampleCount);
-  createGraphicsPipeline_Water(_resources.msaaImage.sampleCount);
-  createGraphicsPipeline_Texture(_resources.msaaImage.sampleCount);
+  createGraphicsPipeline_Cells(_resources.msaaImage.info.samples);
+  createGraphicsPipeline_Landscape(_resources.msaaImage.info.samples);
+  createGraphicsPipeline_LandscapeWireframe(_resources.msaaImage.info.samples);
+  createGraphicsPipeline_Water(_resources.msaaImage.info.samples);
+  createGraphicsPipeline_Texture(_resources.msaaImage.info.samples);
 
   createComputePipeline_Layout(_resources.descriptor, _resources.pushConstants);
 
@@ -82,7 +82,7 @@ void Pipelines::createRenderPass(Resources& _resources) {
 
   VkAttachmentDescription colorAttachment{
       .format = _mechanics.swapChain.imageFormat,
-      .samples = _resources.msaaImage.sampleCount,
+      .samples = _resources.msaaImage.info.samples,
       .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
       .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
       .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
@@ -92,7 +92,7 @@ void Pipelines::createRenderPass(Resources& _resources) {
 
   VkAttachmentDescription depthAttachment{
       .format = CE::Image::findDepthFormat(),
-      .samples = _resources.msaaImage.sampleCount,
+      .samples = _resources.msaaImage.info.samples,
       .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
       .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
       .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
