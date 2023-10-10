@@ -29,7 +29,7 @@ void Resources::setupResources(Pipelines& _pipelines) {
   Log::text("{ /// }", "Setup Resources");
 
   textureImage.loadTexture(Lib::path("assets/Avatar.PNG"),
-                           VK_FORMAT_R8G8B8A8_SRGB, command.singleTime,
+                           VK_FORMAT_R8G8B8A8_SRGB, command.commandBuffer,
                            command.pool, _mechanics.queues.graphics);
   textureImage.createView(VK_IMAGE_ASPECT_COLOR_BIT);
   textureImage.createSampler();
@@ -45,8 +45,9 @@ void Resources::setupResources(Pipelines& _pipelines) {
   allocateDescriptorSets();
   createDescriptorSets();
 
-  createGraphicsCommandBuffers();
-  createComputeCommandBuffers();
+  createCommandBuffers(command.graphics, MAX_FRAMES_IN_FLIGHT);
+  createCommandBuffers(command.compute, MAX_FRAMES_IN_FLIGHT);
+
   _mechanics.createSyncObjects();
 }
 
@@ -74,36 +75,6 @@ void Resources::createFramebuffers(Pipelines& _pipelines) {
                      &framebufferInfo, nullptr,
                      &_mechanics.swapChain.framebuffers[i]);
   }
-}
-
-void Resources::createGraphicsCommandBuffers() {
-  Log::text("{ cmd }", "Command Buffers");
-
-  command.graphics.resize(MAX_FRAMES_IN_FLIGHT);
-
-  VkCommandBufferAllocateInfo allocateInfo{
-      .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-      .commandPool = command.pool,
-      .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-      .commandBufferCount = static_cast<uint32_t>(command.graphics.size())};
-
-  CE::vulkanResult(vkAllocateCommandBuffers, _mechanics.mainDevice.logical,
-                   &allocateInfo, command.graphics.data());
-}
-
-void Resources::createComputeCommandBuffers() {
-  Log::text("{ cmd }", "Compute Command Buffers");
-
-  command.compute.resize(MAX_FRAMES_IN_FLIGHT);
-
-  VkCommandBufferAllocateInfo allocateInfo{
-      .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-      .commandPool = command.pool,
-      .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-      .commandBufferCount = static_cast<uint32_t>(command.compute.size())};
-
-  CE::vulkanResult(vkAllocateCommandBuffers, _mechanics.mainDevice.logical,
-                   &allocateInfo, command.compute.data());
 }
 
 void Resources::createShaderStorageBuffers() {
@@ -134,7 +105,7 @@ void Resources::createShaderStorageBuffers() {
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, shaderStorage.bufferIn.buffer,
       shaderStorage.bufferIn.memory);
   CE::Buffer::copy(stagingResources.buffer, shaderStorage.bufferIn.buffer,
-                   bufferSize, command.singleTime, command.pool,
+                   bufferSize, command.commandBuffer, command.pool,
                    _mechanics.queues.graphics);
 
   CE::Buffer::create(
@@ -144,7 +115,7 @@ void Resources::createShaderStorageBuffers() {
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, shaderStorage.bufferOut.buffer,
       shaderStorage.bufferOut.memory);
   CE::Buffer::copy(stagingResources.buffer, shaderStorage.bufferOut.buffer,
-                   bufferSize, command.singleTime, command.pool,
+                   bufferSize, command.commandBuffer, command.pool,
                    _mechanics.queues.graphics);
 }
 
@@ -222,6 +193,22 @@ void Resources::allocateDescriptorSets() {
                    &allocateInfo, descriptor.sets.data());
 }
 
+void Resources::createCommandBuffers(
+    std::vector<VkCommandBuffer>& commandBuffers,
+    const int size) {
+  Log::text("{ cmd }", "Command Buffers:", size);
+
+  commandBuffers.resize(size);
+  VkCommandBufferAllocateInfo allocateInfo{
+      .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+      .commandPool = command.pool,
+      .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+      .commandBufferCount = static_cast<uint32_t>(commandBuffers.size())};
+
+  CE::vulkanResult(vkAllocateCommandBuffers, _mechanics.mainDevice.logical,
+                   &allocateInfo, commandBuffers.data());
+}
+
 void Resources::createVertexBuffers(
     const std::unordered_map<Geometry*, VkVertexInputRate>& buffers) {
   for (const auto& resource : buffers) {
@@ -265,7 +252,7 @@ void Resources::createVertexBuffer(VkBuffer& buffer,
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, buffer, bufferMemory);
 
   CE::Buffer::copy(stagingResources.buffer, buffer, bufferSize,
-                   command.singleTime, command.pool,
+                   command.commandBuffer, command.pool,
                    _mechanics.queues.graphics);
 }
 
@@ -292,7 +279,7 @@ void Resources::createIndexBuffer(VkBuffer& buffer,
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, buffer, bufferMemory);
 
   CE::Buffer::copy(stagingResources.buffer, buffer, bufferSize,
-                   command.singleTime, command.pool,
+                   command.commandBuffer, command.pool,
                    _mechanics.queues.graphics);
 }
 

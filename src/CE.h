@@ -18,11 +18,12 @@ class CE {
 
   class Commands {
    public:
-    static void beginSingularCommands(VkCommandBuffer& commandBuffer,
-                                      const VkCommandPool& commandPool,
+    static VkCommandPool pool;
+    static VkCommandBuffer commandBuffer;
+
+    static void beginSingularCommands(const VkCommandPool& commandPool,
                                       const VkQueue& queue);
-    static void endSingularCommands(const VkCommandBuffer& commandBuffer,
-                                    const VkCommandPool& commandPool,
+    static void endSingularCommands(const VkCommandPool& commandPool,
                                     const VkQueue& queue);
   };
 
@@ -105,7 +106,8 @@ class CE {
                                         VkImageTiling tiling,
                                         VkFormatFeatureFlags features);
     void createColorResources(const VkExtent2D& dimensions,
-                              const VkFormat format, const VkSampleCountFlagBits samples);
+                              const VkFormat format,
+                              const VkSampleCountFlagBits samples);
     void createDepthResources(const VkExtent2D& dimensions,
                               const VkFormat format,
                               const VkSampleCountFlagBits samples);

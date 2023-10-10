@@ -62,9 +62,7 @@ class Resources {
     std::array<uint64_t, 32> data;
   } pushConstants;
 
-  struct CommandBuffers {
-    VkCommandPool pool;
-    VkCommandBuffer singleTime;
+  struct CommandBuffers : public CE::Commands {
     std::vector<VkCommandBuffer> graphics;
     std::vector<VkCommandBuffer> compute;
   } command;
@@ -75,6 +73,7 @@ class Resources {
  public:
   void setupResources(Pipelines& _pipelines);
   void createFramebuffers(Pipelines& _pipelines);
+  void updateUniformBuffer(uint32_t currentImage);
 
   void createDescriptorSetLayout(
       const std::vector<VkDescriptorSetLayoutBinding>& layoutBindings);
@@ -85,29 +84,25 @@ class Resources {
                                    Pipelines& _pipelines);
   void recordComputeCommandBuffer(VkCommandBuffer commandBuffer,
                                   Pipelines& _pipelines);
-  void updateUniformBuffer(uint32_t currentImage);
 
  private:
   VulkanMechanics& _mechanics;
 
+  void createDescriptorPool();
+  void allocateDescriptorSets();
+
+  void createCommandBuffers(std::vector<VkCommandBuffer>& commandBuffers,
+                            const int size);
+
   void createVertexBuffers(
       const std::unordered_map<Geometry*, VkVertexInputRate>& buffers);
-
   void createVertexBuffer(VkBuffer& buffer,
                           VkDeviceMemory& bufferMemory,
                           const auto& vertices);
   void createIndexBuffer(VkBuffer& buffer,
                          VkDeviceMemory& bufferMemory,
                          const auto& indices);
-
-  void setPushConstants();
-
-  void createGraphicsCommandBuffers();
-  void createComputeCommandBuffers();
-
-  void createDescriptorPool();
-  void allocateDescriptorSets();
-
   void createShaderStorageBuffers();
   void createUniformBuffers();
+  void setPushConstants();
 };

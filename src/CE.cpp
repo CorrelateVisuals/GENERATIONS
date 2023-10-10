@@ -6,6 +6,8 @@
 
 VkPhysicalDevice* CE::Device::_physical = VK_NULL_HANDLE;
 VkDevice* CE::Device::_logical = VK_NULL_HANDLE;
+VkCommandBuffer CE::Commands::commandBuffer = VK_NULL_HANDLE;
+VkCommandPool CE::Commands::pool = VK_NULL_HANDLE;
 
 void CE::Device::linkDevice(VkDevice* logicalDevice,
                             VkPhysicalDevice* physicalDevice) {
@@ -77,10 +79,10 @@ void CE::Buffer::copy(const VkBuffer& srcBuffer,
                       const VkQueue& queue) {
   Log::text("{ ... }", "copying", size, "bytes");
 
-  CE::Commands::beginSingularCommands(commandBuffer, commandPool, queue);
+  CE::Commands::beginSingularCommands(commandPool, queue);
   VkBufferCopy copyRegion{.size = size};
   vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
-  CE::Commands::endSingularCommands(commandBuffer, commandPool, queue);
+  CE::Commands::endSingularCommands(commandPool, queue);
 }
 
 void CE::Buffer::copyToImage(const VkBuffer buffer,
@@ -92,7 +94,7 @@ void CE::Buffer::copyToImage(const VkBuffer buffer,
                              const VkQueue& queue) {
   Log::text("{ >>> }", "Buffer To Image", width, height);
 
-  CE::Commands::beginSingularCommands(commandBuffer, commandPool, queue);
+  CE::Commands::beginSingularCommands(commandPool, queue);
   VkBufferImageCopy region{.bufferOffset = 0,
                            .bufferRowLength = 0,
                            .bufferImageHeight = 0,
@@ -105,7 +107,7 @@ void CE::Buffer::copyToImage(const VkBuffer buffer,
 
   vkCmdCopyBufferToImage(commandBuffer, buffer, image,
                          VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
-  CE::Commands::endSingularCommands(commandBuffer, commandPool, queue);
+  CE::Commands::endSingularCommands(commandPool, queue);
 }
 
 CE::Image::Image() : image{}, memory{}, view{}, sampler{} {}
@@ -285,21 +287,21 @@ void CE::Image::loadTexture(const std::string& imagePath,
                VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-  Commands::beginSingularCommands(commandBuffer, commandPool, queue);
+  Commands::beginSingularCommands(commandPool, queue);
   this->transitionLayout(commandBuffer, VK_FORMAT_R8G8B8A8_SRGB,
                          VK_IMAGE_LAYOUT_UNDEFINED,
                          VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-  Commands::endSingularCommands(commandBuffer, commandPool, queue);
+  Commands::endSingularCommands(commandPool, queue);
 
   Buffer::copyToImage(
       stagingResources.buffer, this->image, static_cast<uint32_t>(texWidth),
       static_cast<uint32_t>(texHeight), commandBuffer, commandPool, queue);
 
-  Commands::beginSingularCommands(commandBuffer, commandPool, queue);
+  Commands::beginSingularCommands(commandPool, queue);
   this->transitionLayout(commandBuffer, VK_FORMAT_R8G8B8A8_SRGB,
                          VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                          VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-  Commands::endSingularCommands(commandBuffer, commandPool, queue);
+  Commands::endSingularCommands(commandPool, queue);
 }
 
 VkFormat CE::Image::findDepthFormat() {
@@ -467,8 +469,7 @@ CE::Descriptor::~Descriptor() {
 //     nullptr, commandPool);
 //}
 
-void CE::Commands::beginSingularCommands(VkCommandBuffer& commandBuffer,
-                                         const VkCommandPool& commandPool,
+void CE::Commands::beginSingularCommands(const VkCommandPool& commandPool,
                                          const VkQueue& queue) {
   Log::text("{ 1.. }", "Begin Single Time Commands");
 
@@ -489,8 +490,7 @@ void CE::Commands::beginSingularCommands(VkCommandBuffer& commandBuffer,
   return;
 }
 
-void CE::Commands::endSingularCommands(const VkCommandBuffer& commandBuffer,
-                                       const VkCommandPool& commandPool,
+void CE::Commands::endSingularCommands(const VkCommandPool& commandPool,
                                        const VkQueue& queue) {
   Log::text("{ ..1 }", "End Single Time Commands");
 
