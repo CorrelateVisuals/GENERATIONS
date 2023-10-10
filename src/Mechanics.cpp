@@ -59,7 +59,6 @@ void VulkanMechanics::setupVulkan(Pipelines& _pipelines,
   createLogicalDevice();
 
   createSwapChain();
-  createSwapChainImageViews(_resources);
 
   createCommandPool(&_resources.command.pool);
 }
@@ -452,25 +451,20 @@ void VulkanMechanics::createSwapChain() {
 
   vkGetSwapchainImagesKHR(mainDevice.logical, swapChain.swapChain, &imageCount,
                           nullptr);
+
   swapChain.images.resize(imageCount);
+  swapChain.imageFormat = surfaceFormat.format;
+  swapChain.extent = extent;
 
   std::vector<VkImage> swapChainImages(MAX_FRAMES_IN_FLIGHT);
   vkGetSwapchainImagesKHR(mainDevice.logical, swapChain.swapChain, &imageCount,
                           swapChainImages.data());
+
   for (size_t i = 0; i < imageCount; i++) {
     swapChain.images[i].image = swapChainImages[i];
-  };
-
-  swapChain.imageFormat = surfaceFormat.format;
-  swapChain.extent = extent;
-}
-
-void VulkanMechanics::createSwapChainImageViews(Resources& resources) {
-  Log::text("{ <-> }", swapChain.images.size(), "Swap Chain Image Views");
-  for (size_t i = 0; i < swapChain.images.size(); i++) {
     swapChain.images[i].createView(swapChain.imageFormat,
                                    VK_IMAGE_ASPECT_COLOR_BIT);
-  }
+  };
 }
 
 void VulkanMechanics::createCommandPool(VkCommandPool* commandPool) {
@@ -501,11 +495,8 @@ void VulkanMechanics::recreateSwapChain(Pipelines& _pipelines,
 
   cleanupSwapChain(_resources);
   createSwapChain();
-  createSwapChainImageViews(_resources);
 
   _resources.createDepthResources();
-
-  //_resources.createColorResources();
 
   _resources.msaaImage.recreate();
   CE::Image::create(swapChain.extent.width, swapChain.extent.height,

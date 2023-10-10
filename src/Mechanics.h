@@ -87,7 +87,6 @@ class VulkanMechanics {
   void pickPhysicalDevice(Resources::MultiSamplingImage& msaaImage);
   void createLogicalDevice();
   void createSwapChain();
-  void createSwapChainImageViews(Resources& resources);
   void createCommandPool(VkCommandPool* commandPool);
 
   std::vector<const char*> getRequiredExtensions();
