@@ -580,37 +580,6 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
   CE::vulkanResult(vkEndCommandBuffer, commandBuffer);
 }
 
-void Resources::createDepthResources() {
-  Log::text("{ []< }", "Depth Resources ");
-
-  depthImage.~DepthImage();  // to make RAII
-
-  VkFormat depthFormat = findDepthFormat();
-
-  CE::Image::create(
-      _mechanics.swapChain.extent.width, _mechanics.swapChain.extent.height,
-      msaaImage.sampleCount, depthFormat, VK_IMAGE_TILING_OPTIMAL,
-      VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
-      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, depthImage.image, depthImage.memory);
-  depthImage.createView(depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
-}
-
-void Resources::createColorResources() {
-  Log::text("{ []< }", "Color Resources ");
-
-  msaaImage.~MultiSamplingImage();  // to make RAII
-
-  VkFormat colorFormat = _mechanics.swapChain.imageFormat;
-
-  CE::Image::create(
-      _mechanics.swapChain.extent.width, _mechanics.swapChain.extent.height,
-      msaaImage.sampleCount, colorFormat, VK_IMAGE_TILING_OPTIMAL,
-      VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT |
-          VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, msaaImage.image, msaaImage.memory);
-  msaaImage.createView(colorFormat, VK_IMAGE_ASPECT_COLOR_BIT);
-}
-
 Resources::Uniform::Uniform() {
   layoutBinding.binding = 0;
   layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;

@@ -65,15 +65,13 @@ class CE {
     VkSampler sampler;
     VkSampleCountFlagBits sampleCount;
 
-    static void create(const uint32_t width,
-                       const uint32_t height,
-                       const VkSampleCountFlagBits numSamples,
-                       const VkFormat format,
-                       const VkImageTiling tiling,
-                       const VkImageUsageFlags& usage,
-                       const VkMemoryPropertyFlags properties,
-                       VkImage& image,
-                       VkDeviceMemory& memory);
+    void create(const uint32_t width,
+                const uint32_t height,
+                const VkSampleCountFlagBits numSamples,
+                const VkFormat format,
+                const VkImageTiling tiling,
+                const VkImageUsageFlags& usage,
+                const VkMemoryPropertyFlags properties);
     void recreate() { this->~Image(); };
     void createView(const VkFormat format,
                     const VkImageAspectFlags aspectFlags);

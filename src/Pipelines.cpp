@@ -43,19 +43,25 @@ void Pipelines::setupPipelines(Resources& _resources) {
   _resources.createDescriptorSetLayout(_resources.descriptorSetLayoutBindings);
   createRenderPass(_resources);
 
-  CE::Image::create(_mechanics.swapChain.extent.width,
-                    _mechanics.swapChain.extent.height,
-                    _resources.msaaImage.sampleCount,
-                    _mechanics.swapChain.imageFormat, VK_IMAGE_TILING_OPTIMAL,
-                    VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT |
-                        VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-                    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                    _resources.msaaImage.image, _resources.msaaImage.memory);
+  Log::text("{ []< }", "Color Resources ");
+  _resources.msaaImage.create(
+      _mechanics.swapChain.extent.width, _mechanics.swapChain.extent.height,
+      _resources.msaaImage.sampleCount, _mechanics.swapChain.imageFormat,
+      VK_IMAGE_TILING_OPTIMAL,
+      VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT |
+          VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
   _resources.msaaImage.createView(_mechanics.swapChain.imageFormat,
                                   VK_IMAGE_ASPECT_COLOR_BIT);
 
-  //_resources.createColorResources();
-  _resources.createDepthResources();
+  Log::text("{ []< }", "Depth Resources ");
+  VkFormat depthFormat = _resources.findDepthFormat();
+  _resources.depthImage.create(
+      _mechanics.swapChain.extent.width, _mechanics.swapChain.extent.height,
+      _resources.msaaImage.sampleCount, depthFormat, VK_IMAGE_TILING_OPTIMAL,
+      VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+  _resources.depthImage.createView(depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
 
   createGraphicsPipeline_Layout(_resources.descriptor);
 

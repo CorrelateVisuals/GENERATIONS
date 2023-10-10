@@ -145,9 +145,7 @@ void CE::Image::create(const uint32_t width,
                        const VkFormat format,
                        const VkImageTiling tiling,
                        const VkImageUsageFlags& usage,
-                       const VkMemoryPropertyFlags properties,
-                       VkImage& image,
-                       VkDeviceMemory& memory) {
+                       const VkMemoryPropertyFlags properties) {
   Log::text("{ img }", "Image", width, height);
   Log::text(Log::Style::charLeader, Log::getSampleCountString(numSamples));
   Log::text(Log::Style::charLeader, Log::getImageUsageString(usage));
@@ -173,7 +171,8 @@ void CE::Image::create(const uint32_t width,
   vulkanResult(vkCreateImage, *Device::_logical, &imageInfo, nullptr, &image);
 
   VkMemoryRequirements memRequirements;
-  vkGetImageMemoryRequirements(*Device::_logical, image, &memRequirements);
+  vkGetImageMemoryRequirements(*Device::_logical, this->image,
+                               &memRequirements);
 
   VkMemoryAllocateInfo allocateInfo{
       .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
@@ -182,8 +181,8 @@ void CE::Image::create(const uint32_t width,
           findMemoryType(memRequirements.memoryTypeBits, properties)};
 
   vulkanResult(vkAllocateMemory, *Device::_logical, &allocateInfo, nullptr,
-               &memory);
-  vkBindImageMemory(*Device::_logical, image, memory, 0);
+               &this->memory);
+  vkBindImageMemory(*Device::_logical, this->image, this->memory, 0);
 }
 
 void CE::Image::createView(const VkFormat format,
@@ -293,10 +292,10 @@ void CE::Image::loadTexture(const std::string& imagePath,
   vkUnmapMemory(*Device::_logical, stagingResources.memory);
   stbi_image_free(pixels);
 
-  Image::create(texWidth, texHeight, VK_SAMPLE_COUNT_1_BIT,
-                VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL,
-                VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, this->image, this->memory);
+  this->create(texWidth, texHeight, VK_SAMPLE_COUNT_1_BIT,
+               VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL,
+               VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+               VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
   Commands::beginSingularCommands(commandBuffer, commandPool, queue);
   this->transitionLayout(commandBuffer, VK_FORMAT_R8G8B8A8_SRGB,
@@ -310,8 +309,8 @@ void CE::Image::loadTexture(const std::string& imagePath,
 
   Commands::beginSingularCommands(commandBuffer, commandPool, queue);
   this->transitionLayout(commandBuffer, VK_FORMAT_R8G8B8A8_SRGB,
-                          VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                          VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                         VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
   Commands::endSingularCommands(commandBuffer, commandPool, queue);
 }
 
@@ -335,8 +334,8 @@ void CE::Image::createSampler() {
       .borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK,
       .unnormalizedCoordinates = VK_FALSE};
 
-  if (vkCreateSampler(*Device::_logical, &samplerInfo, nullptr, &this->sampler) !=
-      VK_SUCCESS) {
+  if (vkCreateSampler(*Device::_logical, &samplerInfo, nullptr,
+                      &this->sampler) != VK_SUCCESS) {
     throw std::runtime_error("failed to create texture sampler!");
   }
 }
