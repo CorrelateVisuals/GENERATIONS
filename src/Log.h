@@ -15,7 +15,7 @@ constexpr uint8_t LOG_LEVEL_MODERATE = 2;
 constexpr uint8_t LOG_LEVEL_DETAILED = 3;
 
 namespace Log {
-static uint8_t logLevel = LOG_LEVEL_DETAILED;
+static uint8_t logLevel = LOG_LEVEL_MODERATE;
 
 struct Style {
   static std::string charLeader;
@@ -46,10 +46,9 @@ std::string returnDateAndTime();
 
 template <class T, class... Ts>
 void Log::text(const T& first, const Ts&... inputs) {
-    if (Log::skipLogging(logLevel, first)) {
-      return;
-    }
-  
+  if (Log::skipLogging(logLevel, first)) {
+    return;
+  }
 
   std::string currentTime = returnDateAndTime();
   if (currentTime != previousTime) {

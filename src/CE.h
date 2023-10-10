@@ -6,142 +6,141 @@
 #include <string>
 #include <vector>
 
-class CE {
- public:
-  struct Device {
-    static VkPhysicalDevice* _physical;
-    static VkDevice* _logical;
+namespace CE {
+struct Device {
+  static VkPhysicalDevice* _physical;
+  static VkDevice* _logical;
 
-    static void linkDevice(VkDevice* logicalDevice,
-                           VkPhysicalDevice* physicalDevice);
-  };
-
-  class Commands {
-   public:
-    static VkCommandPool pool;
-    static VkCommandBuffer commandBuffer;
-
-    static void beginSingularCommands(const VkCommandPool& commandPool,
-                                      const VkQueue& queue);
-    static void endSingularCommands(const VkCommandPool& commandPool,
-                                    const VkQueue& queue);
-  };
-
-  class Buffer {
-   public:
-    Buffer();
-    virtual ~Buffer();
-
-    VkBuffer buffer;
-    VkDeviceMemory memory;
-    void* mapped;
-
-    static void create(const VkDeviceSize size,
-                       const VkBufferUsageFlags usage,
-                       const VkMemoryPropertyFlags properties,
-                       VkBuffer& buffer,
-                       VkDeviceMemory& memory);
-    static void copy(const VkBuffer& srcBuffer,
-                     VkBuffer& dstBuffer,
-                     const VkDeviceSize size,
-                     VkCommandBuffer& commandBuffer,
-                     const VkCommandPool& commandPool,
-                     const VkQueue& queue);
-    static void copyToImage(const VkBuffer buffer,
-                            VkImage& image,
-                            const uint32_t width,
-                            const uint32_t height,
-                            VkCommandBuffer& commandBuffer,
-                            const VkCommandPool& commandPool,
-                            const VkQueue& queue);
-  };
-
-  class Image {
-   public:
-    Image();
-    virtual ~Image();
-    void destroyVulkanObjects();
-
-    VkImage image;
-    VkDeviceMemory memory;
-    VkImageView view;
-    VkSampler sampler;
-    VkImageCreateInfo info{.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
-                           .pNext = nullptr,
-                           .flags = 0,
-                           .imageType = VK_IMAGE_TYPE_2D,
-                           .format = VK_FORMAT_UNDEFINED,
-                           .extent = {.width = 0, .height = 0, .depth = 1},
-                           .mipLevels = 1,
-                           .arrayLayers = 1,
-                           .samples = VK_SAMPLE_COUNT_1_BIT,
-                           .tiling = VK_IMAGE_TILING_OPTIMAL,
-                           .usage = 0,
-                           .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-                           .queueFamilyIndexCount = 0,
-                           .pQueueFamilyIndices = nullptr,
-                           .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED};
-
-    void create(const uint32_t width,
-                const uint32_t height,
-                const VkSampleCountFlagBits numSamples,
-                const VkFormat format,
-                const VkImageTiling tiling,
-                const VkImageUsageFlags& usage,
-                const VkMemoryPropertyFlags properties);
-    void recreate() { this->destroyVulkanObjects(); };
-    void createView(const VkImageAspectFlags aspectFlags);
-    void createSampler();
-    void transitionLayout(const VkCommandBuffer& commandBuffer,
-                          const VkFormat format,
-                          const VkImageLayout oldLayout,
-                          const VkImageLayout newLayout);
-    void loadTexture(const std::string& imagePath,
-                     const VkFormat format,
-                     VkCommandBuffer& commandBuffer,
-                     const VkCommandPool& commandPool,
-                     const VkQueue& queue);
-    static VkFormat findDepthFormat();
-    static VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates,
-                                        VkImageTiling tiling,
-                                        VkFormatFeatureFlags features);
-    void createColorResources(const VkExtent2D& dimensions,
-                              const VkFormat format,
-                              const VkSampleCountFlagBits samples);
-    void createDepthResources(const VkExtent2D& dimensions,
-                              const VkFormat format,
-                              const VkSampleCountFlagBits samples);
-  };
-
-  class Descriptor {
-   public:
-    Descriptor();
-    virtual ~Descriptor();
-
-    VkDescriptorPool pool;
-    VkDescriptorSetLayout setLayout;
-    std::vector<VkDescriptorSet> sets;
-
-    struct SetLayout {
-      VkDescriptorSetLayoutBinding layoutBinding{
-          .binding = 0,
-          .descriptorType = VK_DESCRIPTOR_TYPE_MAX_ENUM,
-          .descriptorCount = 1,
-          .stageFlags = NULL};
-    };
-
-   private:
-    // void createDescriptorPool();
-    // void allocateDescriptorSets();
-    // void createDescriptorSets();
-  };
-
-  template <typename Checkresult, typename... Args>
-  static void vulkanResult(Checkresult vkResult, Args&&... args);
-
-  static uint32_t findMemoryType(uint32_t typeFilter,
-                                 VkMemoryPropertyFlags properties);
+  static void linkDevice(VkDevice* logicalDevice,
+                         VkPhysicalDevice* physicalDevice);
 };
+
+class Commands {
+ public:
+  static VkCommandPool pool;
+  static VkCommandBuffer commandBuffer;
+
+  static void beginSingularCommands(const VkCommandPool& commandPool,
+                                    const VkQueue& queue);
+  static void endSingularCommands(const VkCommandPool& commandPool,
+                                  const VkQueue& queue);
+};
+
+class Buffer {
+ public:
+  Buffer();
+  virtual ~Buffer();
+
+  VkBuffer buffer;
+  VkDeviceMemory memory;
+  void* mapped;
+
+  static void create(const VkDeviceSize size,
+                     const VkBufferUsageFlags usage,
+                     const VkMemoryPropertyFlags properties,
+                     VkBuffer& buffer,
+                     VkDeviceMemory& memory);
+  static void copy(const VkBuffer& srcBuffer,
+                   VkBuffer& dstBuffer,
+                   const VkDeviceSize size,
+                   VkCommandBuffer& commandBuffer,
+                   const VkCommandPool& commandPool,
+                   const VkQueue& queue);
+  static void copyToImage(const VkBuffer buffer,
+                          VkImage& image,
+                          const uint32_t width,
+                          const uint32_t height,
+                          VkCommandBuffer& commandBuffer,
+                          const VkCommandPool& commandPool,
+                          const VkQueue& queue);
+};
+
+class Image {
+ public:
+  Image();
+  virtual ~Image();
+  void destroyVulkanObjects();
+
+  VkImage image;
+  VkDeviceMemory memory;
+  VkImageView view;
+  VkSampler sampler;
+  VkImageCreateInfo info{.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+                         .pNext = nullptr,
+                         .flags = 0,
+                         .imageType = VK_IMAGE_TYPE_2D,
+                         .format = VK_FORMAT_UNDEFINED,
+                         .extent = {.width = 0, .height = 0, .depth = 1},
+                         .mipLevels = 1,
+                         .arrayLayers = 1,
+                         .samples = VK_SAMPLE_COUNT_1_BIT,
+                         .tiling = VK_IMAGE_TILING_OPTIMAL,
+                         .usage = 0,
+                         .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+                         .queueFamilyIndexCount = 0,
+                         .pQueueFamilyIndices = nullptr,
+                         .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED};
+
+  void create(const uint32_t width,
+              const uint32_t height,
+              const VkSampleCountFlagBits numSamples,
+              const VkFormat format,
+              const VkImageTiling tiling,
+              const VkImageUsageFlags& usage,
+              const VkMemoryPropertyFlags properties);
+  void recreate() { this->destroyVulkanObjects(); };
+  void createView(const VkImageAspectFlags aspectFlags);
+  void createSampler();
+  void transitionLayout(const VkCommandBuffer& commandBuffer,
+                        const VkFormat format,
+                        const VkImageLayout oldLayout,
+                        const VkImageLayout newLayout);
+  void loadTexture(const std::string& imagePath,
+                   const VkFormat format,
+                   VkCommandBuffer& commandBuffer,
+                   const VkCommandPool& commandPool,
+                   const VkQueue& queue);
+  static VkFormat findDepthFormat();
+  static VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates,
+                                      VkImageTiling tiling,
+                                      VkFormatFeatureFlags features);
+  void createColorResources(const VkExtent2D& dimensions,
+                            const VkFormat format,
+                            const VkSampleCountFlagBits samples);
+  void createDepthResources(const VkExtent2D& dimensions,
+                            const VkFormat format,
+                            const VkSampleCountFlagBits samples);
+};
+
+class Descriptor {
+ public:
+  Descriptor();
+  virtual ~Descriptor();
+
+  VkDescriptorPool pool;
+  VkDescriptorSetLayout setLayout;
+  std::vector<VkDescriptorSet> sets;
+
+  struct SetLayout {
+    VkDescriptorSetLayoutBinding layoutBinding{
+        .binding = 0,
+        .descriptorType = VK_DESCRIPTOR_TYPE_MAX_ENUM,
+        .descriptorCount = 1,
+        .stageFlags = NULL};
+  };
+
+ private:
+  // void createDescriptorPool();
+  // void allocateDescriptorSets();
+  // void createDescriptorSets();
+};
+
+template <typename Checkresult, typename... Args>
+static void vulkanResult(Checkresult vkResult, Args&&... args);
+
+static uint32_t findMemoryType(uint32_t typeFilter,
+                               VkMemoryPropertyFlags properties);
+};  // namespace CE
 
 template <typename Checkresult, typename... Args>
 void CE::vulkanResult(Checkresult vkResult, Args&&... args) {
