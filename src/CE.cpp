@@ -14,6 +14,7 @@ void CE::Device::linkDevice(VkDevice* logicalDevice,
   Device::_physical = physicalDevice;
   Device::_logical = logicalDevice;
 }
+
 uint32_t CE::findMemoryType(uint32_t typeFilter,
                             VkMemoryPropertyFlags properties) {
   VkPhysicalDeviceMemoryProperties memProperties;

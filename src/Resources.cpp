@@ -35,10 +35,8 @@ void Resources::setupResources(Pipelines& _pipelines) {
   textureImage.createSampler();
 
   createFramebuffers(_pipelines);
-
   createShaderStorageBuffers();
   createUniformBuffers();
-
   createVertexBuffers(vertexBuffers);
 
   createDescriptorPool();
@@ -47,8 +45,6 @@ void Resources::setupResources(Pipelines& _pipelines) {
 
   createCommandBuffers(command.graphics, MAX_FRAMES_IN_FLIGHT);
   createCommandBuffers(command.compute, MAX_FRAMES_IN_FLIGHT);
-
-  _mechanics.createSyncObjects();
 }
 
 void Resources::createFramebuffers(Pipelines& _pipelines) {

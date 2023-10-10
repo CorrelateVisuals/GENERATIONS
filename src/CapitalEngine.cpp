@@ -8,7 +8,6 @@ CapitalEngine::CapitalEngine()
   Log::text("| CAPITAL Engine");
 
   mechanics.setupVulkan(pipelines, resources);
-
   resources.createDescriptorSetLayout(resources.descriptorSetLayoutBindings);
   resources.msaaImage.createColorResources(mechanics.swapChain.extent,
                                            mechanics.swapChain.imageFormat,
@@ -16,9 +15,9 @@ CapitalEngine::CapitalEngine()
   resources.depthImage.createDepthResources(mechanics.swapChain.extent,
                                             CE::Image::findDepthFormat(),
                                             resources.msaaImage.info.samples);
-
   pipelines.setupPipelines(resources);
   resources.setupResources(pipelines);
+  mechanics.createSyncObjects();
 }
 
 CapitalEngine::~CapitalEngine() {
