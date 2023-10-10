@@ -8,6 +8,15 @@ CapitalEngine::CapitalEngine()
   Log::text("| CAPITAL Engine");
 
   mechanics.setupVulkan(pipelines, resources);
+
+  resources.createDescriptorSetLayout(resources.descriptorSetLayoutBindings);
+  resources.msaaImage.createColorResources(mechanics.swapChain.extent,
+                                           mechanics.swapChain.imageFormat,
+                                           resources.msaaImage.info.samples);
+  resources.depthImage.createDepthResources(mechanics.swapChain.extent,
+                                            CE::Image::findDepthFormat(),
+                                            resources.msaaImage.info.samples);
+
   pipelines.setupPipelines(resources);
   resources.setupResources(pipelines);
 }
@@ -75,7 +84,8 @@ void CapitalEngine::drawFrame() {
           &mechanics.syncObjects
                .computeFinishedSemaphores[mechanics.syncObjects.currentFrame]};
 
-  CE::vulkanResult(vkQueueSubmit, mechanics.queues.compute, 1, &computeSubmitInfo,
+  CE::vulkanResult(
+      vkQueueSubmit, mechanics.queues.compute, 1, &computeSubmitInfo,
       mechanics.syncObjects
           .computeInFlightFences[mechanics.syncObjects.currentFrame]);
 

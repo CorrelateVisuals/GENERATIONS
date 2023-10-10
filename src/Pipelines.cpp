@@ -40,16 +40,7 @@ void Pipelines::setupPipelines(Resources& _resources) {
   Log::text(Log::Style::headerGuard);
   Log::text("{ === }", "Setup Pipelines");
 
-  _resources.createDescriptorSetLayout(_resources.descriptorSetLayoutBindings);
   createRenderPass(_resources);
-
-  _resources.msaaImage.createColorResources(_mechanics.swapChain.extent,
-                                            _mechanics.swapChain.imageFormat,
-                                            _resources.msaaImage.info.samples);
-  _resources.depthImage.createDepthResources(_mechanics.swapChain.extent,
-                                             CE::Image::findDepthFormat(),
-                                             _resources.msaaImage.info.samples);
-
   createGraphicsPipeline_Layout(_resources.descriptor);
 
   createGraphicsPipeline_Cells(_resources.msaaImage.info.samples);
