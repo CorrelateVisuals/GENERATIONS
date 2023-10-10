@@ -18,7 +18,7 @@ VulkanMechanics::VulkanMechanics()
              VK_NULL_HANDLE,
              VK_NULL_HANDLE,
              {std::nullopt, std::nullopt}},
-      swapChain{VK_NULL_HANDLE, {}, VK_FORMAT_UNDEFINED, {}, {0, 0}, {}} {
+      swapChain{VK_NULL_HANDLE, {}, VK_FORMAT_UNDEFINED, {}, {}, {}} {
   Log::text("{ Vk. }", "constructing Vulkan Mechanics");
 }
 
@@ -457,7 +457,6 @@ void VulkanMechanics::createSwapChain() {
   std::vector<VkImage> swapChainImages(MAX_FRAMES_IN_FLIGHT);
   vkGetSwapchainImagesKHR(mainDevice.logical, swapChain.swapChain, &imageCount,
                           swapChainImages.data());
-
   for (size_t i = 0; i < imageCount; i++) {
     swapChain.images[i].image = swapChainImages[i];
   };

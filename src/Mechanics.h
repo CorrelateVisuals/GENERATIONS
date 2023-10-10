@@ -54,12 +54,9 @@ class VulkanMechanics {
 
   struct SwapChain {
     VkSwapchainKHR swapChain;
-
-    std::vector<CE::Image> images;
-    //std::vector<VkImage> images;
     VkFormat imageFormat;
-    //std::vector<VkImageView> imageViews;
     VkExtent2D extent;
+    std::vector<CE::Image> images;
     std::vector<VkFramebuffer> framebuffers;
 
     struct SupportDetails {
