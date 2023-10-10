@@ -34,17 +34,17 @@ class CE {
     VkDeviceMemory memory;
     void* mapped;
 
-    static void create(VkDeviceSize size,
-                       VkBufferUsageFlags usage,
-                       VkMemoryPropertyFlags properties,
+    static void create(const VkDeviceSize size,
+                       const VkBufferUsageFlags usage,
+                       const VkMemoryPropertyFlags properties,
                        VkBuffer& buffer,
                        VkDeviceMemory& memory);
-    static void copy(VkBuffer srcBuffer,
-                     VkBuffer dstBuffer,
-                     VkDeviceSize size,
+    static void copy(const VkBuffer& srcBuffer,
+                     VkBuffer& dstBuffer,
+                     const VkDeviceSize size,
                      VkCommandBuffer& commandBuffer,
-                     VkCommandPool& commandPool,
-                     VkQueue& queue);
+                     const VkCommandPool& commandPool,
+                     const VkQueue& queue);
     static void copyToImage(const VkBuffer buffer,
                             VkImage& image,
                             const uint32_t width,

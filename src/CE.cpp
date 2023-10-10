@@ -72,12 +72,12 @@ void CE::Buffer::create(VkDeviceSize size,
   vkBindBufferMemory(*Device::_logical, buffer, memory, 0);
 }
 
-void CE::Buffer::copy(VkBuffer srcBuffer,
-                      VkBuffer dstBuffer,
-                      VkDeviceSize size,
+void CE::Buffer::copy(const VkBuffer& srcBuffer,
+                      VkBuffer& dstBuffer,
+                      const VkDeviceSize size,
                       VkCommandBuffer& commandBuffer,
-                      VkCommandPool& commandPool,
-                      VkQueue& queue) {
+                      const VkCommandPool& commandPool,
+                      const VkQueue& queue) {
   Log::text("{ ... }", "copying", size, "bytes");
 
   CE::Commands::beginSingularCommands(commandBuffer, commandPool, queue);
