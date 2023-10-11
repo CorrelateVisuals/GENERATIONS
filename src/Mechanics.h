@@ -42,8 +42,6 @@ class VulkanMechanics {
   } queues;
 
   struct SwapChain : public CE::Swapchain {
-    VkFormat imageFormat;
-    VkExtent2D extent;
     std::vector<CE::Image> images;
     std::vector<VkFramebuffer> framebuffers;
   } swapChain;

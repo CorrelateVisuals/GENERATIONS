@@ -37,6 +37,8 @@ class LinkedDevice {
 class Swapchain {
  public:
   VkSwapchainKHR swapChain;
+  VkFormat imageFormat;
+  VkExtent2D extent;
   struct SupportDetails {
     VkSurfaceCapabilitiesKHR capabilities{};
     std::vector<VkSurfaceFormatKHR> formats;
