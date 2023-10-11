@@ -4,30 +4,30 @@
 #include "Log.h"
 
 #include <iostream>
+#include <optional>
 #include <stdexcept>
 #include <string>
 #include <vector>
-#include <optional>
 
 namespace CE {
 
 class Device {
-public:
-    Device() = default;
-    virtual ~Device() { destroyDevice(); };
-    void destroyDevice() {
-        Log::text("{ Vk. }", "destructing Device");
-        vkDestroyDevice(this->logical, nullptr);
-        this->logical = VK_NULL_HANDLE;
-    };
+ public:
+  Device() = default;
+  virtual ~Device() { destroyDevice(); };
+  void destroyDevice() {
+    Log::text("{ Vk. }", "destructing Device");
+    vkDestroyDevice(this->logical, nullptr);
+    this->logical = VK_NULL_HANDLE;
+  };
   VkPhysicalDevice physical{VK_NULL_HANDLE};
   VkDevice logical{VK_NULL_HANDLE};
   const std::vector<const char*> extensions{VK_KHR_SWAPCHAIN_EXTENSION_NAME};
-  VkPhysicalDeviceFeatures features;
+  VkPhysicalDeviceFeatures features{};
 };
 
-class LinkedDevices {
-public:
+class LinkedDevice {
+ public:
   static VkPhysicalDevice* _physical;
   static VkDevice* _logical;
   static void linkDevice(VkDevice* logicalDevice,
@@ -35,15 +35,15 @@ public:
 };
 
 class Queues {
-public:
-    struct FamilyIndices {
-        std::optional<uint32_t> graphicsAndComputeFamily;
-        std::optional<uint32_t> presentFamily;
-        bool isComplete() const {
-            return graphicsAndComputeFamily.has_value() && presentFamily.has_value();
-        }
-    };
-    FamilyIndices familyIndices;
+ public:
+  struct FamilyIndices {
+    std::optional<uint32_t> graphicsAndComputeFamily;
+    std::optional<uint32_t> presentFamily;
+    bool isComplete() const {
+      return graphicsAndComputeFamily.has_value() && presentFamily.has_value();
+    }
+  };
+  FamilyIndices familyIndices;  
 };
 
 class Commands {

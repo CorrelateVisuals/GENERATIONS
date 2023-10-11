@@ -89,5 +89,6 @@ class VulkanMechanics {
   VkPresentModeKHR chooseSwapPresentMode(
       const std::vector<VkPresentModeKHR>& availablePresentModes);
   VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
+
   CE::Queues::FamilyIndices findQueueFamilies(VkPhysicalDevice physicalDevice);
 };

@@ -15,7 +15,7 @@ Resources::Resources(VulkanMechanics& mechanics)
       msaaImage{} {
   Log::text("{ /// }", "constructing Resources");
 
-  CE::LinkedDevices::linkDevice(&_mechanics.mainDevice.logical,
+  CE::LinkedDevice::linkDevice(&_mechanics.mainDevice.logical,
                          &_mechanics.mainDevice.physical);
 }
 
