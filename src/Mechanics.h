@@ -35,24 +35,17 @@ class VulkanMechanics {
     };
   } mainDevice;
 
-  struct Queues : public CE::Queues{
+  struct Queues : public CE::Queues {
     VkQueue graphics;
     VkQueue compute;
     VkQueue present;
   } queues;
 
-  struct SwapChain {
-    VkSwapchainKHR swapChain;
+  struct SwapChain : public CE::Swapchain {
     VkFormat imageFormat;
     VkExtent2D extent;
     std::vector<CE::Image> images;
     std::vector<VkFramebuffer> framebuffers;
-
-    struct SupportDetails {
-      VkSurfaceCapabilitiesKHR capabilities{};
-      std::vector<VkSurfaceFormatKHR> formats;
-      std::vector<VkPresentModeKHR> presentModes;
-    } supportDetails;
   } swapChain;
 
   struct SynchronizationObjects {

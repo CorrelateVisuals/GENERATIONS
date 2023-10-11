@@ -34,6 +34,16 @@ class LinkedDevice {
                          VkPhysicalDevice* physicalDevice);
 };
 
+class Swapchain {
+ public:
+  VkSwapchainKHR swapChain;
+  struct SupportDetails {
+    VkSurfaceCapabilitiesKHR capabilities{};
+    std::vector<VkSurfaceFormatKHR> formats;
+    std::vector<VkPresentModeKHR> presentModes;
+  };
+};
+
 class Queues {
  public:
   struct FamilyIndices {
@@ -43,7 +53,7 @@ class Queues {
       return graphicsAndComputeFamily.has_value() && presentFamily.has_value();
     }
   };
-  FamilyIndices familyIndices;  
+  FamilyIndices familyIndices;
 };
 
 class Commands {

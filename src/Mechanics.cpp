@@ -15,7 +15,7 @@ VulkanMechanics::VulkanMechanics()
       instance(VK_NULL_HANDLE),
       mainDevice{},
       queues{std::nullopt, std::nullopt},
-      swapChain{VK_NULL_HANDLE, {}, VK_FORMAT_UNDEFINED, {}, {}, {}} {
+      swapChain{VK_NULL_HANDLE, VK_FORMAT_UNDEFINED, {0, 0}, {}, {}} {
   Log::text("{ Vk. }", "constructing Vulkan Mechanics");
 }
 
