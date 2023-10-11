@@ -29,7 +29,7 @@ void Resources::setupResources(Pipelines& _pipelines) {
   Log::text("{ /// }", "Setup Resources");
 
   textureImage.loadTexture(Lib::path("assets/Avatar.PNG"),
-                           VK_FORMAT_R8G8B8A8_SRGB, command.commandBuffer,
+                           VK_FORMAT_R8G8B8A8_SRGB, command.singularCommandBuffer,
                            command.pool, _mechanics.queues.graphics);
   textureImage.createView(VK_IMAGE_ASPECT_COLOR_BIT);
   textureImage.createSampler();
@@ -100,7 +100,7 @@ void Resources::createShaderStorageBuffers() {
           VK_BUFFER_USAGE_TRANSFER_DST_BIT,
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, shaderStorage.bufferIn);
   CE::Buffer::copy(stagingResources.buffer, shaderStorage.bufferIn.buffer,
-                   bufferSize, command.commandBuffer, command.pool,
+                   bufferSize, command.singularCommandBuffer, command.pool,
                    _mechanics.queues.graphics);
 
   CE::Buffer::create(
@@ -109,7 +109,7 @@ void Resources::createShaderStorageBuffers() {
           VK_BUFFER_USAGE_TRANSFER_DST_BIT,
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, shaderStorage.bufferOut);
   CE::Buffer::copy(stagingResources.buffer, shaderStorage.bufferOut.buffer,
-                   bufferSize, command.commandBuffer, command.pool,
+                   bufferSize, command.singularCommandBuffer, command.pool,
                    _mechanics.queues.graphics);
 }
 
@@ -240,7 +240,7 @@ void Resources::createVertexBuffer(CE::Buffer& buffer, const auto& vertices) {
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, buffer);
 
   CE::Buffer::copy(stagingResources.buffer, buffer.buffer, bufferSize,
-                   command.commandBuffer, command.pool,
+                   command.singularCommandBuffer, command.pool,
                    _mechanics.queues.graphics);
 }
 
@@ -265,7 +265,7 @@ void Resources::createIndexBuffer(CE::Buffer& buffer, const auto& indices) {
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, buffer);
 
   CE::Buffer::copy(stagingResources.buffer, buffer.buffer, bufferSize,
-                   command.commandBuffer, command.pool,
+                   command.singularCommandBuffer, command.pool,
                    _mechanics.queues.graphics);
 }
 

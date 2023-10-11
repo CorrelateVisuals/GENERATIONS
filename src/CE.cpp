@@ -6,8 +6,7 @@
 
 VkPhysicalDevice* CE::LinkedDevice::_physical = VK_NULL_HANDLE;
 VkDevice* CE::LinkedDevice::_logical = VK_NULL_HANDLE;
-VkCommandBuffer CE::Commands::commandBuffer = VK_NULL_HANDLE;
-VkCommandPool CE::Commands::pool = VK_NULL_HANDLE;
+VkCommandBuffer CE::Commands::singularCommandBuffer = VK_NULL_HANDLE;
 
 void CE::LinkedDevice::linkDevice(VkDevice* logicalDevice,
                                    VkPhysicalDevice* physicalDevice) {
@@ -484,13 +483,13 @@ void CE::Commands::beginSingularCommands(const VkCommandPool& commandPool,
       .commandBufferCount = 1};
 
   vkAllocateCommandBuffers(*CE::LinkedDevice::_logical, &allocInfo,
-                           &commandBuffer);
+                           &singularCommandBuffer);
 
   VkCommandBufferBeginInfo beginInfo{
       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
       .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT};
 
-  vkBeginCommandBuffer(commandBuffer, &beginInfo);
+  vkBeginCommandBuffer(singularCommandBuffer, &beginInfo);
 
   return;
 }
@@ -499,15 +498,15 @@ void CE::Commands::endSingularCommands(const VkCommandPool& commandPool,
                                        const VkQueue& queue) {
   Log::text("{ ..1 }", "End Single Time Commands");
 
-  vkEndCommandBuffer(commandBuffer);
+  vkEndCommandBuffer(singularCommandBuffer);
 
   VkSubmitInfo submitInfo{.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
                           .commandBufferCount = 1,
-                          .pCommandBuffers = &commandBuffer};
+                          .pCommandBuffers = &singularCommandBuffer};
 
   vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE);
   vkQueueWaitIdle(queue);
 
   vkFreeCommandBuffers(*CE::LinkedDevice::_logical, commandPool, 1,
-                       &commandBuffer);
+                       &singularCommandBuffer);
 }

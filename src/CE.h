@@ -48,8 +48,8 @@ class Queues {
 
 class Commands {
  public:
-  static VkCommandPool pool;
-  static VkCommandBuffer commandBuffer;
+  VkCommandPool pool;
+  static VkCommandBuffer singularCommandBuffer;
 
   static void beginSingularCommands(const VkCommandPool& commandPool,
                                     const VkQueue& queue);
