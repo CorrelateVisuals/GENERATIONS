@@ -91,7 +91,8 @@ void CapitalEngine::drawFrame() {
   // Graphics submission
   vkWaitForFences(
       mechanics.mainDevice.logical, 1,
-      &mechanics.syncObjects.inFlightFences[mechanics.syncObjects.currentFrame],
+      &mechanics.syncObjects
+           .graphicsInFlightFences[mechanics.syncObjects.currentFrame],
       VK_TRUE, UINT64_MAX);
 
   uint32_t imageIndex;
@@ -108,9 +109,10 @@ void CapitalEngine::drawFrame() {
     throw std::runtime_error("\n!ERROR! failed to acquire swap chain image!");
   }
 
-  vkResetFences(mechanics.mainDevice.logical, 1,
-                &mechanics.syncObjects
-                     .inFlightFences[mechanics.syncObjects.currentFrame]);
+  vkResetFences(
+      mechanics.mainDevice.logical, 1,
+      &mechanics.syncObjects
+           .graphicsInFlightFences[mechanics.syncObjects.currentFrame]);
 
   vkResetCommandBuffer(
       resources.command.graphics[mechanics.syncObjects.currentFrame], 0);
@@ -143,7 +145,8 @@ void CapitalEngine::drawFrame() {
 
   CE::vulkanResult(
       vkQueueSubmit, mechanics.queues.graphics, 1, &graphicsSubmitInfo,
-      mechanics.syncObjects.inFlightFences[mechanics.syncObjects.currentFrame]);
+      mechanics.syncObjects
+          .graphicsInFlightFences[mechanics.syncObjects.currentFrame]);
 
   std::vector<VkSwapchainKHR> swapChains{mechanics.swapChain.swapChain};
 

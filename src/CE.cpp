@@ -9,7 +9,7 @@ VkDevice* CE::LinkedDevice::_logical = VK_NULL_HANDLE;
 VkCommandBuffer CE::Commands::singularCommandBuffer = VK_NULL_HANDLE;
 
 void CE::LinkedDevice::linkDevice(VkDevice* logicalDevice,
-                                   VkPhysicalDevice* physicalDevice) {
+                                  VkPhysicalDevice* physicalDevice) {
   LinkedDevice::_physical = physicalDevice;
   LinkedDevice::_logical = logicalDevice;
 }
@@ -17,8 +17,7 @@ void CE::LinkedDevice::linkDevice(VkDevice* logicalDevice,
 uint32_t CE::findMemoryType(uint32_t typeFilter,
                             VkMemoryPropertyFlags properties) {
   VkPhysicalDeviceMemoryProperties memProperties;
-  vkGetPhysicalDeviceMemoryProperties(*LinkedDevice::_physical,
-                                      &memProperties);
+  vkGetPhysicalDeviceMemoryProperties(*LinkedDevice::_physical, &memProperties);
 
   for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
     if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags &
@@ -277,8 +276,8 @@ void CE::Image::loadTexture(const std::string& imagePath,
                  stagingResources);
 
   void* data;
-  vkMapMemory(*LinkedDevice::_logical, stagingResources.memory, 0, imageSize,
-              0, &data);
+  vkMapMemory(*LinkedDevice::_logical, stagingResources.memory, 0, imageSize, 0,
+              &data);
   memcpy(data, pixels, static_cast<size_t>(imageSize));
   vkUnmapMemory(*LinkedDevice::_logical, stagingResources.memory);
   stbi_image_free(pixels);
@@ -488,7 +487,6 @@ void CE::Commands::beginSingularCommands(const VkCommandPool& commandPool,
   VkCommandBufferBeginInfo beginInfo{
       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
       .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT};
-
   vkBeginCommandBuffer(singularCommandBuffer, &beginInfo);
 
   return;
@@ -499,14 +497,12 @@ void CE::Commands::endSingularCommands(const VkCommandPool& commandPool,
   Log::text("{ ..1 }", "End Single Time Commands");
 
   vkEndCommandBuffer(singularCommandBuffer);
-
   VkSubmitInfo submitInfo{.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
                           .commandBufferCount = 1,
                           .pCommandBuffers = &singularCommandBuffer};
 
   vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE);
   vkQueueWaitIdle(queue);
-
   vkFreeCommandBuffers(*CE::LinkedDevice::_logical, commandPool, 1,
                        &singularCommandBuffer);
 }

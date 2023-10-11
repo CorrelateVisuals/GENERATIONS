@@ -28,7 +28,8 @@ VulkanMechanics::~VulkanMechanics() {
                        syncObjects.imageAvailableSemaphores[i], nullptr);
     vkDestroySemaphore(mainDevice.logical,
                        syncObjects.computeFinishedSemaphores[i], nullptr);
-    vkDestroyFence(mainDevice.logical, syncObjects.inFlightFences[i], nullptr);
+    vkDestroyFence(mainDevice.logical, syncObjects.graphicsInFlightFences[i],
+                   nullptr);
     vkDestroyFence(mainDevice.logical, syncObjects.computeInFlightFences[i],
                    nullptr);
   }
@@ -341,7 +342,7 @@ void VulkanMechanics::createSyncObjects() {
   syncObjects.imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
   syncObjects.renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
   syncObjects.computeFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-  syncObjects.inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
+  syncObjects.graphicsInFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
   syncObjects.computeInFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
 
   VkSemaphoreCreateInfo semaphoreInfo{
@@ -356,7 +357,7 @@ void VulkanMechanics::createSyncObjects() {
     CE::vulkanResult(vkCreateSemaphore, mainDevice.logical, &semaphoreInfo,
                      nullptr, &syncObjects.renderFinishedSemaphores[i]);
     CE::vulkanResult(vkCreateFence, mainDevice.logical, &fenceInfo, nullptr,
-                     &syncObjects.inFlightFences[i]);
+                     &syncObjects.graphicsInFlightFences[i]);
     CE::vulkanResult(vkCreateSemaphore, mainDevice.logical, &semaphoreInfo,
                      nullptr, &syncObjects.computeFinishedSemaphores[i]);
     CE::vulkanResult(vkCreateFence, mainDevice.logical, &fenceInfo, nullptr,
