@@ -7,6 +7,21 @@
 #include <vector>
 
 namespace CE {
+
+//struct Device {
+//  VkPhysicalDevice physical;
+//  VkDevice logical;
+//  const std::vector<const char*> extensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+//  const VkPhysicalDeviceFeatures features{.tessellationShader = VK_TRUE,
+//                                          .sampleRateShading = VK_TRUE,
+//                                          .depthClamp = VK_TRUE,
+//                                          .depthBiasClamp = VK_TRUE,
+//                                          .fillModeNonSolid = VK_TRUE,
+//                                          .wideLines = VK_TRUE,
+//                                          .samplerAnisotropy = VK_TRUE,
+//                                          .shaderInt64 = VK_TRUE};
+//};
+
 struct Device {
   static VkPhysicalDevice* _physical;
   static VkDevice* _logical;
@@ -38,8 +53,7 @@ class Buffer {
   static void create(const VkDeviceSize size,
                      const VkBufferUsageFlags usage,
                      const VkMemoryPropertyFlags properties,
-                     VkBuffer& buffer,
-                     VkDeviceMemory& memory);
+                     Buffer& buffer);
   static void copy(const VkBuffer& srcBuffer,
                    VkBuffer& dstBuffer,
                    const VkDeviceSize size,

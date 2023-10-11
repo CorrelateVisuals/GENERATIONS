@@ -84,7 +84,7 @@ class VulkanMechanics {
  private:
   void createInstance();
   void createSurface(GLFWwindow* window);
-  void pickPhysicalDevice(Resources::MultiSamplingImage& msaaImage);
+  void pickPhysicalDevice(VkSampleCountFlagBits& msaaImageSamples);
   void createLogicalDevice();
   void createSwapChain();
   void createCommandPool(VkCommandPool* commandPool);

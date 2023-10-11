@@ -86,7 +86,7 @@ void Resources::createShaderStorageBuffers() {
   CE::Buffer::create(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                          VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                     stagingResources.buffer, stagingResources.memory);
+                     stagingResources);
 
   void* data;
   vkMapMemory(_mechanics.mainDevice.logical, stagingResources.memory, 0,
@@ -98,8 +98,7 @@ void Resources::createShaderStorageBuffers() {
       static_cast<VkDeviceSize>(bufferSize),
       VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
           VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, shaderStorage.bufferIn.buffer,
-      shaderStorage.bufferIn.memory);
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, shaderStorage.bufferIn);
   CE::Buffer::copy(stagingResources.buffer, shaderStorage.bufferIn.buffer,
                    bufferSize, command.commandBuffer, command.pool,
                    _mechanics.queues.graphics);
@@ -108,8 +107,7 @@ void Resources::createShaderStorageBuffers() {
       static_cast<VkDeviceSize>(bufferSize),
       VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
           VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, shaderStorage.bufferOut.buffer,
-      shaderStorage.bufferOut.memory);
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, shaderStorage.bufferOut);
   CE::Buffer::copy(stagingResources.buffer, shaderStorage.bufferOut.buffer,
                    bufferSize, command.commandBuffer, command.pool,
                    _mechanics.queues.graphics);
@@ -122,7 +120,7 @@ void Resources::createUniformBuffers() {
   CE::Buffer::create(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
                      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                          VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                     uniform.buffer.buffer, uniform.buffer.memory);
+                     uniform.buffer);
 
   vkMapMemory(_mechanics.mainDevice.logical, uniform.buffer.memory, 0,
               bufferSize, 0, &uniform.buffer.mapped);
@@ -211,22 +209,18 @@ void Resources::createVertexBuffers(
     Geometry* currentGeometry = resource.first;
 
     if (resource.second == VK_VERTEX_INPUT_RATE_INSTANCE) {
-      createVertexBuffer(currentGeometry->vertexBuffer.buffer,
-                         currentGeometry->vertexBuffer.memory,
+      createVertexBuffer(currentGeometry->vertexBuffer,
                          currentGeometry->uniqueVertices);
-      createIndexBuffer(currentGeometry->indexBuffer.buffer,
-                        currentGeometry->indexBuffer.memory,
+      createIndexBuffer(currentGeometry->indexBuffer,
                         currentGeometry->indices);
     } else if (resource.second == VK_VERTEX_INPUT_RATE_VERTEX) {
-      createVertexBuffer(currentGeometry->vertexBuffer.buffer,
-                         currentGeometry->vertexBuffer.memory,
+      createVertexBuffer(currentGeometry->vertexBuffer,
                          currentGeometry->allVertices);
     }
   }
 };
 
-void Resources::createVertexBuffer(VkBuffer& buffer,
-                                   VkDeviceMemory& bufferMemory,
+void Resources::createVertexBuffer(CE::Buffer& buffer,
                                    const auto& vertices) {
   CE::Buffer stagingResources;
   VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
@@ -234,7 +228,7 @@ void Resources::createVertexBuffer(VkBuffer& buffer,
   CE::Buffer::create(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                          VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                     stagingResources.buffer, stagingResources.memory);
+                     stagingResources);
 
   void* data;
   vkMapMemory(_mechanics.mainDevice.logical, stagingResources.memory, 0,
@@ -245,23 +239,21 @@ void Resources::createVertexBuffer(VkBuffer& buffer,
   CE::Buffer::create(
       bufferSize,
       VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, buffer, bufferMemory);
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, buffer);
 
-  CE::Buffer::copy(stagingResources.buffer, buffer, bufferSize,
+  CE::Buffer::copy(stagingResources.buffer, buffer.buffer, bufferSize,
                    command.commandBuffer, command.pool,
                    _mechanics.queues.graphics);
 }
 
-void Resources::createIndexBuffer(VkBuffer& buffer,
-                                  VkDeviceMemory& bufferMemory,
-                                  const auto& indices) {
+void Resources::createIndexBuffer(CE::Buffer& buffer, const auto& indices) {
   CE::Buffer stagingResources;
   VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
 
   CE::Buffer::create(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                          VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                     stagingResources.buffer, stagingResources.memory);
+                     stagingResources);
 
   void* data;
   vkMapMemory(_mechanics.mainDevice.logical, stagingResources.memory, 0,
@@ -272,9 +264,9 @@ void Resources::createIndexBuffer(VkBuffer& buffer,
   CE::Buffer::create(
       bufferSize,
       VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, buffer, bufferMemory);
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, buffer);
 
-  CE::Buffer::copy(stagingResources.buffer, buffer, bufferSize,
+  CE::Buffer::copy(stagingResources.buffer, buffer.buffer, bufferSize,
                    command.commandBuffer, command.pool,
                    _mechanics.queues.graphics);
 }

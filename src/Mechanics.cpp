@@ -55,7 +55,7 @@ void VulkanMechanics::setupVulkan(Pipelines& _pipelines,
   validation.setupDebugMessenger(instance);
   createSurface(Window::get().window);
 
-  pickPhysicalDevice(_resources.msaaImage);
+  pickPhysicalDevice(_resources.msaaImage.info.samples);
   createLogicalDevice();
 
   createSwapChain();
@@ -111,7 +111,7 @@ void VulkanMechanics::createSurface(GLFWwindow* window) {
 }
 
 void VulkanMechanics::pickPhysicalDevice(
-    Resources::MultiSamplingImage& msaaImage) {
+    VkSampleCountFlagBits& msaaImageSamples) {
   Log::text("{ ### }", "Physical Device");
   uint32_t deviceCount = 0;
   vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
@@ -127,7 +127,7 @@ void VulkanMechanics::pickPhysicalDevice(
   for (const auto& device : devices) {
     if (isDeviceSuitable(device)) {
       mainDevice.physical = device;
-      msaaImage.info.samples = getMaxUsableSampleCount();
+      msaaImageSamples = getMaxUsableSampleCount();
       break;
     }
   }

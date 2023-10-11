@@ -45,8 +45,7 @@ CE::Buffer::~Buffer() {
 void CE::Buffer::create(VkDeviceSize size,
                         VkBufferUsageFlags usage,
                         VkMemoryPropertyFlags properties,
-                        VkBuffer& buffer,
-                        VkDeviceMemory& memory) {
+                        Buffer& buffer) {
   VkBufferCreateInfo bufferInfo{.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
                                 .size = size,
                                 .usage = usage,
@@ -56,10 +55,10 @@ void CE::Buffer::create(VkDeviceSize size,
   Log::text(Log::Style::charLeader, size, "bytes");
 
   vulkanResult(vkCreateBuffer, *Device::_logical, &bufferInfo, nullptr,
-               &buffer);
+               &buffer.buffer);
 
   VkMemoryRequirements memRequirements;
-  vkGetBufferMemoryRequirements(*Device::_logical, buffer, &memRequirements);
+  vkGetBufferMemoryRequirements(*Device::_logical, buffer.buffer, &memRequirements);
 
   VkMemoryAllocateInfo allocateInfo{
       .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
@@ -68,8 +67,8 @@ void CE::Buffer::create(VkDeviceSize size,
           CE::findMemoryType(memRequirements.memoryTypeBits, properties)};
 
   vulkanResult(vkAllocateMemory, *Device::_logical, &allocateInfo, nullptr,
-               &memory);
-  vkBindBufferMemory(*Device::_logical, buffer, memory, 0);
+               &buffer.memory);
+  vkBindBufferMemory(*Device::_logical, buffer.buffer, buffer.memory, 0);
 }
 
 void CE::Buffer::copy(const VkBuffer& srcBuffer,
@@ -274,7 +273,7 @@ void CE::Image::loadTexture(const std::string& imagePath,
   Buffer::create(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                  VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                      VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                 stagingResources.buffer, stagingResources.memory);
+                 stagingResources);
 
   void* data;
   vkMapMemory(*Device::_logical, stagingResources.memory, 0, imageSize, 0,
