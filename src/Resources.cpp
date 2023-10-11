@@ -15,7 +15,7 @@ Resources::Resources(VulkanMechanics& mechanics)
       msaaImage{} {
   Log::text("{ /// }", "constructing Resources");
 
-  CE::Device::linkDevice(&_mechanics.mainDevice.logical,
+  CE::LinkedDevices::linkDevice(&_mechanics.mainDevice.logical,
                          &_mechanics.mainDevice.physical);
 }
 
@@ -211,8 +211,7 @@ void Resources::createVertexBuffers(
     if (resource.second == VK_VERTEX_INPUT_RATE_INSTANCE) {
       createVertexBuffer(currentGeometry->vertexBuffer,
                          currentGeometry->uniqueVertices);
-      createIndexBuffer(currentGeometry->indexBuffer,
-                        currentGeometry->indices);
+      createIndexBuffer(currentGeometry->indexBuffer, currentGeometry->indices);
     } else if (resource.second == VK_VERTEX_INPUT_RATE_VERTEX) {
       createVertexBuffer(currentGeometry->vertexBuffer,
                          currentGeometry->allVertices);
@@ -220,8 +219,7 @@ void Resources::createVertexBuffers(
   }
 };
 
-void Resources::createVertexBuffer(CE::Buffer& buffer,
-                                   const auto& vertices) {
+void Resources::createVertexBuffer(CE::Buffer& buffer, const auto& vertices) {
   CE::Buffer stagingResources;
   VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
 

@@ -22,19 +22,17 @@ class VulkanMechanics {
   VkInstance instance;
   ValidationLayers validation;
 
-  struct Device {
-    VkPhysicalDevice physical;
-    VkDevice logical;
-    const std::vector<const char*> extensions = {
-        VK_KHR_SWAPCHAIN_EXTENSION_NAME};
-    const VkPhysicalDeviceFeatures features{.tessellationShader = VK_TRUE,
-                                            .sampleRateShading = VK_TRUE,
-                                            .depthClamp = VK_TRUE,
-                                            .depthBiasClamp = VK_TRUE,
-                                            .fillModeNonSolid = VK_TRUE,
-                                            .wideLines = VK_TRUE,
-                                            .samplerAnisotropy = VK_TRUE,
-                                            .shaderInt64 = VK_TRUE};
+  struct Device : CE::Device {
+    Device() {
+      features.tessellationShader = VK_TRUE;
+      features.sampleRateShading = VK_TRUE;
+      features.depthClamp = VK_TRUE;
+      features.depthBiasClamp = VK_TRUE;
+      features.fillModeNonSolid = VK_TRUE;
+      features.wideLines = VK_TRUE;
+      features.samplerAnisotropy = VK_TRUE;
+      features.shaderInt64 = VK_TRUE;
+    };
   } mainDevice;
 
   struct Queues {

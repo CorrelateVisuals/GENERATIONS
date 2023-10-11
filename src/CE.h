@@ -8,24 +8,16 @@
 
 namespace CE {
 
-//struct Device {
-//  VkPhysicalDevice physical;
-//  VkDevice logical;
-//  const std::vector<const char*> extensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
-//  const VkPhysicalDeviceFeatures features{.tessellationShader = VK_TRUE,
-//                                          .sampleRateShading = VK_TRUE,
-//                                          .depthClamp = VK_TRUE,
-//                                          .depthBiasClamp = VK_TRUE,
-//                                          .fillModeNonSolid = VK_TRUE,
-//                                          .wideLines = VK_TRUE,
-//                                          .samplerAnisotropy = VK_TRUE,
-//                                          .shaderInt64 = VK_TRUE};
-//};
-
 struct Device {
+  VkPhysicalDevice physical{VK_NULL_HANDLE};
+  VkDevice logical{VK_NULL_HANDLE};
+  const std::vector<const char*> extensions{VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+  VkPhysicalDeviceFeatures features;
+};
+
+struct LinkedDevices {
   static VkPhysicalDevice* _physical;
   static VkDevice* _logical;
-
   static void linkDevice(VkDevice* logicalDevice,
                          VkPhysicalDevice* physicalDevice);
 };

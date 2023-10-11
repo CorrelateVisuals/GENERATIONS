@@ -13,7 +13,7 @@
 VulkanMechanics::VulkanMechanics()
     : surface(VK_NULL_HANDLE),
       instance(VK_NULL_HANDLE),
-      mainDevice{VK_NULL_HANDLE, VK_NULL_HANDLE},
+      mainDevice{},
       queues{VK_NULL_HANDLE,
              VK_NULL_HANDLE,
              VK_NULL_HANDLE,
