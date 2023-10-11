@@ -14,10 +14,7 @@ VulkanMechanics::VulkanMechanics()
     : surface(VK_NULL_HANDLE),
       instance(VK_NULL_HANDLE),
       mainDevice{},
-      queues{VK_NULL_HANDLE,
-             VK_NULL_HANDLE,
-             VK_NULL_HANDLE,
-             {std::nullopt, std::nullopt}},
+      queues{std::nullopt, std::nullopt},
       swapChain{VK_NULL_HANDLE, {}, VK_FORMAT_UNDEFINED, {}, {}, {}} {
   Log::text("{ Vk. }", "constructing Vulkan Mechanics");
 }
@@ -35,8 +32,8 @@ VulkanMechanics::~VulkanMechanics() {
     vkDestroyFence(mainDevice.logical, syncObjects.computeInFlightFences[i],
                    nullptr);
   }
-  vkDestroyDevice(mainDevice.logical, nullptr);
-  mainDevice.logical = VK_NULL_HANDLE;
+
+  mainDevice.destroyDevice();
 
   if (validation.enableValidationLayers) {
     validation.DestroyDebugUtilsMessengerEXT(
@@ -136,11 +133,11 @@ void VulkanMechanics::pickPhysicalDevice(
   }
 }
 
-VulkanMechanics::Queues::FamilyIndices VulkanMechanics::findQueueFamilies(
+CE::Queues::FamilyIndices VulkanMechanics::findQueueFamilies(
     VkPhysicalDevice physicalDevice) {
   Log::text(Log::Style::charLeader, "Find Queue Families");
 
-  VulkanMechanics::Queues::FamilyIndices indices;
+  CE::Queues::FamilyIndices indices;
 
   uint32_t queueFamilyCount = 0;
   vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount,

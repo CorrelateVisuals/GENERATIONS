@@ -22,7 +22,7 @@ class VulkanMechanics {
   VkInstance instance;
   ValidationLayers validation;
 
-  struct Device : CE::Device {
+  struct Device : public CE::Device {
     Device() {
       features.tessellationShader = VK_TRUE;
       features.sampleRateShading = VK_TRUE;
@@ -35,19 +35,10 @@ class VulkanMechanics {
     };
   } mainDevice;
 
-  struct Queues {
+  struct Queues : public CE::Queues{
     VkQueue graphics;
     VkQueue compute;
     VkQueue present;
-
-    struct FamilyIndices {
-      std::optional<uint32_t> graphicsAndComputeFamily;
-      std::optional<uint32_t> presentFamily;
-      bool isComplete() const {
-        return graphicsAndComputeFamily.has_value() &&
-               presentFamily.has_value();
-      }
-    } familyIndices;
   } queues;
 
   struct SwapChain {
@@ -98,5 +89,5 @@ class VulkanMechanics {
   VkPresentModeKHR chooseSwapPresentMode(
       const std::vector<VkPresentModeKHR>& availablePresentModes);
   VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
-  Queues::FamilyIndices findQueueFamilies(VkPhysicalDevice physicalDevice);
+  CE::Queues::FamilyIndices findQueueFamilies(VkPhysicalDevice physicalDevice);
 };
