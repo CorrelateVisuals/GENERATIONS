@@ -33,6 +33,9 @@ class LinkedDevice {
 
 class Queues {
  public:
+  Queues() = default;
+  virtual ~Queues() = default;
+
   struct FamilyIndices {
     std::optional<uint32_t> graphicsAndComputeFamily;
     std::optional<uint32_t> presentFamily;
@@ -47,6 +50,7 @@ class Queues {
 
 class Commands {
  public:
+  Commands() = default;
   virtual ~Commands() {
     if (*LinkedDevice::_logical != VK_NULL_HANDLE) {
       vkDestroyCommandPool(*LinkedDevice::_logical, pool, nullptr);
@@ -149,6 +153,9 @@ class Image {
 
 class Swapchain {
  public:
+  Swapchain() = default;
+  virtual ~Swapchain() = default;
+
   VkSwapchainKHR swapchain;
   VkExtent2D extent;
   VkFormat imageFormat;

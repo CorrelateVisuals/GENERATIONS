@@ -14,7 +14,7 @@ VulkanMechanics::VulkanMechanics()
     : surface(VK_NULL_HANDLE),
       instance(VK_NULL_HANDLE),
       mainDevice{},
-      queues{std::nullopt, std::nullopt},
+      queues{},
       swapchain{},
       syncObjects{} {
   Log::text("{ Vk. }", "constructing Vulkan Mechanics");
