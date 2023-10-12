@@ -189,6 +189,7 @@ static void vulkanResult(Checkresult vkResult, Args&&... args);
 static uint32_t findMemoryType(uint32_t typeFilter,
                                VkMemoryPropertyFlags properties);
 
+// Pipeline Presets
 constexpr static inline VkPipelineRasterizationStateCreateInfo
     rasterizationCullBackBit{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,

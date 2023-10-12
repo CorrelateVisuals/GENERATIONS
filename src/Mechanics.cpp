@@ -48,7 +48,7 @@ void VulkanMechanics::setupVulkan(Pipelines& _pipelines,
   pickPhysicalDevice(_resources.msaaImage.info.samples);
   createLogicalDevice();
 
-  swapchain.create(mainDevice, surface);
+  swapchain.create(mainDevice, surface, queues);
 
   createCommandPool(&_resources.command.pool);
 }
@@ -132,11 +132,9 @@ CE::Queues::FamilyIndices VulkanMechanics::findQueueFamilies(
   Log::text(Log::Style::charLeader, "Find Queue Families");
 
   CE::Queues::FamilyIndices indices;
-
   uint32_t queueFamilyCount = 0;
   vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount,
                                            nullptr);
-
   std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
   vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount,
                                            queueFamilies.data());
@@ -147,22 +145,17 @@ CE::Queues::FamilyIndices VulkanMechanics::findQueueFamilies(
         (queueFamily.queueFlags & VK_QUEUE_COMPUTE_BIT)) {
       indices.graphicsAndComputeFamily = i;
     }
-
     VkBool32 presentSupport = false;
     vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, i, surface,
                                          &presentSupport);
-
     if (presentSupport) {
       indices.presentFamily = i;
     }
-
     if (indices.isComplete()) {
       break;
     }
-
     i++;
   }
-
   return indices;
 }
 
@@ -241,12 +234,13 @@ VkSampleCountFlagBits VulkanMechanics::getMaxUsableSampleCount() {
 
 void VulkanMechanics::createLogicalDevice() {
   Log::text("{ +++ }", "Logical Device");
-  Queues::FamilyIndices indices =
-      findQueueFamilies(mainDevice.physical, surface);
+  // Queues::FamilyIndices indices =
+  //     findQueueFamilies(mainDevice.physical, surface);
 
   std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
   std::set<uint32_t> uniqueQueueFamilies = {
-      indices.graphicsAndComputeFamily.value(), indices.presentFamily.value()};
+      queues.familyIndices.graphicsAndComputeFamily.value(),
+      queues.familyIndices.presentFamily.value()};
 
   float queuePriority = 1.0f;
   for (uint32_t queueFamily : uniqueQueueFamilies) {
@@ -277,11 +271,14 @@ void VulkanMechanics::createLogicalDevice() {
   CE::vulkanResult(vkCreateDevice, mainDevice.physical, &createInfo, nullptr,
                    &mainDevice.logical);
 
-  vkGetDeviceQueue(mainDevice.logical, indices.graphicsAndComputeFamily.value(),
-                   0, &queues.graphics);
-  vkGetDeviceQueue(mainDevice.logical, indices.graphicsAndComputeFamily.value(),
-                   0, &queues.compute);
-  vkGetDeviceQueue(mainDevice.logical, indices.presentFamily.value(), 0,
+  vkGetDeviceQueue(mainDevice.logical,
+                   queues.familyIndices.graphicsAndComputeFamily.value(), 0,
+                   &queues.graphics);
+  vkGetDeviceQueue(mainDevice.logical,
+                   queues.familyIndices.graphicsAndComputeFamily.value(), 0,
+                   &queues.compute);
+  vkGetDeviceQueue(mainDevice.logical,
+                   queues.familyIndices.presentFamily.value(), 0,
                    &queues.present);
 }
 
@@ -356,12 +353,14 @@ bool VulkanMechanics::isDeviceSuitable(VkPhysicalDevice physicalDevice) {
   // VkPhysicalDeviceFeatures supportedFeatures;
   // vkGetPhysicalDeviceFeatures(mainDevice.physical, &supportedFeatures);
   //&& supportedFeatures.samplerAnisotropy
+  queues.familyIndices = indices;
 
   return indices.isComplete() && extensionsSupported && swapchainAdequate;
 }
 
 void VulkanMechanics::Swapchain::create(const Device& device,
-                                        const VkSurfaceKHR& surface) {
+                                        const VkSurfaceKHR& surface,
+                                        const Queues& queues) {
   Log::text("{ <-> }", "Swap Chain");
   Swapchain::SupportDetails swapchainSupport =
       checkSupport(device.physical, surface);
@@ -392,11 +391,14 @@ void VulkanMechanics::Swapchain::create(const Device& device,
       .presentMode = presentMode,
       .clipped = VK_TRUE};
 
-  Queues::FamilyIndices indices = findQueueFamilies(device.physical, surface);
+  // Queues::FamilyIndices indices = findQueueFamilies(device.physical,
+  // surface);
   std::vector<uint32_t> queueFamilyIndices{
-      indices.graphicsAndComputeFamily.value(), indices.presentFamily.value()};
+      queues.familyIndices.graphicsAndComputeFamily.value(),
+      queues.familyIndices.presentFamily.value()};
 
-  if (indices.graphicsAndComputeFamily != indices.presentFamily) {
+  if (queues.familyIndices.graphicsAndComputeFamily !=
+      queues.familyIndices.presentFamily) {
     createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
     createInfo.queueFamilyIndexCount =
         static_cast<uint32_t>(queueFamilyIndices.size());
@@ -428,7 +430,7 @@ void VulkanMechanics::Swapchain::create(const Device& device,
 void VulkanMechanics::createCommandPool(VkCommandPool* commandPool) {
   Log::text("{ cmd }", "Command Pool");
 
-  VulkanMechanics::Queues::FamilyIndices queueFamilyIndices =
+  Queues::FamilyIndices queueFamilyIndices =
       findQueueFamilies(mainDevice.physical, surface);
 
   VkCommandPoolCreateInfo poolInfo{
@@ -442,6 +444,7 @@ void VulkanMechanics::createCommandPool(VkCommandPool* commandPool) {
 
 void VulkanMechanics::Swapchain::recreate(const Device& device,
                                           const VkSurfaceKHR& surface,
+                                          const Queues& queues,
                                           SynchronizationObjects& syncObjects,
                                           Pipelines& _pipelines,
                                           Resources& _resources) {
@@ -455,7 +458,7 @@ void VulkanMechanics::Swapchain::recreate(const Device& device,
   vkDeviceWaitIdle(device.logical);
 
   destroy(device.logical);
-  create(device, surface);
+  create(device, surface, queues);
 
   _resources.msaaImage.createColorResources(extent, imageFormat,
                                             _resources.msaaImage.info.samples);

@@ -55,10 +55,12 @@ class VulkanMechanics {
   struct Swapchain : public CE::Swapchain {
     std::vector<CE::Image> images;
     std::vector<VkFramebuffer> framebuffers;
-
-    void create(const Device& device, const VkSurfaceKHR& surface);
+    void create(const Device& device,
+                const VkSurfaceKHR& surface,
+                const Queues& queues);
     void recreate(const Device& device,
                   const VkSurfaceKHR& surface,
+                  const Queues& queues,
                   SynchronizationObjects& syncObjects,
                   Pipelines& _pipelines,
                   Resources& _resources);
@@ -82,6 +84,9 @@ class VulkanMechanics {
   void createCommandPool(VkCommandPool* commandPool);
 
   static CE::Queues::FamilyIndices findQueueFamilies(
+      const VkPhysicalDevice& physicalDevice,
+      const VkSurfaceKHR& surface);
+  CE::Queues::FamilyIndices findQueueFamilies2(
       const VkPhysicalDevice& physicalDevice,
       const VkSurfaceKHR& surface);
 };
