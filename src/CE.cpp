@@ -92,7 +92,7 @@ void CE::Buffer::copyToImage(const VkBuffer buffer,
                              VkCommandBuffer& commandBuffer,
                              const VkCommandPool& commandPool,
                              const VkQueue& queue) {
-  Log::text("{ >>> }", "Buffer To Image", width, height);
+  Log::text("{ img }", "Buffer To Image", width, height);
 
   CE::Commands::beginSingularCommands(commandPool, queue);
   VkBufferImageCopy region{.bufferOffset = 0,
@@ -525,7 +525,8 @@ void CE::Device::destroyDevice() {
   }
 }
 
-void CE::SynchronizationObjects::destroySynchronizationObjects(int maxFramesInFlight) {
+void CE::SynchronizationObjects::destroySynchronizationObjects(
+    int maxFramesInFlight) {
   if (*LinkedDevice::_logical != VK_NULL_HANDLE) {
     Log::text("{ ||| }", "Destroy Synchronization Objects");
     for (size_t i = 0; i < maxFramesInFlight; i++) {

@@ -38,7 +38,7 @@ Pipelines::~Pipelines() {
 
 void Pipelines::setupPipelines(Resources& _resources) {
   Log::text(Log::Style::headerGuard);
-  Log::text("{ === }", "Setup Pipelines");
+  Log::text("{ >>> }", "Setup Pipelines");
 
   createRenderPass(_resources);
   createGraphicsPipeline_Layout(_resources.descriptor);
@@ -148,7 +148,7 @@ void Pipelines::createComputePipeline_Layout(
   VkPushConstantRange constants{.stageFlags = _pushConstants.shaderStage,
                                 .offset = _pushConstants.offset,
                                 .size = _pushConstants.size};
-  VkPipelineLayoutCreateInfo computeLayout{ CE::layoutDefault};
+  VkPipelineLayoutCreateInfo computeLayout{CE::layoutDefault};
   computeLayout.pSetLayouts = &_descriptorSets.setLayout;
   computeLayout.pushConstantRangeCount = _pushConstants.count;
   computeLayout.pPushConstantRanges = &constants;
@@ -180,9 +180,11 @@ void Pipelines::createGraphicsPipeline_Cells(
   VkPipelineRasterizationStateCreateInfo rasterization{
       CE::rasterizationCullBackBit};
 
-  VkPipelineMultisampleStateCreateInfo multisampling{CE::multisampleStateDefault};
+  VkPipelineMultisampleStateCreateInfo multisampling{
+      CE::multisampleStateDefault};
   multisampling.rasterizationSamples = msaaSamples;
-  VkPipelineDepthStencilStateCreateInfo depthStencil{CE::depthStencilStateDefault};
+  VkPipelineDepthStencilStateCreateInfo depthStencil{
+      CE::depthStencilStateDefault};
 
   static VkPipelineColorBlendAttachmentState colorBlendAttachment{
       CE::colorBlendAttachmentStateFalse};
@@ -236,9 +238,11 @@ void Pipelines::createGraphicsPipeline_Landscape(
       CE::inputAssemblyStateTriangleList};
   VkPipelineRasterizationStateCreateInfo rasterization{
       CE::rasterizationCullBackBit};
-  VkPipelineMultisampleStateCreateInfo multisampling{CE::multisampleStateDefault};
+  VkPipelineMultisampleStateCreateInfo multisampling{
+      CE::multisampleStateDefault};
   multisampling.rasterizationSamples = msaaSamples;
-  VkPipelineDepthStencilStateCreateInfo depthStencil{CE::depthStencilStateDefault};
+  VkPipelineDepthStencilStateCreateInfo depthStencil{
+      CE::depthStencilStateDefault};
 
   static VkPipelineColorBlendAttachmentState colorBlendAttachment{
       CE::colorBlendAttachmentStateFalse};
@@ -302,9 +306,11 @@ void Pipelines::createGraphicsPipeline_LandscapeWireframe(
   rasterization.polygonMode = VK_POLYGON_MODE_LINE;
   rasterization.lineWidth = 5.0f;
 
-  VkPipelineMultisampleStateCreateInfo multisampling{CE::multisampleStateDefault};
+  VkPipelineMultisampleStateCreateInfo multisampling{
+      CE::multisampleStateDefault};
   multisampling.rasterizationSamples = msaaSamples;
-  VkPipelineDepthStencilStateCreateInfo depthStencil{CE::depthStencilStateDefault};
+  VkPipelineDepthStencilStateCreateInfo depthStencil{
+      CE::depthStencilStateDefault};
 
   static VkPipelineColorBlendAttachmentState colorBlendAttachment{
       CE::colorBlendAttachmentStateMultiply};
@@ -359,9 +365,11 @@ void Pipelines::createGraphicsPipeline_Water(
       CE::inputAssemblyStateTriangleList};
   VkPipelineRasterizationStateCreateInfo rasterization{
       CE::rasterizationCullBackBit};
-  VkPipelineMultisampleStateCreateInfo multisampling{CE::multisampleStateDefault};
+  VkPipelineMultisampleStateCreateInfo multisampling{
+      CE::multisampleStateDefault};
   multisampling.rasterizationSamples = msaaSamples;
-  VkPipelineDepthStencilStateCreateInfo depthStencil{CE::depthStencilStateDefault};
+  VkPipelineDepthStencilStateCreateInfo depthStencil{
+      CE::depthStencilStateDefault};
 
   static VkPipelineColorBlendAttachmentState colorBlendAttachment{
       CE::colorBlendAttachmentStateFalse};
@@ -416,9 +424,11 @@ void Pipelines::createGraphicsPipeline_Texture(
       CE::inputAssemblyStateTriangleList};
   VkPipelineRasterizationStateCreateInfo rasterization{
       CE::rasterizationCullBackBit};
-  VkPipelineMultisampleStateCreateInfo multisampling{CE::multisampleStateDefault};
+  VkPipelineMultisampleStateCreateInfo multisampling{
+      CE::multisampleStateDefault};
   multisampling.rasterizationSamples = msaaSamples;
-  VkPipelineDepthStencilStateCreateInfo depthStencil{CE::depthStencilStateDefault};
+  VkPipelineDepthStencilStateCreateInfo depthStencil{
+      CE::depthStencilStateDefault};
 
   static VkPipelineColorBlendAttachmentState colorBlendAttachment{
       CE::colorBlendAttachmentStateFalse};
@@ -474,9 +484,11 @@ void Pipelines::createGraphicsPipeline_Cube(
       CE::inputAssemblyStateTriangleList};
   VkPipelineRasterizationStateCreateInfo rasterization{
       CE::rasterizationCullBackBit};
-  VkPipelineMultisampleStateCreateInfo multisampling{CE::multisampleStateDefault};
+  VkPipelineMultisampleStateCreateInfo multisampling{
+      CE::multisampleStateDefault};
   multisampling.rasterizationSamples = msaaSamples;
-  VkPipelineDepthStencilStateCreateInfo depthStencil{CE::depthStencilStateDefault};
+  VkPipelineDepthStencilStateCreateInfo depthStencil{
+      CE::depthStencilStateDefault};
 
   static VkPipelineColorBlendAttachmentState colorBlendAttachment{
       CE::colorBlendAttachmentStateFalse};
