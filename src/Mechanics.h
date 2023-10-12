@@ -57,22 +57,26 @@ class VulkanMechanics {
 
  public:
   void setupVulkan(Pipelines& _pipelines, Resources& _resources);
+
   void recreateSwapChain(Pipelines& _pipelines, Resources& _resources);
   void cleanupSwapChain(Resources& _resources);
+
   void createSyncObjects();
 
  private:
   void createInstance();
   void createSurface(GLFWwindow* window);
+
   void pickPhysicalDevice(VkSampleCountFlagBits& msaaImageSamples);
   void createLogicalDevice();
-  void createSwapChain();
-  void createCommandPool(VkCommandPool* commandPool);
-
   std::vector<const char*> getRequiredExtensions();
   bool isDeviceSuitable(VkPhysicalDevice physicalDevice);
   bool checkDeviceExtensionSupport(VkPhysicalDevice physicalDevice);
   VkSampleCountFlagBits getMaxUsableSampleCount();
+
+  void createCommandPool(VkCommandPool* commandPool);
+
+  void createSwapChain();
   SwapChain::SupportDetails querySwapChainSupport(
       VkPhysicalDevice physicalDevice);
   VkSurfaceFormatKHR chooseSwapSurfaceFormat(
