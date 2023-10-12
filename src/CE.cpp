@@ -41,9 +41,9 @@ CE::Buffer::~Buffer() {
   }
 }
 
-void CE::Buffer::create(VkDeviceSize size,
-                        VkBufferUsageFlags usage,
-                        VkMemoryPropertyFlags properties,
+void CE::Buffer::create(const VkDeviceSize& size,
+                        const VkBufferUsageFlags& usage,
+                        const VkMemoryPropertyFlags& properties,
                         Buffer& buffer) {
   VkBufferCreateInfo bufferInfo{.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
                                 .size = size,
@@ -85,7 +85,7 @@ void CE::Buffer::copy(const VkBuffer& srcBuffer,
   CE::Commands::endSingularCommands(commandPool, queue);
 }
 
-void CE::Buffer::copyToImage(const VkBuffer buffer,
+void CE::Buffer::copyToImage(const VkBuffer& buffer,
                              VkImage& image,
                              const uint32_t width,
                              const uint32_t height,
@@ -139,7 +139,7 @@ void CE::Image::create(const uint32_t width,
                        const VkFormat format,
                        const VkImageTiling tiling,
                        const VkImageUsageFlags& usage,
-                       const VkMemoryPropertyFlags properties) {
+                       const VkMemoryPropertyFlags& properties) {
   Log::text("{ img }", "Image", width, height);
   Log::text(Log::Style::charLeader, Log::getSampleCountString(numSamples));
   Log::text(Log::Style::charLeader, Log::getImageUsageString(usage));
@@ -308,8 +308,8 @@ VkFormat CE::Image::findDepthFormat() {
 }
 
 VkFormat CE::Image::findSupportedFormat(const std::vector<VkFormat>& candidates,
-                                        VkImageTiling tiling,
-                                        VkFormatFeatureFlags features) {
+                                        const VkImageTiling tiling,
+                                        const VkFormatFeatureFlags& features) {
   for (VkFormat format : candidates) {
     VkFormatProperties props;
     vkGetPhysicalDeviceFormatProperties(*LinkedDevice::_physical, format,

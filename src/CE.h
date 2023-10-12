@@ -62,9 +62,9 @@ class Buffer {
   VkDeviceMemory memory;
   void* mapped;
 
-  static void create(const VkDeviceSize size,
-                     const VkBufferUsageFlags usage,
-                     const VkMemoryPropertyFlags properties,
+  static void create(const VkDeviceSize& size,
+                     const VkBufferUsageFlags& usage,
+                     const VkMemoryPropertyFlags& properties,
                      Buffer& buffer);
   static void copy(const VkBuffer& srcBuffer,
                    VkBuffer& dstBuffer,
@@ -72,7 +72,7 @@ class Buffer {
                    VkCommandBuffer& commandBuffer,
                    const VkCommandPool& commandPool,
                    const VkQueue& queue);
-  static void copyToImage(const VkBuffer buffer,
+  static void copyToImage(const VkBuffer& buffer,
                           VkImage& image,
                           const uint32_t width,
                           const uint32_t height,
@@ -113,7 +113,7 @@ class Image {
               const VkFormat format,
               const VkImageTiling tiling,
               const VkImageUsageFlags& usage,
-              const VkMemoryPropertyFlags properties);
+              const VkMemoryPropertyFlags& properties);
   void recreate() { this->destroyVulkanImages(); };
   void createView(const VkImageAspectFlags aspectFlags);
   void createSampler();
@@ -128,8 +128,8 @@ class Image {
                    const VkQueue& queue);
   static VkFormat findDepthFormat();
   static VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates,
-                                      VkImageTiling tiling,
-                                      VkFormatFeatureFlags features);
+                                      const VkImageTiling tiling,
+                                      const VkFormatFeatureFlags& features);
   void createColorResources(const VkExtent2D& dimensions,
                             const VkFormat format,
                             const VkSampleCountFlagBits samples);
