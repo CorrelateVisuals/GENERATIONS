@@ -22,6 +22,11 @@ class VulkanMechanics {
   VkInstance instance;
   ValidationLayers validation;
 
+
+  struct SwapChain : public CE::Swapchain {
+  } swapChain;
+
+
   struct Device : public CE::Device {
     Device() {
       features.tessellationShader = VK_TRUE;
@@ -40,11 +45,6 @@ class VulkanMechanics {
     VkQueue compute;
     VkQueue present;
   } queues;
-
-  struct SwapChain : public CE::Swapchain {
-    std::vector<CE::Image> images;
-    std::vector<VkFramebuffer> framebuffers;
-  } swapChain;
 
   struct SynchronizationObjects {
     std::vector<VkSemaphore> imageAvailableSemaphores;

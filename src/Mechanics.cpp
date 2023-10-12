@@ -15,12 +15,15 @@ VulkanMechanics::VulkanMechanics()
       instance(VK_NULL_HANDLE),
       mainDevice{},
       queues{std::nullopt, std::nullopt},
-      swapChain{VK_NULL_HANDLE, VK_FORMAT_UNDEFINED, {0, 0}, {}, {}} {
+      swapChain{} {
   Log::text("{ Vk. }", "constructing Vulkan Mechanics");
 }
 
 VulkanMechanics::~VulkanMechanics() {
   Log::text("{ Vk. }", "destructing Vulkan Mechanics");
+
+  swapChain.destroySwapchain();
+
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
     vkDestroySemaphore(mainDevice.logical,
                        syncObjects.renderFinishedSemaphores[i], nullptr);
@@ -34,7 +37,7 @@ VulkanMechanics::~VulkanMechanics() {
                    nullptr);
   }
 
-  mainDevice.destroyDevice();
+ mainDevice.destroyDevice();
 
   if (validation.enableValidationLayers) {
     validation.DestroyDebugUtilsMessengerEXT(
@@ -366,15 +369,15 @@ void VulkanMechanics::createSyncObjects() {
 }
 
 void VulkanMechanics::cleanupSwapChain(Resources& _resources) {
-  for (auto& framebuffer : swapChain.framebuffers) {
-    vkDestroyFramebuffer(mainDevice.logical, framebuffer, nullptr);
-  }
+  //for (auto& framebuffer : swapChain.framebuffers) {
+  //  vkDestroyFramebuffer(mainDevice.logical, framebuffer, nullptr);
+  //}
 
-  for (auto& image : swapChain.images) {
-    vkDestroyImageView(mainDevice.logical, image.view, nullptr);
-  }
+  //for (auto& image : swapChain.images) {
+  //  vkDestroyImageView(mainDevice.logical, image.view, nullptr);
+  //}
 
-  vkDestroySwapchainKHR(mainDevice.logical, swapChain.swapChain, nullptr);
+  //vkDestroySwapchainKHR(mainDevice.logical, swapChain.swapChain, nullptr);
 }
 
 bool VulkanMechanics::isDeviceSuitable(VkPhysicalDevice physicalDevice) {

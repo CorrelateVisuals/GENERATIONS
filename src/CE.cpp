@@ -112,10 +112,6 @@ void CE::Buffer::copyToImage(const VkBuffer buffer,
 
 CE::Image::Image() : image{}, memory{}, view{}, sampler{} {}
 
-CE::Image::~Image() {
-  destroyVulkanImages();
-}
-
 void CE::Image::destroyVulkanImages() {
   if (*LinkedDevice::_logical != VK_NULL_HANDLE) {
     if (sampler != VK_NULL_HANDLE) {
@@ -505,4 +501,26 @@ void CE::Commands::endSingularCommands(const VkCommandPool& commandPool,
   vkQueueWaitIdle(queue);
   vkFreeCommandBuffers(*CE::LinkedDevice::_logical, commandPool, 1,
                        &singularCommandBuffer);
+}
+
+void CE::Swapchain::destroySwapchain() {
+  if (*LinkedDevice::_logical != VK_NULL_HANDLE) {
+      Log::text("{ Vk. }", "Destroy Swapchain");
+
+    for (size_t i = 0; i < framebuffers.size(); i++) {
+      vkDestroyFramebuffer(*LinkedDevice::_logical, framebuffers[i], nullptr);
+    }
+    for (size_t i = 0; i < images.size(); i++) {
+      vkDestroyImageView(*LinkedDevice::_logical, images[i].view, nullptr);
+    }
+    vkDestroySwapchainKHR(*LinkedDevice::_logical, swapChain, nullptr);
+  }
+}
+
+void CE::Device::destroyDevice() {
+    if (*LinkedDevice::_logical != VK_NULL_HANDLE) {
+        Log::text("{ Vk. }", "Destroy Device");
+        vkDestroyDevice(this->logical, nullptr);
+        this->logical = VK_NULL_HANDLE;
+    }
 }

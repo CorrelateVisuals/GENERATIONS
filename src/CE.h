@@ -14,12 +14,8 @@ namespace CE {
 class Device {
  public:
   Device() = default;
-  virtual ~Device() { destroyDevice(); };
-  void destroyDevice() {
-    Log::text("{ Vk. }", "destructing Device");
-    vkDestroyDevice(this->logical, nullptr);
-    this->logical = VK_NULL_HANDLE;
-  };
+  virtual ~Device() { destroyDevice(); }
+  void destroyDevice();
   VkPhysicalDevice physical{VK_NULL_HANDLE};
   VkDevice logical{VK_NULL_HANDLE};
   const std::vector<const char*> extensions{VK_KHR_SWAPCHAIN_EXTENSION_NAME};
@@ -32,18 +28,6 @@ class LinkedDevice {
   static VkDevice* _logical;
   static void linkDevice(VkDevice* logicalDevice,
                          VkPhysicalDevice* physicalDevice);
-};
-
-class Swapchain {
- public:
-  VkSwapchainKHR swapChain;
-  VkFormat imageFormat;
-  VkExtent2D extent;
-  struct SupportDetails {
-    VkSurfaceCapabilitiesKHR capabilities{};
-    std::vector<VkSurfaceFormatKHR> formats;
-    std::vector<VkPresentModeKHR> presentModes;
-  };
 };
 
 class Queues {
@@ -100,7 +84,7 @@ class Buffer {
 class Image {
  public:
   Image();
-  virtual ~Image();
+  virtual ~Image() { destroyVulkanImages(); };
   void destroyVulkanImages();
 
   VkImage image;
@@ -152,6 +136,23 @@ class Image {
   void createDepthResources(const VkExtent2D& dimensions,
                             const VkFormat format,
                             const VkSampleCountFlagBits samples);
+};
+
+class Swapchain {
+ public:
+  Swapchain() = default;
+  ~Swapchain() { destroySwapchain(); };
+  void destroySwapchain();
+  std::vector<CE::Image> images;
+  std::vector<VkFramebuffer> framebuffers;
+  VkSwapchainKHR swapChain;
+  VkFormat imageFormat;
+  VkExtent2D extent;
+  struct SupportDetails {
+    VkSurfaceCapabilitiesKHR capabilities{};
+    std::vector<VkSurfaceFormatKHR> formats;
+    std::vector<VkPresentModeKHR> presentModes;
+  };
 };
 
 class Descriptor {
