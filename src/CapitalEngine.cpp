@@ -9,15 +9,15 @@ CapitalEngine::CapitalEngine()
 
   mechanics.setupVulkan(pipelines, resources);
   resources.createDescriptorSetLayout(resources.descriptorSetLayoutBindings);
-  resources.msaaImage.createColorResources(mechanics.swapChain.extent,
-                                           mechanics.swapChain.imageFormat,
+  resources.msaaImage.createColorResources(mechanics.swapchain.swapChainExtent,
+                                           mechanics.swapchain.imageFormat,
                                            resources.msaaImage.info.samples);
-  resources.depthImage.createDepthResources(mechanics.swapChain.extent,
+  resources.depthImage.createDepthResources(mechanics.swapchain.swapChainExtent,
                                             CE::Image::findDepthFormat(),
                                             resources.msaaImage.info.samples);
   pipelines.setupPipelines(resources);
   resources.setupResources(pipelines);
-  mechanics.createSyncObjects();
+  mechanics.syncObjects.create(mechanics.mainDevice.logical);
 }
 
 CapitalEngine::~CapitalEngine() {
@@ -96,13 +96,13 @@ void CapitalEngine::drawFrame() {
 
   uint32_t imageIndex;
   VkResult result = vkAcquireNextImageKHR(
-      mechanics.mainDevice.logical, mechanics.swapChain.swapChain, UINT64_MAX,
+      mechanics.mainDevice.logical, mechanics.swapchain.swapchain, UINT64_MAX,
       mechanics.syncObjects
           .imageAvailableSemaphores[mechanics.syncObjects.currentFrame],
       VK_NULL_HANDLE, &imageIndex);
 
   if (result == VK_ERROR_OUT_OF_DATE_KHR) {
-    mechanics.recreateSwapChain(pipelines, resources);
+    mechanics.recreateswapchain(pipelines, resources);
     return;
   } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
     throw std::runtime_error("\n!ERROR! failed to acquire swap chain image!");
@@ -147,7 +147,7 @@ void CapitalEngine::drawFrame() {
       mechanics.syncObjects
           .graphicsInFlightFences[mechanics.syncObjects.currentFrame]);
 
-  std::vector<VkSwapchainKHR> swapChains{mechanics.swapChain.swapChain};
+  std::vector<VkSwapchainKHR> swapchains{mechanics.swapchain.swapchain};
 
   VkPresentInfoKHR presentInfo{
       .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
@@ -156,7 +156,7 @@ void CapitalEngine::drawFrame() {
           &mechanics.syncObjects
                .renderFinishedSemaphores[mechanics.syncObjects.currentFrame],
       .swapchainCount = 1,
-      .pSwapchains = swapChains.data(),
+      .pSwapchains = swapchains.data(),
       .pImageIndices = &imageIndex};
 
   result = vkQueuePresentKHR(mechanics.queues.present, &presentInfo);
@@ -164,7 +164,7 @@ void CapitalEngine::drawFrame() {
   if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR ||
       Window::get().framebufferResized) {
     Window::get().framebufferResized = false;
-    mechanics.recreateSwapChain(pipelines, resources);
+    mechanics.recreateswapchain(pipelines, resources);
   } else if (result != VK_SUCCESS) {
     throw std::runtime_error("\n!ERROR! failed to present swap chain image!");
   }

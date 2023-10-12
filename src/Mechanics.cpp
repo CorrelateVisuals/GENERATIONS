@@ -15,16 +15,16 @@ VulkanMechanics::VulkanMechanics()
       instance(VK_NULL_HANDLE),
       mainDevice{},
       queues{std::nullopt, std::nullopt},
-      swapChain{},
-    syncObjects{} {
+      swapchain{},
+      syncObjects{} {
   Log::text("{ Vk. }", "constructing Vulkan Mechanics");
 }
 
 VulkanMechanics::~VulkanMechanics() {
   Log::text("{ Vk. }", "destructing Vulkan Mechanics");
 
-  swapChain.destroySwapchain();
-  syncObjects.destroySynchronizationObjects(MAX_FRAMES_IN_FLIGHT);
+  swapchain.destroy(mainDevice.logical);
+  syncObjects.destroy(mainDevice.logical);
   mainDevice.destroyDevice();
 
   if (validation.enableValidationLayers) {
@@ -48,7 +48,7 @@ void VulkanMechanics::setupVulkan(Pipelines& _pipelines,
   pickPhysicalDevice(_resources.msaaImage.info.samples);
   createLogicalDevice();
 
-  createSwapChain();
+  swapchain.create(mainDevice, surface);
 
   createCommandPool(&_resources.command.pool);
 }
@@ -127,7 +127,8 @@ void VulkanMechanics::pickPhysicalDevice(
 }
 
 CE::Queues::FamilyIndices VulkanMechanics::findQueueFamilies(
-    VkPhysicalDevice physicalDevice) {
+    const VkPhysicalDevice& physicalDevice,
+    const VkSurfaceKHR& surface) {
   Log::text(Log::Style::charLeader, "Find Queue Families");
 
   CE::Queues::FamilyIndices indices;
@@ -165,11 +166,12 @@ CE::Queues::FamilyIndices VulkanMechanics::findQueueFamilies(
   return indices;
 }
 
-VulkanMechanics::SwapChain::SupportDetails
-VulkanMechanics::querySwapChainSupport(VkPhysicalDevice physicalDevice) {
+VulkanMechanics::Swapchain::SupportDetails
+VulkanMechanics::Swapchain::checkSupport(VkPhysicalDevice physicalDevice,
+                                         VkSurfaceKHR& surface) {
   Log::text(Log::Style::charLeader, "Query Swap Chain Support");
   {
-    SwapChain::SupportDetails details;
+    Swapchain::SupportDetails details;
 
     vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface,
                                               &details.capabilities);
@@ -237,7 +239,8 @@ VkSampleCountFlagBits VulkanMechanics::getMaxUsableSampleCount() {
 
 void VulkanMechanics::createLogicalDevice() {
   Log::text("{ +++ }", "Logical Device");
-  Queues::FamilyIndices indices = findQueueFamilies(mainDevice.physical);
+  Queues::FamilyIndices indices =
+      findQueueFamilies(mainDevice.physical, surface);
 
   std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
   std::set<uint32_t> uniqueQueueFamilies = {
@@ -280,7 +283,7 @@ void VulkanMechanics::createLogicalDevice() {
                    &queues.present);
 }
 
-VkSurfaceFormatKHR VulkanMechanics::chooseSwapSurfaceFormat(
+VkSurfaceFormatKHR VulkanMechanics::Swapchain::pickSurfaceFormat(
     const std::vector<VkSurfaceFormatKHR>& availableFormats) {
   Log::text(Log::Style::charLeader, "Choose Swap Surface Format");
 
@@ -293,7 +296,7 @@ VkSurfaceFormatKHR VulkanMechanics::chooseSwapSurfaceFormat(
   return availableFormats[0];
 }
 
-VkPresentModeKHR VulkanMechanics::chooseSwapPresentMode(
+VkPresentModeKHR VulkanMechanics::Swapchain::pickPresentMode(
     const std::vector<VkPresentModeKHR>& availablePresentModes) {
   Log::text(Log::Style::charLeader, "Choose Swap Present Mode");
   for (const auto& availablePresentMode : availablePresentModes) {
@@ -304,8 +307,8 @@ VkPresentModeKHR VulkanMechanics::chooseSwapPresentMode(
   return VK_PRESENT_MODE_MAILBOX_KHR;
 }
 
-VkExtent2D VulkanMechanics::chooseSwapExtent(
-    const VkSurfaceCapabilitiesKHR& capabilities) {
+VkExtent2D VulkanMechanics::Swapchain::pickExtent(
+    VkSurfaceCapabilitiesKHR& capabilities) {
   Log::text(Log::Style::charLeader, "Choose Swap Extent");
 
   if (capabilities.currentExtent.width !=
@@ -328,14 +331,14 @@ VkExtent2D VulkanMechanics::chooseSwapExtent(
   }
 }
 
-void VulkanMechanics::createSyncObjects() {
+void VulkanMechanics::SynchronizationObjects::create(VkDevice& logicalDevice) {
   Log::text("{ ||| }", "Sync Objects");
 
-  syncObjects.imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-  syncObjects.renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-  syncObjects.computeFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-  syncObjects.graphicsInFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
-  syncObjects.computeInFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
+  imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+  renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+  computeFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+  graphicsInFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
+  computeInFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
 
   VkSemaphoreCreateInfo semaphoreInfo{
       .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO};
@@ -344,56 +347,55 @@ void VulkanMechanics::createSyncObjects() {
                               .flags = VK_FENCE_CREATE_SIGNALED_BIT};
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-    CE::vulkanResult(vkCreateSemaphore, mainDevice.logical, &semaphoreInfo,
-                     nullptr, &syncObjects.imageAvailableSemaphores[i]);
-    CE::vulkanResult(vkCreateSemaphore, mainDevice.logical, &semaphoreInfo,
-                     nullptr, &syncObjects.renderFinishedSemaphores[i]);
-    CE::vulkanResult(vkCreateFence, mainDevice.logical, &fenceInfo, nullptr,
-                     &syncObjects.graphicsInFlightFences[i]);
-    CE::vulkanResult(vkCreateSemaphore, mainDevice.logical, &semaphoreInfo,
-                     nullptr, &syncObjects.computeFinishedSemaphores[i]);
-    CE::vulkanResult(vkCreateFence, mainDevice.logical, &fenceInfo, nullptr,
-                     &syncObjects.computeInFlightFences[i]);
+    CE::vulkanResult(vkCreateSemaphore, logicalDevice, &semaphoreInfo, nullptr,
+                     &imageAvailableSemaphores[i]);
+    CE::vulkanResult(vkCreateSemaphore, logicalDevice, &semaphoreInfo, nullptr,
+                     &renderFinishedSemaphores[i]);
+    CE::vulkanResult(vkCreateFence, logicalDevice, &fenceInfo, nullptr,
+                     &graphicsInFlightFences[i]);
+    CE::vulkanResult(vkCreateSemaphore, logicalDevice, &semaphoreInfo, nullptr,
+                     &computeFinishedSemaphores[i]);
+    CE::vulkanResult(vkCreateFence, logicalDevice, &fenceInfo, nullptr,
+                     &computeInFlightFences[i]);
   }
 }
 
 bool VulkanMechanics::isDeviceSuitable(VkPhysicalDevice physicalDevice) {
   Log::text(Log::Style::charLeader, "Is Device Suitable");
 
-  Queues::FamilyIndices indices = findQueueFamilies(physicalDevice);
+  Queues::FamilyIndices indices = findQueueFamilies(physicalDevice, surface);
 
   bool extensionsSupported = checkDeviceExtensionSupport(physicalDevice);
 
-  bool swapChainAdequate = false;
+  bool swapchainAdequate = false;
   if (extensionsSupported) {
-    SwapChain::SupportDetails swapChainSupport =
-        querySwapChainSupport(physicalDevice);
-    swapChainAdequate = !swapChainSupport.formats.empty() &&
-                        !swapChainSupport.presentModes.empty();
+    Swapchain::SupportDetails swapchainSupport =
+        swapchain.checkSupport(physicalDevice, surface);
+    swapchainAdequate = !swapchainSupport.formats.empty() &&
+                        !swapchainSupport.presentModes.empty();
   }
 
   // VkPhysicalDeviceFeatures supportedFeatures;
   // vkGetPhysicalDeviceFeatures(mainDevice.physical, &supportedFeatures);
   //&& supportedFeatures.samplerAnisotropy
 
-  return indices.isComplete() && extensionsSupported && swapChainAdequate;
+  return indices.isComplete() && extensionsSupported && swapchainAdequate;
 }
 
-void VulkanMechanics::createSwapChain() {
+void VulkanMechanics::Swapchain::create(Device& device, VkSurfaceKHR& surface) {
   Log::text("{ <-> }", "Swap Chain");
-  SwapChain::SupportDetails swapChainSupport =
-      querySwapChainSupport(mainDevice.physical);
+  Swapchain::SupportDetails swapchainSupport =
+      checkSupport(device.physical, surface);
 
   VkSurfaceFormatKHR surfaceFormat =
-      chooseSwapSurfaceFormat(swapChainSupport.formats);
-  VkPresentModeKHR presentMode =
-      chooseSwapPresentMode(swapChainSupport.presentModes);
-  VkExtent2D extent = chooseSwapExtent(swapChainSupport.capabilities);
+      pickSurfaceFormat(swapchainSupport.formats);
+  VkPresentModeKHR presentMode = pickPresentMode(swapchainSupport.presentModes);
+  VkExtent2D extent = pickExtent(swapchainSupport.capabilities);
 
-  uint32_t imageCount = swapChainSupport.capabilities.minImageCount;
-  if (swapChainSupport.capabilities.maxImageCount > 0 &&
-      imageCount > swapChainSupport.capabilities.maxImageCount) {
-    imageCount = swapChainSupport.capabilities.maxImageCount;
+  uint32_t imageCount = swapchainSupport.capabilities.minImageCount;
+  if (swapchainSupport.capabilities.maxImageCount > 0 &&
+      imageCount > swapchainSupport.capabilities.maxImageCount) {
+    imageCount = swapchainSupport.capabilities.maxImageCount;
   }
 
   VkSwapchainCreateInfoKHR createInfo{
@@ -406,12 +408,12 @@ void VulkanMechanics::createSwapChain() {
       .imageArrayLayers = 1,
       .imageUsage =
           VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_STORAGE_BIT,
-      .preTransform = swapChainSupport.capabilities.currentTransform,
+      .preTransform = swapchainSupport.capabilities.currentTransform,
       .compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
       .presentMode = presentMode,
       .clipped = VK_TRUE};
 
-  Queues::FamilyIndices indices = findQueueFamilies(mainDevice.physical);
+  Queues::FamilyIndices indices = findQueueFamilies(device.physical, surface);
   std::vector<uint32_t> queueFamilyIndices{
       indices.graphicsAndComputeFamily.value(), indices.presentFamily.value()};
 
@@ -424,24 +426,23 @@ void VulkanMechanics::createSwapChain() {
     createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
   }
 
-  CE::vulkanResult(vkCreateSwapchainKHR, mainDevice.logical, &createInfo,
-                   nullptr, &swapChain.swapChain);
+  CE::vulkanResult(vkCreateSwapchainKHR, device.logical, &createInfo, nullptr,
+                   &swapchain);
 
-  vkGetSwapchainImagesKHR(mainDevice.logical, swapChain.swapChain, &imageCount,
-                          nullptr);
+  vkGetSwapchainImagesKHR(device.logical, swapchain, &imageCount, nullptr);
 
-  swapChain.images.resize(imageCount);
-  swapChain.imageFormat = surfaceFormat.format;
-  swapChain.extent = extent;
+  images.resize(imageCount);
+  imageFormat = surfaceFormat.format;
+  swapChainExtent = extent;
 
-  std::vector<VkImage> swapChainImages(MAX_FRAMES_IN_FLIGHT);
-  vkGetSwapchainImagesKHR(mainDevice.logical, swapChain.swapChain, &imageCount,
-                          swapChainImages.data());
+  std::vector<VkImage> swapchainImages(MAX_FRAMES_IN_FLIGHT);
+  vkGetSwapchainImagesKHR(device.logical, swapchain, &imageCount,
+                          swapchainImages.data());
 
   for (size_t i = 0; i < imageCount; i++) {
-    swapChain.images[i].image = swapChainImages[i];
-    swapChain.images[i].info.format = swapChain.imageFormat;
-    swapChain.images[i].createView(VK_IMAGE_ASPECT_COLOR_BIT);
+    images[i].image = swapchainImages[i];
+    images[i].info.format = imageFormat;
+    images[i].createView(VK_IMAGE_ASPECT_COLOR_BIT);
   };
 }
 
@@ -449,7 +450,7 @@ void VulkanMechanics::createCommandPool(VkCommandPool* commandPool) {
   Log::text("{ cmd }", "Command Pool");
 
   VulkanMechanics::Queues::FamilyIndices queueFamilyIndices =
-      findQueueFamilies(mainDevice.physical);
+      findQueueFamilies(mainDevice.physical, surface);
 
   VkCommandPoolCreateInfo poolInfo{
       .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
@@ -460,7 +461,7 @@ void VulkanMechanics::createCommandPool(VkCommandPool* commandPool) {
                    commandPool);
 }
 
-void VulkanMechanics::recreateSwapChain(Pipelines& _pipelines,
+void VulkanMechanics::recreateswapchain(Pipelines& _pipelines,
                                         Resources& _resources) {
   int width = 0, height = 0;
   glfwGetFramebufferSize(Window::get().window, &width, &height);
@@ -471,14 +472,13 @@ void VulkanMechanics::recreateSwapChain(Pipelines& _pipelines,
 
   vkDeviceWaitIdle(mainDevice.logical);
 
-  swapChain.destroySwapchain();
+  swapchain.destroy(mainDevice.logical);
+  swapchain.create(mainDevice, surface);
 
-  createSwapChain();
-
-  _resources.msaaImage.createColorResources(swapChain.extent,
-                                            swapChain.imageFormat,
+  _resources.msaaImage.createColorResources(swapchain.swapChainExtent,
+                                            swapchain.imageFormat,
                                             _resources.msaaImage.info.samples);
-  _resources.depthImage.createDepthResources(swapChain.extent,
+  _resources.depthImage.createDepthResources(swapchain.swapChainExtent,
                                              CE::Image::findDepthFormat(),
                                              _resources.msaaImage.info.samples);
 
@@ -502,4 +502,31 @@ std::vector<const char*> VulkanMechanics::getRequiredExtensions() {
   }
 
   return extensions;
+}
+
+void VulkanMechanics::Swapchain::destroy(VkDevice& logicalDevice) {
+  if (logicalDevice != VK_NULL_HANDLE) {
+    Log::text("{ <-> }", "Destroy Swapchain");
+
+    for (size_t i = 0; i < framebuffers.size(); i++) {
+      vkDestroyFramebuffer(logicalDevice, framebuffers[i], nullptr);
+    }
+    for (size_t i = 0; i < images.size(); i++) {
+      vkDestroyImageView(logicalDevice, images[i].view, nullptr);
+    }
+    vkDestroySwapchainKHR(logicalDevice, swapchain, nullptr);
+  }
+}
+
+void VulkanMechanics::SynchronizationObjects::destroy(VkDevice& logicalDevice) {
+  if (logicalDevice != VK_NULL_HANDLE) {
+    Log::text("{ ||| }", "Destroy Synchronization Objects");
+    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+      vkDestroySemaphore(logicalDevice, renderFinishedSemaphores[i], nullptr);
+      vkDestroySemaphore(logicalDevice, imageAvailableSemaphores[i], nullptr);
+      vkDestroySemaphore(logicalDevice, computeFinishedSemaphores[i], nullptr);
+      vkDestroyFence(logicalDevice, graphicsInFlightFences[i], nullptr);
+      vkDestroyFence(logicalDevice, computeInFlightFences[i], nullptr);
+    };
+  }
 }

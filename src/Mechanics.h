@@ -35,8 +35,23 @@ class VulkanMechanics {
     };
   } mainDevice;
 
-  struct SwapChain : public CE::Swapchain {
-  } swapChain;
+  struct Swapchain : public CE::Swapchain {
+    std::vector<CE::Image> images;
+    std::vector<VkFramebuffer> framebuffers;
+    VkFormat imageFormat;
+    VkExtent2D swapChainExtent;
+    VkSwapchainKHR swapchain;
+
+    void create(Device& device, VkSurfaceKHR& surface);
+    void destroy(VkDevice& logicalDevice);
+    SupportDetails checkSupport(VkPhysicalDevice physicalDevice,
+                                VkSurfaceKHR& surface);
+    VkSurfaceFormatKHR pickSurfaceFormat(
+        const std::vector<VkSurfaceFormatKHR>& availableFormats);
+    VkPresentModeKHR pickPresentMode(
+        const std::vector<VkPresentModeKHR>& availablePresentModes);
+    VkExtent2D pickExtent(VkSurfaceCapabilitiesKHR& capabilities);
+  } swapchain;
 
   struct Queues : public CE::Queues {
     VkQueue graphics;
@@ -44,16 +59,21 @@ class VulkanMechanics {
     VkQueue present;
   } queues;
 
-  struct SynchronizationObjects : public CE::SynchronizationObjects {
+  struct SynchronizationObjects {
+    void create(VkDevice& logicalDevice);
+    void destroy(VkDevice& logicalDevice);
+    std::vector<VkSemaphore> imageAvailableSemaphores;
+    std::vector<VkSemaphore> renderFinishedSemaphores;
+    std::vector<VkSemaphore> computeFinishedSemaphores;
+    std::vector<VkFence> graphicsInFlightFences;
+    std::vector<VkFence> computeInFlightFences;
     uint32_t currentFrame = 0;
   } syncObjects;
 
  public:
   void setupVulkan(Pipelines& _pipelines, Resources& _resources);
 
-  void recreateSwapChain(Pipelines& _pipelines, Resources& _resources);
-
-  void createSyncObjects();
+  void recreateswapchain(Pipelines& _pipelines, Resources& _resources);
 
  private:
   void createInstance();
@@ -68,14 +88,7 @@ class VulkanMechanics {
 
   void createCommandPool(VkCommandPool* commandPool);
 
-  void createSwapChain();
-  SwapChain::SupportDetails querySwapChainSupport(
-      VkPhysicalDevice physicalDevice);
-  VkSurfaceFormatKHR chooseSwapSurfaceFormat(
-      const std::vector<VkSurfaceFormatKHR>& availableFormats);
-  VkPresentModeKHR chooseSwapPresentMode(
-      const std::vector<VkPresentModeKHR>& availablePresentModes);
-  VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
-
-  CE::Queues::FamilyIndices findQueueFamilies(VkPhysicalDevice physicalDevice);
+  static CE::Queues::FamilyIndices findQueueFamilies(
+      const VkPhysicalDevice& physicalDevice,
+      const VkSurfaceKHR& surface);
 };

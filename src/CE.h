@@ -140,32 +140,11 @@ class Image {
 
 class Swapchain {
  public:
-  Swapchain() = default;
-  ~Swapchain() { destroySwapchain(); };
-  void destroySwapchain();
-  std::vector<CE::Image> images;
-  std::vector<VkFramebuffer> framebuffers;
-  VkSwapchainKHR swapChain;
-  VkFormat imageFormat;
-  VkExtent2D extent;
   struct SupportDetails {
     VkSurfaceCapabilitiesKHR capabilities{};
     std::vector<VkSurfaceFormatKHR> formats;
     std::vector<VkPresentModeKHR> presentModes;
   };
-};
-
-class SynchronizationObjects {
- public:
-  SynchronizationObjects() = default;
-  ~SynchronizationObjects() = default;
-  void destroySynchronizationObjects(int maxFramesInFlight);
-
-  std::vector<VkSemaphore> imageAvailableSemaphores;
-  std::vector<VkSemaphore> renderFinishedSemaphores;
-  std::vector<VkSemaphore> computeFinishedSemaphores;
-  std::vector<VkFence> graphicsInFlightFences;
-  std::vector<VkFence> computeInFlightFences;
 };
 
 class Descriptor {

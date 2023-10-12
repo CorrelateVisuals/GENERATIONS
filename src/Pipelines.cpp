@@ -61,7 +61,7 @@ void Pipelines::createRenderPass(Resources& _resources) {
             "colorAttachment, depthAttachment, colorAttachmentResolve");
 
   VkAttachmentDescription colorAttachment{
-      .format = _mechanics.swapChain.imageFormat,
+      .format = _mechanics.swapchain.imageFormat,
       .samples = _resources.msaaImage.info.samples,
       .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
       .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
@@ -81,7 +81,7 @@ void Pipelines::createRenderPass(Resources& _resources) {
       .finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL};
 
   VkAttachmentDescription colorAttachmentResolve{
-      .format = _mechanics.swapChain.imageFormat,
+      .format = _mechanics.swapchain.imageFormat,
       .samples = VK_SAMPLE_COUNT_1_BIT,
       .loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
       .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
