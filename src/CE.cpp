@@ -393,80 +393,18 @@ CE::Descriptor::~Descriptor() {
   };
 }
 
-// void CE::Descriptor::createDescriptorPool() {
-//  std::vector<VkDescriptorPoolSize> poolSizes{
-//      {.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-//       .descriptorCount = static_cast<uint32_t>(maxFramesInFlight)},
-//      {.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-//       .descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT) * 2},
-//      {.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-//       .descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT)},
-//      {.type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
-//       .descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT)}};
+void CE::Commands::createCommandPool(
+    const Queues::FamilyIndices& familyIndices) {
+  Log::text("{ cmd }", "Command Pool");
 
-// Log::text("{ |=| }", "Descriptor Pool");
-// for (size_t i = 0; i < poolSizes.size(); i++) {
-//   Log::text(Log::Style::charLeader,
-//             Log::getDescriptorTypeString(poolSizes[i].type));
-// }
+  VkCommandPoolCreateInfo poolInfo{
+      .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+      .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
+      .queueFamilyIndex = familyIndices.graphicsAndComputeFamily.value()};
 
-// VkDescriptorPoolCreateInfo poolInfo{
-//     .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-//     .maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT),
-//     .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
-//     .pPoolSizes = poolSizes.data()};
-
-// result(vkCreateDescriptorPool, _logicalDevice, &poolInfo, nullptr, &pool);
-//}
-
-// void CE::Descriptor::allocateDescriptorSets() {
-//  std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT,
-//  setLayout); VkDescriptorSetAllocateInfo allocateInfo{
-//      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-//      .descriptorPool = pool,
-//      .descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT),
-//      .pSetLayouts = layouts.data()};
-
-// sets.resize(MAX_FRAMES_IN_FLIGHT);
-//_mechanics.result(vkAllocateDescriptorSets, _mechanics.mainDevice._logical,
-//                   &allocateInfo, sets.data());
-//}
-
-// void CE::Descriptor::createDescriptorSets() {
-//  Log::text("{ |=| }", "Descriptor Set Layout:", layoutBindings.size(),
-//            "bindings");
-//  for (const VkDescriptorSetLayoutBinding& item : layoutBindings) {
-//    Log::text("{ ", item.binding, " }",
-//              Log::getDescriptorTypeString(item.descriptorType));
-//    Log::text(Log::Style::charLeader,
-//              Log::getShaderStageString(item.stageFlags));
-//  }
-
-// VkDescriptorSetLayoutCreateInfo layoutInfo{
-//     .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-//     .bindingCount = static_cast<uint32_t>(layoutBindings.size()),
-//     .pBindings = layoutBindings.data()};
-
-//_mechanics.result(vkCreateDescriptorSetLayout,
-//_mechanics.mainDevice._logical,
-//                  &layoutInfo, nullptr, &setLayout);
-//}
-
-// void CE::CommandBuffer::createCommandPool(VkCommandPool* commandPool) {
-//  Log::text("{ cmd }", "Command Pool");
-
-// VulkanMechanics::Queues::FamilyIndices queueFamilyIndices =
-//     findQueueFamilies(mainDevice._physical);
-
-// VkCommandPoolCreateInfo poolInfo{
-//     .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
-//     .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
-//     .queueFamilyIndex =
-//     queueFamilyIndices.graphicsAndComputeFamily.value() };
-
-// vulkanResult(vkCreateCommandPool, *LinkedDevice::_logical, &poolInfo,
-//     nullptr, commandPool);
-//}
+  CE::vulkanResult(vkCreateCommandPool, *LinkedDevice::_logical, &poolInfo,
+                   nullptr, &pool);
+}
 
 void CE::Commands::beginSingularCommands(const VkCommandPool& commandPool,
                                          const VkQueue& queue) {

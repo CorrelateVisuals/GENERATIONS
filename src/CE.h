@@ -50,6 +50,7 @@ class Commands {
   VkCommandPool pool;
   static VkCommandBuffer singularCommandBuffer;
 
+  void createCommandPool(const Queues::FamilyIndices& familyIndices);
   static void beginSingularCommands(const VkCommandPool& commandPool,
                                     const VkQueue& queue);
   static void endSingularCommands(const VkCommandPool& commandPool,

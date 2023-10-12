@@ -81,9 +81,5 @@ class VulkanMechanics {
   bool checkDeviceExtensionSupport(VkPhysicalDevice physicalDevice);
   VkSampleCountFlagBits getMaxUsableSampleCount();
 
-  void createCommandPool(VkCommandPool* commandPool);
-
-  // CE::Queues::FamilyIndices findQueueFamilies(
-  //     const VkPhysicalDevice& physicalDevice,
-  //     const VkSurfaceKHR& surface);
+  // void createCommandPool(VkCommandPool* commandPool);
 };

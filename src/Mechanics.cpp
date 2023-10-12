@@ -50,7 +50,8 @@ void VulkanMechanics::setupVulkan(Pipelines& _pipelines,
 
   swapchain.create(mainDevice, surface, queues);
 
-  createCommandPool(&_resources.command.pool);
+  _resources.command.createCommandPool(queues.familyIndices);
+  // createCommandPool(&_resources.command.pool);
 }
 
 void VulkanMechanics::createInstance() {
@@ -125,76 +126,6 @@ void VulkanMechanics::pickPhysicalDevice(
     throw std::runtime_error("\n!ERROR! failed to find a suitable GPU!");
   }
 }
-
-// CE::Queues::FamilyIndices VulkanMechanics::findQueueFamilies(
-//     const VkPhysicalDevice& physicalDevice,
-//     const VkSurfaceKHR& surface) {
-//   Log::text(Log::Style::charLeader, "Find Queue Families");
-//
-//   CE::Queues::FamilyIndices indices;
-//   uint32_t queueFamilyCount = 0;
-//   vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount,
-//                                            nullptr);
-//   std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
-//   vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount,
-//                                            queueFamilies.data());
-//
-//   int i = 0;
-//   for (const auto& queueFamily : queueFamilies) {
-//     if ((queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) &&
-//         (queueFamily.queueFlags & VK_QUEUE_COMPUTE_BIT)) {
-//       indices.graphicsAndComputeFamily = i;
-//     }
-//     VkBool32 presentSupport = false;
-//     vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, i, surface,
-//                                          &presentSupport);
-//     if (presentSupport) {
-//       indices.presentFamily = i;
-//     }
-//     if (indices.isComplete()) {
-//       break;
-//     }
-//     i++;
-//   }
-//   return indices;
-// }
-
-// VulkanMechanics::Swapchain::SupportDetails
-// VulkanMechanics::Swapchain::checkSupport(const VkPhysicalDevice
-// physicalDevice,
-//                                          const VkSurfaceKHR& surface) {
-//   Log::text(Log::Style::charLeader, "Query Swap Chain Support");
-//   {
-//     Swapchain::SupportDetails details;
-//
-//     vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface,
-//                                               &details.capabilities);
-//
-//     uint32_t formatCount;
-//     vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface,
-//     &formatCount,
-//                                          nullptr);
-//
-//     if (formatCount != 0) {
-//       details.formats.resize(formatCount);
-//       vkGetPhysicalDeviceSurfaceFormatsKHR(
-//           physicalDevice, surface, &formatCount, details.formats.data());
-//     }
-//
-//     uint32_t presentModeCount;
-//     vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface,
-//                                               &presentModeCount, nullptr);
-//
-//     if (presentModeCount != 0) {
-//       details.presentModes.resize(presentModeCount);
-//       vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface,
-//                                                 &presentModeCount,
-//                                                 details.presentModes.data());
-//     }
-//
-//     return details;
-//   }
-// }
 
 bool VulkanMechanics::checkDeviceExtensionSupport(
     VkPhysicalDevice physicalDevice) {
@@ -281,30 +212,6 @@ void VulkanMechanics::createLogicalDevice() {
                    queues.familyIndices.presentFamily.value(), 0,
                    &queues.present);
 }
-
-// VkExtent2D VulkanMechanics::Swapchain::pickExtent(
-//     const VkSurfaceCapabilitiesKHR& capabilities) {
-//   Log::text(Log::Style::charLeader, "Choose Swap Extent");
-//
-//   if (capabilities.currentExtent.width !=
-//       std::numeric_limits<uint32_t>::max()) {
-//     return capabilities.currentExtent;
-//   } else {
-//     int width, height;
-//     glfwGetFramebufferSize(Window::get().window, &width, &height);
-//
-//     VkExtent2D actualExtent{static_cast<uint32_t>(width),
-//                             static_cast<uint32_t>(height)};
-//     actualExtent.width =
-//         std::clamp(actualExtent.width, capabilities.minImageExtent.width,
-//                    capabilities.maxImageExtent.width);
-//     actualExtent.height =
-//         std::clamp(actualExtent.height, capabilities.minImageExtent.height,
-//                    capabilities.maxImageExtent.height);
-//
-//     return actualExtent;
-//   }
-// }
 
 void VulkanMechanics::SynchronizationObjects::create(VkDevice& logicalDevice) {
   Log::text("{ ||| }", "Sync Objects");
@@ -426,21 +333,19 @@ void VulkanMechanics::Swapchain::create(const Device& device,
   };
 }
 
-void VulkanMechanics::createCommandPool(VkCommandPool* commandPool) {
-  Log::text("{ cmd }", "Command Pool");
-
-  // Queues::FamilyIndices queueFamilyIndices =
-  //     findQueueFamilies(mainDevice.physical, surface);
-
-  VkCommandPoolCreateInfo poolInfo{
-      .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
-      .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
-      .queueFamilyIndex =
-          queues.familyIndices.graphicsAndComputeFamily.value()};
-
-  CE::vulkanResult(vkCreateCommandPool, mainDevice.logical, &poolInfo, nullptr,
-                   commandPool);
-}
+// void VulkanMechanics::createCommandPool(VkCommandPool* commandPool) {
+//   Log::text("{ cmd }", "Command Pool");
+//
+//   VkCommandPoolCreateInfo poolInfo{
+//       .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+//       .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
+//       .queueFamilyIndex =
+//           queues.familyIndices.graphicsAndComputeFamily.value()};
+//
+//   CE::vulkanResult(vkCreateCommandPool, mainDevice.logical, &poolInfo,
+//   nullptr,
+//                    commandPool);
+// }
 
 void VulkanMechanics::Swapchain::recreate(const Device& device,
                                           const VkSurfaceKHR& surface,
