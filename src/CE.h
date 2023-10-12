@@ -41,6 +41,8 @@ class Queues {
     }
   };
   FamilyIndices familyIndices;
+  FamilyIndices findQueueFamilies(const VkPhysicalDevice& physicalDevice,
+                                  const VkSurfaceKHR& surface);
 };
 
 class Commands {

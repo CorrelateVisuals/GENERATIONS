@@ -126,38 +126,38 @@ void VulkanMechanics::pickPhysicalDevice(
   }
 }
 
-CE::Queues::FamilyIndices VulkanMechanics::findQueueFamilies(
-    const VkPhysicalDevice& physicalDevice,
-    const VkSurfaceKHR& surface) {
-  Log::text(Log::Style::charLeader, "Find Queue Families");
-
-  CE::Queues::FamilyIndices indices;
-  uint32_t queueFamilyCount = 0;
-  vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount,
-                                           nullptr);
-  std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
-  vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount,
-                                           queueFamilies.data());
-
-  int i = 0;
-  for (const auto& queueFamily : queueFamilies) {
-    if ((queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) &&
-        (queueFamily.queueFlags & VK_QUEUE_COMPUTE_BIT)) {
-      indices.graphicsAndComputeFamily = i;
-    }
-    VkBool32 presentSupport = false;
-    vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, i, surface,
-                                         &presentSupport);
-    if (presentSupport) {
-      indices.presentFamily = i;
-    }
-    if (indices.isComplete()) {
-      break;
-    }
-    i++;
-  }
-  return indices;
-}
+// CE::Queues::FamilyIndices VulkanMechanics::findQueueFamilies(
+//     const VkPhysicalDevice& physicalDevice,
+//     const VkSurfaceKHR& surface) {
+//   Log::text(Log::Style::charLeader, "Find Queue Families");
+//
+//   CE::Queues::FamilyIndices indices;
+//   uint32_t queueFamilyCount = 0;
+//   vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount,
+//                                            nullptr);
+//   std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+//   vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount,
+//                                            queueFamilies.data());
+//
+//   int i = 0;
+//   for (const auto& queueFamily : queueFamilies) {
+//     if ((queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) &&
+//         (queueFamily.queueFlags & VK_QUEUE_COMPUTE_BIT)) {
+//       indices.graphicsAndComputeFamily = i;
+//     }
+//     VkBool32 presentSupport = false;
+//     vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, i, surface,
+//                                          &presentSupport);
+//     if (presentSupport) {
+//       indices.presentFamily = i;
+//     }
+//     if (indices.isComplete()) {
+//       break;
+//     }
+//     i++;
+//   }
+//   return indices;
+// }
 
 // VulkanMechanics::Swapchain::SupportDetails
 // VulkanMechanics::Swapchain::checkSupport(const VkPhysicalDevice
@@ -338,8 +338,7 @@ void VulkanMechanics::SynchronizationObjects::create(VkDevice& logicalDevice) {
 bool VulkanMechanics::isDeviceSuitable(VkPhysicalDevice physicalDevice) {
   Log::text(Log::Style::charLeader, "Is Device Suitable");
 
-  Queues::FamilyIndices indices = findQueueFamilies(physicalDevice, surface);
-
+  queues.familyIndices = queues.findQueueFamilies(physicalDevice, surface);
   bool extensionsSupported = checkDeviceExtensionSupport(physicalDevice);
 
   bool swapchainAdequate = false;
@@ -353,9 +352,9 @@ bool VulkanMechanics::isDeviceSuitable(VkPhysicalDevice physicalDevice) {
   // VkPhysicalDeviceFeatures supportedFeatures;
   // vkGetPhysicalDeviceFeatures(mainDevice.physical, &supportedFeatures);
   //&& supportedFeatures.samplerAnisotropy
-  queues.familyIndices = indices;
 
-  return indices.isComplete() && extensionsSupported && swapchainAdequate;
+  return queues.familyIndices.isComplete() && extensionsSupported &&
+         swapchainAdequate;
 }
 
 void VulkanMechanics::Swapchain::create(const Device& device,
@@ -430,13 +429,14 @@ void VulkanMechanics::Swapchain::create(const Device& device,
 void VulkanMechanics::createCommandPool(VkCommandPool* commandPool) {
   Log::text("{ cmd }", "Command Pool");
 
-  Queues::FamilyIndices queueFamilyIndices =
-      findQueueFamilies(mainDevice.physical, surface);
+  // Queues::FamilyIndices queueFamilyIndices =
+  //     findQueueFamilies(mainDevice.physical, surface);
 
   VkCommandPoolCreateInfo poolInfo{
       .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
       .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
-      .queueFamilyIndex = queueFamilyIndices.graphicsAndComputeFamily.value()};
+      .queueFamilyIndex =
+          queues.familyIndices.graphicsAndComputeFamily.value()};
 
   CE::vulkanResult(vkCreateCommandPool, mainDevice.logical, &poolInfo, nullptr,
                    commandPool);

@@ -83,10 +83,7 @@ class VulkanMechanics {
 
   void createCommandPool(VkCommandPool* commandPool);
 
-  static CE::Queues::FamilyIndices findQueueFamilies(
-      const VkPhysicalDevice& physicalDevice,
-      const VkSurfaceKHR& surface);
-  CE::Queues::FamilyIndices findQueueFamilies2(
-      const VkPhysicalDevice& physicalDevice,
-      const VkSurfaceKHR& surface);
+  // CE::Queues::FamilyIndices findQueueFamilies(
+  //     const VkPhysicalDevice& physicalDevice,
+  //     const VkSurfaceKHR& surface);
 };
