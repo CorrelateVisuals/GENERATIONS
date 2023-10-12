@@ -21,7 +21,6 @@ Resources::Resources(VulkanMechanics& mechanics)
 
 Resources::~Resources() {
   Log::text("{ /// }", "destructing Resources");
-  vkDestroyCommandPool(_mechanics.mainDevice.logical, command.pool, nullptr);
 }
 
 void Resources::setupResources(Pipelines& _pipelines) {

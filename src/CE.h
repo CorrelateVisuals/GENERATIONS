@@ -47,6 +47,11 @@ class Queues {
 
 class Commands {
  public:
+  virtual ~Commands() {
+    if (*LinkedDevice::_logical != VK_NULL_HANDLE) {
+      vkDestroyCommandPool(*LinkedDevice::_logical, pool, nullptr);
+    }
+  };
   VkCommandPool pool;
   static VkCommandBuffer singularCommandBuffer;
 

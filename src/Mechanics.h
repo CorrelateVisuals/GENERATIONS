@@ -80,6 +80,4 @@ class VulkanMechanics {
   bool isDeviceSuitable(VkPhysicalDevice physicalDevice);
   bool checkDeviceExtensionSupport(VkPhysicalDevice physicalDevice);
   VkSampleCountFlagBits getMaxUsableSampleCount();
-
-  // void createCommandPool(VkCommandPool* commandPool);
 };

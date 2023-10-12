@@ -49,9 +49,6 @@ void VulkanMechanics::setupVulkan(Pipelines& _pipelines,
   createLogicalDevice();
 
   swapchain.create(mainDevice, surface, queues);
-
-  _resources.command.createCommandPool(queues.familyIndices);
-  // createCommandPool(&_resources.command.pool);
 }
 
 void VulkanMechanics::createInstance() {
