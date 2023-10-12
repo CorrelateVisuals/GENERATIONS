@@ -155,6 +155,18 @@ class Swapchain {
   };
 };
 
+class SynchronizationObjects {
+ public:
+  SynchronizationObjects() = default;
+  ~SynchronizationObjects() = default;
+  void destroySynchronizationObjects(int maxFramesInFlight);
+  std::vector<VkSemaphore> imageAvailableSemaphores;
+  std::vector<VkSemaphore> renderFinishedSemaphores;
+  std::vector<VkSemaphore> computeFinishedSemaphores;
+  std::vector<VkFence> graphicsInFlightFences;
+  std::vector<VkFence> computeInFlightFences;
+};
+
 class Descriptor {
  public:
   Descriptor();

@@ -23,26 +23,14 @@ VulkanMechanics::~VulkanMechanics() {
   Log::text("{ Vk. }", "destructing Vulkan Mechanics");
 
   swapChain.destroySwapchain();
-
-  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-    vkDestroySemaphore(mainDevice.logical,
-                       syncObjects.renderFinishedSemaphores[i], nullptr);
-    vkDestroySemaphore(mainDevice.logical,
-                       syncObjects.imageAvailableSemaphores[i], nullptr);
-    vkDestroySemaphore(mainDevice.logical,
-                       syncObjects.computeFinishedSemaphores[i], nullptr);
-    vkDestroyFence(mainDevice.logical, syncObjects.graphicsInFlightFences[i],
-                   nullptr);
-    vkDestroyFence(mainDevice.logical, syncObjects.computeInFlightFences[i],
-                   nullptr);
-  }
-
- mainDevice.destroyDevice();
+  syncObjects.destroySynchronizationObjects(MAX_FRAMES_IN_FLIGHT);
+  mainDevice.destroyDevice();
 
   if (validation.enableValidationLayers) {
     validation.DestroyDebugUtilsMessengerEXT(
         instance, validation.debugMessenger, nullptr);
   }
+
   vkDestroySurfaceKHR(instance, surface, nullptr);
   vkDestroyInstance(instance, nullptr);
 }
@@ -369,15 +357,15 @@ void VulkanMechanics::createSyncObjects() {
 }
 
 void VulkanMechanics::cleanupSwapChain(Resources& _resources) {
-  //for (auto& framebuffer : swapChain.framebuffers) {
-  //  vkDestroyFramebuffer(mainDevice.logical, framebuffer, nullptr);
-  //}
+  // for (auto& framebuffer : swapChain.framebuffers) {
+  //   vkDestroyFramebuffer(mainDevice.logical, framebuffer, nullptr);
+  // }
 
-  //for (auto& image : swapChain.images) {
-  //  vkDestroyImageView(mainDevice.logical, image.view, nullptr);
-  //}
+  // for (auto& image : swapChain.images) {
+  //   vkDestroyImageView(mainDevice.logical, image.view, nullptr);
+  // }
 
-  //vkDestroySwapchainKHR(mainDevice.logical, swapChain.swapChain, nullptr);
+  // vkDestroySwapchainKHR(mainDevice.logical, swapChain.swapChain, nullptr);
 }
 
 bool VulkanMechanics::isDeviceSuitable(VkPhysicalDevice physicalDevice) {
