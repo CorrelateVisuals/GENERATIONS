@@ -462,8 +462,11 @@ void VulkanMechanics::createCommandPool(VkCommandPool* commandPool) {
                    commandPool);
 }
 
-void VulkanMechanics::recreateswapchain(Pipelines& _pipelines,
-                                        Resources& _resources) {
+void VulkanMechanics::Swapchain::recreate(const Device& device,
+                                          const VkSurfaceKHR& surface,
+                                          SynchronizationObjects& syncObjects,
+                                          Pipelines& _pipelines,
+                                          Resources& _resources) {
   int width = 0, height = 0;
   glfwGetFramebufferSize(Window::get().window, &width, &height);
   while (width == 0 || height == 0) {
@@ -471,15 +474,14 @@ void VulkanMechanics::recreateswapchain(Pipelines& _pipelines,
     glfwWaitEvents();
   }
 
-  vkDeviceWaitIdle(mainDevice.logical);
+  vkDeviceWaitIdle(device.logical);
 
-  swapchain.destroy(mainDevice.logical);
-  swapchain.create(mainDevice, surface);
+  destroy(device.logical);
+  create(device, surface);
 
-  _resources.msaaImage.createColorResources(swapchain.swapChainExtent,
-                                            swapchain.imageFormat,
+  _resources.msaaImage.createColorResources(swapChainExtent, imageFormat,
                                             _resources.msaaImage.info.samples);
-  _resources.depthImage.createDepthResources(swapchain.swapChainExtent,
+  _resources.depthImage.createDepthResources(swapChainExtent,
                                              CE::Image::findDepthFormat(),
                                              _resources.msaaImage.info.samples);
 

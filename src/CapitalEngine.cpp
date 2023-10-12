@@ -102,7 +102,8 @@ void CapitalEngine::drawFrame() {
       VK_NULL_HANDLE, &imageIndex);
 
   if (result == VK_ERROR_OUT_OF_DATE_KHR) {
-    mechanics.recreateswapchain(pipelines, resources);
+    mechanics.swapchain.recreate(mechanics.mainDevice, mechanics.surface,
+                                 mechanics.syncObjects, pipelines, resources);
     return;
   } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
     throw std::runtime_error("\n!ERROR! failed to acquire swap chain image!");
@@ -164,7 +165,8 @@ void CapitalEngine::drawFrame() {
   if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR ||
       Window::get().framebufferResized) {
     Window::get().framebufferResized = false;
-    mechanics.recreateswapchain(pipelines, resources);
+    mechanics.swapchain.recreate(mechanics.mainDevice, mechanics.surface,
+                                 mechanics.syncObjects, pipelines, resources);
   } else if (result != VK_SUCCESS) {
     throw std::runtime_error("\n!ERROR! failed to present swap chain image!");
   }

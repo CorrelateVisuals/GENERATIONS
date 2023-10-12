@@ -35,24 +35,6 @@ class VulkanMechanics {
     };
   } mainDevice;
 
-  struct Swapchain : public CE::Swapchain {
-    std::vector<CE::Image> images;
-    std::vector<VkFramebuffer> framebuffers;
-    VkFormat imageFormat;
-    VkExtent2D swapChainExtent;
-    VkSwapchainKHR swapchain;
-
-    void create(const Device& device, const VkSurfaceKHR& surface);
-    void destroy(const VkDevice& logicalDevice);
-    SupportDetails checkSupport(const VkPhysicalDevice physicalDevice,
-                                const VkSurfaceKHR& surface);
-    VkSurfaceFormatKHR pickSurfaceFormat(
-        const std::vector<VkSurfaceFormatKHR>& availableFormats);
-    VkPresentModeKHR pickPresentMode(
-        const std::vector<VkPresentModeKHR>& availablePresentModes);
-    VkExtent2D pickExtent(const VkSurfaceCapabilitiesKHR& capabilities);
-  } swapchain;
-
   struct Queues : public CE::Queues {
     VkQueue graphics;
     VkQueue compute;
@@ -70,10 +52,31 @@ class VulkanMechanics {
     uint32_t currentFrame = 0;
   } syncObjects;
 
+  struct Swapchain : public CE::Swapchain {
+    std::vector<CE::Image> images;
+    std::vector<VkFramebuffer> framebuffers;
+    VkFormat imageFormat;
+    VkExtent2D swapChainExtent;
+    VkSwapchainKHR swapchain;
+
+    void create(const Device& device, const VkSurfaceKHR& surface);
+    void recreate(const Device& device,
+                  const VkSurfaceKHR& surface,
+                  SynchronizationObjects& syncObjects,
+                  Pipelines& _pipelines,
+                  Resources& _resources);
+    void destroy(const VkDevice& logicalDevice);
+    SupportDetails checkSupport(const VkPhysicalDevice physicalDevice,
+                                const VkSurfaceKHR& surface);
+    VkSurfaceFormatKHR pickSurfaceFormat(
+        const std::vector<VkSurfaceFormatKHR>& availableFormats);
+    VkPresentModeKHR pickPresentMode(
+        const std::vector<VkPresentModeKHR>& availablePresentModes);
+    VkExtent2D pickExtent(const VkSurfaceCapabilitiesKHR& capabilities);
+  } swapchain;
+
  public:
   void setupVulkan(Pipelines& _pipelines, Resources& _resources);
-
-  void recreateswapchain(Pipelines& _pipelines, Resources& _resources);
 
  private:
   void createInstance();
