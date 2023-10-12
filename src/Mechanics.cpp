@@ -285,30 +285,6 @@ void VulkanMechanics::createLogicalDevice() {
                    &queues.present);
 }
 
-VkSurfaceFormatKHR VulkanMechanics::Swapchain::pickSurfaceFormat(
-    const std::vector<VkSurfaceFormatKHR>& availableFormats) {
-  Log::text(Log::Style::charLeader, "Choose Swap Surface Format");
-
-  for (const auto& availableFormat : availableFormats) {
-    if (availableFormat.format == VK_FORMAT_R8G8B8A8_SRGB &&
-        availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
-      return availableFormat;
-    }
-  }
-  return availableFormats[0];
-}
-
-VkPresentModeKHR VulkanMechanics::Swapchain::pickPresentMode(
-    const std::vector<VkPresentModeKHR>& availablePresentModes) {
-  Log::text(Log::Style::charLeader, "Choose Swap Present Mode");
-  for (const auto& availablePresentMode : availablePresentModes) {
-    if (availablePresentMode == VK_PRESENT_MODE_FIFO_KHR) {
-      return availablePresentMode;
-    }
-  }
-  return VK_PRESENT_MODE_MAILBOX_KHR;
-}
-
 VkExtent2D VulkanMechanics::Swapchain::pickExtent(
     const VkSurfaceCapabilitiesKHR& capabilities) {
   Log::text(Log::Style::charLeader, "Choose Swap Extent");
@@ -389,7 +365,6 @@ void VulkanMechanics::Swapchain::create(const Device& device,
   Log::text("{ <-> }", "Swap Chain");
   Swapchain::SupportDetails swapchainSupport =
       checkSupport(device.physical, surface);
-
   VkSurfaceFormatKHR surfaceFormat =
       pickSurfaceFormat(swapchainSupport.formats);
   VkPresentModeKHR presentMode = pickPresentMode(swapchainSupport.presentModes);

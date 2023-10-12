@@ -539,3 +539,27 @@ CE::Swapchain::SupportDetails CE::Swapchain::checkSupport(
     return details;
   }
 }
+
+VkSurfaceFormatKHR CE::Swapchain::pickSurfaceFormat(
+    const std::vector<VkSurfaceFormatKHR>& availableFormats) {
+  Log::text(Log::Style::charLeader, "Choose Swap Surface Format");
+
+  for (const auto& availableFormat : availableFormats) {
+    if (availableFormat.format == VK_FORMAT_R8G8B8A8_SRGB &&
+        availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
+      return availableFormat;
+    }
+  }
+  return availableFormats[0];
+}
+
+VkPresentModeKHR CE::Swapchain::pickPresentMode(
+    const std::vector<VkPresentModeKHR>& availablePresentModes) {
+  Log::text(Log::Style::charLeader, "Choose Swap Present Mode");
+  for (const auto& availablePresentMode : availablePresentModes) {
+    if (availablePresentMode == VK_PRESENT_MODE_FIFO_KHR) {
+      return availablePresentMode;
+    }
+  }
+  return VK_PRESENT_MODE_MAILBOX_KHR;
+}

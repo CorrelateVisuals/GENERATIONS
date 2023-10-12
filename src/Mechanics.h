@@ -53,11 +53,10 @@ class VulkanMechanics {
   } syncObjects;
 
   struct Swapchain : public CE::Swapchain {
-    std::vector<CE::Image> images;
-    std::vector<VkFramebuffer> framebuffers;
     VkFormat imageFormat;
     VkExtent2D swapChainExtent;
-    VkSwapchainKHR swapchain;
+    std::vector<CE::Image> images;
+    std::vector<VkFramebuffer> framebuffers;
 
     void create(const Device& device, const VkSurfaceKHR& surface);
     void recreate(const Device& device,
@@ -66,12 +65,6 @@ class VulkanMechanics {
                   Pipelines& _pipelines,
                   Resources& _resources);
     void destroy(const VkDevice& logicalDevice);
-    // SupportDetails checkSupport(const VkPhysicalDevice physicalDevice,
-    //                             const VkSurfaceKHR& surface);
-    VkSurfaceFormatKHR pickSurfaceFormat(
-        const std::vector<VkSurfaceFormatKHR>& availableFormats);
-    VkPresentModeKHR pickPresentMode(
-        const std::vector<VkPresentModeKHR>& availablePresentModes);
     VkExtent2D pickExtent(const VkSurfaceCapabilitiesKHR& capabilities);
   } swapchain;
 

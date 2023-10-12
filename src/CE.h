@@ -140,6 +140,8 @@ class Image {
 
 class Swapchain {
  public:
+  VkSwapchainKHR swapchain;
+
   struct SupportDetails {
     VkSurfaceCapabilitiesKHR capabilities{};
     std::vector<VkSurfaceFormatKHR> formats;
@@ -147,6 +149,10 @@ class Swapchain {
   };
   SupportDetails checkSupport(const VkPhysicalDevice& physicalDevice,
                               const VkSurfaceKHR& surface);
+  VkSurfaceFormatKHR pickSurfaceFormat(
+      const std::vector<VkSurfaceFormatKHR>& availableFormats);
+  VkPresentModeKHR pickPresentMode(
+      const std::vector<VkPresentModeKHR>& availablePresentModes);
 };
 
 class Descriptor {
