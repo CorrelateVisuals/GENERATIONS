@@ -145,7 +145,7 @@ class Swapchain {
     std::vector<VkSurfaceFormatKHR> formats;
     std::vector<VkPresentModeKHR> presentModes;
   };
-  SupportDetails checkSupport(const VkPhysicalDevice physicalDevice,
+  SupportDetails checkSupport(const VkPhysicalDevice& physicalDevice,
                               const VkSurfaceKHR& surface);
 };
 

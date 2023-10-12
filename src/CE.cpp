@@ -512,7 +512,7 @@ void CE::Device::destroyDevice() {
 }
 
 CE::Swapchain::SupportDetails CE::Swapchain::checkSupport(
-    const VkPhysicalDevice physicalDevice,
+    const VkPhysicalDevice& physicalDevice,
     const VkSurfaceKHR& surface) {
   Log::text(Log::Style::charLeader, "Query Swap Chain Support");
   {
