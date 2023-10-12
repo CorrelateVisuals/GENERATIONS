@@ -2,7 +2,8 @@
 #include <stb_image.h>
 
 #include "CE.h"
-#include "Log.h"
+
+#include <algorithm>
 
 VkPhysicalDevice* CE::LinkedDevice::_physical = VK_NULL_HANDLE;
 VkDevice* CE::LinkedDevice::_logical = VK_NULL_HANDLE;
@@ -536,6 +537,8 @@ CE::Swapchain::SupportDetails CE::Swapchain::checkSupport(
                                                 &presentModeCount,
                                                 details.presentModes.data());
     }
+
+    supportDetails = details;
     return details;
   }
 }
@@ -562,4 +565,29 @@ VkPresentModeKHR CE::Swapchain::pickPresentMode(
     }
   }
   return VK_PRESENT_MODE_MAILBOX_KHR;
+}
+
+VkExtent2D CE::Swapchain::pickExtent(
+    GLFWwindow* window,
+    const VkSurfaceCapabilitiesKHR& capabilities) {
+  Log::text(Log::Style::charLeader, "Choose Swap Extent");
+
+  if (capabilities.currentExtent.width !=
+      std::numeric_limits<uint32_t>::max()) {
+    return capabilities.currentExtent;
+  } else {
+    int width, height;
+    glfwGetFramebufferSize(window, &width, &height);
+
+    VkExtent2D actualExtent{static_cast<uint32_t>(width),
+                            static_cast<uint32_t>(height)};
+    actualExtent.width =
+        std::clamp(actualExtent.width, capabilities.minImageExtent.width,
+                   capabilities.maxImageExtent.width);
+    actualExtent.height =
+        std::clamp(actualExtent.height, capabilities.minImageExtent.height,
+                   capabilities.maxImageExtent.height);
+
+    return actualExtent;
+  }
 }

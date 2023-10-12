@@ -63,8 +63,8 @@ void Resources::createFramebuffers(Pipelines& _pipelines) {
         .renderPass = _pipelines.graphics.renderPass,
         .attachmentCount = static_cast<uint32_t>(attachments.size()),
         .pAttachments = attachments.data(),
-        .width = _mechanics.swapchain.swapChainExtent.width,
-        .height = _mechanics.swapchain.swapChainExtent.height,
+        .width = _mechanics.swapchain.extent.width,
+        .height = _mechanics.swapchain.extent.height,
         .layers = 1};
 
     CE::vulkanResult(vkCreateFramebuffer, _mechanics.mainDevice.logical,
@@ -352,7 +352,7 @@ void Resources::createDescriptorSets() {
 
 void Resources::updateUniformBuffer(uint32_t currentImage) {
   World::UniformBufferObject uniformObject =
-      world.updateUniforms(_mechanics.swapchain.swapChainExtent);
+      world.updateUniforms(_mechanics.swapchain.extent);
   std::memcpy(uniform.buffer.mapped, &uniformObject, sizeof(uniformObject));
 }
 
@@ -413,8 +413,7 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
       .pNext = nullptr,
       .renderPass = _pipelines.graphics.renderPass,
       .framebuffer = _mechanics.swapchain.framebuffers[imageIndex],
-      .renderArea = {.offset = {0, 0},
-                     .extent = _mechanics.swapchain.swapChainExtent},
+      .renderArea = {.offset = {0, 0}, .extent = _mechanics.swapchain.extent},
       .clearValueCount = static_cast<uint32_t>(clearValues.size()),
       .pClearValues = clearValues.data()};
 
@@ -423,14 +422,13 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
   VkViewport viewport{
       .x = 0.0f,
       .y = 0.0f,
-      .width = static_cast<float>(_mechanics.swapchain.swapChainExtent.width),
-      .height = static_cast<float>(_mechanics.swapchain.swapChainExtent.height),
+      .width = static_cast<float>(_mechanics.swapchain.extent.width),
+      .height = static_cast<float>(_mechanics.swapchain.extent.height),
       .minDepth = 0.0f,
       .maxDepth = 1.0f};
   vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 
-  VkRect2D scissor{.offset = {0, 0},
-                   .extent = _mechanics.swapchain.swapChainExtent};
+  VkRect2D scissor{.offset = {0, 0}, .extent = _mechanics.swapchain.extent};
   vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
   vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,

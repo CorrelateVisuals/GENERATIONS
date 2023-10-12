@@ -285,29 +285,29 @@ void VulkanMechanics::createLogicalDevice() {
                    &queues.present);
 }
 
-VkExtent2D VulkanMechanics::Swapchain::pickExtent(
-    const VkSurfaceCapabilitiesKHR& capabilities) {
-  Log::text(Log::Style::charLeader, "Choose Swap Extent");
-
-  if (capabilities.currentExtent.width !=
-      std::numeric_limits<uint32_t>::max()) {
-    return capabilities.currentExtent;
-  } else {
-    int width, height;
-    glfwGetFramebufferSize(Window::get().window, &width, &height);
-
-    VkExtent2D actualExtent{static_cast<uint32_t>(width),
-                            static_cast<uint32_t>(height)};
-    actualExtent.width =
-        std::clamp(actualExtent.width, capabilities.minImageExtent.width,
-                   capabilities.maxImageExtent.width);
-    actualExtent.height =
-        std::clamp(actualExtent.height, capabilities.minImageExtent.height,
-                   capabilities.maxImageExtent.height);
-
-    return actualExtent;
-  }
-}
+// VkExtent2D VulkanMechanics::Swapchain::pickExtent(
+//     const VkSurfaceCapabilitiesKHR& capabilities) {
+//   Log::text(Log::Style::charLeader, "Choose Swap Extent");
+//
+//   if (capabilities.currentExtent.width !=
+//       std::numeric_limits<uint32_t>::max()) {
+//     return capabilities.currentExtent;
+//   } else {
+//     int width, height;
+//     glfwGetFramebufferSize(Window::get().window, &width, &height);
+//
+//     VkExtent2D actualExtent{static_cast<uint32_t>(width),
+//                             static_cast<uint32_t>(height)};
+//     actualExtent.width =
+//         std::clamp(actualExtent.width, capabilities.minImageExtent.width,
+//                    capabilities.maxImageExtent.width);
+//     actualExtent.height =
+//         std::clamp(actualExtent.height, capabilities.minImageExtent.height,
+//                    capabilities.maxImageExtent.height);
+//
+//     return actualExtent;
+//   }
+// }
 
 void VulkanMechanics::SynchronizationObjects::create(VkDevice& logicalDevice) {
   Log::text("{ ||| }", "Sync Objects");
@@ -368,7 +368,8 @@ void VulkanMechanics::Swapchain::create(const Device& device,
   VkSurfaceFormatKHR surfaceFormat =
       pickSurfaceFormat(swapchainSupport.formats);
   VkPresentModeKHR presentMode = pickPresentMode(swapchainSupport.presentModes);
-  VkExtent2D extent = pickExtent(swapchainSupport.capabilities);
+  VkExtent2D extent =
+      pickExtent(Window::get().window, supportDetails.capabilities);
 
   uint32_t imageCount = swapchainSupport.capabilities.minImageCount;
   if (swapchainSupport.capabilities.maxImageCount > 0 &&
@@ -411,7 +412,7 @@ void VulkanMechanics::Swapchain::create(const Device& device,
 
   images.resize(imageCount);
   imageFormat = surfaceFormat.format;
-  swapChainExtent = extent;
+  this->extent = extent;
 
   std::vector<VkImage> swapchainImages(MAX_FRAMES_IN_FLIGHT);
   vkGetSwapchainImagesKHR(device.logical, swapchain, &imageCount,
@@ -456,11 +457,10 @@ void VulkanMechanics::Swapchain::recreate(const Device& device,
   destroy(device.logical);
   create(device, surface);
 
-  _resources.msaaImage.createColorResources(swapChainExtent, imageFormat,
+  _resources.msaaImage.createColorResources(extent, imageFormat,
                                             _resources.msaaImage.info.samples);
-  _resources.depthImage.createDepthResources(swapChainExtent,
-                                             CE::Image::findDepthFormat(),
-                                             _resources.msaaImage.info.samples);
+  _resources.depthImage.createDepthResources(
+      extent, CE::Image::findDepthFormat(), _resources.msaaImage.info.samples);
 
   _resources.createFramebuffers(_pipelines);
   _resources.createDescriptorSets();

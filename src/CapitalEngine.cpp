@@ -9,10 +9,10 @@ CapitalEngine::CapitalEngine()
 
   mechanics.setupVulkan(pipelines, resources);
   resources.createDescriptorSetLayout(resources.descriptorSetLayoutBindings);
-  resources.msaaImage.createColorResources(mechanics.swapchain.swapChainExtent,
+  resources.msaaImage.createColorResources(mechanics.swapchain.extent,
                                            mechanics.swapchain.imageFormat,
                                            resources.msaaImage.info.samples);
-  resources.depthImage.createDepthResources(mechanics.swapchain.swapChainExtent,
+  resources.depthImage.createDepthResources(mechanics.swapchain.extent,
                                             CE::Image::findDepthFormat(),
                                             resources.msaaImage.info.samples);
   pipelines.setupPipelines(resources);

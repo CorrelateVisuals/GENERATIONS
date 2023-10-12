@@ -53,8 +53,6 @@ class VulkanMechanics {
   } syncObjects;
 
   struct Swapchain : public CE::Swapchain {
-    VkFormat imageFormat;
-    VkExtent2D swapChainExtent;
     std::vector<CE::Image> images;
     std::vector<VkFramebuffer> framebuffers;
 
@@ -65,7 +63,6 @@ class VulkanMechanics {
                   Pipelines& _pipelines,
                   Resources& _resources);
     void destroy(const VkDevice& logicalDevice);
-    VkExtent2D pickExtent(const VkSurfaceCapabilitiesKHR& capabilities);
   } swapchain;
 
  public:

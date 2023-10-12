@@ -2,6 +2,7 @@
 #include <vulkan/vulkan.h>
 
 #include "Log.h"
+#include "Window.h"
 
 #include <iostream>
 #include <optional>
@@ -141,18 +142,22 @@ class Image {
 class Swapchain {
  public:
   VkSwapchainKHR swapchain;
+  VkExtent2D extent;
+  VkFormat imageFormat;
 
   struct SupportDetails {
     VkSurfaceCapabilitiesKHR capabilities{};
     std::vector<VkSurfaceFormatKHR> formats;
     std::vector<VkPresentModeKHR> presentModes;
-  };
+  } supportDetails;
   SupportDetails checkSupport(const VkPhysicalDevice& physicalDevice,
                               const VkSurfaceKHR& surface);
   VkSurfaceFormatKHR pickSurfaceFormat(
       const std::vector<VkSurfaceFormatKHR>& availableFormats);
   VkPresentModeKHR pickPresentMode(
       const std::vector<VkPresentModeKHR>& availablePresentModes);
+  VkExtent2D pickExtent(GLFWwindow* window,
+                        const VkSurfaceCapabilitiesKHR& capabilities);
 };
 
 class Descriptor {
