@@ -395,7 +395,7 @@ CE::Descriptor::~Descriptor() {
 // void CE::Descriptor::createDescriptorPool() {
 //  std::vector<VkDescriptorPoolSize> poolSizes{
 //      {.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-//       .descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT)},
+//       .descriptorCount = static_cast<uint32_t>(maxFramesInFlight)},
 //      {.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
 //       .descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT) * 2},
 //      {.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
@@ -505,7 +505,7 @@ void CE::Commands::endSingularCommands(const VkCommandPool& commandPool,
 
 void CE::Swapchain::destroySwapchain() {
   if (*LinkedDevice::_logical != VK_NULL_HANDLE) {
-    Log::text("{ Vk. }", "Destroy Swapchain");
+    Log::text("{ <-> }", "Destroy Swapchain");
 
     for (size_t i = 0; i < framebuffers.size(); i++) {
       vkDestroyFramebuffer(*LinkedDevice::_logical, framebuffers[i], nullptr);
@@ -519,16 +519,15 @@ void CE::Swapchain::destroySwapchain() {
 
 void CE::Device::destroyDevice() {
   if (*LinkedDevice::_logical != VK_NULL_HANDLE) {
-    Log::text("{ Vk. }", "Destroy Device");
+    Log::text("{ +++ }", "Destroy Device");
     vkDestroyDevice(this->logical, nullptr);
     this->logical = VK_NULL_HANDLE;
   }
 }
 
-void CE::SynchronizationObjects::destroySynchronizationObjects(
-    int maxFramesInFlight) {
+void CE::SynchronizationObjects::destroySynchronizationObjects(int maxFramesInFlight) {
   if (*LinkedDevice::_logical != VK_NULL_HANDLE) {
-    Log::text("{ Vk. }", "Destroy Synchronization Objects");
+    Log::text("{ ||| }", "Destroy Synchronization Objects");
     for (size_t i = 0; i < maxFramesInFlight; i++) {
       vkDestroySemaphore(*LinkedDevice::_logical, renderFinishedSemaphores[i],
                          nullptr);

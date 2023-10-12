@@ -25,7 +25,6 @@ CapitalEngine::~CapitalEngine() {
   Log::text("| CAPITAL Engine");
   Log::text(Log::Style::headerGuard);
 
-  mechanics.cleanupSwapChain(resources);
   glfwDestroyWindow(Window::get().window);
   glfwTerminate();
 }

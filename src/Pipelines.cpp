@@ -136,7 +136,7 @@ void Pipelines::createRenderPass(Resources& _resources) {
 
 void Pipelines::createGraphicsPipeline_Layout(
     const Resources::DescriptorSets& _descriptorSets) {
-  VkPipelineLayoutCreateInfo graphicsLayout{layoutDefault};
+  VkPipelineLayoutCreateInfo graphicsLayout{CE::layoutDefault};
   graphicsLayout.pSetLayouts = &_descriptorSets.setLayout;
   CE::vulkanResult(vkCreatePipelineLayout, _mechanics.mainDevice.logical,
                    &graphicsLayout, nullptr, &graphics.layout);
@@ -148,7 +148,7 @@ void Pipelines::createComputePipeline_Layout(
   VkPushConstantRange constants{.stageFlags = _pushConstants.shaderStage,
                                 .offset = _pushConstants.offset,
                                 .size = _pushConstants.size};
-  VkPipelineLayoutCreateInfo computeLayout{layoutDefault};
+  VkPipelineLayoutCreateInfo computeLayout{ CE::layoutDefault};
   computeLayout.pSetLayouts = &_descriptorSets.setLayout;
   computeLayout.pushConstantRangeCount = _pushConstants.count;
   computeLayout.pPushConstantRanges = &constants;
@@ -168,29 +168,29 @@ void Pipelines::createGraphicsPipeline_Cells(
   uint32_t bindingsSize = static_cast<uint32_t>(bindings.size());
   uint32_t attributeSize = static_cast<uint32_t>(attributes.size());
 
-  VkPipelineVertexInputStateCreateInfo vertexInput{vertexInputStateDefault};
+  VkPipelineVertexInputStateCreateInfo vertexInput{CE::vertexInputStateDefault};
   vertexInput.vertexBindingDescriptionCount = bindingsSize;
   vertexInput.vertexAttributeDescriptionCount = attributeSize;
   vertexInput.pVertexBindingDescriptions = bindings.data();
   vertexInput.pVertexAttributeDescriptions = attributes.data();
 
   VkPipelineInputAssemblyStateCreateInfo inputAssembly{
-      inputAssemblyStateTriangleList};
+      CE::inputAssemblyStateTriangleList};
 
   VkPipelineRasterizationStateCreateInfo rasterization{
-      rasterizationCullBackBit};
+      CE::rasterizationCullBackBit};
 
-  VkPipelineMultisampleStateCreateInfo multisampling{multisampleStateDefault};
+  VkPipelineMultisampleStateCreateInfo multisampling{CE::multisampleStateDefault};
   multisampling.rasterizationSamples = msaaSamples;
-  VkPipelineDepthStencilStateCreateInfo depthStencil{depthStencilStateDefault};
+  VkPipelineDepthStencilStateCreateInfo depthStencil{CE::depthStencilStateDefault};
 
   static VkPipelineColorBlendAttachmentState colorBlendAttachment{
-      colorBlendAttachmentStateFalse};
-  VkPipelineColorBlendStateCreateInfo colorBlend{colorBlendStateDefault};
+      CE::colorBlendAttachmentStateFalse};
+  VkPipelineColorBlendStateCreateInfo colorBlend{CE::colorBlendStateDefault};
   colorBlend.pAttachments = &colorBlendAttachment;
 
-  VkPipelineViewportStateCreateInfo viewport{viewportStateDefault};
-  VkPipelineDynamicStateCreateInfo dynamic{dynamicStateDefault};
+  VkPipelineViewportStateCreateInfo viewport{CE::viewportStateDefault};
+  VkPipelineDynamicStateCreateInfo dynamic{CE::dynamicStateDefault};
 
   VkGraphicsPipelineCreateInfo pipelineInfo{
       .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
@@ -226,27 +226,27 @@ void Pipelines::createGraphicsPipeline_Landscape(
   uint32_t bindingsSize = static_cast<uint32_t>(bindings.size());
   uint32_t attributeSize = static_cast<uint32_t>(attributes.size());
 
-  VkPipelineVertexInputStateCreateInfo vertexInput{vertexInputStateDefault};
+  VkPipelineVertexInputStateCreateInfo vertexInput{CE::vertexInputStateDefault};
   vertexInput.vertexBindingDescriptionCount = bindingsSize;
   vertexInput.vertexAttributeDescriptionCount = attributeSize;
   vertexInput.pVertexBindingDescriptions = bindings.data();
   vertexInput.pVertexAttributeDescriptions = attributes.data();
 
   VkPipelineInputAssemblyStateCreateInfo inputAssembly{
-      inputAssemblyStateTriangleList};
+      CE::inputAssemblyStateTriangleList};
   VkPipelineRasterizationStateCreateInfo rasterization{
-      rasterizationCullBackBit};
-  VkPipelineMultisampleStateCreateInfo multisampling{multisampleStateDefault};
+      CE::rasterizationCullBackBit};
+  VkPipelineMultisampleStateCreateInfo multisampling{CE::multisampleStateDefault};
   multisampling.rasterizationSamples = msaaSamples;
-  VkPipelineDepthStencilStateCreateInfo depthStencil{depthStencilStateDefault};
+  VkPipelineDepthStencilStateCreateInfo depthStencil{CE::depthStencilStateDefault};
 
   static VkPipelineColorBlendAttachmentState colorBlendAttachment{
-      colorBlendAttachmentStateFalse};
-  VkPipelineColorBlendStateCreateInfo colorBlend{colorBlendStateDefault};
+      CE::colorBlendAttachmentStateFalse};
+  VkPipelineColorBlendStateCreateInfo colorBlend{CE::colorBlendStateDefault};
   colorBlend.pAttachments = &colorBlendAttachment;
 
-  VkPipelineViewportStateCreateInfo viewport{viewportStateDefault};
-  VkPipelineDynamicStateCreateInfo dynamic{dynamicStateDefault};
+  VkPipelineViewportStateCreateInfo viewport{CE::viewportStateDefault};
+  VkPipelineDynamicStateCreateInfo dynamic{CE::dynamicStateDefault};
 
   VkGraphicsPipelineCreateInfo pipelineInfo{
       .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
@@ -285,34 +285,34 @@ void Pipelines::createGraphicsPipeline_LandscapeWireframe(
   uint32_t bindingsSize = static_cast<uint32_t>(bindings.size());
   uint32_t attributeSize = static_cast<uint32_t>(attributes.size());
 
-  VkPipelineVertexInputStateCreateInfo vertexInput{vertexInputStateDefault};
+  VkPipelineVertexInputStateCreateInfo vertexInput{CE::vertexInputStateDefault};
   vertexInput.vertexBindingDescriptionCount = bindingsSize;
   vertexInput.vertexAttributeDescriptionCount = attributeSize;
   vertexInput.pVertexBindingDescriptions = bindings.data();
   vertexInput.pVertexAttributeDescriptions = attributes.data();
 
   VkPipelineInputAssemblyStateCreateInfo inputAssembly{
-      inputAssemblyStateTriangleList};
+      CE::inputAssemblyStateTriangleList};
   inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_PATCH_LIST;
   VkPipelineTessellationStateCreateInfo tessellationStateInfo{
-      tessellationStateDefault};
+      CE::tessellationStateDefault};
 
   VkPipelineRasterizationStateCreateInfo rasterization{
-      rasterizationCullBackBit};
+      CE::rasterizationCullBackBit};
   rasterization.polygonMode = VK_POLYGON_MODE_LINE;
   rasterization.lineWidth = 5.0f;
 
-  VkPipelineMultisampleStateCreateInfo multisampling{multisampleStateDefault};
+  VkPipelineMultisampleStateCreateInfo multisampling{CE::multisampleStateDefault};
   multisampling.rasterizationSamples = msaaSamples;
-  VkPipelineDepthStencilStateCreateInfo depthStencil{depthStencilStateDefault};
+  VkPipelineDepthStencilStateCreateInfo depthStencil{CE::depthStencilStateDefault};
 
   static VkPipelineColorBlendAttachmentState colorBlendAttachment{
-      colorBlendAttachmentStateMultiply};
-  VkPipelineColorBlendStateCreateInfo colorBlend{colorBlendStateDefault};
+      CE::colorBlendAttachmentStateMultiply};
+  VkPipelineColorBlendStateCreateInfo colorBlend{CE::colorBlendStateDefault};
   colorBlend.pAttachments = &colorBlendAttachment;
 
-  VkPipelineViewportStateCreateInfo viewport{viewportStateDefault};
-  VkPipelineDynamicStateCreateInfo dynamic{dynamicStateDefault};
+  VkPipelineViewportStateCreateInfo viewport{CE::viewportStateDefault};
+  VkPipelineDynamicStateCreateInfo dynamic{CE::dynamicStateDefault};
 
   VkGraphicsPipelineCreateInfo pipelineInfo{
       .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
@@ -349,29 +349,29 @@ void Pipelines::createGraphicsPipeline_Water(
   uint32_t bindingsSize = static_cast<uint32_t>(bindings.size());
   uint32_t attributeSize = static_cast<uint32_t>(attributes.size());
 
-  VkPipelineVertexInputStateCreateInfo vertexInput{vertexInputStateDefault};
+  VkPipelineVertexInputStateCreateInfo vertexInput{CE::vertexInputStateDefault};
   vertexInput.vertexBindingDescriptionCount = bindingsSize;
   vertexInput.vertexAttributeDescriptionCount = attributeSize;
   vertexInput.pVertexBindingDescriptions = bindings.data();
   vertexInput.pVertexAttributeDescriptions = attributes.data();
 
   VkPipelineInputAssemblyStateCreateInfo inputAssembly{
-      inputAssemblyStateTriangleList};
+      CE::inputAssemblyStateTriangleList};
   VkPipelineRasterizationStateCreateInfo rasterization{
-      rasterizationCullBackBit};
-  VkPipelineMultisampleStateCreateInfo multisampling{multisampleStateDefault};
+      CE::rasterizationCullBackBit};
+  VkPipelineMultisampleStateCreateInfo multisampling{CE::multisampleStateDefault};
   multisampling.rasterizationSamples = msaaSamples;
-  VkPipelineDepthStencilStateCreateInfo depthStencil{depthStencilStateDefault};
+  VkPipelineDepthStencilStateCreateInfo depthStencil{CE::depthStencilStateDefault};
 
   static VkPipelineColorBlendAttachmentState colorBlendAttachment{
-      colorBlendAttachmentStateFalse};
+      CE::colorBlendAttachmentStateFalse};
   colorBlendAttachment.blendEnable = VK_TRUE;
 
-  VkPipelineColorBlendStateCreateInfo colorBlend{colorBlendStateDefault};
+  VkPipelineColorBlendStateCreateInfo colorBlend{CE::colorBlendStateDefault};
   colorBlend.pAttachments = &colorBlendAttachment;
 
-  VkPipelineViewportStateCreateInfo viewport{viewportStateDefault};
-  VkPipelineDynamicStateCreateInfo dynamic{dynamicStateDefault};
+  VkPipelineViewportStateCreateInfo viewport{CE::viewportStateDefault};
+  VkPipelineDynamicStateCreateInfo dynamic{CE::dynamicStateDefault};
 
   VkGraphicsPipelineCreateInfo pipelineInfo{
       .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
@@ -406,29 +406,29 @@ void Pipelines::createGraphicsPipeline_Texture(
   uint32_t bindingsSize = static_cast<uint32_t>(bindings.size());
   uint32_t attributeSize = static_cast<uint32_t>(attributes.size());
 
-  VkPipelineVertexInputStateCreateInfo vertexInput{vertexInputStateDefault};
+  VkPipelineVertexInputStateCreateInfo vertexInput{CE::vertexInputStateDefault};
   vertexInput.vertexBindingDescriptionCount = bindingsSize;
   vertexInput.vertexAttributeDescriptionCount = attributeSize;
   vertexInput.pVertexBindingDescriptions = bindings.data();
   vertexInput.pVertexAttributeDescriptions = attributes.data();
 
   VkPipelineInputAssemblyStateCreateInfo inputAssembly{
-      inputAssemblyStateTriangleList};
+      CE::inputAssemblyStateTriangleList};
   VkPipelineRasterizationStateCreateInfo rasterization{
-      rasterizationCullBackBit};
-  VkPipelineMultisampleStateCreateInfo multisampling{multisampleStateDefault};
+      CE::rasterizationCullBackBit};
+  VkPipelineMultisampleStateCreateInfo multisampling{CE::multisampleStateDefault};
   multisampling.rasterizationSamples = msaaSamples;
-  VkPipelineDepthStencilStateCreateInfo depthStencil{depthStencilStateDefault};
+  VkPipelineDepthStencilStateCreateInfo depthStencil{CE::depthStencilStateDefault};
 
   static VkPipelineColorBlendAttachmentState colorBlendAttachment{
-      colorBlendAttachmentStateFalse};
+      CE::colorBlendAttachmentStateFalse};
   colorBlendAttachment.blendEnable = VK_TRUE;
 
-  VkPipelineColorBlendStateCreateInfo colorBlend{colorBlendStateDefault};
+  VkPipelineColorBlendStateCreateInfo colorBlend{CE::colorBlendStateDefault};
   colorBlend.pAttachments = &colorBlendAttachment;
 
-  VkPipelineViewportStateCreateInfo viewport{viewportStateDefault};
-  VkPipelineDynamicStateCreateInfo dynamic{dynamicStateDefault};
+  VkPipelineViewportStateCreateInfo viewport{CE::viewportStateDefault};
+  VkPipelineDynamicStateCreateInfo dynamic{CE::dynamicStateDefault};
 
   VkGraphicsPipelineCreateInfo pipelineInfo{
       .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
@@ -464,29 +464,29 @@ void Pipelines::createGraphicsPipeline_Cube(
   uint32_t bindingsSize = static_cast<uint32_t>(bindings.size());
   uint32_t attributeSize = static_cast<uint32_t>(attributes.size());
 
-  VkPipelineVertexInputStateCreateInfo vertexInput{vertexInputStateDefault};
+  VkPipelineVertexInputStateCreateInfo vertexInput{CE::vertexInputStateDefault};
   vertexInput.vertexBindingDescriptionCount = bindingsSize;
   vertexInput.vertexAttributeDescriptionCount = attributeSize;
   vertexInput.pVertexBindingDescriptions = bindings.data();
   vertexInput.pVertexAttributeDescriptions = attributes.data();
 
   VkPipelineInputAssemblyStateCreateInfo inputAssembly{
-      inputAssemblyStateTriangleList};
+      CE::inputAssemblyStateTriangleList};
   VkPipelineRasterizationStateCreateInfo rasterization{
-      rasterizationCullBackBit};
-  VkPipelineMultisampleStateCreateInfo multisampling{multisampleStateDefault};
+      CE::rasterizationCullBackBit};
+  VkPipelineMultisampleStateCreateInfo multisampling{CE::multisampleStateDefault};
   multisampling.rasterizationSamples = msaaSamples;
-  VkPipelineDepthStencilStateCreateInfo depthStencil{depthStencilStateDefault};
+  VkPipelineDepthStencilStateCreateInfo depthStencil{CE::depthStencilStateDefault};
 
   static VkPipelineColorBlendAttachmentState colorBlendAttachment{
-      colorBlendAttachmentStateFalse};
+      CE::colorBlendAttachmentStateFalse};
   colorBlendAttachment.blendEnable = VK_TRUE;
 
-  VkPipelineColorBlendStateCreateInfo colorBlend{colorBlendStateDefault};
+  VkPipelineColorBlendStateCreateInfo colorBlend{CE::colorBlendStateDefault};
   colorBlend.pAttachments = &colorBlendAttachment;
 
-  VkPipelineViewportStateCreateInfo viewport{viewportStateDefault};
-  VkPipelineDynamicStateCreateInfo dynamic{dynamicStateDefault};
+  VkPipelineViewportStateCreateInfo viewport{CE::viewportStateDefault};
+  VkPipelineDynamicStateCreateInfo dynamic{CE::dynamicStateDefault};
 
   VkGraphicsPipelineCreateInfo pipelineInfo{
       .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,

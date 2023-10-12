@@ -44,7 +44,7 @@ class VulkanMechanics {
     VkQueue present;
   } queues;
 
-  struct SynchronizationObjects : public CE::SynchronizationObjects{
+  struct SynchronizationObjects : public CE::SynchronizationObjects {
     uint32_t currentFrame = 0;
   } syncObjects;
 
@@ -52,7 +52,6 @@ class VulkanMechanics {
   void setupVulkan(Pipelines& _pipelines, Resources& _resources);
 
   void recreateSwapChain(Pipelines& _pipelines, Resources& _resources);
-  void cleanupSwapChain(Resources& _resources);
 
   void createSyncObjects();
 

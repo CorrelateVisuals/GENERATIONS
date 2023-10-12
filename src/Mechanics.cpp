@@ -15,7 +15,8 @@ VulkanMechanics::VulkanMechanics()
       instance(VK_NULL_HANDLE),
       mainDevice{},
       queues{std::nullopt, std::nullopt},
-      swapChain{} {
+      swapChain{},
+    syncObjects{} {
   Log::text("{ Vk. }", "constructing Vulkan Mechanics");
 }
 
@@ -356,18 +357,6 @@ void VulkanMechanics::createSyncObjects() {
   }
 }
 
-void VulkanMechanics::cleanupSwapChain(Resources& _resources) {
-  // for (auto& framebuffer : swapChain.framebuffers) {
-  //   vkDestroyFramebuffer(mainDevice.logical, framebuffer, nullptr);
-  // }
-
-  // for (auto& image : swapChain.images) {
-  //   vkDestroyImageView(mainDevice.logical, image.view, nullptr);
-  // }
-
-  // vkDestroySwapchainKHR(mainDevice.logical, swapChain.swapChain, nullptr);
-}
-
 bool VulkanMechanics::isDeviceSuitable(VkPhysicalDevice physicalDevice) {
   Log::text(Log::Style::charLeader, "Is Device Suitable");
 
@@ -482,7 +471,8 @@ void VulkanMechanics::recreateSwapChain(Pipelines& _pipelines,
 
   vkDeviceWaitIdle(mainDevice.logical);
 
-  cleanupSwapChain(_resources);
+  swapChain.destroySwapchain();
+
   createSwapChain();
 
   _resources.msaaImage.createColorResources(swapChain.extent,
