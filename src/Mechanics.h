@@ -66,8 +66,8 @@ class VulkanMechanics {
                   Pipelines& _pipelines,
                   Resources& _resources);
     void destroy(const VkDevice& logicalDevice);
-    SupportDetails checkSupport(const VkPhysicalDevice physicalDevice,
-                                const VkSurfaceKHR& surface);
+    // SupportDetails checkSupport(const VkPhysicalDevice physicalDevice,
+    //                             const VkSurfaceKHR& surface);
     VkSurfaceFormatKHR pickSurfaceFormat(
         const std::vector<VkSurfaceFormatKHR>& availableFormats);
     VkPresentModeKHR pickPresentMode(
