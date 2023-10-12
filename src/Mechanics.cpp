@@ -167,8 +167,8 @@ CE::Queues::FamilyIndices VulkanMechanics::findQueueFamilies(
 }
 
 VulkanMechanics::Swapchain::SupportDetails
-VulkanMechanics::Swapchain::checkSupport(VkPhysicalDevice physicalDevice,
-                                         VkSurfaceKHR& surface) {
+VulkanMechanics::Swapchain::checkSupport(const VkPhysicalDevice physicalDevice,
+                                         const VkSurfaceKHR& surface) {
   Log::text(Log::Style::charLeader, "Query Swap Chain Support");
   {
     Swapchain::SupportDetails details;
@@ -308,7 +308,7 @@ VkPresentModeKHR VulkanMechanics::Swapchain::pickPresentMode(
 }
 
 VkExtent2D VulkanMechanics::Swapchain::pickExtent(
-    VkSurfaceCapabilitiesKHR& capabilities) {
+    const VkSurfaceCapabilitiesKHR& capabilities) {
   Log::text(Log::Style::charLeader, "Choose Swap Extent");
 
   if (capabilities.currentExtent.width !=
@@ -382,7 +382,8 @@ bool VulkanMechanics::isDeviceSuitable(VkPhysicalDevice physicalDevice) {
   return indices.isComplete() && extensionsSupported && swapchainAdequate;
 }
 
-void VulkanMechanics::Swapchain::create(Device& device, VkSurfaceKHR& surface) {
+void VulkanMechanics::Swapchain::create(const Device& device,
+                                        const VkSurfaceKHR& surface) {
   Log::text("{ <-> }", "Swap Chain");
   Swapchain::SupportDetails swapchainSupport =
       checkSupport(device.physical, surface);
@@ -504,7 +505,7 @@ std::vector<const char*> VulkanMechanics::getRequiredExtensions() {
   return extensions;
 }
 
-void VulkanMechanics::Swapchain::destroy(VkDevice& logicalDevice) {
+void VulkanMechanics::Swapchain::destroy(const VkDevice& logicalDevice) {
   if (logicalDevice != VK_NULL_HANDLE) {
     Log::text("{ <-> }", "Destroy Swapchain");
 

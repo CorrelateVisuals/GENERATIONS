@@ -42,15 +42,15 @@ class VulkanMechanics {
     VkExtent2D swapChainExtent;
     VkSwapchainKHR swapchain;
 
-    void create(Device& device, VkSurfaceKHR& surface);
-    void destroy(VkDevice& logicalDevice);
-    SupportDetails checkSupport(VkPhysicalDevice physicalDevice,
-                                VkSurfaceKHR& surface);
+    void create(const Device& device, const VkSurfaceKHR& surface);
+    void destroy(const VkDevice& logicalDevice);
+    SupportDetails checkSupport(const VkPhysicalDevice physicalDevice,
+                                const VkSurfaceKHR& surface);
     VkSurfaceFormatKHR pickSurfaceFormat(
         const std::vector<VkSurfaceFormatKHR>& availableFormats);
     VkPresentModeKHR pickPresentMode(
         const std::vector<VkPresentModeKHR>& availablePresentModes);
-    VkExtent2D pickExtent(VkSurfaceCapabilitiesKHR& capabilities);
+    VkExtent2D pickExtent(const VkSurfaceCapabilitiesKHR& capabilities);
   } swapchain;
 
   struct Queues : public CE::Queues {
