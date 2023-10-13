@@ -530,6 +530,88 @@ VkExtent2D CE::Swapchain::pickExtent(
   }
 }
 
+void CE::Swapchain::destroy() {
+  if (*LinkedDevice::_logical != VK_NULL_HANDLE) {
+    Log::text("{ <-> }", "Destroy Swapchain");
+
+    for (size_t i = 0; i < framebuffers.size(); i++) {
+      vkDestroyFramebuffer(*LinkedDevice::_logical, framebuffers[i], nullptr);
+    }
+    for (size_t i = 0; i < images.size(); i++) {
+      vkDestroyImageView(*LinkedDevice::_logical, images[i].view, nullptr);
+    }
+    vkDestroySwapchainKHR(*LinkedDevice::_logical, swapchain, nullptr);
+  }
+}
+
+void CE::Swapchain::create(const VkSurfaceKHR& surface, const Queues& queues) {
+  Log::text("{ <-> }", "Swap Chain");
+  Swapchain::SupportDetails swapchainSupport =
+      checkSupport(*LinkedDevice::_physical, surface);
+  VkSurfaceFormatKHR surfaceFormat =
+      pickSurfaceFormat(swapchainSupport.formats);
+  VkPresentModeKHR presentMode = pickPresentMode(swapchainSupport.presentModes);
+  VkExtent2D extent =
+      pickExtent(Window::get().window, supportDetails.capabilities);
+
+  uint32_t imageCount = swapchainSupport.capabilities.minImageCount;
+  if (swapchainSupport.capabilities.maxImageCount > 0 &&
+      imageCount > swapchainSupport.capabilities.maxImageCount) {
+    imageCount = swapchainSupport.capabilities.maxImageCount;
+  }
+
+  VkSwapchainCreateInfoKHR createInfo{
+      .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
+      .surface = surface,
+      .minImageCount = imageCount,
+      .imageFormat = surfaceFormat.format,
+      .imageColorSpace = surfaceFormat.colorSpace,
+      .imageExtent = extent,
+      .imageArrayLayers = 1,
+      .imageUsage =
+          VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_STORAGE_BIT,
+      .preTransform = swapchainSupport.capabilities.currentTransform,
+      .compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
+      .presentMode = presentMode,
+      .clipped = VK_TRUE};
+
+  // Queues::FamilyIndices indices = findQueueFamilies(device.physical,
+  // surface);
+  std::vector<uint32_t> queueFamilyIndices{
+      queues.familyIndices.graphicsAndComputeFamily.value(),
+      queues.familyIndices.presentFamily.value()};
+
+  if (queues.familyIndices.graphicsAndComputeFamily !=
+      queues.familyIndices.presentFamily) {
+    createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
+    createInfo.queueFamilyIndexCount =
+        static_cast<uint32_t>(queueFamilyIndices.size());
+    createInfo.pQueueFamilyIndices = queueFamilyIndices.data();
+  } else {
+    createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+  }
+
+  CE::vulkanResult(vkCreateSwapchainKHR, *LinkedDevice::_logical, &createInfo,
+                   nullptr, &swapchain);
+
+  vkGetSwapchainImagesKHR(*LinkedDevice::_logical, swapchain, &imageCount,
+                          nullptr);
+
+  images.resize(imageCount);
+  imageFormat = surfaceFormat.format;
+  this->extent = extent;
+
+  std::vector<VkImage> swapchainImages(2);
+  vkGetSwapchainImagesKHR(*LinkedDevice::_logical, swapchain, &imageCount,
+                          swapchainImages.data());
+
+  for (size_t i = 0; i < imageCount; i++) {
+    images[i].image = swapchainImages[i];
+    images[i].info.format = imageFormat;
+    images[i].createView(VK_IMAGE_ASPECT_COLOR_BIT);
+  };
+}
+
 CE::Queues::FamilyIndices CE::Queues::findQueueFamilies(
     const VkPhysicalDevice& physicalDevice,
     const VkSurfaceKHR& surface) {

@@ -159,12 +159,18 @@ class Swapchain {
   VkSwapchainKHR swapchain;
   VkExtent2D extent;
   VkFormat imageFormat;
+  std::vector<CE::Image> images;
+  std::vector<VkFramebuffer> framebuffers;
 
   struct SupportDetails {
     VkSurfaceCapabilitiesKHR capabilities{};
     std::vector<VkSurfaceFormatKHR> formats;
     std::vector<VkPresentModeKHR> presentModes;
   } supportDetails;
+
+  void create(const VkSurfaceKHR& surface, const Queues& queues);
+  void destroy();
+
   SupportDetails checkSupport(const VkPhysicalDevice& physicalDevice,
                               const VkSurfaceKHR& surface);
   VkSurfaceFormatKHR pickSurfaceFormat(

@@ -54,18 +54,13 @@ class VulkanMechanics {
   } syncObjects;
 
   struct Swapchain : public CE::Swapchain {
-    std::vector<CE::Image> images;
-    std::vector<VkFramebuffer> framebuffers;
-    void create(const Device& device,
-                const VkSurfaceKHR& surface,
-                const Queues& queues);
     void recreate(const Device& device,
                   const VkSurfaceKHR& surface,
                   const Queues& queues,
                   SynchronizationObjects& syncObjects,
                   Pipelines& _pipelines,
                   Resources& _resources);
-    void destroy(const VkDevice& logicalDevice);
+
   } swapchain;
 
  public:
