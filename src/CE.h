@@ -151,6 +151,15 @@ class Image {
                             const VkSampleCountFlagBits samples);
 };
 
+struct SynchronizationObjects {
+  std::vector<VkSemaphore> imageAvailableSemaphores;
+  std::vector<VkSemaphore> renderFinishedSemaphores;
+  std::vector<VkSemaphore> computeFinishedSemaphores;
+  std::vector<VkFence> graphicsInFlightFences;
+  std::vector<VkFence> computeInFlightFences;
+  uint32_t currentFrame = 0;
+};
+
 class Swapchain {
  public:
   Swapchain() = default;
@@ -169,6 +178,7 @@ class Swapchain {
   } supportDetails;
 
   void create(const VkSurfaceKHR& surface, const Queues& queues);
+
   void destroy();
 
   SupportDetails checkSupport(const VkPhysicalDevice& physicalDevice,

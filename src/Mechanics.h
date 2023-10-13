@@ -42,15 +42,9 @@ class VulkanMechanics {
     VkQueue present;
   } queues;
 
-  struct SynchronizationObjects {
+  struct SynchronizationObjects : public CE::SynchronizationObjects {
     void create(VkDevice& logicalDevice);
     void destroy(VkDevice& logicalDevice);
-    std::vector<VkSemaphore> imageAvailableSemaphores;
-    std::vector<VkSemaphore> renderFinishedSemaphores;
-    std::vector<VkSemaphore> computeFinishedSemaphores;
-    std::vector<VkFence> graphicsInFlightFences;
-    std::vector<VkFence> computeInFlightFences;
-    uint32_t currentFrame = 0;
   } syncObjects;
 
   struct Swapchain : public CE::Swapchain {
@@ -60,7 +54,6 @@ class VulkanMechanics {
                   SynchronizationObjects& syncObjects,
                   Pipelines& _pipelines,
                   Resources& _resources);
-
   } swapchain;
 
  public:
