@@ -26,8 +26,8 @@ class Device {
 
 class LinkedDevice {
  public:
-  VkPhysicalDevice physical{VK_NULL_HANDLE};
-  VkDevice logical{VK_NULL_HANDLE};
+  VkPhysicalDevice physical;
+  VkDevice logical;
   void link(VkDevice& logicalDevice, VkPhysicalDevice& physicalDevice);
 };
 extern std::shared_ptr<LinkedDevice> linkedDevice;
