@@ -5,8 +5,6 @@
 
 #include <algorithm>
 
-// VkPhysicalDevice* CE::linkedDevice->physical = VK_NULL_HANDLE;
-// VkDevice* CE::linkedDevice->logical = NULL;
 std::shared_ptr<CE::LinkedDevice> CE::linkedDevice =
     std::make_shared<CE::LinkedDevice>();
 VkCommandBuffer CE::Commands::singularCommandBuffer = VK_NULL_HANDLE;
@@ -388,20 +386,20 @@ CE::Descriptor::Descriptor() {
 }
 
 CE::Descriptor::~Descriptor() {
-    if (linkedDevice) {
-        if (pool != VK_NULL_HANDLE) {
-            vkDestroyDescriptorPool(linkedDevice->logical, pool, nullptr);
-        };
-        if (setLayout != VK_NULL_HANDLE) {
-            vkDestroyDescriptorSetLayout(linkedDevice->logical, setLayout, nullptr);
-        };
-    }
+  if (linkedDevice) {
+    if (pool != VK_NULL_HANDLE) {
+      vkDestroyDescriptorPool(linkedDevice->logical, pool, nullptr);
+    };
+    if (setLayout != VK_NULL_HANDLE) {
+      vkDestroyDescriptorSetLayout(linkedDevice->logical, setLayout, nullptr);
+    };
+  }
 }
 
 CE::Commands::~Commands() {
-    if (linkedDevice && pool != VK_NULL_HANDLE) {
-        vkDestroyCommandPool(linkedDevice->logical, pool, nullptr);
-    }
+  if (linkedDevice && pool != VK_NULL_HANDLE) {
+    vkDestroyCommandPool(linkedDevice->logical, pool, nullptr);
+  }
 };
 
 void CE::Commands::createCommandPool(
