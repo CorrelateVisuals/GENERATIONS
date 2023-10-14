@@ -5,6 +5,7 @@
 #include "Window.h"
 
 #include <iostream>
+#include <memory>
 #include <optional>
 #include <stdexcept>
 #include <string>
@@ -25,11 +26,11 @@ class Device {
 
 class LinkedDevice {
  public:
-  static VkPhysicalDevice* _physical;
-  static VkDevice* _logical;
-  static void linkDevice(VkDevice* logicalDevice,
-                         VkPhysicalDevice* physicalDevice);
+  VkPhysicalDevice physical{VK_NULL_HANDLE};
+  VkDevice logical{VK_NULL_HANDLE};
+  void link(VkDevice& logicalDevice, VkPhysicalDevice& physicalDevice);
 };
+extern std::shared_ptr<LinkedDevice> linkedDevice;
 
 class Queues {
  public:
@@ -51,11 +52,7 @@ class Queues {
 class Commands {
  public:
   Commands() = default;
-  virtual ~Commands() {
-    if (*LinkedDevice::_logical != VK_NULL_HANDLE) {
-      vkDestroyCommandPool(*LinkedDevice::_logical, pool, nullptr);
-    }
-  };
+  virtual ~Commands();
   VkCommandPool pool;
   static VkCommandBuffer singularCommandBuffer;
 
