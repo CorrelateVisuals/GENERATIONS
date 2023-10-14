@@ -24,13 +24,13 @@ class Device {
   VkPhysicalDeviceFeatures features{};
 };
 
-class LinkedDevice {
+class UsableDevices {
  public:
   VkPhysicalDevice physical;
   VkDevice logical;
-  void link(VkDevice& logicalDevice, VkPhysicalDevice& physicalDevice);
+  void attach(CE::Device& device);
 };
-extern std::shared_ptr<LinkedDevice> linkedDevice;
+extern std::shared_ptr<UsableDevices> baseDevice;
 
 class Queues {
  public:

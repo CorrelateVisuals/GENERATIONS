@@ -5,20 +5,19 @@
 
 #include <algorithm>
 
-std::shared_ptr<CE::LinkedDevice> CE::linkedDevice =
-    std::make_shared<CE::LinkedDevice>();
+std::shared_ptr<CE::UsableDevices> CE::baseDevice =
+    std::make_shared<CE::UsableDevices>();
 VkCommandBuffer CE::Commands::singularCommandBuffer = VK_NULL_HANDLE;
 
-void CE::LinkedDevice::link(VkDevice& logicalDevice,
-                            VkPhysicalDevice& physicalDevice) {
-  physical = physicalDevice;
-  logical = logicalDevice;
+void CE::UsableDevices::attach(CE::Device& device) {
+  physical = device.physical;
+  logical = device.logical;
 }
 
 uint32_t CE::findMemoryType(uint32_t typeFilter,
                             VkMemoryPropertyFlags properties) {
   VkPhysicalDeviceMemoryProperties memProperties;
-  vkGetPhysicalDeviceMemoryProperties(linkedDevice->physical, &memProperties);
+  vkGetPhysicalDeviceMemoryProperties(baseDevice->physical, &memProperties);
 
   for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
     if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags &
@@ -32,13 +31,13 @@ uint32_t CE::findMemoryType(uint32_t typeFilter,
 CE::Buffer::Buffer() : buffer{}, memory{}, mapped{} {}
 
 CE::Buffer::~Buffer() {
-  if (linkedDevice) {
+  if (baseDevice) {
     if (buffer != VK_NULL_HANDLE) {
-      vkDestroyBuffer(linkedDevice->logical, buffer, nullptr);
+      vkDestroyBuffer(baseDevice->logical, buffer, nullptr);
       buffer = VK_NULL_HANDLE;
     }
     if (memory != VK_NULL_HANDLE) {
-      vkFreeMemory(linkedDevice->logical, memory, nullptr);
+      vkFreeMemory(baseDevice->logical, memory, nullptr);
       memory = VK_NULL_HANDLE;
     }
   }
@@ -56,11 +55,11 @@ void CE::Buffer::create(const VkDeviceSize& size,
   Log::text(Log::Style::charLeader, Log::getMemoryPropertyString(properties));
   Log::text(Log::Style::charLeader, size, "bytes");
 
-  vulkanResult(vkCreateBuffer, linkedDevice->logical, &bufferInfo, nullptr,
+  vulkanResult(vkCreateBuffer, baseDevice->logical, &bufferInfo, nullptr,
                &buffer.buffer);
 
   VkMemoryRequirements memRequirements;
-  vkGetBufferMemoryRequirements(linkedDevice->logical, buffer.buffer,
+  vkGetBufferMemoryRequirements(baseDevice->logical, buffer.buffer,
                                 &memRequirements);
 
   VkMemoryAllocateInfo allocateInfo{
@@ -69,9 +68,9 @@ void CE::Buffer::create(const VkDeviceSize& size,
       .memoryTypeIndex =
           CE::findMemoryType(memRequirements.memoryTypeBits, properties)};
 
-  vulkanResult(vkAllocateMemory, linkedDevice->logical, &allocateInfo, nullptr,
+  vulkanResult(vkAllocateMemory, baseDevice->logical, &allocateInfo, nullptr,
                &buffer.memory);
-  vkBindBufferMemory(linkedDevice->logical, buffer.buffer, buffer.memory, 0);
+  vkBindBufferMemory(baseDevice->logical, buffer.buffer, buffer.memory, 0);
 }
 
 void CE::Buffer::copy(const VkBuffer& srcBuffer,
@@ -116,21 +115,21 @@ void CE::Buffer::copyToImage(const VkBuffer& buffer,
 CE::Image::Image() : image{}, memory{}, view{}, sampler{} {}
 
 void CE::Image::destroyVulkanImages() {
-  if (linkedDevice) {
+  if (baseDevice) {
     if (sampler != VK_NULL_HANDLE) {
-      vkDestroySampler(linkedDevice->logical, sampler, nullptr);
+      vkDestroySampler(baseDevice->logical, sampler, nullptr);
       sampler = VK_NULL_HANDLE;
     };
     if (view != VK_NULL_HANDLE) {
-      vkDestroyImageView(linkedDevice->logical, view, nullptr);
+      vkDestroyImageView(baseDevice->logical, view, nullptr);
       view = VK_NULL_HANDLE;
     };
     if (image != VK_NULL_HANDLE) {
-      vkDestroyImage(linkedDevice->logical, image, nullptr);
+      vkDestroyImage(baseDevice->logical, image, nullptr);
       image = VK_NULL_HANDLE;
     };
     if (memory != VK_NULL_HANDLE) {
-      vkFreeMemory(linkedDevice->logical, memory, nullptr);
+      vkFreeMemory(baseDevice->logical, memory, nullptr);
       memory = VK_NULL_HANDLE;
     };
   };
@@ -156,10 +155,10 @@ void CE::Image::create(const uint32_t width,
   info.tiling = tiling;
   info.usage = usage;
 
-  vulkanResult(vkCreateImage, linkedDevice->logical, &info, nullptr, &image);
+  vulkanResult(vkCreateImage, baseDevice->logical, &info, nullptr, &image);
 
   VkMemoryRequirements memRequirements;
-  vkGetImageMemoryRequirements(linkedDevice->logical, this->image,
+  vkGetImageMemoryRequirements(baseDevice->logical, this->image,
                                &memRequirements);
 
   VkMemoryAllocateInfo allocateInfo{
@@ -168,9 +167,9 @@ void CE::Image::create(const uint32_t width,
       .memoryTypeIndex =
           findMemoryType(memRequirements.memoryTypeBits, properties)};
 
-  vulkanResult(vkAllocateMemory, linkedDevice->logical, &allocateInfo, nullptr,
+  vulkanResult(vkAllocateMemory, baseDevice->logical, &allocateInfo, nullptr,
                &this->memory);
-  vkBindImageMemory(linkedDevice->logical, this->image, this->memory, 0);
+  vkBindImageMemory(baseDevice->logical, this->image, this->memory, 0);
 }
 
 void CE::Image::createView(const VkImageAspectFlags aspectFlags) {
@@ -187,7 +186,7 @@ void CE::Image::createView(const VkImageAspectFlags aspectFlags) {
                            .baseArrayLayer = 0,
                            .layerCount = 1}};
 
-  vulkanResult(vkCreateImageView, linkedDevice->logical, &viewInfo, nullptr,
+  vulkanResult(vkCreateImageView, baseDevice->logical, &viewInfo, nullptr,
                &this->view);
   return;
 }
@@ -275,10 +274,10 @@ void CE::Image::loadTexture(const std::string& imagePath,
                  stagingResources);
 
   void* data;
-  vkMapMemory(linkedDevice->logical, stagingResources.memory, 0, imageSize, 0,
+  vkMapMemory(baseDevice->logical, stagingResources.memory, 0, imageSize, 0,
               &data);
   memcpy(data, pixels, static_cast<size_t>(imageSize));
-  vkUnmapMemory(linkedDevice->logical, stagingResources.memory);
+  vkUnmapMemory(baseDevice->logical, stagingResources.memory);
   stbi_image_free(pixels);
 
   this->create(texWidth, texHeight, VK_SAMPLE_COUNT_1_BIT, format,
@@ -315,7 +314,7 @@ VkFormat CE::Image::findSupportedFormat(const std::vector<VkFormat>& candidates,
                                         const VkFormatFeatureFlags& features) {
   for (VkFormat format : candidates) {
     VkFormatProperties props;
-    vkGetPhysicalDeviceFormatProperties(linkedDevice->physical, format, &props);
+    vkGetPhysicalDeviceFormatProperties(baseDevice->physical, format, &props);
 
     if (tiling == VK_IMAGE_TILING_LINEAR &&
         (props.linearTilingFeatures & features) == features) {
@@ -356,7 +355,7 @@ void CE::Image::createDepthResources(const VkExtent2D& dimensions,
 void CE::Image::createSampler() {
   Log::text("{ img }", "Texture Sampler");
   VkPhysicalDeviceProperties properties;
-  vkGetPhysicalDeviceProperties(linkedDevice->physical, &properties);
+  vkGetPhysicalDeviceProperties(baseDevice->physical, &properties);
 
   VkSamplerCreateInfo samplerInfo{
       .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
@@ -373,7 +372,7 @@ void CE::Image::createSampler() {
       .borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK,
       .unnormalizedCoordinates = VK_FALSE};
 
-  if (vkCreateSampler(linkedDevice->logical, &samplerInfo, nullptr,
+  if (vkCreateSampler(baseDevice->logical, &samplerInfo, nullptr,
                       &this->sampler) != VK_SUCCESS) {
     throw std::runtime_error("failed to create texture sampler!");
   }
@@ -386,19 +385,19 @@ CE::Descriptor::Descriptor() {
 }
 
 CE::Descriptor::~Descriptor() {
-  if (linkedDevice) {
+  if (baseDevice) {
     if (pool != VK_NULL_HANDLE) {
-      vkDestroyDescriptorPool(linkedDevice->logical, pool, nullptr);
+      vkDestroyDescriptorPool(baseDevice->logical, pool, nullptr);
     };
     if (setLayout != VK_NULL_HANDLE) {
-      vkDestroyDescriptorSetLayout(linkedDevice->logical, setLayout, nullptr);
+      vkDestroyDescriptorSetLayout(baseDevice->logical, setLayout, nullptr);
     };
   }
 }
 
 CE::Commands::~Commands() {
-  if (linkedDevice && pool != VK_NULL_HANDLE) {
-    vkDestroyCommandPool(linkedDevice->logical, pool, nullptr);
+  if (baseDevice && pool != VK_NULL_HANDLE) {
+    vkDestroyCommandPool(baseDevice->logical, pool, nullptr);
   }
 };
 
@@ -411,8 +410,8 @@ void CE::Commands::createCommandPool(
       .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
       .queueFamilyIndex = familyIndices.graphicsAndComputeFamily.value()};
 
-  CE::vulkanResult(vkCreateCommandPool, linkedDevice->logical, &poolInfo,
-                   nullptr, &pool);
+  CE::vulkanResult(vkCreateCommandPool, baseDevice->logical, &poolInfo, nullptr,
+                   &pool);
 }
 
 void CE::Commands::beginSingularCommands(const VkCommandPool& commandPool,
@@ -425,7 +424,7 @@ void CE::Commands::beginSingularCommands(const VkCommandPool& commandPool,
       .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
       .commandBufferCount = 1};
 
-  vkAllocateCommandBuffers(linkedDevice->logical, &allocInfo,
+  vkAllocateCommandBuffers(baseDevice->logical, &allocInfo,
                            &singularCommandBuffer);
 
   VkCommandBufferBeginInfo beginInfo{
@@ -447,7 +446,7 @@ void CE::Commands::endSingularCommands(const VkCommandPool& commandPool,
 
   vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE);
   vkQueueWaitIdle(queue);
-  vkFreeCommandBuffers(linkedDevice->logical, commandPool, 1,
+  vkFreeCommandBuffers(baseDevice->logical, commandPool, 1,
                        &singularCommandBuffer);
 }
 
@@ -456,7 +455,7 @@ void CE::Device::destroyDevice() {
     Log::text("{ +++ }", "Destroy Device");
     vkDestroyDevice(logical, nullptr);
     logical = NULL;
-    linkedDevice.reset();
+    baseDevice.reset();
   }
 }
 
@@ -541,16 +540,16 @@ VkExtent2D CE::Swapchain::pickExtent(
 }
 
 void CE::Swapchain::destroy() {
-  if (linkedDevice) {
+  if (baseDevice) {
     Log::text("{ <-> }", "Destroy Swapchain");
 
     for (size_t i = 0; i < framebuffers.size(); i++) {
-      vkDestroyFramebuffer(linkedDevice->logical, framebuffers[i], nullptr);
+      vkDestroyFramebuffer(baseDevice->logical, framebuffers[i], nullptr);
     }
     for (size_t i = 0; i < images.size(); i++) {
-      vkDestroyImageView(linkedDevice->logical, images[i].view, nullptr);
+      vkDestroyImageView(baseDevice->logical, images[i].view, nullptr);
     }
-    vkDestroySwapchainKHR(linkedDevice->logical, swapchain, nullptr);
+    vkDestroySwapchainKHR(baseDevice->logical, swapchain, nullptr);
   }
 }
 
@@ -564,7 +563,7 @@ void CE::Swapchain::recreate(const VkSurfaceKHR& surface,
     glfwWaitEvents();
   }
 
-  vkDeviceWaitIdle(linkedDevice->logical);
+  vkDeviceWaitIdle(baseDevice->logical);
 
   destroy();
   create(surface, queues);
@@ -576,7 +575,7 @@ void CE::Swapchain::recreate(const VkSurfaceKHR& surface,
 void CE::Swapchain::create(const VkSurfaceKHR& surface, const Queues& queues) {
   Log::text("{ <-> }", "Swap Chain");
   Swapchain::SupportDetails swapchainSupport =
-      checkSupport(linkedDevice->physical, surface);
+      checkSupport(baseDevice->physical, surface);
   VkSurfaceFormatKHR surfaceFormat =
       pickSurfaceFormat(swapchainSupport.formats);
   VkPresentModeKHR presentMode = pickPresentMode(swapchainSupport.presentModes);
@@ -620,18 +619,17 @@ void CE::Swapchain::create(const VkSurfaceKHR& surface, const Queues& queues) {
     createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
   }
 
-  CE::vulkanResult(vkCreateSwapchainKHR, linkedDevice->logical, &createInfo,
+  CE::vulkanResult(vkCreateSwapchainKHR, baseDevice->logical, &createInfo,
                    nullptr, &swapchain);
 
-  vkGetSwapchainImagesKHR(linkedDevice->logical, swapchain, &imageCount,
-                          nullptr);
+  vkGetSwapchainImagesKHR(baseDevice->logical, swapchain, &imageCount, nullptr);
 
   images.resize(imageCount);
   imageFormat = surfaceFormat.format;
   this->extent = extent;
 
   std::vector<VkImage> swapchainImages(2);
-  vkGetSwapchainImagesKHR(linkedDevice->logical, swapchain, &imageCount,
+  vkGetSwapchainImagesKHR(baseDevice->logical, swapchain, &imageCount,
                           swapchainImages.data());
 
   for (size_t i = 0; i < imageCount; i++) {

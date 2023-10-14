@@ -24,7 +24,6 @@ class VulkanMechanics {
 
   struct Device : public CE::Device {
     Device() {
-      // CE::linkedDevice->link(logical, physical);
       features.tessellationShader = VK_TRUE;
       features.sampleRateShading = VK_TRUE;
       features.depthClamp = VK_TRUE;
