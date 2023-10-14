@@ -14,8 +14,8 @@ void CE::UsableDevices::attach(const CE::Device& device) {
   logical = device.logical;
 }
 
-uint32_t CE::findMemoryType(uint32_t typeFilter,
-                            VkMemoryPropertyFlags properties) {
+uint32_t CE::findMemoryType(const uint32_t typeFilter,
+                            const VkMemoryPropertyFlags properties) {
   VkPhysicalDeviceMemoryProperties memProperties;
   vkGetPhysicalDeviceMemoryProperties(baseDevice->physical, &memProperties);
 

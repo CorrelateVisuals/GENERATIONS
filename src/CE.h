@@ -216,8 +216,8 @@ class Descriptor {
 template <typename Checkresult, typename... Args>
 static void vulkanResult(Checkresult vkResult, Args&&... args);
 
-static uint32_t findMemoryType(uint32_t typeFilter,
-                               VkMemoryPropertyFlags properties);
+static uint32_t findMemoryType(const uint32_t typeFilter,
+                               const VkMemoryPropertyFlags properties);
 
 // Pipeline Presets
 constexpr static inline VkPipelineRasterizationStateCreateInfo
