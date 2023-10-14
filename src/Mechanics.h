@@ -25,6 +25,7 @@ class VulkanMechanics {
   struct Device : public CE::Device {
     Device() {
       CE::LinkedDevice::linkDevice(&logical, &physical);
+
       features.tessellationShader = VK_TRUE;
       features.sampleRateShading = VK_TRUE;
       features.depthClamp = VK_TRUE;
@@ -48,8 +49,7 @@ class VulkanMechanics {
   } syncObjects;
 
   struct Swapchain : public CE::Swapchain {
-    void recreate(const Device& device,
-                  const VkSurfaceKHR& surface,
+    void recreate(const VkSurfaceKHR& surface,
                   const Queues& queues,
                   SynchronizationObjects& syncObjects,
                   Pipelines& _pipelines,

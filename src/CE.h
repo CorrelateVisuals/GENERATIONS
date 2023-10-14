@@ -178,7 +178,9 @@ class Swapchain {
   } supportDetails;
 
   void create(const VkSurfaceKHR& surface, const Queues& queues);
-
+  void recreate(const VkSurfaceKHR& surface,
+                const Queues& queues,
+                SynchronizationObjects& syncObjects);
   void destroy();
 
   SupportDetails checkSupport(const VkPhysicalDevice& physicalDevice,

@@ -345,34 +345,18 @@ bool VulkanMechanics::isDeviceSuitable(VkPhysicalDevice physicalDevice) {
 //                    commandPool);
 // }
 
-void VulkanMechanics::Swapchain::recreate(const Device& device,
-                                          const VkSurfaceKHR& surface,
+void VulkanMechanics::Swapchain::recreate(const VkSurfaceKHR& surface,
                                           const Queues& queues,
                                           SynchronizationObjects& syncObjects,
                                           Pipelines& _pipelines,
                                           Resources& _resources) {
-  int width = 0, height = 0;
-  glfwGetFramebufferSize(Window::get().window, &width, &height);
-  while (width == 0 || height == 0) {
-    glfwGetFramebufferSize(Window::get().window, &width, &height);
-    glfwWaitEvents();
-  }
-
-  vkDeviceWaitIdle(device.logical);
-
-  destroy();
-  create(surface, queues);
-
+  CE::Swapchain::recreate(surface, queues, syncObjects);
   _resources.msaaImage.createColorResources(extent, imageFormat,
                                             _resources.msaaImage.info.samples);
   _resources.depthImage.createDepthResources(
       extent, CE::Image::findDepthFormat(), _resources.msaaImage.info.samples);
-
   _resources.createFramebuffers(_pipelines);
   _resources.createDescriptorSets();
-
-  uint32_t reset = 1;
-  syncObjects.currentFrame = reset;
 }
 
 std::vector<const char*> VulkanMechanics::getRequiredExtensions() {

@@ -544,6 +544,25 @@ void CE::Swapchain::destroy() {
   }
 }
 
+void CE::Swapchain::recreate(const VkSurfaceKHR& surface,
+                             const Queues& queues,
+                             SynchronizationObjects& syncObjects) {
+  int width = 0, height = 0;
+  glfwGetFramebufferSize(Window::get().window, &width, &height);
+  while (width == 0 || height == 0) {
+    glfwGetFramebufferSize(Window::get().window, &width, &height);
+    glfwWaitEvents();
+  }
+
+  vkDeviceWaitIdle(*LinkedDevice::_logical);
+
+  destroy();
+  create(surface, queues);
+
+  uint32_t reset = 1;
+  syncObjects.currentFrame = reset;
+}
+
 void CE::Swapchain::create(const VkSurfaceKHR& surface, const Queues& queues) {
   Log::text("{ <-> }", "Swap Chain");
   Swapchain::SupportDetails swapchainSupport =
