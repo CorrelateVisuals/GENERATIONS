@@ -36,6 +36,9 @@ class Queues {
  public:
   Queues() = default;
   virtual ~Queues() = default;
+  VkQueue graphics;
+  VkQueue compute;
+  VkQueue present;
 
   struct FamilyIndices {
     std::optional<uint32_t> graphicsAndComputeFamily;
@@ -149,6 +152,8 @@ class Image {
 };
 
 struct SynchronizationObjects {
+  void create(const int maxFramesInFlight);
+  void destroy(const int maxFramesInFlight);
   std::vector<VkSemaphore> imageAvailableSemaphores;
   std::vector<VkSemaphore> renderFinishedSemaphores;
   std::vector<VkSemaphore> computeFinishedSemaphores;

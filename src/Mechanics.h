@@ -36,14 +36,9 @@ class VulkanMechanics {
   } mainDevice;
 
   struct Queues : public CE::Queues {
-    VkQueue graphics;
-    VkQueue compute;
-    VkQueue present;
   } queues;
 
   struct SynchronizationObjects : public CE::SynchronizationObjects {
-    void create(VkDevice& logicalDevice);
-    void destroy(VkDevice& logicalDevice);
   } syncObjects;
 
   struct Swapchain : public CE::Swapchain {

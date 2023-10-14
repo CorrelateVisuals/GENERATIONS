@@ -671,3 +671,48 @@ CE::Queues::FamilyIndices CE::Queues::findQueueFamilies(
   }
   return indices;
 }
+
+void CE::SynchronizationObjects::create(const int maxFramesInFlight) {
+  Log::text("{ ||| }", "Sync Objects");
+
+  imageAvailableSemaphores.resize(maxFramesInFlight);
+  renderFinishedSemaphores.resize(maxFramesInFlight);
+  computeFinishedSemaphores.resize(maxFramesInFlight);
+  graphicsInFlightFences.resize(maxFramesInFlight);
+  computeInFlightFences.resize(maxFramesInFlight);
+
+  VkSemaphoreCreateInfo semaphoreInfo{
+      .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO};
+
+  VkFenceCreateInfo fenceInfo{.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
+                              .flags = VK_FENCE_CREATE_SIGNALED_BIT};
+
+  for (size_t i = 0; i < maxFramesInFlight; i++) {
+    CE::vulkanResult(vkCreateSemaphore, baseDevice->logical, &semaphoreInfo,
+                     nullptr, &imageAvailableSemaphores[i]);
+    CE::vulkanResult(vkCreateSemaphore, baseDevice->logical, &semaphoreInfo,
+                     nullptr, &renderFinishedSemaphores[i]);
+    CE::vulkanResult(vkCreateFence, baseDevice->logical, &fenceInfo, nullptr,
+                     &graphicsInFlightFences[i]);
+    CE::vulkanResult(vkCreateSemaphore, baseDevice->logical, &semaphoreInfo,
+                     nullptr, &computeFinishedSemaphores[i]);
+    CE::vulkanResult(vkCreateFence, baseDevice->logical, &fenceInfo, nullptr,
+                     &computeInFlightFences[i]);
+  }
+}
+
+void CE::SynchronizationObjects::destroy(const int maxFramesInFlight) {
+  if (baseDevice) {
+    Log::text("{ ||| }", "Destroy Synchronization Objects");
+    for (size_t i = 0; i < maxFramesInFlight; i++) {
+      vkDestroySemaphore(baseDevice->logical, renderFinishedSemaphores[i],
+                         nullptr);
+      vkDestroySemaphore(baseDevice->logical, imageAvailableSemaphores[i],
+                         nullptr);
+      vkDestroySemaphore(baseDevice->logical, computeFinishedSemaphores[i],
+                         nullptr);
+      vkDestroyFence(baseDevice->logical, graphicsInFlightFences[i], nullptr);
+      vkDestroyFence(baseDevice->logical, computeInFlightFences[i], nullptr);
+    };
+  }
+}

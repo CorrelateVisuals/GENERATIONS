@@ -24,7 +24,7 @@ VulkanMechanics::~VulkanMechanics() {
   Log::text("{ Vk. }", "destructing Vulkan Mechanics");
 
   swapchain.destroy();
-  syncObjects.destroy(mainDevice.logical);
+  syncObjects.destroy(MAX_FRAMES_IN_FLIGHT);
   mainDevice.destroyDevice();
 
   if (validation.enableValidationLayers) {
@@ -211,34 +211,38 @@ void VulkanMechanics::createLogicalDevice() {
                    &queues.present);
 }
 
-void VulkanMechanics::SynchronizationObjects::create(VkDevice& logicalDevice) {
-  Log::text("{ ||| }", "Sync Objects");
-
-  imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-  renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-  computeFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-  graphicsInFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
-  computeInFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
-
-  VkSemaphoreCreateInfo semaphoreInfo{
-      .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO};
-
-  VkFenceCreateInfo fenceInfo{.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
-                              .flags = VK_FENCE_CREATE_SIGNALED_BIT};
-
-  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-    CE::vulkanResult(vkCreateSemaphore, logicalDevice, &semaphoreInfo, nullptr,
-                     &imageAvailableSemaphores[i]);
-    CE::vulkanResult(vkCreateSemaphore, logicalDevice, &semaphoreInfo, nullptr,
-                     &renderFinishedSemaphores[i]);
-    CE::vulkanResult(vkCreateFence, logicalDevice, &fenceInfo, nullptr,
-                     &graphicsInFlightFences[i]);
-    CE::vulkanResult(vkCreateSemaphore, logicalDevice, &semaphoreInfo, nullptr,
-                     &computeFinishedSemaphores[i]);
-    CE::vulkanResult(vkCreateFence, logicalDevice, &fenceInfo, nullptr,
-                     &computeInFlightFences[i]);
-  }
-}
+// void VulkanMechanics::SynchronizationObjects::create(VkDevice& logicalDevice)
+// {
+//   Log::text("{ ||| }", "Sync Objects");
+//
+//   imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+//   renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+//   computeFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+//   graphicsInFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
+//   computeInFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
+//
+//   VkSemaphoreCreateInfo semaphoreInfo{
+//       .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO};
+//
+//   VkFenceCreateInfo fenceInfo{.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
+//                               .flags = VK_FENCE_CREATE_SIGNALED_BIT};
+//
+//   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+//     CE::vulkanResult(vkCreateSemaphore, logicalDevice, &semaphoreInfo,
+//     nullptr,
+//                      &imageAvailableSemaphores[i]);
+//     CE::vulkanResult(vkCreateSemaphore, logicalDevice, &semaphoreInfo,
+//     nullptr,
+//                      &renderFinishedSemaphores[i]);
+//     CE::vulkanResult(vkCreateFence, logicalDevice, &fenceInfo, nullptr,
+//                      &graphicsInFlightFences[i]);
+//     CE::vulkanResult(vkCreateSemaphore, logicalDevice, &semaphoreInfo,
+//     nullptr,
+//                      &computeFinishedSemaphores[i]);
+//     CE::vulkanResult(vkCreateFence, logicalDevice, &fenceInfo, nullptr,
+//                      &computeInFlightFences[i]);
+//   }
+// }
 
 bool VulkanMechanics::isDeviceSuitable(VkPhysicalDevice physicalDevice) {
   Log::text(Log::Style::charLeader, "Is Device Suitable");
@@ -375,15 +379,18 @@ std::vector<const char*> VulkanMechanics::getRequiredExtensions() {
   return extensions;
 }
 
-void VulkanMechanics::SynchronizationObjects::destroy(VkDevice& logicalDevice) {
-  if (logicalDevice != VK_NULL_HANDLE) {
-    Log::text("{ ||| }", "Destroy Synchronization Objects");
-    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-      vkDestroySemaphore(logicalDevice, renderFinishedSemaphores[i], nullptr);
-      vkDestroySemaphore(logicalDevice, imageAvailableSemaphores[i], nullptr);
-      vkDestroySemaphore(logicalDevice, computeFinishedSemaphores[i], nullptr);
-      vkDestroyFence(logicalDevice, graphicsInFlightFences[i], nullptr);
-      vkDestroyFence(logicalDevice, computeInFlightFences[i], nullptr);
-    };
-  }
-}
+// void VulkanMechanics::SynchronizationObjects::destroy(VkDevice&
+// logicalDevice) {
+//   if (logicalDevice != VK_NULL_HANDLE) {
+//     Log::text("{ ||| }", "Destroy Synchronization Objects");
+//     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+//       vkDestroySemaphore(logicalDevice, renderFinishedSemaphores[i],
+//       nullptr); vkDestroySemaphore(logicalDevice,
+//       imageAvailableSemaphores[i], nullptr);
+//       vkDestroySemaphore(logicalDevice, computeFinishedSemaphores[i],
+//       nullptr); vkDestroyFence(logicalDevice, graphicsInFlightFences[i],
+//       nullptr); vkDestroyFence(logicalDevice, computeInFlightFences[i],
+//       nullptr);
+//     };
+//   }
+// }
