@@ -9,7 +9,7 @@ std::shared_ptr<CE::UsableDevices> CE::baseDevice =
     std::make_shared<CE::UsableDevices>();
 VkCommandBuffer CE::Commands::singularCommandBuffer = VK_NULL_HANDLE;
 
-void CE::UsableDevices::attach(CE::Device& device) {
+void CE::UsableDevices::attach(const CE::Device& device) {
   physical = device.physical;
   logical = device.logical;
 }

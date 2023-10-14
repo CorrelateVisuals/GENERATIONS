@@ -28,7 +28,7 @@ class UsableDevices {
  public:
   VkPhysicalDevice physical;
   VkDevice logical;
-  void attach(CE::Device& device);
+  void attach(const CE::Device& device);
 };
 extern std::shared_ptr<UsableDevices> baseDevice;
 
