@@ -24,7 +24,7 @@ class Device {
   VkPhysicalDeviceFeatures features{};
 
   void attach(const CE::Device& device);
-  static VkDevice destroyedLogical;
+  static std::vector<VkDevice> destroyedDevices;
 };
 static std::unique_ptr<Device> baseDevice;
 

@@ -5,8 +5,7 @@
 
 #include <algorithm>
 
-VkDevice CE::Device::destroyedLogical;
-
+std::vector<VkDevice> CE::Device::destroyedDevices;
 VkCommandBuffer CE::Commands::singularCommandBuffer = VK_NULL_HANDLE;
 
 void CE::Device::attach(const CE::Device& device) {
@@ -450,11 +449,19 @@ void CE::Commands::endSingularCommands(const VkCommandPool& commandPool,
 }
 
 void CE::Device::destroyDevice() {
-  if (destroyedLogical != logical) {
+  static bool isDeviceDestroyed = false;
+  for (const VkDevice& device : destroyedDevices) {
+    if (device == logical) {
+      isDeviceDestroyed = true;
+      break;
+    }
+  }
+  if (!isDeviceDestroyed) {
     Log::text("{ +++ }", "Destroy Device", logical, &logical);
 
     vkDestroyDevice(logical, nullptr);
-    destroyedLogical = logical;
+    destroyedDevices.push_back(
+        logical);  // Add the destroyed device to the vector
   }
 }
 
