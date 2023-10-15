@@ -34,9 +34,13 @@ class Device {
   Device() = default;
   virtual ~Device() { destroyDevice(); }
   VkPhysicalDevice physical{VK_NULL_HANDLE};
-  VkDevice logical{VK_NULL_HANDLE};
-  std::vector<const char*> extensions{VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+  VkPhysicalDeviceProperties properties;
   VkPhysicalDeviceFeatures features{};
+  std::vector<const char*> extensions{VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+  VkSampleCountFlagBits maxUsableSampleCount;
+  VkDevice logical{VK_NULL_HANDLE};
+
+  void getMaxUsableSampleCount();
 
   void createLogicalDevice(const InitializeVulkan& initVulkan, Queues& queues);
   void destroyDevice();
@@ -156,11 +160,9 @@ class Image {
                                       const VkImageTiling tiling,
                                       const VkFormatFeatureFlags& features);
   void createColorResources(const VkExtent2D& dimensions,
-                            const VkFormat format,
-                            const VkSampleCountFlagBits samples);
+                            const VkFormat format);
   void createDepthResources(const VkExtent2D& dimensions,
-                            const VkFormat format,
-                            const VkSampleCountFlagBits samples);
+                            const VkFormat format);
 };
 
 struct SynchronizationObjects {

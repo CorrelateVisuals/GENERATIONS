@@ -12,11 +12,9 @@ CapitalEngine::CapitalEngine()
   resources.command.createCommandPool(mechanics.queues.familyIndices);
   resources.createDescriptorSetLayout(resources.descriptorSetLayoutBindings);
   resources.msaaImage.createColorResources(mechanics.swapchain.extent,
-                                           mechanics.swapchain.imageFormat,
-                                           resources.msaaImage.info.samples);
+                                           mechanics.swapchain.imageFormat);
   resources.depthImage.createDepthResources(mechanics.swapchain.extent,
-                                            CE::Image::findDepthFormat(),
-                                            resources.msaaImage.info.samples);
+                                            CE::Image::findDepthFormat());
 
   pipelines.setupPipelines(resources);
   resources.setupResources(pipelines);

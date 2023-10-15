@@ -49,7 +49,7 @@ void VulkanMechanics::pickPhysicalDevice(
   for (const auto& device : devices) {
     if (isDeviceSuitable(device)) {
       mainDevice.physical = device;
-      msaaImageSamples = getMaxUsableSampleCount();
+      mainDevice.getMaxUsableSampleCount();
       break;
     }
   }
@@ -79,20 +79,21 @@ bool VulkanMechanics::checkDeviceExtensionSupport(
   return requiredExtensions.empty();
 }
 
-VkSampleCountFlagBits VulkanMechanics::getMaxUsableSampleCount() {
-  VkPhysicalDeviceProperties physicalDeviceProperties;
-  vkGetPhysicalDeviceProperties(mainDevice.physical, &physicalDeviceProperties);
-  VkSampleCountFlags counts =
-      physicalDeviceProperties.limits.framebufferColorSampleCounts &
-      physicalDeviceProperties.limits.framebufferDepthSampleCounts;
-
-  for (size_t i = VK_SAMPLE_COUNT_64_BIT; i >= VK_SAMPLE_COUNT_1_BIT; i >>= 1) {
-    if (counts & i) {
-      return static_cast<VkSampleCountFlagBits>(i);
-    }
-  }
-  return VK_SAMPLE_COUNT_1_BIT;
-}
+// VkSampleCountFlagBits VulkanMechanics::getMaxUsableSampleCount() {
+//   VkPhysicalDeviceProperties physicalDeviceProperties;
+//   vkGetPhysicalDeviceProperties(mainDevice.physical,
+//   &physicalDeviceProperties); VkSampleCountFlags counts =
+//       physicalDeviceProperties.limits.framebufferColorSampleCounts &
+//       physicalDeviceProperties.limits.framebufferDepthSampleCounts;
+//
+//   for (size_t i = VK_SAMPLE_COUNT_64_BIT; i >= VK_SAMPLE_COUNT_1_BIT; i >>=
+//   1) {
+//     if (counts & i) {
+//       return static_cast<VkSampleCountFlagBits>(i);
+//     }
+//   }
+//   return VK_SAMPLE_COUNT_1_BIT;
+// }
 
 bool VulkanMechanics::isDeviceSuitable(VkPhysicalDevice physicalDevice) {
   Log::text(Log::Style::charLeader, "Is Device Suitable");
@@ -123,10 +124,9 @@ void VulkanMechanics::Swapchain::recreate(const VkSurfaceKHR& surface,
                                           Pipelines& _pipelines,
                                           Resources& _resources) {
   CE::Swapchain::recreate(surface, queues, syncObjects);
-  _resources.msaaImage.createColorResources(extent, imageFormat,
-                                            _resources.msaaImage.info.samples);
-  _resources.depthImage.createDepthResources(
-      extent, CE::Image::findDepthFormat(), _resources.msaaImage.info.samples);
+  _resources.msaaImage.createColorResources(extent, imageFormat);
+  _resources.depthImage.createDepthResources(extent,
+                                             CE::Image::findDepthFormat());
   _resources.createFramebuffers(_pipelines);
   _resources.createDescriptorSets();
 }

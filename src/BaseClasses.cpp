@@ -57,6 +57,21 @@ void CE::Device::createLogicalDevice(const InitializeVulkan& initVulkan,
                    &queues.present);
 }
 
+void CE::Device::getMaxUsableSampleCount() {
+  vkGetPhysicalDeviceProperties(physical, &properties);
+  VkSampleCountFlags counts = properties.limits.framebufferColorSampleCounts &
+                              properties.limits.framebufferDepthSampleCounts;
+  for (size_t i = VK_SAMPLE_COUNT_64_BIT; i >= VK_SAMPLE_COUNT_1_BIT; i >>= 1) {
+    if (counts & i) {
+      maxUsableSampleCount = static_cast<VkSampleCountFlagBits>(i);
+      return;
+    } else {
+      maxUsableSampleCount = VK_SAMPLE_COUNT_1_BIT;
+    }
+  }
+  return;
+}
+
 void CE::Device::setBaseDevice(const CE::Device& device) {
   baseDevice = std::make_unique<Device>(static_cast<const Device&>(device));
 }
@@ -375,11 +390,11 @@ VkFormat CE::Image::findSupportedFormat(const std::vector<VkFormat>& candidates,
 }
 
 void CE::Image::createColorResources(const VkExtent2D& dimensions,
-                                     const VkFormat format,
-                                     const VkSampleCountFlagBits samples) {
+                                     const VkFormat format) {
   Log::text("{ []< }", "Color Resources ");
   this->destroyVulkanImages();
-  this->create(dimensions.width, dimensions.height, samples, format,
+  this->create(dimensions.width, dimensions.height,
+               baseDevice->maxUsableSampleCount, format,
                VK_IMAGE_TILING_OPTIMAL,
                VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT |
                    VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
@@ -388,11 +403,11 @@ void CE::Image::createColorResources(const VkExtent2D& dimensions,
 }
 
 void CE::Image::createDepthResources(const VkExtent2D& dimensions,
-                                     const VkFormat format,
-                                     const VkSampleCountFlagBits samples) {
+                                     const VkFormat format) {
   Log::text("{ []< }", "Depth Resources ");
   this->destroyVulkanImages();
-  this->create(dimensions.width, dimensions.height, samples, format,
+  this->create(dimensions.width, dimensions.height,
+               baseDevice->maxUsableSampleCount, format,
                VK_IMAGE_TILING_OPTIMAL,
                VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);

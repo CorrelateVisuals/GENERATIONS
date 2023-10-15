@@ -3,11 +3,6 @@
 #include "Pipelines.h"
 #include "Resources.h"
 
-#include <iostream>
-#include <optional>
-#include <string>
-#include <vector>
-
 constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 
 class VulkanMechanics {
@@ -52,5 +47,6 @@ class VulkanMechanics {
   void pickPhysicalDevice(VkSampleCountFlagBits& msaaImageSamples);
   bool isDeviceSuitable(VkPhysicalDevice physicalDevice);
   bool checkDeviceExtensionSupport(VkPhysicalDevice physicalDevice);
-  VkSampleCountFlagBits getMaxUsableSampleCount();
+
+  // VkSampleCountFlagBits getMaxUsableSampleCount();
 };
