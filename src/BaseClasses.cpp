@@ -9,20 +9,16 @@
 std::vector<VkDevice> CE::Device::destroyedDevices;
 VkCommandBuffer CE::Commands::singularCommandBuffer = VK_NULL_HANDLE;
 
-void CE::Device::createLogicalDevice(
-    const InitializeVulkan& initVulkan,
-    const std::optional<uint32_t>& graphicsAndComputeFamily,
-    const std::optional<uint32_t>& presentFamily,
-    VkQueue& graphics,
-    VkQueue& compute,
-    VkQueue& present) {
+void CE::Device::createLogicalDevice(const InitializeVulkan& initVulkan,
+                                     Queues& queues) {
   Log::text("{ +++ }", "Logical Device");
   // Queues::FamilyIndices indices =
   //     findQueueFamilies(mainDevice.physical, surface);
 
   std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
-  std::set<uint32_t> uniqueQueueFamilies = {graphicsAndComputeFamily.value(),
-                                            presentFamily.value()};
+  std::set<uint32_t> uniqueQueueFamilies = {
+      queues.familyIndices.graphicsAndComputeFamily.value(),
+      queues.familyIndices.presentFamily.value()};
 
   float queuePriority = 1.0f;
   for (uint32_t queueFamily : uniqueQueueFamilies) {
@@ -51,9 +47,14 @@ void CE::Device::createLogicalDevice(
 
   CE::vulkanResult(vkCreateDevice, physical, &createInfo, nullptr, &logical);
 
-  vkGetDeviceQueue(logical, graphicsAndComputeFamily.value(), 0, &graphics);
-  vkGetDeviceQueue(logical, graphicsAndComputeFamily.value(), 0, &compute);
-  vkGetDeviceQueue(logical, presentFamily.value(), 0, &present);
+  vkGetDeviceQueue(logical,
+                   queues.familyIndices.graphicsAndComputeFamily.value(), 0,
+                   &queues.graphics);
+  vkGetDeviceQueue(logical,
+                   queues.familyIndices.graphicsAndComputeFamily.value(), 0,
+                   &queues.compute);
+  vkGetDeviceQueue(logical, queues.familyIndices.presentFamily.value(), 0,
+                   &queues.present);
 }
 
 void CE::Device::setBaseDevice(const CE::Device& device) {
@@ -768,6 +769,23 @@ void CE::SynchronizationObjects::destroy(const int maxFramesInFlight) {
       vkDestroyFence(baseDevice->logical, computeInFlightFences[i], nullptr);
     };
   }
+}
+
+CE::InitializeVulkan::InitializeVulkan() {
+  Log::text("{ VkI }", "constructing Initialize Vulkan");
+  createInstance();
+  validation.setupDebugMessenger(instance);
+  createSurface(Window::get().window);
+}
+
+CE::InitializeVulkan::~InitializeVulkan() {
+  Log::text("{ VkI }", "destructing Initialize Vulkan");
+  if (validation.enableValidationLayers) {
+    validation.DestroyDebugUtilsMessengerEXT(
+        instance, validation.debugMessenger, nullptr);
+  }
+  vkDestroySurfaceKHR(instance, surface, nullptr);
+  vkDestroyInstance(instance, nullptr);
 }
 
 void CE::InitializeVulkan::createInstance() {

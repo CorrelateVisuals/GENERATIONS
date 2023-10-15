@@ -14,35 +14,32 @@
 
 namespace CE {
 
+class Queues;  // forward declaration
+
 class InitializeVulkan {
  public:
-  void createInstance();
-  void createSurface(GLFWwindow* window);
-  std::vector<const char*> getRequiredExtensions();
-
+  InitializeVulkan();
+  ~InitializeVulkan();
   VkSurfaceKHR surface;
   VkInstance instance;
   ValidationLayers validation;
+
+  void createInstance();
+  void createSurface(GLFWwindow* window);
+  std::vector<const char*> getRequiredExtensions();
 };
 
 class Device {
  public:
   Device() = default;
   virtual ~Device() { destroyDevice(); }
-  void destroyDevice();
   VkPhysicalDevice physical{VK_NULL_HANDLE};
   VkDevice logical{VK_NULL_HANDLE};
   std::vector<const char*> extensions{VK_KHR_SWAPCHAIN_EXTENSION_NAME};
   VkPhysicalDeviceFeatures features{};
 
-  void createLogicalDevice(
-      const InitializeVulkan& initVulkan,
-      const std::optional<uint32_t>& graphicsAndComputeFamily,
-      const std::optional<uint32_t>& presentFamily,
-      VkQueue& graphics,
-      VkQueue& compute,
-      VkQueue& present);
-
+  void createLogicalDevice(const InitializeVulkan& initVulkan, Queues& queues);
+  void destroyDevice();
   void setBaseDevice(const CE::Device& device);
   static std::vector<VkDevice> destroyedDevices;
 };
@@ -114,8 +111,6 @@ class Image {
  public:
   Image();
   virtual ~Image() { destroyVulkanImages(); };
-  void destroyVulkanImages();
-
   VkImage image;
   VkDeviceMemory memory;
   VkImageView view;
@@ -143,6 +138,7 @@ class Image {
               const VkImageTiling tiling,
               const VkImageUsageFlags& usage,
               const VkMemoryPropertyFlags& properties);
+  void destroyVulkanImages();
   void recreate() { this->destroyVulkanImages(); };
   void createView(const VkImageAspectFlags aspectFlags);
   void createSampler();
@@ -182,7 +178,6 @@ class Swapchain {
  public:
   Swapchain() = default;
   virtual ~Swapchain() = default;
-
   VkSwapchainKHR swapchain;
   VkExtent2D extent;
   VkFormat imageFormat;
@@ -200,7 +195,6 @@ class Swapchain {
                 const Queues& queues,
                 SynchronizationObjects& syncObjects);
   void destroy();
-
   SupportDetails checkSupport(const VkPhysicalDevice& physicalDevice,
                               const VkSurfaceKHR& surface);
   VkSurfaceFormatKHR pickSurfaceFormat(
@@ -215,7 +209,6 @@ class Descriptor {
  public:
   Descriptor();
   virtual ~Descriptor();
-
   VkDescriptorPool pool;
   VkDescriptorSetLayout setLayout;
   std::vector<VkDescriptorSet> sets;
@@ -227,11 +220,6 @@ class Descriptor {
         .descriptorCount = 1,
         .stageFlags = NULL};
   };
-
- private:
-  // void createDescriptorPool();
-  // void allocateDescriptorSets();
-  // void createDescriptorSets();
 };
 
 template <typename Checkresult, typename... Args>
