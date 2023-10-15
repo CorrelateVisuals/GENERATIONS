@@ -5,7 +5,6 @@
 
 #include <algorithm>
 
-std::unique_ptr<CE::Device> CE::baseDevice = std::make_unique<CE::Device>();
 VkDevice CE::Device::destroyedLogical;
 
 VkCommandBuffer CE::Commands::singularCommandBuffer = VK_NULL_HANDLE;

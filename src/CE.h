@@ -26,14 +26,7 @@ class Device {
   void attach(const CE::Device& device);
   static VkDevice destroyedLogical;
 };
-extern std::unique_ptr<Device> baseDevice;
-
-// class UsableDevices {
-//  public:
-//   VkPhysicalDevice physical;
-//   VkDevice logical;
-//   void attach(const CE::Device& device);
-// };
+static std::unique_ptr<Device> baseDevice;
 
 class Queues {
  public:
