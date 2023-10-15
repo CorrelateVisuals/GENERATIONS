@@ -5,13 +5,13 @@
 
 #include <algorithm>
 
-std::shared_ptr<CE::Device> CE::baseDevice = std::make_shared<CE::Device>();
+std::unique_ptr<CE::Device> CE::baseDevice = std::make_unique<CE::Device>();
 VkDevice CE::Device::destroyedLogical;
 
 VkCommandBuffer CE::Commands::singularCommandBuffer = VK_NULL_HANDLE;
 
 void CE::Device::attach(const CE::Device& device) {
-  baseDevice = std::make_shared<Device>(*dynamic_cast<const Device*>(&device));
+  baseDevice = std::make_unique<Device>(*dynamic_cast<const Device*>(&device));
 }
 
 uint32_t CE::findMemoryType(const uint32_t typeFilter,

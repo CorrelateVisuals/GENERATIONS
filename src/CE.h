@@ -26,7 +26,7 @@ class Device {
   void attach(const CE::Device& device);
   static VkDevice destroyedLogical;
 };
-extern std::shared_ptr<Device> baseDevice;
+extern std::unique_ptr<Device> baseDevice;
 
 // class UsableDevices {
 //  public:
