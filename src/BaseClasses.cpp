@@ -722,7 +722,7 @@ void CE::SynchronizationObjects::destroy(const int maxFramesInFlight) {
   }
 }
 
-void CE::Instance::createInstance() {
+void CE::Base::createInstance() {
   Log::text("{ VkI }", "Vulkan Instance");
   if (validation.enableValidationLayers &&
       !validation.checkValidationLayerSupport()) {
@@ -763,13 +763,13 @@ void CE::Instance::createInstance() {
   CE::vulkanResult(vkCreateInstance, &createInfo, nullptr, &instance);
 }
 
-void CE::Instance::createSurface(GLFWwindow* window) {
+void CE::Base::createSurface(GLFWwindow* window) {
   Log::text("{ [ ] }", "Surface");
   CE::vulkanResult(glfwCreateWindowSurface, instance, window, nullptr,
                    &surface);
 }
 
-std::vector<const char*> CE::Instance::getRequiredExtensions() {
+std::vector<const char*> CE::Base::getRequiredExtensions() {
   uint32_t glfwExtensionCount = 0;
   const char** glfwExtensions;
   glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);

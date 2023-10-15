@@ -14,7 +14,7 @@
 
 namespace CE {
 
-class Instance {
+class Base {
  public:
   void createInstance();
   void createSurface(GLFWwindow* window);

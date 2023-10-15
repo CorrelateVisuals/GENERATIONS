@@ -11,7 +11,7 @@
 #include <string>
 
 VulkanMechanics::VulkanMechanics()
-    : instance{}, mainDevice{}, queues{}, swapchain{}, syncObjects{} {
+    : base{}, mainDevice{}, queues{}, swapchain{}, syncObjects{} {
   Log::text("{ Vk. }", "constructing Vulkan Mechanics");
 }
 
@@ -22,13 +22,13 @@ VulkanMechanics::~VulkanMechanics() {
   syncObjects.destroy(MAX_FRAMES_IN_FLIGHT);
   mainDevice.destroyDevice();
 
-  if (instance.validation.enableValidationLayers) {
-    instance.validation.DestroyDebugUtilsMessengerEXT(
-        instance.instance, instance.validation.debugMessenger, nullptr);
+  if (base.validation.enableValidationLayers) {
+    base.validation.DestroyDebugUtilsMessengerEXT(
+        base.instance, base.validation.debugMessenger, nullptr);
   }
 
-  vkDestroySurfaceKHR(instance.instance, instance.surface, nullptr);
-  vkDestroyInstance(instance.instance, nullptr);
+  vkDestroySurfaceKHR(base.instance, base.surface, nullptr);
+  vkDestroyInstance(base.instance, nullptr);
 }
 
 void VulkanMechanics::setupVulkan(Pipelines& _pipelines,
@@ -36,15 +36,15 @@ void VulkanMechanics::setupVulkan(Pipelines& _pipelines,
   Log::text(Log::Style::headerGuard);
   Log::text("{ Vk. }", "Setup Vulkan");
 
-  instance.createInstance();
-  instance.validation.setupDebugMessenger(instance.instance);
-  instance.createSurface(Window::get().window);
+  base.createInstance();
+  base.validation.setupDebugMessenger(base.instance);
+  base.createSurface(Window::get().window);
 
   pickPhysicalDevice(_resources.msaaImage.info.samples);
   createLogicalDevice();
   CE::baseDevice->setBaseClassDevice(mainDevice);
 
-  swapchain.create(instance.surface, queues);
+  swapchain.create(base.surface, queues);
 }
 
 // void VulkanMechanics::createInstance() {
@@ -98,7 +98,7 @@ void VulkanMechanics::pickPhysicalDevice(
     VkSampleCountFlagBits& msaaImageSamples) {
   Log::text("{ ### }", "Physical Device");
   uint32_t deviceCount = 0;
-  vkEnumeratePhysicalDevices(instance.instance, &deviceCount, nullptr);
+  vkEnumeratePhysicalDevices(base.instance, &deviceCount, nullptr);
 
   if (deviceCount == 0) {
     throw std::runtime_error(
@@ -106,7 +106,7 @@ void VulkanMechanics::pickPhysicalDevice(
   }
 
   std::vector<VkPhysicalDevice> devices(deviceCount);
-  vkEnumeratePhysicalDevices(instance.instance, &deviceCount, devices.data());
+  vkEnumeratePhysicalDevices(base.instance, &deviceCount, devices.data());
 
   for (const auto& device : devices) {
     if (isDeviceSuitable(device)) {
@@ -186,10 +186,10 @@ void VulkanMechanics::createLogicalDevice() {
       .ppEnabledExtensionNames = mainDevice.extensions.data(),
       .pEnabledFeatures = &mainDevice.features};
 
-  if (instance.validation.enableValidationLayers) {
+  if (base.validation.enableValidationLayers) {
     createInfo.enabledLayerCount =
-        static_cast<uint32_t>(instance.validation.validation.size());
-    createInfo.ppEnabledLayerNames = instance.validation.validation.data();
+        static_cast<uint32_t>(base.validation.validation.size());
+    createInfo.ppEnabledLayerNames = base.validation.validation.data();
   }
 
   CE::vulkanResult(vkCreateDevice, mainDevice.physical, &createInfo, nullptr,
@@ -242,13 +242,13 @@ void VulkanMechanics::createLogicalDevice() {
 bool VulkanMechanics::isDeviceSuitable(VkPhysicalDevice physicalDevice) {
   Log::text(Log::Style::charLeader, "Is Device Suitable");
 
-  queues.familyIndices = queues.findQueueFamilies(physicalDevice, instance.surface);
+  queues.familyIndices = queues.findQueueFamilies(physicalDevice, base.surface);
   bool extensionsSupported = checkDeviceExtensionSupport(physicalDevice);
 
   bool swapchainAdequate = false;
   if (extensionsSupported) {
     Swapchain::SupportDetails swapchainSupport =
-        swapchain.checkSupport(physicalDevice, instance.surface);
+        swapchain.checkSupport(physicalDevice, base.surface);
     swapchainAdequate = !swapchainSupport.formats.empty() &&
                         !swapchainSupport.presentModes.empty();
   }

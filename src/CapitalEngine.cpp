@@ -106,7 +106,7 @@ void CapitalEngine::drawFrame() {
       VK_NULL_HANDLE, &imageIndex);
 
   if (result == VK_ERROR_OUT_OF_DATE_KHR) {
-    mechanics.swapchain.recreate(mechanics.instance.surface, mechanics.queues,
+    mechanics.swapchain.recreate(mechanics.base.surface, mechanics.queues,
                                  mechanics.syncObjects, pipelines, resources);
     return;
   } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
@@ -169,7 +169,7 @@ void CapitalEngine::drawFrame() {
   if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR ||
       Window::get().framebufferResized) {
     Window::get().framebufferResized = false;
-    mechanics.swapchain.recreate(mechanics.instance.surface, mechanics.queues,
+    mechanics.swapchain.recreate(mechanics.base.surface, mechanics.queues,
                                  mechanics.syncObjects, pipelines, resources);
   } else if (result != VK_SUCCESS) {
     throw std::runtime_error("\n!ERROR! failed to present swap chain image!");

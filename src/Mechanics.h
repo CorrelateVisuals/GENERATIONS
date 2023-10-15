@@ -18,12 +18,8 @@ class VulkanMechanics {
   VulkanMechanics();
   ~VulkanMechanics();
 
-  struct Instance : public CE::Instance {
-  } instance;
-
-  // VkSurfaceKHR surface;
-  // VkInstance instance;
-  // ValidationLayers validation;
+  struct Base : public CE::Base {
+  } base;
 
   struct Device : public CE::Device {
     Device() {
