@@ -20,7 +20,7 @@ class Device {
   void destroyDevice();
   VkPhysicalDevice physical{VK_NULL_HANDLE};
   VkDevice logical{VK_NULL_HANDLE};
-  const std::vector<const char*> extensions{VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+  std::vector<const char*> extensions{VK_KHR_SWAPCHAIN_EXTENSION_NAME};
   VkPhysicalDeviceFeatures features{};
 
   void attach(const CE::Device& device);

@@ -1,7 +1,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
-#include "CE.h"
+#include "BaseClasses.h"
 
 #include <algorithm>
 
@@ -9,7 +9,7 @@ std::vector<VkDevice> CE::Device::destroyedDevices;
 VkCommandBuffer CE::Commands::singularCommandBuffer = VK_NULL_HANDLE;
 
 void CE::Device::attach(const CE::Device& device) {
-  baseDevice = std::make_unique<Device>(*dynamic_cast<const Device*>(&device));
+  baseDevice = std::make_unique<Device>(static_cast<const Device&>(device));
 }
 
 uint32_t CE::findMemoryType(const uint32_t typeFilter,
@@ -458,6 +458,7 @@ void CE::Device::destroyDevice() {
   }
   if (!isDeviceDestroyed) {
     Log::text("{ +++ }", "Destroy Device", logical, "@", &logical);
+    extensions.clear();
     vkDestroyDevice(logical, nullptr);
     destroyedDevices.push_back(logical);
   }
