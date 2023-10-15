@@ -35,7 +35,7 @@ class Device {
   std::vector<const char*> extensions{VK_KHR_SWAPCHAIN_EXTENSION_NAME};
   VkPhysicalDeviceFeatures features{};
 
-  void setBaseClassDevice(const CE::Device& device);
+  void setBaseDevice(const CE::Device& device);
   static std::vector<VkDevice> destroyedDevices;
 };
 static std::unique_ptr<Device> baseDevice;

@@ -52,12 +52,9 @@ class VulkanMechanics {
   void setupVulkan(Pipelines& _pipelines, Resources& _resources);
 
  private:
-  // void createInstance();
-  // void createSurface(GLFWwindow* window);
-  // std::vector<const char*> getRequiredExtensions();
+  void createLogicalDevice();
 
   void pickPhysicalDevice(VkSampleCountFlagBits& msaaImageSamples);
-  void createLogicalDevice();
   bool isDeviceSuitable(VkPhysicalDevice physicalDevice);
   bool checkDeviceExtensionSupport(VkPhysicalDevice physicalDevice);
   VkSampleCountFlagBits getMaxUsableSampleCount();
