@@ -4,9 +4,57 @@
 #include "BaseClasses.h"
 
 #include <algorithm>
+#include <set>
 
 std::vector<VkDevice> CE::Device::destroyedDevices;
 VkCommandBuffer CE::Commands::singularCommandBuffer = VK_NULL_HANDLE;
+
+void CE::Device::createLogicalDevice(
+    Base& base,
+    std::optional<uint32_t>& graphicsAndComputeFamily,
+    std::optional<uint32_t>& presentFamily,
+    VkQueue& graphics,
+    VkQueue& compute,
+    VkQueue& present) {
+  Log::text("{ +++ }", "Logical Device");
+  // Queues::FamilyIndices indices =
+  //     findQueueFamilies(mainDevice.physical, surface);
+
+  std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+  std::set<uint32_t> uniqueQueueFamilies = {graphicsAndComputeFamily.value(),
+                                            presentFamily.value()};
+
+  float queuePriority = 1.0f;
+  for (uint32_t queueFamily : uniqueQueueFamilies) {
+    VkDeviceQueueCreateInfo queueCreateInfo{
+        .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+        .queueFamilyIndex = queueFamily,
+        .queueCount = 1,
+        .pQueuePriorities = &queuePriority};
+    queueCreateInfos.push_back(queueCreateInfo);
+  }
+
+  VkDeviceCreateInfo createInfo{
+      .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+      .queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size()),
+      .pQueueCreateInfos = queueCreateInfos.data(),
+      .enabledLayerCount = 0,
+      .enabledExtensionCount = static_cast<uint32_t>(extensions.size()),
+      .ppEnabledExtensionNames = extensions.data(),
+      .pEnabledFeatures = &features};
+
+  if (base.validation.enableValidationLayers) {
+    createInfo.enabledLayerCount =
+        static_cast<uint32_t>(base.validation.validation.size());
+    createInfo.ppEnabledLayerNames = base.validation.validation.data();
+  }
+
+  CE::vulkanResult(vkCreateDevice, physical, &createInfo, nullptr, &logical);
+
+  vkGetDeviceQueue(logical, graphicsAndComputeFamily.value(), 0, &graphics);
+  vkGetDeviceQueue(logical, graphicsAndComputeFamily.value(), 0, &compute);
+  vkGetDeviceQueue(logical, presentFamily.value(), 0, &present);
+}
 
 void CE::Device::setBaseDevice(const CE::Device& device) {
   baseDevice = std::make_unique<Device>(static_cast<const Device&>(device));

@@ -52,7 +52,7 @@ class VulkanMechanics {
   void setupVulkan(Pipelines& _pipelines, Resources& _resources);
 
  private:
-  void createLogicalDevice();
+  // void createLogicalDevice();
 
   void pickPhysicalDevice(VkSampleCountFlagBits& msaaImageSamples);
   bool isDeviceSuitable(VkPhysicalDevice physicalDevice);

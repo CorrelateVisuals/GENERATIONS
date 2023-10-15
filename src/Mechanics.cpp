@@ -41,7 +41,10 @@ void VulkanMechanics::setupVulkan(Pipelines& _pipelines,
   base.createSurface(Window::get().window);
 
   pickPhysicalDevice(_resources.msaaImage.info.samples);
-  createLogicalDevice();
+  mainDevice.createLogicalDevice(
+      base, queues.familyIndices.graphicsAndComputeFamily,
+      queues.familyIndices.presentFamily, queues.graphics, queues.compute,
+      queues.present);
   CE::baseDevice->setBaseDevice(mainDevice);
 
   swapchain.create(base.surface, queues);
@@ -156,55 +159,55 @@ VkSampleCountFlagBits VulkanMechanics::getMaxUsableSampleCount() {
   return VK_SAMPLE_COUNT_1_BIT;
 }
 
-void VulkanMechanics::createLogicalDevice() {
-  Log::text("{ +++ }", "Logical Device");
-  // Queues::FamilyIndices indices =
-  //     findQueueFamilies(mainDevice.physical, surface);
-
-  std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
-  std::set<uint32_t> uniqueQueueFamilies = {
-      queues.familyIndices.graphicsAndComputeFamily.value(),
-      queues.familyIndices.presentFamily.value()};
-
-  float queuePriority = 1.0f;
-  for (uint32_t queueFamily : uniqueQueueFamilies) {
-    VkDeviceQueueCreateInfo queueCreateInfo{
-        .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
-        .queueFamilyIndex = queueFamily,
-        .queueCount = 1,
-        .pQueuePriorities = &queuePriority};
-    queueCreateInfos.push_back(queueCreateInfo);
-  }
-
-  VkDeviceCreateInfo createInfo{
-      .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
-      .queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size()),
-      .pQueueCreateInfos = queueCreateInfos.data(),
-      .enabledLayerCount = 0,
-      .enabledExtensionCount =
-          static_cast<uint32_t>(mainDevice.extensions.size()),
-      .ppEnabledExtensionNames = mainDevice.extensions.data(),
-      .pEnabledFeatures = &mainDevice.features};
-
-  if (base.validation.enableValidationLayers) {
-    createInfo.enabledLayerCount =
-        static_cast<uint32_t>(base.validation.validation.size());
-    createInfo.ppEnabledLayerNames = base.validation.validation.data();
-  }
-
-  CE::vulkanResult(vkCreateDevice, mainDevice.physical, &createInfo, nullptr,
-                   &mainDevice.logical);
-
-  vkGetDeviceQueue(mainDevice.logical,
-                   queues.familyIndices.graphicsAndComputeFamily.value(), 0,
-                   &queues.graphics);
-  vkGetDeviceQueue(mainDevice.logical,
-                   queues.familyIndices.graphicsAndComputeFamily.value(), 0,
-                   &queues.compute);
-  vkGetDeviceQueue(mainDevice.logical,
-                   queues.familyIndices.presentFamily.value(), 0,
-                   &queues.present);
-}
+// void VulkanMechanics::createLogicalDevice() {
+//   Log::text("{ +++ }", "Logical Device");
+//   // Queues::FamilyIndices indices =
+//   //     findQueueFamilies(mainDevice.physical, surface);
+//
+//   std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+//   std::set<uint32_t> uniqueQueueFamilies = {
+//       queues.familyIndices.graphicsAndComputeFamily.value(),
+//       queues.familyIndices.presentFamily.value()};
+//
+//   float queuePriority = 1.0f;
+//   for (uint32_t queueFamily : uniqueQueueFamilies) {
+//     VkDeviceQueueCreateInfo queueCreateInfo{
+//         .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+//         .queueFamilyIndex = queueFamily,
+//         .queueCount = 1,
+//         .pQueuePriorities = &queuePriority};
+//     queueCreateInfos.push_back(queueCreateInfo);
+//   }
+//
+//   VkDeviceCreateInfo createInfo{
+//       .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+//       .queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size()),
+//       .pQueueCreateInfos = queueCreateInfos.data(),
+//       .enabledLayerCount = 0,
+//       .enabledExtensionCount =
+//           static_cast<uint32_t>(mainDevice.extensions.size()),
+//       .ppEnabledExtensionNames = mainDevice.extensions.data(),
+//       .pEnabledFeatures = &mainDevice.features};
+//
+//   if (base.validation.enableValidationLayers) {
+//     createInfo.enabledLayerCount =
+//         static_cast<uint32_t>(base.validation.validation.size());
+//     createInfo.ppEnabledLayerNames = base.validation.validation.data();
+//   }
+//
+//   CE::vulkanResult(vkCreateDevice, mainDevice.physical, &createInfo, nullptr,
+//                    &mainDevice.logical);
+//
+//   vkGetDeviceQueue(mainDevice.logical,
+//                    queues.familyIndices.graphicsAndComputeFamily.value(), 0,
+//                    &queues.graphics);
+//   vkGetDeviceQueue(mainDevice.logical,
+//                    queues.familyIndices.graphicsAndComputeFamily.value(), 0,
+//                    &queues.compute);
+//   vkGetDeviceQueue(mainDevice.logical,
+//                    queues.familyIndices.presentFamily.value(), 0,
+//                    &queues.present);
+// }
 
 // void VulkanMechanics::SynchronizationObjects::create(VkDevice& logicalDevice)
 // {

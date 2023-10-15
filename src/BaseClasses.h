@@ -35,6 +35,13 @@ class Device {
   std::vector<const char*> extensions{VK_KHR_SWAPCHAIN_EXTENSION_NAME};
   VkPhysicalDeviceFeatures features{};
 
+  void createLogicalDevice(Base& base,
+                           std::optional<uint32_t>& graphicsAndComputeFamily,
+                           std::optional<uint32_t>& presentFamily,
+                           VkQueue& graphics,
+                           VkQueue& compute,
+                           VkQueue& present);
+
   void setBaseDevice(const CE::Device& device);
   static std::vector<VkDevice> destroyedDevices;
 };
