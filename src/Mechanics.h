@@ -4,7 +4,7 @@
 #include "CapitalEngine.h"
 #include "Pipelines.h"
 #include "Resources.h"
-#include "ValidationLayers.h"
+// #include "ValidationLayers.h"
 
 #include <iostream>
 #include <optional>
@@ -18,9 +18,12 @@ class VulkanMechanics {
   VulkanMechanics();
   ~VulkanMechanics();
 
-  VkSurfaceKHR surface;
-  VkInstance instance;
-  ValidationLayers validation;
+  struct Instance : public CE::Instance {
+  } instance;
+
+  // VkSurfaceKHR surface;
+  // VkInstance instance;
+  // ValidationLayers validation;
 
   struct Device : public CE::Device {
     Device() {
@@ -53,12 +56,12 @@ class VulkanMechanics {
   void setupVulkan(Pipelines& _pipelines, Resources& _resources);
 
  private:
-  void createInstance();
-  void createSurface(GLFWwindow* window);
+  // void createInstance();
+  // void createSurface(GLFWwindow* window);
+  // std::vector<const char*> getRequiredExtensions();
 
   void pickPhysicalDevice(VkSampleCountFlagBits& msaaImageSamples);
   void createLogicalDevice();
-  std::vector<const char*> getRequiredExtensions();
   bool isDeviceSuitable(VkPhysicalDevice physicalDevice);
   bool checkDeviceExtensionSupport(VkPhysicalDevice physicalDevice);
   VkSampleCountFlagBits getMaxUsableSampleCount();

@@ -11,12 +11,7 @@
 #include <string>
 
 VulkanMechanics::VulkanMechanics()
-    : surface(VK_NULL_HANDLE),
-      instance(VK_NULL_HANDLE),
-      mainDevice{},
-      queues{},
-      swapchain{},
-      syncObjects{} {
+    : instance{}, mainDevice{}, queues{}, swapchain{}, syncObjects{} {
   Log::text("{ Vk. }", "constructing Vulkan Mechanics");
 }
 
@@ -27,13 +22,13 @@ VulkanMechanics::~VulkanMechanics() {
   syncObjects.destroy(MAX_FRAMES_IN_FLIGHT);
   mainDevice.destroyDevice();
 
-  if (validation.enableValidationLayers) {
-    validation.DestroyDebugUtilsMessengerEXT(
-        instance, validation.debugMessenger, nullptr);
+  if (instance.validation.enableValidationLayers) {
+    instance.validation.DestroyDebugUtilsMessengerEXT(
+        instance.instance, instance.validation.debugMessenger, nullptr);
   }
 
-  vkDestroySurfaceKHR(instance, surface, nullptr);
-  vkDestroyInstance(instance, nullptr);
+  vkDestroySurfaceKHR(instance.instance, instance.surface, nullptr);
+  vkDestroyInstance(instance.instance, nullptr);
 }
 
 void VulkanMechanics::setupVulkan(Pipelines& _pipelines,
@@ -41,69 +36,69 @@ void VulkanMechanics::setupVulkan(Pipelines& _pipelines,
   Log::text(Log::Style::headerGuard);
   Log::text("{ Vk. }", "Setup Vulkan");
 
-  createInstance();
-  validation.setupDebugMessenger(instance);
-  createSurface(Window::get().window);
+  instance.createInstance();
+  instance.validation.setupDebugMessenger(instance.instance);
+  instance.createSurface(Window::get().window);
 
   pickPhysicalDevice(_resources.msaaImage.info.samples);
   createLogicalDevice();
   CE::baseDevice->setBaseClassDevice(mainDevice);
 
-  swapchain.create(surface, queues);
+  swapchain.create(instance.surface, queues);
 }
 
-void VulkanMechanics::createInstance() {
-  Log::text("{ VkI }", "Vulkan Instance");
-  if (validation.enableValidationLayers &&
-      !validation.checkValidationLayerSupport()) {
-    throw std::runtime_error(
-        "\n!ERROR! validation layers requested, but not available!");
-  }
-
-  VkApplicationInfo appInfo{.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
-                            .pApplicationName = Window::get().display.title,
-                            .applicationVersion = VK_MAKE_VERSION(0, 0, 1),
-                            .pEngineName = "CAPITAL Engine",
-                            .engineVersion = VK_MAKE_VERSION(0, 0, 1),
-                            .apiVersion = VK_API_VERSION_1_3};
-  Log::text(Log::Style::charLeader, appInfo.pApplicationName,
-            appInfo.applicationVersion, "-", appInfo.pEngineName,
-            appInfo.engineVersion, "-", "Vulkan", 1.3);
-
-  auto extensions = getRequiredExtensions();
-
-  VkInstanceCreateInfo createInfo{
-      .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
-      .pNext = nullptr,
-      .pApplicationInfo = &appInfo,
-      .enabledLayerCount = 0,
-      .enabledExtensionCount = static_cast<uint32_t>(extensions.size()),
-      .ppEnabledExtensionNames = extensions.data()};
-
-  VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
-  if (validation.enableValidationLayers) {
-    createInfo.enabledLayerCount =
-        static_cast<uint32_t>(validation.validation.size());
-    createInfo.ppEnabledLayerNames = validation.validation.data();
-
-    validation.populateDebugMessengerCreateInfo(debugCreateInfo);
-    createInfo.pNext = &debugCreateInfo;
-  }
-
-  CE::vulkanResult(vkCreateInstance, &createInfo, nullptr, &instance);
-}
-
-void VulkanMechanics::createSurface(GLFWwindow* window) {
-  Log::text("{ [ ] }", "Surface");
-  CE::vulkanResult(glfwCreateWindowSurface, instance, window, nullptr,
-                   &surface);
-}
+// void VulkanMechanics::createInstance() {
+//   Log::text("{ VkI }", "Vulkan Instance");
+//   if (validation.enableValidationLayers &&
+//       !validation.checkValidationLayerSupport()) {
+//     throw std::runtime_error(
+//         "\n!ERROR! validation layers requested, but not available!");
+//   }
+//
+//   VkApplicationInfo appInfo{.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
+//                             .pApplicationName = Window::get().display.title,
+//                             .applicationVersion = VK_MAKE_VERSION(0, 0, 1),
+//                             .pEngineName = "CAPITAL Engine",
+//                             .engineVersion = VK_MAKE_VERSION(0, 0, 1),
+//                             .apiVersion = VK_API_VERSION_1_3};
+//   Log::text(Log::Style::charLeader, appInfo.pApplicationName,
+//             appInfo.applicationVersion, "-", appInfo.pEngineName,
+//             appInfo.engineVersion, "-", "Vulkan", 1.3);
+//
+//   auto extensions = getRequiredExtensions();
+//
+//   VkInstanceCreateInfo createInfo{
+//       .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
+//       .pNext = nullptr,
+//       .pApplicationInfo = &appInfo,
+//       .enabledLayerCount = 0,
+//       .enabledExtensionCount = static_cast<uint32_t>(extensions.size()),
+//       .ppEnabledExtensionNames = extensions.data()};
+//
+//   VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
+//   if (validation.enableValidationLayers) {
+//     createInfo.enabledLayerCount =
+//         static_cast<uint32_t>(validation.validation.size());
+//     createInfo.ppEnabledLayerNames = validation.validation.data();
+//
+//     validation.populateDebugMessengerCreateInfo(debugCreateInfo);
+//     createInfo.pNext = &debugCreateInfo;
+//   }
+//
+//   CE::vulkanResult(vkCreateInstance, &createInfo, nullptr, &instance);
+// }
+//
+// void VulkanMechanics::createSurface(GLFWwindow* window) {
+//   Log::text("{ [ ] }", "Surface");
+//   CE::vulkanResult(glfwCreateWindowSurface, instance, window, nullptr,
+//                    &surface);
+// }
 
 void VulkanMechanics::pickPhysicalDevice(
     VkSampleCountFlagBits& msaaImageSamples) {
   Log::text("{ ### }", "Physical Device");
   uint32_t deviceCount = 0;
-  vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
+  vkEnumeratePhysicalDevices(instance.instance, &deviceCount, nullptr);
 
   if (deviceCount == 0) {
     throw std::runtime_error(
@@ -111,7 +106,7 @@ void VulkanMechanics::pickPhysicalDevice(
   }
 
   std::vector<VkPhysicalDevice> devices(deviceCount);
-  vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
+  vkEnumeratePhysicalDevices(instance.instance, &deviceCount, devices.data());
 
   for (const auto& device : devices) {
     if (isDeviceSuitable(device)) {
@@ -191,10 +186,10 @@ void VulkanMechanics::createLogicalDevice() {
       .ppEnabledExtensionNames = mainDevice.extensions.data(),
       .pEnabledFeatures = &mainDevice.features};
 
-  if (validation.enableValidationLayers) {
+  if (instance.validation.enableValidationLayers) {
     createInfo.enabledLayerCount =
-        static_cast<uint32_t>(validation.validation.size());
-    createInfo.ppEnabledLayerNames = validation.validation.data();
+        static_cast<uint32_t>(instance.validation.validation.size());
+    createInfo.ppEnabledLayerNames = instance.validation.validation.data();
   }
 
   CE::vulkanResult(vkCreateDevice, mainDevice.physical, &createInfo, nullptr,
@@ -247,13 +242,13 @@ void VulkanMechanics::createLogicalDevice() {
 bool VulkanMechanics::isDeviceSuitable(VkPhysicalDevice physicalDevice) {
   Log::text(Log::Style::charLeader, "Is Device Suitable");
 
-  queues.familyIndices = queues.findQueueFamilies(physicalDevice, surface);
+  queues.familyIndices = queues.findQueueFamilies(physicalDevice, instance.surface);
   bool extensionsSupported = checkDeviceExtensionSupport(physicalDevice);
 
   bool swapchainAdequate = false;
   if (extensionsSupported) {
     Swapchain::SupportDetails swapchainSupport =
-        swapchain.checkSupport(physicalDevice, surface);
+        swapchain.checkSupport(physicalDevice, instance.surface);
     swapchainAdequate = !swapchainSupport.formats.empty() &&
                         !swapchainSupport.presentModes.empty();
   }
@@ -364,20 +359,20 @@ void VulkanMechanics::Swapchain::recreate(const VkSurfaceKHR& surface,
   _resources.createDescriptorSets();
 }
 
-std::vector<const char*> VulkanMechanics::getRequiredExtensions() {
-  uint32_t glfwExtensionCount = 0;
-  const char** glfwExtensions;
-  glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-
-  std::vector<const char*> extensions(glfwExtensions,
-                                      glfwExtensions + glfwExtensionCount);
-
-  if (validation.enableValidationLayers) {
-    extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-  }
-
-  return extensions;
-}
+// std::vector<const char*> VulkanMechanics::getRequiredExtensions() {
+//   uint32_t glfwExtensionCount = 0;
+//   const char** glfwExtensions;
+//   glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+//
+//   std::vector<const char*> extensions(glfwExtensions,
+//                                       glfwExtensions + glfwExtensionCount);
+//
+//   if (validation.enableValidationLayers) {
+//     extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+//   }
+//
+//   return extensions;
+// }
 
 // void VulkanMechanics::SynchronizationObjects::destroy(VkDevice&
 // logicalDevice) {

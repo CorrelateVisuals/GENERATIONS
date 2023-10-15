@@ -721,3 +721,63 @@ void CE::SynchronizationObjects::destroy(const int maxFramesInFlight) {
     };
   }
 }
+
+void CE::Instance::createInstance() {
+  Log::text("{ VkI }", "Vulkan Instance");
+  if (validation.enableValidationLayers &&
+      !validation.checkValidationLayerSupport()) {
+    throw std::runtime_error(
+        "\n!ERROR! validation layers requested, but not available!");
+  }
+
+  VkApplicationInfo appInfo{.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
+                            .pApplicationName = Window::get().display.title,
+                            .applicationVersion = VK_MAKE_VERSION(0, 0, 1),
+                            .pEngineName = "CAPITAL Engine",
+                            .engineVersion = VK_MAKE_VERSION(0, 0, 1),
+                            .apiVersion = VK_API_VERSION_1_3};
+  Log::text(Log::Style::charLeader, appInfo.pApplicationName,
+            appInfo.applicationVersion, "-", appInfo.pEngineName,
+            appInfo.engineVersion, "-", "Vulkan", 1.3);
+
+  auto extensions = getRequiredExtensions();
+
+  VkInstanceCreateInfo createInfo{
+      .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
+      .pNext = nullptr,
+      .pApplicationInfo = &appInfo,
+      .enabledLayerCount = 0,
+      .enabledExtensionCount = static_cast<uint32_t>(extensions.size()),
+      .ppEnabledExtensionNames = extensions.data()};
+
+  VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
+  if (validation.enableValidationLayers) {
+    createInfo.enabledLayerCount =
+        static_cast<uint32_t>(validation.validation.size());
+    createInfo.ppEnabledLayerNames = validation.validation.data();
+
+    validation.populateDebugMessengerCreateInfo(debugCreateInfo);
+    createInfo.pNext = &debugCreateInfo;
+  }
+
+  CE::vulkanResult(vkCreateInstance, &createInfo, nullptr, &instance);
+}
+
+void CE::Instance::createSurface(GLFWwindow* window) {
+  Log::text("{ [ ] }", "Surface");
+  CE::vulkanResult(glfwCreateWindowSurface, instance, window, nullptr,
+                   &surface);
+}
+
+std::vector<const char*> CE::Instance::getRequiredExtensions() {
+  uint32_t glfwExtensionCount = 0;
+  const char** glfwExtensions;
+  glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+
+  std::vector<const char*> extensions(glfwExtensions,
+                                      glfwExtensions + glfwExtensionCount);
+  if (validation.enableValidationLayers) {
+    extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+  }
+  return extensions;
+}

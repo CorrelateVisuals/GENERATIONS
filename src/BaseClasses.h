@@ -2,6 +2,7 @@
 #include <vulkan/vulkan.h>
 
 #include "Log.h"
+#include "ValidationLayers.h"
 #include "Window.h"
 
 #include <iostream>
@@ -12,6 +13,17 @@
 #include <vector>
 
 namespace CE {
+
+class Instance {
+ public:
+  void createInstance();
+  void createSurface(GLFWwindow* window);
+  std::vector<const char*> getRequiredExtensions();
+
+  VkSurfaceKHR surface;
+  VkInstance instance;
+  ValidationLayers validation;
+};
 
 class Device {
  public:
