@@ -457,11 +457,9 @@ void CE::Device::destroyDevice() {
     }
   }
   if (!isDeviceDestroyed) {
-    Log::text("{ +++ }", "Destroy Device", logical, &logical);
-
+    Log::text("{ +++ }", "Destroy Device", logical, "@", &logical);
     vkDestroyDevice(logical, nullptr);
-    destroyedDevices.push_back(
-        logical);  // Add the destroyed device to the vector
+    destroyedDevices.push_back(logical);
   }
 }
 
