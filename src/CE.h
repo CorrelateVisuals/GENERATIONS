@@ -15,22 +15,25 @@ namespace CE {
 
 class Device {
  public:
-  Device() = default;
+  Device(){};
   virtual ~Device() { destroyDevice(); }
   void destroyDevice();
   VkPhysicalDevice physical{VK_NULL_HANDLE};
   VkDevice logical{VK_NULL_HANDLE};
   const std::vector<const char*> extensions{VK_KHR_SWAPCHAIN_EXTENSION_NAME};
   VkPhysicalDeviceFeatures features{};
-};
 
-class UsableDevices {
- public:
-  VkPhysicalDevice physical;
-  VkDevice logical;
   void attach(const CE::Device& device);
+  static VkDevice destroyedLogical;
 };
-extern std::shared_ptr<UsableDevices> baseDevice;
+extern std::shared_ptr<Device> baseDevice;
+
+// class UsableDevices {
+//  public:
+//   VkPhysicalDevice physical;
+//   VkDevice logical;
+//   void attach(const CE::Device& device);
+// };
 
 class Queues {
  public:

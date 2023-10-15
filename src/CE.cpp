@@ -5,13 +5,13 @@
 
 #include <algorithm>
 
-std::shared_ptr<CE::UsableDevices> CE::baseDevice =
-    std::make_shared<CE::UsableDevices>();
+std::shared_ptr<CE::Device> CE::baseDevice = std::make_shared<CE::Device>();
+VkDevice CE::Device::destroyedLogical;
+
 VkCommandBuffer CE::Commands::singularCommandBuffer = VK_NULL_HANDLE;
 
-void CE::UsableDevices::attach(const CE::Device& device) {
-  physical = device.physical;
-  logical = device.logical;
+void CE::Device::attach(const CE::Device& device) {
+  baseDevice = std::make_shared<Device>(*dynamic_cast<const Device*>(&device));
 }
 
 uint32_t CE::findMemoryType(const uint32_t typeFilter,
@@ -115,22 +115,22 @@ void CE::Buffer::copyToImage(const VkBuffer& buffer,
 CE::Image::Image() : image{}, memory{}, view{}, sampler{} {}
 
 void CE::Image::destroyVulkanImages() {
-  if (baseDevice) {
+  if (baseDevice && memory) {
     if (sampler != VK_NULL_HANDLE) {
       vkDestroySampler(baseDevice->logical, sampler, nullptr);
-      sampler = VK_NULL_HANDLE;
+      // sampler = VK_NULL_HANDLE;
     };
     if (view != VK_NULL_HANDLE) {
       vkDestroyImageView(baseDevice->logical, view, nullptr);
-      view = VK_NULL_HANDLE;
+      // view = VK_NULL_HANDLE;
     };
     if (image != VK_NULL_HANDLE) {
       vkDestroyImage(baseDevice->logical, image, nullptr);
-      image = VK_NULL_HANDLE;
+      // image = VK_NULL_HANDLE;
     };
     if (memory != VK_NULL_HANDLE) {
       vkFreeMemory(baseDevice->logical, memory, nullptr);
-      memory = VK_NULL_HANDLE;
+      // memory = VK_NULL_HANDLE;
     };
   };
 }
@@ -451,11 +451,11 @@ void CE::Commands::endSingularCommands(const VkCommandPool& commandPool,
 }
 
 void CE::Device::destroyDevice() {
-  if (logical != NULL) {
-    Log::text("{ +++ }", "Destroy Device");
+  if (destroyedLogical != logical) {
+    Log::text("{ +++ }", "Destroy Device", logical, &logical);
+
     vkDestroyDevice(logical, nullptr);
-    logical = NULL;
-    baseDevice.reset();
+    destroyedLogical = logical;
   }
 }
 
