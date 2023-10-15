@@ -8,7 +8,7 @@
 std::vector<VkDevice> CE::Device::destroyedDevices;
 VkCommandBuffer CE::Commands::singularCommandBuffer = VK_NULL_HANDLE;
 
-void CE::Device::attach(const CE::Device& device) {
+void CE::Device::setBaseClassDevice(const CE::Device& device) {
   baseDevice = std::make_unique<Device>(static_cast<const Device&>(device));
 }
 

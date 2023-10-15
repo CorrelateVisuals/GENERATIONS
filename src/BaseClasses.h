@@ -15,7 +15,7 @@ namespace CE {
 
 class Device {
  public:
-  Device(){};
+  Device() = default;
   virtual ~Device() { destroyDevice(); }
   void destroyDevice();
   VkPhysicalDevice physical{VK_NULL_HANDLE};
@@ -23,7 +23,7 @@ class Device {
   std::vector<const char*> extensions{VK_KHR_SWAPCHAIN_EXTENSION_NAME};
   VkPhysicalDeviceFeatures features{};
 
-  void attach(const CE::Device& device);
+  void setBaseClassDevice(const CE::Device& device);
   static std::vector<VkDevice> destroyedDevices;
 };
 static std::unique_ptr<Device> baseDevice;

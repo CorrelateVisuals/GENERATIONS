@@ -47,7 +47,7 @@ void VulkanMechanics::setupVulkan(Pipelines& _pipelines,
 
   pickPhysicalDevice(_resources.msaaImage.info.samples);
   createLogicalDevice();
-  CE::baseDevice->attach(mainDevice);
+  CE::baseDevice->setBaseClassDevice(mainDevice);
 
   swapchain.create(surface, queues);
 }
