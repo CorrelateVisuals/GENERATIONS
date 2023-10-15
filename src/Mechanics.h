@@ -18,8 +18,8 @@ class VulkanMechanics {
   VulkanMechanics();
   ~VulkanMechanics();
 
-  struct Base : public CE::Base {
-  } base;
+  struct InitializeVulkan : public CE::InitializeVulkan {
+  } initVulkan;
 
   struct Device : public CE::Device {
     Device() {

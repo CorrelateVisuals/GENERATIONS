@@ -10,9 +10,9 @@ std::vector<VkDevice> CE::Device::destroyedDevices;
 VkCommandBuffer CE::Commands::singularCommandBuffer = VK_NULL_HANDLE;
 
 void CE::Device::createLogicalDevice(
-    Base& base,
-    std::optional<uint32_t>& graphicsAndComputeFamily,
-    std::optional<uint32_t>& presentFamily,
+    const InitializeVulkan& initVulkan,
+    const std::optional<uint32_t>& graphicsAndComputeFamily,
+    const std::optional<uint32_t>& presentFamily,
     VkQueue& graphics,
     VkQueue& compute,
     VkQueue& present) {
@@ -43,10 +43,10 @@ void CE::Device::createLogicalDevice(
       .ppEnabledExtensionNames = extensions.data(),
       .pEnabledFeatures = &features};
 
-  if (base.validation.enableValidationLayers) {
+  if (initVulkan.validation.enableValidationLayers) {
     createInfo.enabledLayerCount =
-        static_cast<uint32_t>(base.validation.validation.size());
-    createInfo.ppEnabledLayerNames = base.validation.validation.data();
+        static_cast<uint32_t>(initVulkan.validation.validation.size());
+    createInfo.ppEnabledLayerNames = initVulkan.validation.validation.data();
   }
 
   CE::vulkanResult(vkCreateDevice, physical, &createInfo, nullptr, &logical);
@@ -770,7 +770,7 @@ void CE::SynchronizationObjects::destroy(const int maxFramesInFlight) {
   }
 }
 
-void CE::Base::createInstance() {
+void CE::InitializeVulkan::createInstance() {
   Log::text("{ VkI }", "Vulkan Instance");
   if (validation.enableValidationLayers &&
       !validation.checkValidationLayerSupport()) {
@@ -811,13 +811,13 @@ void CE::Base::createInstance() {
   CE::vulkanResult(vkCreateInstance, &createInfo, nullptr, &instance);
 }
 
-void CE::Base::createSurface(GLFWwindow* window) {
+void CE::InitializeVulkan::createSurface(GLFWwindow* window) {
   Log::text("{ [ ] }", "Surface");
   CE::vulkanResult(glfwCreateWindowSurface, instance, window, nullptr,
                    &surface);
 }
 
-std::vector<const char*> CE::Base::getRequiredExtensions() {
+std::vector<const char*> CE::InitializeVulkan::getRequiredExtensions() {
   uint32_t glfwExtensionCount = 0;
   const char** glfwExtensions;
   glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
