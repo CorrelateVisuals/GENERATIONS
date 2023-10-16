@@ -74,13 +74,13 @@ void CE::Device::pickPhysicalDevice(const InitializeVulkan& initVulkan,
   vkEnumeratePhysicalDevices(initVulkan.instance, &deviceCount, devices.data());
 
   for (const auto& device : devices) {
-    if (this->isDeviceSuitable(device, queues, initVulkan, swapchain)) {
-      this->physical = device;
-      this->getMaxUsableSampleCount();
+    if (isDeviceSuitable(device, queues, initVulkan, swapchain)) {
+      physical = device;
+      getMaxUsableSampleCount(physical);
       break;
     }
   }
-  if (this->physical == VK_NULL_HANDLE) {
+  if (physical == VK_NULL_HANDLE) {
     throw std::runtime_error("\n!ERROR! failed to find a suitable GPU!");
   }
 }
@@ -93,7 +93,7 @@ bool CE::Device::isDeviceSuitable(const VkPhysicalDevice& physical,
   Log::text(Log::Style::charLeader, "Is Device Suitable");
 
   queues.familyIndices = queues.findQueueFamilies(physical, initVulkan.surface);
-  bool extensionsSupported = checkDeviceExtensionSupport();
+  bool extensionsSupported = checkDeviceExtensionSupport(physical);
 
   bool swapchainAdequate = false;
   if (extensionsSupported) {
@@ -109,7 +109,7 @@ bool CE::Device::isDeviceSuitable(const VkPhysicalDevice& physical,
          swapchainAdequate;
 }
 
-void CE::Device::getMaxUsableSampleCount() {
+void CE::Device::getMaxUsableSampleCount(const VkPhysicalDevice& physical) {
   vkGetPhysicalDeviceProperties(physical, &properties);
   VkSampleCountFlags counts = properties.limits.framebufferColorSampleCounts &
                               properties.limits.framebufferDepthSampleCounts;
@@ -124,7 +124,7 @@ void CE::Device::getMaxUsableSampleCount() {
   return;
 }
 
-bool CE::Device::checkDeviceExtensionSupport() {
+bool CE::Device::checkDeviceExtensionSupport(const VkPhysicalDevice& physical) {
   Log::text(Log::Style::charLeader, "Check Device Extension Support");
   uint32_t extensionCount;
   vkEnumerateDeviceExtensionProperties(physical, nullptr, &extensionCount,

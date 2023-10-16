@@ -70,8 +70,8 @@ class Device {
                         const InitializeVulkan& initVulkan,
                         Swapchain& swapchain);
 
-  void getMaxUsableSampleCount();
-  bool checkDeviceExtensionSupport();
+  void getMaxUsableSampleCount(const VkPhysicalDevice& physical);
+  bool checkDeviceExtensionSupport(const VkPhysicalDevice& physical);
 
   void createLogicalDevice(const InitializeVulkan& initVulkan, Queues& queues);
   void destroyDevice();
