@@ -31,7 +31,7 @@ class World {
   } rectangle;
 
   struct Cube : public Geometry {
-    Cube() : Geometry("Sphere"){};
+    Cube() : Geometry("SphereHR"){};
     const float size = 0.5f;
   } cube;
 
@@ -59,7 +59,7 @@ class World {
 
  public:
   std::vector<World::Cell> initializeGrid();
-  UniformBufferObject updateUniforms(VkExtent2D& _swapChain);
+  UniformBufferObject updateUniforms(VkExtent2D& _swapchain);
 
  private:
   struct Camera {
@@ -90,7 +90,7 @@ class World {
 
   glm::mat4 setModel();
   glm::mat4 setView();
-  glm::mat4 setProjection(VkExtent2D& swapChainExtent);
+  glm::mat4 setProjection(VkExtent2D& swapchainExtent);
 };
 
 // float getForwardMovement(const glm::vec2& leftButtonDelta);

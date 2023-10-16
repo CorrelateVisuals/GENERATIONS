@@ -167,10 +167,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="CEbuffer.cpp" />
+    <ClCompile Include="BaseClasses.cpp" />
     <ClCompile Include="CapitalEngine.cpp" />
     <ClCompile Include="Geometry.cpp" />
-    <ClCompile Include="CEimage.cpp" />
     <ClCompile Include="Log.cpp" />
     <ClCompile Include="Library.cpp" />
     <ClCompile Include="main.cpp" />
@@ -184,9 +183,8 @@
     <ClCompile Include="World.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="CEbuffer.h" />
+    <ClInclude Include="BaseClasses.h" />
     <ClInclude Include="Geometry.h" />
-    <ClInclude Include="CEimage.h" />
     <ClInclude Include="Log.h" />
     <ClInclude Include="CapitalEngine.h" />
     <ClInclude Include="Library.h" />
@@ -196,6 +194,7 @@
     <ClInclude Include="Terrain.h" />
     <ClInclude Include="Timer.h" />
     <ClInclude Include="ValidationLayers.h" />
+    <ClInclude Include="VulkanInitializers.hpp" />
     <ClInclude Include="Window.h" />
     <ClInclude Include="World.h" />
   </ItemGroup>

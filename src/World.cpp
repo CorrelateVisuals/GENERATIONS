@@ -153,7 +153,7 @@ std::vector<float> World::generateLandscapeHeight() {
   return landscapeHeight;
 }
 
-World::UniformBufferObject World::updateUniforms(VkExtent2D& _swapChainExtent) {
+World::UniformBufferObject World::updateUniforms(VkExtent2D& _swapchainExtent) {
   UniformBufferObject uniformObject{
       .light = light.position,
       .gridXY = {static_cast<uint32_t>(grid.size.x),
@@ -162,7 +162,7 @@ World::UniformBufferObject World::updateUniforms(VkExtent2D& _swapChainExtent) {
       .cellSize = cube.size,
       .model = setModel(),
       .view = setView(),
-      .projection = setProjection(_swapChainExtent)};
+      .projection = setProjection(_swapchainExtent)};
   return uniformObject;
 }
 
@@ -219,10 +219,10 @@ glm::mat4 World::setView() {
   return view;
 }
 
-glm::mat4 World::setProjection(VkExtent2D& swapChainExtent) {
+glm::mat4 World::setProjection(VkExtent2D& swapchainExtent) {
   glm::mat4 projection = glm::perspective(
       glm::radians(camera.fieldOfView),
-      swapChainExtent.width / static_cast<float>(swapChainExtent.height),
+      swapchainExtent.width / static_cast<float>(swapchainExtent.height),
       camera.nearClipping, camera.farClipping);
 
   projection[1][1] *= -1;  // flip y axis
