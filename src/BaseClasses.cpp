@@ -57,6 +57,58 @@ void CE::Device::createLogicalDevice(const InitializeVulkan& initVulkan,
                    &queues.present);
 }
 
+// template <typename SC>
+void CE::Device::pickPhysicalDevice(const InitializeVulkan& initVulkan,
+                                    Queues& queues,
+                                    Swapchain& swapchain) {
+  Log::text("{ ### }", "Physical Device");
+  uint32_t deviceCount = 0;
+  vkEnumeratePhysicalDevices(initVulkan.instance, &deviceCount, nullptr);
+
+  if (deviceCount == 0) {
+    throw std::runtime_error(
+        "\n!ERROR! failed to find GPUs with Vulkan support!");
+  }
+
+  std::vector<VkPhysicalDevice> devices(deviceCount);
+  vkEnumeratePhysicalDevices(initVulkan.instance, &deviceCount, devices.data());
+
+  for (const auto& device : devices) {
+    if (this->isDeviceSuitable(device, queues, initVulkan, swapchain)) {
+      this->physical = device;
+      this->getMaxUsableSampleCount();
+      break;
+    }
+  }
+  if (this->physical == VK_NULL_HANDLE) {
+    throw std::runtime_error("\n!ERROR! failed to find a suitable GPU!");
+  }
+}
+
+// template <typename NSC>
+bool CE::Device::isDeviceSuitable(const VkPhysicalDevice& physical,
+                                  Queues& queues,
+                                  const InitializeVulkan& initVulkan,
+                                  Swapchain& swapchain) {
+  Log::text(Log::Style::charLeader, "Is Device Suitable");
+
+  queues.familyIndices = queues.findQueueFamilies(physical, initVulkan.surface);
+  bool extensionsSupported = checkDeviceExtensionSupport();
+
+  bool swapchainAdequate = false;
+  if (extensionsSupported) {
+    Swapchain::SupportDetails swapchainSupport =
+        swapchain.checkSupport(physical, initVulkan.surface);
+    swapchainAdequate = !swapchainSupport.formats.empty() &&
+                        !swapchainSupport.presentModes.empty();
+  }
+  // VkPhysicalDeviceFeatures supportedFeatures;
+  // vkGetPhysicalDeviceFeatures(mainDevice.physical, &supportedFeatures);
+  //&& supportedFeatures.samplerAnisotropy
+  return queues.familyIndices.isComplete() && extensionsSupported &&
+         swapchainAdequate;
+}
+
 void CE::Device::getMaxUsableSampleCount() {
   vkGetPhysicalDeviceProperties(physical, &properties);
   VkSampleCountFlags counts = properties.limits.framebufferColorSampleCounts &
@@ -70,6 +122,26 @@ void CE::Device::getMaxUsableSampleCount() {
     }
   }
   return;
+}
+
+bool CE::Device::checkDeviceExtensionSupport() {
+  Log::text(Log::Style::charLeader, "Check Device Extension Support");
+  uint32_t extensionCount;
+  vkEnumerateDeviceExtensionProperties(physical, nullptr, &extensionCount,
+                                       nullptr);
+
+  std::vector<VkExtensionProperties> availableExtensions(extensionCount);
+  vkEnumerateDeviceExtensionProperties(physical, nullptr, &extensionCount,
+                                       availableExtensions.data());
+
+  std::set<std::string> requiredExtensions(extensions.begin(),
+                                           extensions.end());
+
+  for (const auto& extension : availableExtensions) {
+    requiredExtensions.erase(extension.extensionName);
+  }
+
+  return requiredExtensions.empty();
 }
 
 void CE::Device::setBaseDevice(const CE::Device& device) {

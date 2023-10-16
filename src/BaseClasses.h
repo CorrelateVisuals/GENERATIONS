@@ -14,41 +14,6 @@
 
 namespace CE {
 
-class Queues;  // forward declaration
-
-class InitializeVulkan {
- public:
-  InitializeVulkan();
-  ~InitializeVulkan();
-  VkSurfaceKHR surface;
-  VkInstance instance;
-  ValidationLayers validation;
-
-  void createInstance();
-  void createSurface(GLFWwindow* window);
-  std::vector<const char*> getRequiredExtensions();
-};
-
-class Device {
- public:
-  Device() = default;
-  virtual ~Device() { destroyDevice(); }
-  VkPhysicalDevice physical{VK_NULL_HANDLE};
-  VkPhysicalDeviceProperties properties;
-  VkPhysicalDeviceFeatures features{};
-  std::vector<const char*> extensions{VK_KHR_SWAPCHAIN_EXTENSION_NAME};
-  VkSampleCountFlagBits maxUsableSampleCount;
-  VkDevice logical{VK_NULL_HANDLE};
-
-  void getMaxUsableSampleCount();
-
-  void createLogicalDevice(const InitializeVulkan& initVulkan, Queues& queues);
-  void destroyDevice();
-  void setBaseDevice(const CE::Device& device);
-  static std::vector<VkDevice> destroyedDevices;
-};
-static std::unique_ptr<Device> baseDevice;
-
 class Queues {
  public:
   Queues() = default;
@@ -68,6 +33,52 @@ class Queues {
   FamilyIndices findQueueFamilies(const VkPhysicalDevice& physicalDevice,
                                   const VkSurfaceKHR& surface);
 };
+
+class InitializeVulkan {
+ public:
+  InitializeVulkan();
+  ~InitializeVulkan();
+  VkSurfaceKHR surface;
+  VkInstance instance;
+  ValidationLayers validation;
+
+  void createInstance();
+  void createSurface(GLFWwindow* window);
+  std::vector<const char*> getRequiredExtensions();
+};
+
+class Swapchain;
+
+class Device {
+ public:
+  Device() = default;
+  virtual ~Device() { destroyDevice(); }
+  VkPhysicalDevice physical{VK_NULL_HANDLE};
+  VkPhysicalDeviceProperties properties;
+  VkPhysicalDeviceFeatures features{};
+  std::vector<const char*> extensions{VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+  VkSampleCountFlagBits maxUsableSampleCount;
+  VkDevice logical{VK_NULL_HANDLE};
+
+  // template <typename SC>
+  void pickPhysicalDevice(const InitializeVulkan& initVulkan,
+                          Queues& queues,
+                          Swapchain& swapchain);
+  // template <typename NSC>
+  bool isDeviceSuitable(const VkPhysicalDevice& physical,
+                        Queues& queues,
+                        const InitializeVulkan& initVulkan,
+                        Swapchain& swapchain);
+
+  void getMaxUsableSampleCount();
+  bool checkDeviceExtensionSupport();
+
+  void createLogicalDevice(const InitializeVulkan& initVulkan, Queues& queues);
+  void destroyDevice();
+  void setBaseDevice(const CE::Device& device);
+  static std::vector<VkDevice> destroyedDevices;
+};
+static std::unique_ptr<Device> baseDevice;
 
 class Commands {
  public:
