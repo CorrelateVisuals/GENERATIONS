@@ -3,11 +3,6 @@
 #include "CapitalEngine.h"
 #include "Mechanics.h"
 
-#include <algorithm>
-#include <set>
-#include <stdexcept>
-#include <string>
-
 VulkanMechanics::VulkanMechanics()
     : initVulkan{}, mainDevice{}, queues{}, swapchain{}, syncObjects{} {
   Log::text("{ Vk. }", "constructing Vulkan Mechanics");
