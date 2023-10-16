@@ -7,8 +7,6 @@ CapitalEngine::CapitalEngine()
   Log::text(Log::Style::headerGuard);
   Log::text("| CAPITAL Engine");
 
-  mechanics.setupVulkan(pipelines, resources);
-
   resources.command.createCommandPool(mechanics.queues.familyIndices);
   resources.createDescriptorSetLayout(resources.descriptorSetLayoutBindings);
   resources.msaaImage.createColorResources(mechanics.swapchain.extent,

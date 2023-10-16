@@ -39,14 +39,4 @@ class VulkanMechanics {
                   Pipelines& _pipelines,
                   Resources& _resources);
   } swapchain;
-
- public:
-  void setupVulkan(Pipelines& _pipelines, Resources& _resources);
-
- private:
-  // void pickPhysicalDevice(VkSampleCountFlagBits& msaaImageSamples);
-  // bool isDeviceSuitable(VkPhysicalDevice physicalDevice);
-  // bool checkDeviceExtensionSupport(VkPhysicalDevice physicalDevice);
-
-  // VkSampleCountFlagBits getMaxUsableSampleCount();
 };
