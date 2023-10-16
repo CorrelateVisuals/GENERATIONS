@@ -7,11 +7,10 @@
 #include "Window.h"
 
 // Engine modules
+#include "BaseClasses.h"
 #include "Mechanics.h"
 #include "Pipelines.h"
 #include "Resources.h"
-#include "CE.h"
-
 
 class CapitalEngine {
  public:

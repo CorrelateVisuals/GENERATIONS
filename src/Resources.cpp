@@ -14,23 +14,19 @@ Resources::Resources(VulkanMechanics& mechanics)
       descriptor{},
       msaaImage{} {
   Log::text("{ /// }", "constructing Resources");
-
-  CE::Device::linkDevice(&_mechanics.mainDevice.logical,
-                         &_mechanics.mainDevice.physical);
 }
 
 Resources::~Resources() {
   Log::text("{ /// }", "destructing Resources");
-  vkDestroyCommandPool(_mechanics.mainDevice.logical, command.pool, nullptr);
 }
 
 void Resources::setupResources(Pipelines& _pipelines) {
   Log::text(Log::Style::headerGuard);
   Log::text("{ /// }", "Setup Resources");
 
-  textureImage.loadTexture(Lib::path("assets/Avatar.PNG"),
-                           VK_FORMAT_R8G8B8A8_SRGB, command.commandBuffer,
-                           command.pool, _mechanics.queues.graphics);
+  textureImage.loadTexture(
+      Lib::path("assets/Avatar.PNG"), VK_FORMAT_R8G8B8A8_SRGB,
+      command.singularCommandBuffer, command.pool, _mechanics.queues.graphics);
   textureImage.createView(VK_IMAGE_ASPECT_COLOR_BIT);
   textureImage.createSampler();
 
@@ -48,28 +44,28 @@ void Resources::setupResources(Pipelines& _pipelines) {
 }
 
 void Resources::createFramebuffers(Pipelines& _pipelines) {
-  Log::text("{ 101 }", "Frame Buffers:", _mechanics.swapChain.images.size());
+  Log::text("{ 101 }", "Frame Buffers:", _mechanics.swapchain.images.size());
 
-  _mechanics.swapChain.framebuffers.resize(_mechanics.swapChain.images.size());
+  _mechanics.swapchain.framebuffers.resize(_mechanics.swapchain.images.size());
 
   Log::text(Log::Style::charLeader,
-            "attachments: msaaImage., depthImage, swapChain imageViews");
-  for (size_t i = 0; i < _mechanics.swapChain.images.size(); i++) {
+            "attachments: msaaImage., depthImage, swapchain imageViews");
+  for (size_t i = 0; i < _mechanics.swapchain.images.size(); i++) {
     std::vector<VkImageView> attachments{msaaImage.view, depthImage.view,
-                                         _mechanics.swapChain.images[i].view};
+                                         _mechanics.swapchain.images[i].view};
 
     VkFramebufferCreateInfo framebufferInfo{
         .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
         .renderPass = _pipelines.graphics.renderPass,
         .attachmentCount = static_cast<uint32_t>(attachments.size()),
         .pAttachments = attachments.data(),
-        .width = _mechanics.swapChain.extent.width,
-        .height = _mechanics.swapChain.extent.height,
+        .width = _mechanics.swapchain.extent.width,
+        .height = _mechanics.swapchain.extent.height,
         .layers = 1};
 
     CE::vulkanResult(vkCreateFramebuffer, _mechanics.mainDevice.logical,
                      &framebufferInfo, nullptr,
-                     &_mechanics.swapChain.framebuffers[i]);
+                     &_mechanics.swapchain.framebuffers[i]);
   }
 }
 
@@ -100,7 +96,7 @@ void Resources::createShaderStorageBuffers() {
           VK_BUFFER_USAGE_TRANSFER_DST_BIT,
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, shaderStorage.bufferIn);
   CE::Buffer::copy(stagingResources.buffer, shaderStorage.bufferIn.buffer,
-                   bufferSize, command.commandBuffer, command.pool,
+                   bufferSize, command.singularCommandBuffer, command.pool,
                    _mechanics.queues.graphics);
 
   CE::Buffer::create(
@@ -109,7 +105,7 @@ void Resources::createShaderStorageBuffers() {
           VK_BUFFER_USAGE_TRANSFER_DST_BIT,
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, shaderStorage.bufferOut);
   CE::Buffer::copy(stagingResources.buffer, shaderStorage.bufferOut.buffer,
-                   bufferSize, command.commandBuffer, command.pool,
+                   bufferSize, command.singularCommandBuffer, command.pool,
                    _mechanics.queues.graphics);
 }
 
@@ -211,8 +207,7 @@ void Resources::createVertexBuffers(
     if (resource.second == VK_VERTEX_INPUT_RATE_INSTANCE) {
       createVertexBuffer(currentGeometry->vertexBuffer,
                          currentGeometry->uniqueVertices);
-      createIndexBuffer(currentGeometry->indexBuffer,
-                        currentGeometry->indices);
+      createIndexBuffer(currentGeometry->indexBuffer, currentGeometry->indices);
     } else if (resource.second == VK_VERTEX_INPUT_RATE_VERTEX) {
       createVertexBuffer(currentGeometry->vertexBuffer,
                          currentGeometry->allVertices);
@@ -220,8 +215,7 @@ void Resources::createVertexBuffers(
   }
 };
 
-void Resources::createVertexBuffer(CE::Buffer& buffer,
-                                   const auto& vertices) {
+void Resources::createVertexBuffer(CE::Buffer& buffer, const auto& vertices) {
   CE::Buffer stagingResources;
   VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
 
@@ -242,7 +236,7 @@ void Resources::createVertexBuffer(CE::Buffer& buffer,
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, buffer);
 
   CE::Buffer::copy(stagingResources.buffer, buffer.buffer, bufferSize,
-                   command.commandBuffer, command.pool,
+                   command.singularCommandBuffer, command.pool,
                    _mechanics.queues.graphics);
 }
 
@@ -267,7 +261,7 @@ void Resources::createIndexBuffer(CE::Buffer& buffer, const auto& indices) {
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, buffer);
 
   CE::Buffer::copy(stagingResources.buffer, buffer.buffer, bufferSize,
-                   command.commandBuffer, command.pool,
+                   command.singularCommandBuffer, command.pool,
                    _mechanics.queues.graphics);
 }
 
@@ -301,7 +295,7 @@ void Resources::createDescriptorSets() {
 
     VkDescriptorImageInfo swapchainImageInfo{
         .sampler = VK_NULL_HANDLE,
-        .imageView = _mechanics.swapChain.images[i].view,
+        .imageView = _mechanics.swapchain.images[i].view,
         .imageLayout = VK_IMAGE_LAYOUT_GENERAL};
 
     std::vector<VkWriteDescriptorSet> descriptorWrites{
@@ -354,7 +348,7 @@ void Resources::createDescriptorSets() {
 
 void Resources::updateUniformBuffer(uint32_t currentImage) {
   World::UniformBufferObject uniformObject =
-      world.updateUniforms(_mechanics.swapChain.extent);
+      world.updateUniforms(_mechanics.swapchain.extent);
   std::memcpy(uniform.buffer.mapped, &uniformObject, sizeof(uniformObject));
 }
 
@@ -414,8 +408,8 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
       .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
       .pNext = nullptr,
       .renderPass = _pipelines.graphics.renderPass,
-      .framebuffer = _mechanics.swapChain.framebuffers[imageIndex],
-      .renderArea = {.offset = {0, 0}, .extent = _mechanics.swapChain.extent},
+      .framebuffer = _mechanics.swapchain.framebuffers[imageIndex],
+      .renderArea = {.offset = {0, 0}, .extent = _mechanics.swapchain.extent},
       .clearValueCount = static_cast<uint32_t>(clearValues.size()),
       .pClearValues = clearValues.data()};
 
@@ -424,13 +418,13 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
   VkViewport viewport{
       .x = 0.0f,
       .y = 0.0f,
-      .width = static_cast<float>(_mechanics.swapChain.extent.width),
-      .height = static_cast<float>(_mechanics.swapChain.extent.height),
+      .width = static_cast<float>(_mechanics.swapchain.extent.width),
+      .height = static_cast<float>(_mechanics.swapchain.extent.height),
       .minDepth = 0.0f,
       .maxDepth = 1.0f};
   vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 
-  VkRect2D scissor{.offset = {0, 0}, .extent = _mechanics.swapChain.extent};
+  VkRect2D scissor{.offset = {0, 0}, .extent = _mechanics.swapchain.extent};
   vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
   vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -496,7 +490,7 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
   //       This is part of an image memory barrier (i.e., vkCmdPipelineBarrier
   //       with the VkImageMemoryBarrier parameter set)
 
-  _mechanics.swapChain.images[_mechanics.syncObjects.currentFrame]
+  _mechanics.swapchain.images[_mechanics.syncObjects.currentFrame]
       .transitionLayout(commandBuffer, VK_FORMAT_R8G8B8A8_SRGB,
                         VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
                         /* -> */ VK_IMAGE_LAYOUT_GENERAL);
@@ -522,7 +516,7 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
 
   vkCmdDispatch(commandBuffer, workgroupSizeX, workgroupSizeY, 1);
 
-  _mechanics.swapChain.images[_mechanics.syncObjects.currentFrame]
+  _mechanics.swapchain.images[_mechanics.syncObjects.currentFrame]
       .transitionLayout(commandBuffer, VK_FORMAT_R8G8B8A8_SRGB,
                         VK_IMAGE_LAYOUT_GENERAL,
                         /* -> */ VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
