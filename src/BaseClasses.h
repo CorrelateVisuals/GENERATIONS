@@ -13,7 +13,7 @@
 #include <vector>
 
 namespace CE {
-
+// Mechanics
 class Queues {
  public:
   Queues() = default;
@@ -218,6 +218,30 @@ class Swapchain {
                         const VkSurfaceCapabilitiesKHR& capabilities);
 };
 
+// Pipelines
+class Pipeline {
+ public:
+  std::string name;
+  std::vector<std::string> shaders;
+  VkPipeline pipeline;
+  std::array<uint32_t, 3> workGroups;
+
+  static void constructPipelinesFromShaders(
+      std::unordered_map<std::string, CE::Pipeline>& pipelineObjects,
+      const std::unordered_map<std::string, std::vector<std::string>> shaders);
+};
+
+class PipelineLayout {
+ public:
+  VkPipelineLayout layout;
+};
+
+class RenderPass {
+ public:
+  VkRenderPass renderPass;
+};
+
+// Resources
 class Descriptor {
  public:
   Descriptor();

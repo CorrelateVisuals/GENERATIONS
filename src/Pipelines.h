@@ -21,9 +21,9 @@ class Pipelines {
       {"Water", {"Vert", "Frag"}},
       {"Texture", {"Vert", "Frag"}},
       {"PostFX", {"Comp"}}};
-
   const std::string shaderDir = "shaders/";
   std::vector<VkShaderModule> shaderModules;
+  std::unordered_map<std::string, CE::Pipeline> pipelineObjects;
 
   struct Compute {
     VkPipeline engine;
@@ -32,16 +32,11 @@ class Pipelines {
     const std::array<uint32_t, 3> workGroups{32, 32, 1};
   } compute;
 
-  struct Graphics {
-    VkPipeline cells;
-    VkPipeline landscape;
-    VkPipeline water;
-    VkPipeline texture;
-    VkPipeline landscapeWireframe;
-    VkPipeline cube;
-    VkPipelineLayout layout;
-    VkRenderPass renderPass;
+  struct PipelineLayouts : public CE::PipelineLayout {
   } graphics;
+
+  struct RenderPass : public CE::RenderPass {
+  } renderPass;
 
  public:
   void setupPipelines(Resources& _resources);
@@ -57,11 +52,10 @@ class Pipelines {
 
   void createGraphicsPipeline_Cells(VkSampleCountFlagBits& msaaSamples);
   void createGraphicsPipeline_Landscape(VkSampleCountFlagBits& msaaSamples);
-  void createGraphicsPipeline_LandscapeWireframe(
-      VkSampleCountFlagBits& msaaSamples);
+  // void createGraphicsPipeline_LandscapeWireframe(
+  //     VkSampleCountFlagBits& msaaSamples);
   void createGraphicsPipeline_Water(VkSampleCountFlagBits& msaaSamples);
   void createGraphicsPipeline_Texture(VkSampleCountFlagBits& msaaSamples);
-  void createGraphicsPipeline_Cube(VkSampleCountFlagBits& msaaSamples);
 
   void createComputePipeline_Engine();
   void createComputePipeline_PostFX();

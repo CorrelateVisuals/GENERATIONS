@@ -9,7 +9,7 @@
 #include <random>
 
 Pipelines::Pipelines(VulkanMechanics& mechanics, Resources& resources)
-    : compute{}, graphics{}, _mechanics(mechanics), _resources(resources) {
+    : compute{}, _mechanics(mechanics), _resources(resources) {
   Log::text("{ === }", "constructing Pipelines");
 
   compileShaders();
@@ -18,12 +18,11 @@ Pipelines::Pipelines(VulkanMechanics& mechanics, Resources& resources)
 Pipelines::~Pipelines() {
   Log::text("{ === }", "destructing Pipelines");
 
-  vkDestroyPipeline(_mechanics.mainDevice.logical, graphics.cells, nullptr);
-  vkDestroyPipeline(_mechanics.mainDevice.logical, graphics.landscape, nullptr);
-  vkDestroyPipeline(_mechanics.mainDevice.logical, graphics.landscapeWireframe,
-                    nullptr);
-  vkDestroyPipeline(_mechanics.mainDevice.logical, graphics.water, nullptr);
-  vkDestroyPipeline(_mechanics.mainDevice.logical, graphics.texture, nullptr);
+  for (const auto& pipeline : pipelineObjects) {
+    vkDestroyPipeline(_mechanics.mainDevice.logical,
+                      pipelineObjects[pipeline.first].pipeline, nullptr);
+  }
+
   vkDestroyPipelineLayout(_mechanics.mainDevice.logical, graphics.layout,
                           nullptr);
 
@@ -32,7 +31,7 @@ Pipelines::~Pipelines() {
   vkDestroyPipelineLayout(_mechanics.mainDevice.logical, compute.layout,
                           nullptr);
 
-  vkDestroyRenderPass(_mechanics.mainDevice.logical, graphics.renderPass,
+  vkDestroyRenderPass(_mechanics.mainDevice.logical, renderPass.renderPass,
                       nullptr);
 }
 
@@ -43,9 +42,11 @@ void Pipelines::setupPipelines(Resources& _resources) {
   createRenderPass(_resources);
   createGraphicsPipeline_Layout(_resources.descriptor);
 
+  CE::Pipeline::constructPipelinesFromShaders(pipelineObjects, shaders);
+
   createGraphicsPipeline_Cells(_resources.msaaImage.info.samples);
   createGraphicsPipeline_Landscape(_resources.msaaImage.info.samples);
-  createGraphicsPipeline_LandscapeWireframe(_resources.msaaImage.info.samples);
+  // createGraphicsPipeline_LandscapeWireframe(_resources.msaaImage.info.samples);
   createGraphicsPipeline_Water(_resources.msaaImage.info.samples);
   createGraphicsPipeline_Texture(_resources.msaaImage.info.samples);
 
@@ -131,7 +132,7 @@ void Pipelines::createRenderPass(Resources& _resources) {
       .pDependencies = &dependency};
 
   CE::vulkanResult(vkCreateRenderPass, _mechanics.mainDevice.logical,
-                   &renderPassInfo, nullptr, &graphics.renderPass);
+                   &renderPassInfo, nullptr, &renderPass.renderPass);
 }
 
 void Pipelines::createGraphicsPipeline_Layout(
@@ -207,12 +208,13 @@ void Pipelines::createGraphicsPipeline_Cells(
       .pColorBlendState = &colorBlend,
       .pDynamicState = &dynamic,
       .layout = graphics.layout,
-      .renderPass = graphics.renderPass,
+      .renderPass = renderPass.renderPass,
       .subpass = 0,
       .basePipelineHandle = VK_NULL_HANDLE};
 
   CE::vulkanResult(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
-                   VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphics.cells);
+                   VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
+                   &pipelineObjects["Cells"].pipeline);
   destroyShaderModules(shaderModules);
 }
 
@@ -265,84 +267,85 @@ void Pipelines::createGraphicsPipeline_Landscape(
       .pColorBlendState = &colorBlend,
       .pDynamicState = &dynamic,
       .layout = graphics.layout,
-      .renderPass = graphics.renderPass,
+      .renderPass = renderPass.renderPass,
       .subpass = 0,
       .basePipelineHandle = VK_NULL_HANDLE};
 
   CE::vulkanResult(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
                    VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
-                   &graphics.landscape);
+                   &pipelineObjects["Landscape"].pipeline);
   destroyShaderModules(shaderModules);
 }
 
-void Pipelines::createGraphicsPipeline_LandscapeWireframe(
-    VkSampleCountFlagBits& msaaSamples) {
-  std::vector<VkPipelineShaderStageCreateInfo> shaderStages = {
-      setShaderStage(VK_SHADER_STAGE_VERTEX_BIT, "LandscapeVert.spv"),
-      setShaderStage(VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT,
-                     "LandscapeTesc.spv"),
-      setShaderStage(VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT,
-                     "LandscapeTese.spv"),
-      setShaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, "LandscapeFrag.spv")};
-  static auto bindings = World::Landscape::Vertex::getBindingDescription();
-  static auto attributes = World::Landscape::getAttributeDescriptions();
-  uint32_t bindingsSize = static_cast<uint32_t>(bindings.size());
-  uint32_t attributeSize = static_cast<uint32_t>(attributes.size());
-
-  VkPipelineVertexInputStateCreateInfo vertexInput{CE::vertexInputStateDefault};
-  vertexInput.vertexBindingDescriptionCount = bindingsSize;
-  vertexInput.vertexAttributeDescriptionCount = attributeSize;
-  vertexInput.pVertexBindingDescriptions = bindings.data();
-  vertexInput.pVertexAttributeDescriptions = attributes.data();
-
-  VkPipelineInputAssemblyStateCreateInfo inputAssembly{
-      CE::inputAssemblyStateTriangleList};
-  inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_PATCH_LIST;
-  VkPipelineTessellationStateCreateInfo tessellationStateInfo{
-      CE::tessellationStateDefault};
-
-  VkPipelineRasterizationStateCreateInfo rasterization{
-      CE::rasterizationCullBackBit};
-  rasterization.polygonMode = VK_POLYGON_MODE_LINE;
-  rasterization.lineWidth = 5.0f;
-
-  VkPipelineMultisampleStateCreateInfo multisampling{
-      CE::multisampleStateDefault};
-  multisampling.rasterizationSamples = msaaSamples;
-  VkPipelineDepthStencilStateCreateInfo depthStencil{
-      CE::depthStencilStateDefault};
-
-  static VkPipelineColorBlendAttachmentState colorBlendAttachment{
-      CE::colorBlendAttachmentStateMultiply};
-  VkPipelineColorBlendStateCreateInfo colorBlend{CE::colorBlendStateDefault};
-  colorBlend.pAttachments = &colorBlendAttachment;
-
-  VkPipelineViewportStateCreateInfo viewport{CE::viewportStateDefault};
-  VkPipelineDynamicStateCreateInfo dynamic{CE::dynamicStateDefault};
-
-  VkGraphicsPipelineCreateInfo pipelineInfo{
-      .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
-      .stageCount = static_cast<uint32_t>(shaderStages.size()),
-      .pStages = shaderStages.data(),
-      .pVertexInputState = &vertexInput,
-      .pInputAssemblyState = &inputAssembly,
-      .pTessellationState = &tessellationStateInfo,
-      .pViewportState = &viewport,
-      .pRasterizationState = &rasterization,
-      .pMultisampleState = &multisampling,
-      .pDepthStencilState = &depthStencil,
-      .pColorBlendState = &colorBlend,
-      .pDynamicState = &dynamic,
-      .layout = graphics.layout,
-      .renderPass = graphics.renderPass,
-      .subpass = 0,
-      .basePipelineHandle = VK_NULL_HANDLE};
-
-  CE::vulkanResult(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
-                   VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
-                   &graphics.landscapeWireframe);
-  destroyShaderModules(shaderModules);
-}
+// void Pipelines::createGraphicsPipeline_LandscapeWireframe(
+//     VkSampleCountFlagBits& msaaSamples) {
+//   std::vector<VkPipelineShaderStageCreateInfo> shaderStages = {
+//       setShaderStage(VK_SHADER_STAGE_VERTEX_BIT, "LandscapeVert.spv"),
+//       setShaderStage(VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT,
+//                      "LandscapeTesc.spv"),
+//       setShaderStage(VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT,
+//                      "LandscapeTese.spv"),
+//       setShaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, "LandscapeFrag.spv")};
+//   static auto bindings = World::Landscape::Vertex::getBindingDescription();
+//   static auto attributes = World::Landscape::getAttributeDescriptions();
+//   uint32_t bindingsSize = static_cast<uint32_t>(bindings.size());
+//   uint32_t attributeSize = static_cast<uint32_t>(attributes.size());
+//
+//   VkPipelineVertexInputStateCreateInfo
+//   vertexInput{CE::vertexInputStateDefault};
+//   vertexInput.vertexBindingDescriptionCount = bindingsSize;
+//   vertexInput.vertexAttributeDescriptionCount = attributeSize;
+//   vertexInput.pVertexBindingDescriptions = bindings.data();
+//   vertexInput.pVertexAttributeDescriptions = attributes.data();
+//
+//   VkPipelineInputAssemblyStateCreateInfo inputAssembly{
+//       CE::inputAssemblyStateTriangleList};
+//   inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_PATCH_LIST;
+//   VkPipelineTessellationStateCreateInfo tessellationStateInfo{
+//       CE::tessellationStateDefault};
+//
+//   VkPipelineRasterizationStateCreateInfo rasterization{
+//       CE::rasterizationCullBackBit};
+//   rasterization.polygonMode = VK_POLYGON_MODE_LINE;
+//   rasterization.lineWidth = 5.0f;
+//
+//   VkPipelineMultisampleStateCreateInfo multisampling{
+//       CE::multisampleStateDefault};
+//   multisampling.rasterizationSamples = msaaSamples;
+//   VkPipelineDepthStencilStateCreateInfo depthStencil{
+//       CE::depthStencilStateDefault};
+//
+//   static VkPipelineColorBlendAttachmentState colorBlendAttachment{
+//       CE::colorBlendAttachmentStateMultiply};
+//   VkPipelineColorBlendStateCreateInfo colorBlend{CE::colorBlendStateDefault};
+//   colorBlend.pAttachments = &colorBlendAttachment;
+//
+//   VkPipelineViewportStateCreateInfo viewport{CE::viewportStateDefault};
+//   VkPipelineDynamicStateCreateInfo dynamic{CE::dynamicStateDefault};
+//
+//   VkGraphicsPipelineCreateInfo pipelineInfo{
+//       .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
+//       .stageCount = static_cast<uint32_t>(shaderStages.size()),
+//       .pStages = shaderStages.data(),
+//       .pVertexInputState = &vertexInput,
+//       .pInputAssemblyState = &inputAssembly,
+//       .pTessellationState = &tessellationStateInfo,
+//       .pViewportState = &viewport,
+//       .pRasterizationState = &rasterization,
+//       .pMultisampleState = &multisampling,
+//       .pDepthStencilState = &depthStencil,
+//       .pColorBlendState = &colorBlend,
+//       .pDynamicState = &dynamic,
+//       .layout = graphics.layout,
+//       .renderPass = renderPass.renderPass,
+//       .subpass = 0,
+//       .basePipelineHandle = VK_NULL_HANDLE};
+//
+//   CE::vulkanResult(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
+//                    VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
+//                    &graphics.landscapeWireframe);
+//   destroyShaderModules(shaderModules);
+// }
 
 void Pipelines::createGraphicsPipeline_Water(
     VkSampleCountFlagBits& msaaSamples) {
@@ -394,12 +397,13 @@ void Pipelines::createGraphicsPipeline_Water(
       .pColorBlendState = &colorBlend,
       .pDynamicState = &dynamic,
       .layout = graphics.layout,
-      .renderPass = graphics.renderPass,
+      .renderPass = renderPass.renderPass,
       .subpass = 0,
       .basePipelineHandle = VK_NULL_HANDLE};
 
   CE::vulkanResult(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
-                   VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphics.water);
+                   VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
+                   &pipelineObjects["Water"].pipeline);
   destroyShaderModules(shaderModules);
 }
 
@@ -453,73 +457,13 @@ void Pipelines::createGraphicsPipeline_Texture(
       .pColorBlendState = &colorBlend,
       .pDynamicState = &dynamic,
       .layout = graphics.layout,
-      .renderPass = graphics.renderPass,
+      .renderPass = renderPass.renderPass,
       .subpass = 0,
       .basePipelineHandle = VK_NULL_HANDLE};
 
   CE::vulkanResult(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
                    VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
-                   &graphics.texture);
-  destroyShaderModules(shaderModules);
-}
-
-void Pipelines::createGraphicsPipeline_Cube(
-    VkSampleCountFlagBits& msaaSamples) {
-  std::vector<VkPipelineShaderStageCreateInfo> shaderStages = {
-      setShaderStage(VK_SHADER_STAGE_VERTEX_BIT, "TextureVert.spv"),
-      setShaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, "TextureFrag.spv")};
-
-  static auto bindings = World::Rectangle::Vertex::getBindingDescription();
-  static auto attributes = World::Rectangle::Vertex::getAttributeDescriptions();
-  uint32_t bindingsSize = static_cast<uint32_t>(bindings.size());
-  uint32_t attributeSize = static_cast<uint32_t>(attributes.size());
-
-  VkPipelineVertexInputStateCreateInfo vertexInput{CE::vertexInputStateDefault};
-  vertexInput.vertexBindingDescriptionCount = bindingsSize;
-  vertexInput.vertexAttributeDescriptionCount = attributeSize;
-  vertexInput.pVertexBindingDescriptions = bindings.data();
-  vertexInput.pVertexAttributeDescriptions = attributes.data();
-
-  VkPipelineInputAssemblyStateCreateInfo inputAssembly{
-      CE::inputAssemblyStateTriangleList};
-  VkPipelineRasterizationStateCreateInfo rasterization{
-      CE::rasterizationCullBackBit};
-  VkPipelineMultisampleStateCreateInfo multisampling{
-      CE::multisampleStateDefault};
-  multisampling.rasterizationSamples = msaaSamples;
-  VkPipelineDepthStencilStateCreateInfo depthStencil{
-      CE::depthStencilStateDefault};
-
-  static VkPipelineColorBlendAttachmentState colorBlendAttachment{
-      CE::colorBlendAttachmentStateFalse};
-  colorBlendAttachment.blendEnable = VK_TRUE;
-
-  VkPipelineColorBlendStateCreateInfo colorBlend{CE::colorBlendStateDefault};
-  colorBlend.pAttachments = &colorBlendAttachment;
-
-  VkPipelineViewportStateCreateInfo viewport{CE::viewportStateDefault};
-  VkPipelineDynamicStateCreateInfo dynamic{CE::dynamicStateDefault};
-
-  VkGraphicsPipelineCreateInfo pipelineInfo{
-      .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
-      .stageCount = static_cast<uint32_t>(shaderStages.size()),
-      .pStages = shaderStages.data(),
-      .pVertexInputState = &vertexInput,
-      .pInputAssemblyState = &inputAssembly,
-      .pViewportState = &viewport,
-      .pRasterizationState = &rasterization,
-      .pMultisampleState = &multisampling,
-      .pDepthStencilState = &depthStencil,
-      .pColorBlendState = &colorBlend,
-      .pDynamicState = &dynamic,
-      .layout = graphics.layout,
-      .renderPass = graphics.renderPass,
-      .subpass = 0,
-      .basePipelineHandle = VK_NULL_HANDLE};
-
-  CE::vulkanResult(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
-                   VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
-                   &graphics.texture);
+                   &pipelineObjects["Texture"].pipeline);
   destroyShaderModules(shaderModules);
 }
 

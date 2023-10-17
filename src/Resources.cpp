@@ -56,7 +56,7 @@ void Resources::createFramebuffers(Pipelines& _pipelines) {
 
     VkFramebufferCreateInfo framebufferInfo{
         .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
-        .renderPass = _pipelines.graphics.renderPass,
+        .renderPass = _pipelines.renderPass.renderPass,
         .attachmentCount = static_cast<uint32_t>(attachments.size()),
         .pAttachments = attachments.data(),
         .width = _mechanics.swapchain.extent.width,
@@ -407,7 +407,7 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
   VkRenderPassBeginInfo renderPassInfo{
       .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
       .pNext = nullptr,
-      .renderPass = _pipelines.graphics.renderPass,
+      .renderPass = _pipelines.renderPass.renderPass,
       .framebuffer = _mechanics.swapchain.framebuffers[imageIndex],
       .renderArea = {.offset = {0, 0}, .extent = _mechanics.swapchain.extent},
       .clearValueCount = static_cast<uint32_t>(clearValues.size()),
@@ -434,7 +434,7 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
 
   // Pipeline 1
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                    _pipelines.graphics.cells);
+                    _pipelines.pipelineObjects["Cells"].pipeline);
   VkDeviceSize offsets[]{0};
 
   VkDeviceSize offsets0[]{0, 0};
@@ -452,7 +452,7 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
 
   // Landscape
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                    _pipelines.graphics.landscape);
+                    _pipelines.pipelineObjects["Landscape"].pipeline);
   VkBuffer vertexBuffers1[] = {world.landscape.vertexBuffer.buffer};
   vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers1, offsets);
   vkCmdBindIndexBuffer(commandBuffer, world.landscape.indexBuffer.buffer, 0,
@@ -462,15 +462,15 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
                    0, 0);
 
   // Landscape Wireframe
-  vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                    _pipelines.graphics.landscapeWireframe);
-  vkCmdDrawIndexed(commandBuffer,
-                   static_cast<uint32_t>(world.landscape.indices.size()), 1, 0,
-                   0, 0);
+  // vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+  //                  _pipelines.graphics.landscapeWireframe);
+  // vkCmdDrawIndexed(commandBuffer,
+  //                 static_cast<uint32_t>(world.landscape.indices.size()), 1,
+  //                 0, 0, 0);
 
   // Pipeline 3
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                    _pipelines.graphics.water);
+                    _pipelines.pipelineObjects["Water"].pipeline);
   VkBuffer vertexBuffers[] = {world.rectangle.vertexBuffer.buffer};
   vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
   vkCmdBindIndexBuffer(commandBuffer, world.rectangle.indexBuffer.buffer, 0,
@@ -481,7 +481,7 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
 
   // Pipeline 4
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                    _pipelines.graphics.texture);
+                    _pipelines.pipelineObjects["Texture"].pipeline);
   vkCmdDrawIndexed(commandBuffer,
                    static_cast<uint32_t>(world.rectangle.indices.size()), 1, 0,
                    0, 0);
