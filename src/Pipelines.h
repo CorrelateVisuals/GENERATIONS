@@ -14,6 +14,7 @@ class Pipelines {
 
   Resources& _resources;
 
+  const std::string shaderDir = "shaders/";
   const std::unordered_map<std::string, std::vector<std::string>> shaders = {
       {"Engine", {"Comp"}},
       {"Cells", {"Vert", "Frag"}},
@@ -21,14 +22,10 @@ class Pipelines {
       {"Water", {"Vert", "Frag"}},
       {"Texture", {"Vert", "Frag"}},
       {"PostFX", {"Comp"}}};
-  const std::string shaderDir = "shaders/";
   std::vector<VkShaderModule> shaderModules;
   std::unordered_map<std::string, CE::Pipeline> pipelineObjects;
 
-  struct Compute {
-    VkPipeline engine;
-    VkPipeline postFX;
-    VkPipelineLayout layout;
+  struct Compute : public CE::PipelineLayout {
     const std::array<uint32_t, 3> workGroups{32, 32, 1};
   } compute;
 

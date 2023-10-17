@@ -224,7 +224,7 @@ class Pipeline {
   std::string name;
   std::vector<std::string> shaders;
   VkPipeline pipeline;
-  std::array<uint32_t, 3> workGroups;
+  // std::array<uint32_t, 3> workGroups;
 
   static void constructPipelinesFromShaders(
       std::unordered_map<std::string, CE::Pipeline>& pipelineObjects,

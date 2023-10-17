@@ -25,9 +25,6 @@ Pipelines::~Pipelines() {
 
   vkDestroyPipelineLayout(_mechanics.mainDevice.logical, graphics.layout,
                           nullptr);
-
-  vkDestroyPipeline(_mechanics.mainDevice.logical, compute.engine, nullptr);
-  vkDestroyPipeline(_mechanics.mainDevice.logical, compute.postFX, nullptr);
   vkDestroyPipelineLayout(_mechanics.mainDevice.logical, compute.layout,
                           nullptr);
 
@@ -535,7 +532,8 @@ void Pipelines::createComputePipeline_Engine() {
       .layout = compute.layout};
 
   CE::vulkanResult(vkCreateComputePipelines, _mechanics.mainDevice.logical,
-                   VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &compute.engine);
+                   VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
+                   &pipelineObjects["Engine"].pipeline);
 
   destroyShaderModules(shaderModules);
 }
@@ -552,7 +550,8 @@ void Pipelines::createComputePipeline_PostFX() {
       .layout = compute.layout};
 
   CE::vulkanResult(vkCreateComputePipelines, _mechanics.mainDevice.logical,
-                   VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &compute.postFX);
+                   VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
+                   &pipelineObjects["PostFX"].pipeline);
 
   destroyShaderModules(shaderModules);
 }

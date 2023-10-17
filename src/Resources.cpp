@@ -369,7 +369,7 @@ void Resources::recordComputeCommandBuffer(VkCommandBuffer commandBuffer,
   //     nullptr);
 
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
-                    _pipelines.compute.engine);
+                    _pipelines.pipelineObjects["Engine"].pipeline);
 
   vkCmdBindDescriptorSets(
       commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, _pipelines.compute.layout,
@@ -498,7 +498,7 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
   // vkDeviceWaitIdle(_mechanics.mainDevice.logical);
 
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
-                    _pipelines.compute.postFX);
+      _pipelines.pipelineObjects["PostFX"].pipeline);
 
   vkCmdBindDescriptorSets(
       commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, _pipelines.compute.layout,
