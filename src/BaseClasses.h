@@ -54,9 +54,8 @@ class Device {
   Device() = default;
   virtual ~Device() { destroyDevice(); }
   VkPhysicalDevice physical{VK_NULL_HANDLE};
-  VkPhysicalDeviceProperties properties;
   VkPhysicalDeviceFeatures features{};
-  std::vector<const char*> extensions{VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+
   VkSampleCountFlagBits maxUsableSampleCount;
   VkDevice logical{VK_NULL_HANDLE};
 
@@ -68,6 +67,10 @@ class Device {
   void destroyDevice();
 
  private:
+  std::vector<const char*> extensions{VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+
+  VkPhysicalDeviceProperties properties;
+
   bool isDeviceSuitable(const VkPhysicalDevice& physical,
                         Queues& queues,
                         const InitializeVulkan& initVulkan,
