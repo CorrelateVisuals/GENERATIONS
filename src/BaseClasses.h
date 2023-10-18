@@ -60,22 +60,20 @@ class Device {
   VkSampleCountFlagBits maxUsableSampleCount;
   VkDevice logical{VK_NULL_HANDLE};
 
-  // template <typename SC>
   void pickPhysicalDevice(const InitializeVulkan& initVulkan,
                           Queues& queues,
                           Swapchain& swapchain);
-  // template <typename NSC>
+  void createLogicalDevice(const InitializeVulkan& initVulkan, Queues& queues);
+  void setBaseDevice(const CE::Device& device);
+  void destroyDevice();
+
+ private:
   bool isDeviceSuitable(const VkPhysicalDevice& physical,
                         Queues& queues,
                         const InitializeVulkan& initVulkan,
                         Swapchain& swapchain);
-
   void getMaxUsableSampleCount(const VkPhysicalDevice& physical);
   bool checkDeviceExtensionSupport(const VkPhysicalDevice& physical);
-
-  void createLogicalDevice(const InitializeVulkan& initVulkan, Queues& queues);
-  void destroyDevice();
-  void setBaseDevice(const CE::Device& device);
   static std::vector<VkDevice> destroyedDevices;
 };
 static std::unique_ptr<Device> baseDevice;
