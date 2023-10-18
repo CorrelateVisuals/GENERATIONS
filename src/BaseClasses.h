@@ -42,6 +42,7 @@ class InitializeVulkan {
   VkInstance instance;
   ValidationLayers validation;
 
+ private:
   void createInstance();
   void createSurface(GLFWwindow* window);
   std::vector<const char*> getRequiredExtensions();
@@ -55,7 +56,6 @@ class Device {
   virtual ~Device() { destroyDevice(); }
   VkPhysicalDevice physical{VK_NULL_HANDLE};
   VkPhysicalDeviceFeatures features{};
-
   VkSampleCountFlagBits maxUsableSampleCount;
   VkDevice logical{VK_NULL_HANDLE};
 
@@ -67,9 +67,8 @@ class Device {
   void destroyDevice();
 
  private:
-  std::vector<const char*> extensions{VK_KHR_SWAPCHAIN_EXTENSION_NAME};
-
   VkPhysicalDeviceProperties properties;
+  std::vector<const char*> extensions{VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 
   bool isDeviceSuitable(const VkPhysicalDevice& physical,
                         Queues& queues,
