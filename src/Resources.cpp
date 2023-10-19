@@ -63,9 +63,9 @@ void Resources::createFramebuffers(Pipelines& _pipelines) {
         .height = _mechanics.swapchain.extent.height,
         .layers = 1};
 
-    CE::vulkanResult(vkCreateFramebuffer, _mechanics.mainDevice.logical,
-                     &framebufferInfo, nullptr,
-                     &_mechanics.swapchain.framebuffers[i]);
+    CE::VULKAN_RESULT(vkCreateFramebuffer, _mechanics.mainDevice.logical,
+                      &framebufferInfo, nullptr,
+                      &_mechanics.swapchain.framebuffers[i]);
   }
 }
 
@@ -138,8 +138,8 @@ void Resources::createDescriptorSetLayout(
       .bindingCount = static_cast<uint32_t>(layoutBindings.size()),
       .pBindings = layoutBindings.data()};
 
-  CE::vulkanResult(vkCreateDescriptorSetLayout, _mechanics.mainDevice.logical,
-                   &layoutInfo, nullptr, &descriptor.setLayout);
+  CE::VULKAN_RESULT(vkCreateDescriptorSetLayout, _mechanics.mainDevice.logical,
+                    &layoutInfo, nullptr, &descriptor.setLayout);
 }
 
 void Resources::createDescriptorPool() {
@@ -165,8 +165,8 @@ void Resources::createDescriptorPool() {
       .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
       .pPoolSizes = poolSizes.data()};
 
-  CE::vulkanResult(vkCreateDescriptorPool, _mechanics.mainDevice.logical,
-                   &poolInfo, nullptr, &descriptor.pool);
+  CE::VULKAN_RESULT(vkCreateDescriptorPool, _mechanics.mainDevice.logical,
+                    &poolInfo, nullptr, &descriptor.pool);
 }
 
 void Resources::allocateDescriptorSets() {
@@ -179,8 +179,8 @@ void Resources::allocateDescriptorSets() {
       .pSetLayouts = layouts.data()};
 
   descriptor.sets.resize(MAX_FRAMES_IN_FLIGHT);
-  CE::vulkanResult(vkAllocateDescriptorSets, _mechanics.mainDevice.logical,
-                   &allocateInfo, descriptor.sets.data());
+  CE::VULKAN_RESULT(vkAllocateDescriptorSets, _mechanics.mainDevice.logical,
+                    &allocateInfo, descriptor.sets.data());
 }
 
 void Resources::createCommandBuffers(
@@ -195,8 +195,8 @@ void Resources::createCommandBuffers(
       .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
       .commandBufferCount = static_cast<uint32_t>(commandBuffers.size())};
 
-  CE::vulkanResult(vkAllocateCommandBuffers, _mechanics.mainDevice.logical,
-                   &allocateInfo, commandBuffers.data());
+  CE::VULKAN_RESULT(vkAllocateCommandBuffers, _mechanics.mainDevice.logical,
+                    &allocateInfo, commandBuffers.data());
 }
 
 void Resources::createVertexBuffers(
@@ -390,7 +390,7 @@ void Resources::recordComputeCommandBuffer(VkCommandBuffer commandBuffer,
   vkCmdDispatch(commandBuffer, workgroupSizeX, workgroupSizeY,
                 _pipelines.compute.workGroups[2]);
 
-  CE::vulkanResult(vkEndCommandBuffer, commandBuffer);
+  CE::VULKAN_RESULT(vkEndCommandBuffer, commandBuffer);
 }
 
 void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
@@ -399,7 +399,7 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
   VkCommandBufferBeginInfo beginInfo{
       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO};
 
-  CE::vulkanResult(vkBeginCommandBuffer, commandBuffer, &beginInfo);
+  CE::VULKAN_RESULT(vkBeginCommandBuffer, commandBuffer, &beginInfo);
 
   std::vector<VkClearValue> clearValues{{.color = {{0.0f, 0.0f, 0.0f, 1.0f}}},
                                         {.depthStencil = {1.0f, 0}}};
@@ -498,7 +498,7 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
   // vkDeviceWaitIdle(_mechanics.mainDevice.logical);
 
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
-      _pipelines.pipelineObjects["PostFX"].pipeline);
+                    _pipelines.pipelineObjects["PostFX"].pipeline);
 
   vkCmdBindDescriptorSets(
       commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, _pipelines.compute.layout,
@@ -521,7 +521,7 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
                         VK_IMAGE_LAYOUT_GENERAL,
                         /* -> */ VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
-  CE::vulkanResult(vkEndCommandBuffer, commandBuffer);
+  CE::VULKAN_RESULT(vkEndCommandBuffer, commandBuffer);
 }
 
 Resources::Uniform::Uniform() {

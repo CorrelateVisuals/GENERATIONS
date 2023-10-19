@@ -128,16 +128,16 @@ void Pipelines::createRenderPass(Resources& _resources) {
       .dependencyCount = 1,
       .pDependencies = &dependency};
 
-  CE::vulkanResult(vkCreateRenderPass, _mechanics.mainDevice.logical,
-                   &renderPassInfo, nullptr, &renderPass.renderPass);
+  CE::VULKAN_RESULT(vkCreateRenderPass, _mechanics.mainDevice.logical,
+                    &renderPassInfo, nullptr, &renderPass.renderPass);
 }
 
 void Pipelines::createGraphicsPipeline_Layout(
     const Resources::DescriptorSets& _descriptorSets) {
   VkPipelineLayoutCreateInfo graphicsLayout{CE::layoutDefault};
   graphicsLayout.pSetLayouts = &_descriptorSets.setLayout;
-  CE::vulkanResult(vkCreatePipelineLayout, _mechanics.mainDevice.logical,
-                   &graphicsLayout, nullptr, &graphics.layout);
+  CE::VULKAN_RESULT(vkCreatePipelineLayout, _mechanics.mainDevice.logical,
+                    &graphicsLayout, nullptr, &graphics.layout);
 }
 
 void Pipelines::createComputePipeline_Layout(
@@ -150,8 +150,8 @@ void Pipelines::createComputePipeline_Layout(
   computeLayout.pSetLayouts = &_descriptorSets.setLayout;
   computeLayout.pushConstantRangeCount = _pushConstants.count;
   computeLayout.pPushConstantRanges = &constants;
-  CE::vulkanResult(vkCreatePipelineLayout, _mechanics.mainDevice.logical,
-                   &computeLayout, nullptr, &compute.layout);
+  CE::VULKAN_RESULT(vkCreatePipelineLayout, _mechanics.mainDevice.logical,
+                    &computeLayout, nullptr, &compute.layout);
 }
 
 void Pipelines::createGraphicsPipeline_Cells(
@@ -162,12 +162,10 @@ void Pipelines::createGraphicsPipeline_Cells(
       setShaderStage(VK_SHADER_STAGE_VERTEX_BIT, "CellsVert.spv"),
       setShaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, "CellsFrag.spv")};
 
-
   static auto bindings = World::Cell::getBindingDescription();
   static auto attributes = World::Cell::getAttributeDescriptions();
   uint32_t bindingsSize = static_cast<uint32_t>(bindings.size());
   uint32_t attributeSize = static_cast<uint32_t>(attributes.size());
-
 
   VkPipelineVertexInputStateCreateInfo vertexInput{CE::vertexInputStateDefault};
   vertexInput.vertexBindingDescriptionCount = bindingsSize;
@@ -212,9 +210,9 @@ void Pipelines::createGraphicsPipeline_Cells(
       .subpass = 0,
       .basePipelineHandle = VK_NULL_HANDLE};
 
-  CE::vulkanResult(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
-                   VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
-                   &pipelineObjects["Cells"].pipeline);
+  CE::VULKAN_RESULT(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
+                    VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
+                    &pipelineObjects["Cells"].pipeline);
   destroyShaderModules(shaderModules);
 }
 
@@ -271,9 +269,9 @@ void Pipelines::createGraphicsPipeline_Landscape(
       .subpass = 0,
       .basePipelineHandle = VK_NULL_HANDLE};
 
-  CE::vulkanResult(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
-                   VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
-                   &pipelineObjects["Landscape"].pipeline);
+  CE::VULKAN_RESULT(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
+                    VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
+                    &pipelineObjects["Landscape"].pipeline);
   destroyShaderModules(shaderModules);
 }
 
@@ -341,7 +339,7 @@ void Pipelines::createGraphicsPipeline_Landscape(
 //       .subpass = 0,
 //       .basePipelineHandle = VK_NULL_HANDLE};
 //
-//   CE::vulkanResult(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
+//   CE::VULKAN_RESULT(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
 //                    VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
 //                    &graphics.landscapeWireframe);
 //   destroyShaderModules(shaderModules);
@@ -401,9 +399,9 @@ void Pipelines::createGraphicsPipeline_Water(
       .subpass = 0,
       .basePipelineHandle = VK_NULL_HANDLE};
 
-  CE::vulkanResult(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
-                   VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
-                   &pipelineObjects["Water"].pipeline);
+  CE::VULKAN_RESULT(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
+                    VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
+                    &pipelineObjects["Water"].pipeline);
   destroyShaderModules(shaderModules);
 }
 
@@ -461,9 +459,9 @@ void Pipelines::createGraphicsPipeline_Texture(
       .subpass = 0,
       .basePipelineHandle = VK_NULL_HANDLE};
 
-  CE::vulkanResult(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
-                   VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
-                   &pipelineObjects["Texture"].pipeline);
+  CE::VULKAN_RESULT(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
+                    VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
+                    &pipelineObjects["Texture"].pipeline);
   destroyShaderModules(shaderModules);
 }
 
@@ -534,9 +532,9 @@ void Pipelines::createComputePipeline_Engine() {
       .stage = shaderStage,
       .layout = compute.layout};
 
-  CE::vulkanResult(vkCreateComputePipelines, _mechanics.mainDevice.logical,
-                   VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
-                   &pipelineObjects["Engine"].pipeline);
+  CE::VULKAN_RESULT(vkCreateComputePipelines, _mechanics.mainDevice.logical,
+                    VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
+                    &pipelineObjects["Engine"].pipeline);
 
   destroyShaderModules(shaderModules);
 }
@@ -552,9 +550,9 @@ void Pipelines::createComputePipeline_PostFX() {
       .stage = shaderStage,
       .layout = compute.layout};
 
-  CE::vulkanResult(vkCreateComputePipelines, _mechanics.mainDevice.logical,
-                   VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
-                   &pipelineObjects["PostFX"].pipeline);
+  CE::VULKAN_RESULT(vkCreateComputePipelines, _mechanics.mainDevice.logical,
+                    VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
+                    &pipelineObjects["PostFX"].pipeline);
 
   destroyShaderModules(shaderModules);
 }
@@ -567,8 +565,8 @@ VkShaderModule Pipelines::createShaderModule(const std::vector<char>& code) {
 
   VkShaderModule shaderModule{};
 
-  CE::vulkanResult(vkCreateShaderModule, _mechanics.mainDevice.logical,
-                   &createInfo, nullptr, &shaderModule);
+  CE::VULKAN_RESULT(vkCreateShaderModule, _mechanics.mainDevice.logical,
+                    &createInfo, nullptr, &shaderModule);
 
   return shaderModule;
 }

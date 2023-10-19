@@ -260,7 +260,7 @@ class Descriptor {
 };
 
 template <typename Checkresult, typename... Args>
-static void vulkanResult(Checkresult vkResult, Args&&... args);
+static void VULKAN_RESULT(Checkresult vkResult, Args&&... args);
 
 static uint32_t findMemoryType(const uint32_t typeFilter,
                                const VkMemoryPropertyFlags properties);
@@ -422,7 +422,7 @@ constexpr static inline VkPipelineTessellationStateCreateInfo
 };  // namespace CE
 
 template <typename Checkresult, typename... Args>
-void CE::vulkanResult(Checkresult vkResult, Args&&... args) {
+void CE::VULKAN_RESULT(Checkresult vkResult, Args&&... args) {
   using ObjectType = std::remove_pointer_t<std::decay_t<Checkresult>>;
   std::string objectName = typeid(ObjectType).name();
 

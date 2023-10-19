@@ -43,7 +43,7 @@ void CE::Device::createLogicalDevice(const InitializeVulkan& initVulkan,
     createInfo.ppEnabledLayerNames = initVulkan.validation.validation.data();
   }
 
-  CE::vulkanResult(vkCreateDevice, physical, &createInfo, nullptr, &logical);
+  CE::VULKAN_RESULT(vkCreateDevice, physical, &createInfo, nullptr, &logical);
 
   vkGetDeviceQueue(logical,
                    queues.familyIndices.graphicsAndComputeFamily.value(), 0,
@@ -186,8 +186,8 @@ void CE::Buffer::create(const VkDeviceSize& size,
   Log::text(Log::Style::charLeader, Log::getMemoryPropertyString(properties));
   Log::text(Log::Style::charLeader, size, "bytes");
 
-  vulkanResult(vkCreateBuffer, baseDevice->logical, &bufferInfo, nullptr,
-               &buffer.buffer);
+  VULKAN_RESULT(vkCreateBuffer, baseDevice->logical, &bufferInfo, nullptr,
+                &buffer.buffer);
 
   VkMemoryRequirements memRequirements;
   vkGetBufferMemoryRequirements(baseDevice->logical, buffer.buffer,
@@ -199,8 +199,8 @@ void CE::Buffer::create(const VkDeviceSize& size,
       .memoryTypeIndex =
           CE::findMemoryType(memRequirements.memoryTypeBits, properties)};
 
-  vulkanResult(vkAllocateMemory, baseDevice->logical, &allocateInfo, nullptr,
-               &buffer.memory);
+  VULKAN_RESULT(vkAllocateMemory, baseDevice->logical, &allocateInfo, nullptr,
+                &buffer.memory);
   vkBindBufferMemory(baseDevice->logical, buffer.buffer, buffer.memory, 0);
 }
 
@@ -249,19 +249,15 @@ void CE::Image::destroyVulkanImages() {
   if (baseDevice && memory) {
     if (sampler != VK_NULL_HANDLE) {
       vkDestroySampler(baseDevice->logical, sampler, nullptr);
-      // sampler = VK_NULL_HANDLE;
     };
     if (view != VK_NULL_HANDLE) {
       vkDestroyImageView(baseDevice->logical, view, nullptr);
-      // view = VK_NULL_HANDLE;
     };
     if (image != VK_NULL_HANDLE) {
       vkDestroyImage(baseDevice->logical, image, nullptr);
-      // image = VK_NULL_HANDLE;
     };
     if (memory != VK_NULL_HANDLE) {
       vkFreeMemory(baseDevice->logical, memory, nullptr);
-      // memory = VK_NULL_HANDLE;
     };
   };
 }
@@ -286,7 +282,7 @@ void CE::Image::create(const uint32_t width,
   info.tiling = tiling;
   info.usage = usage;
 
-  vulkanResult(vkCreateImage, baseDevice->logical, &info, nullptr, &image);
+  VULKAN_RESULT(vkCreateImage, baseDevice->logical, &info, nullptr, &image);
 
   VkMemoryRequirements memRequirements;
   vkGetImageMemoryRequirements(baseDevice->logical, this->image,
@@ -298,8 +294,8 @@ void CE::Image::create(const uint32_t width,
       .memoryTypeIndex =
           findMemoryType(memRequirements.memoryTypeBits, properties)};
 
-  vulkanResult(vkAllocateMemory, baseDevice->logical, &allocateInfo, nullptr,
-               &this->memory);
+  VULKAN_RESULT(vkAllocateMemory, baseDevice->logical, &allocateInfo, nullptr,
+                &this->memory);
   vkBindImageMemory(baseDevice->logical, this->image, this->memory, 0);
 }
 
@@ -317,8 +313,8 @@ void CE::Image::createView(const VkImageAspectFlags aspectFlags) {
                            .baseArrayLayer = 0,
                            .layerCount = 1}};
 
-  vulkanResult(vkCreateImageView, baseDevice->logical, &viewInfo, nullptr,
-               &this->view);
+  VULKAN_RESULT(vkCreateImageView, baseDevice->logical, &viewInfo, nullptr,
+                &this->view);
   return;
 }
 
@@ -541,8 +537,8 @@ void CE::Commands::createCommandPool(
       .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
       .queueFamilyIndex = familyIndices.graphicsAndComputeFamily.value()};
 
-  CE::vulkanResult(vkCreateCommandPool, baseDevice->logical, &poolInfo, nullptr,
-                   &pool);
+  CE::VULKAN_RESULT(vkCreateCommandPool, baseDevice->logical, &poolInfo,
+                    nullptr, &pool);
 }
 
 void CE::Commands::beginSingularCommands(const VkCommandPool& commandPool,
@@ -757,8 +753,8 @@ void CE::Swapchain::create(const VkSurfaceKHR& surface, const Queues& queues) {
     createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
   }
 
-  CE::vulkanResult(vkCreateSwapchainKHR, baseDevice->logical, &createInfo,
-                   nullptr, &swapchain);
+  CE::VULKAN_RESULT(vkCreateSwapchainKHR, baseDevice->logical, &createInfo,
+                    nullptr, &swapchain);
 
   vkGetSwapchainImagesKHR(baseDevice->logical, swapchain, &imageCount, nullptr);
 
@@ -826,16 +822,16 @@ void CE::SynchronizationObjects::create(const int maxFramesInFlight) {
                               .flags = VK_FENCE_CREATE_SIGNALED_BIT};
 
   for (size_t i = 0; i < maxFramesInFlight; i++) {
-    CE::vulkanResult(vkCreateSemaphore, baseDevice->logical, &semaphoreInfo,
-                     nullptr, &imageAvailableSemaphores[i]);
-    CE::vulkanResult(vkCreateSemaphore, baseDevice->logical, &semaphoreInfo,
-                     nullptr, &renderFinishedSemaphores[i]);
-    CE::vulkanResult(vkCreateFence, baseDevice->logical, &fenceInfo, nullptr,
-                     &graphicsInFlightFences[i]);
-    CE::vulkanResult(vkCreateSemaphore, baseDevice->logical, &semaphoreInfo,
-                     nullptr, &computeFinishedSemaphores[i]);
-    CE::vulkanResult(vkCreateFence, baseDevice->logical, &fenceInfo, nullptr,
-                     &computeInFlightFences[i]);
+    CE::VULKAN_RESULT(vkCreateSemaphore, baseDevice->logical, &semaphoreInfo,
+                      nullptr, &imageAvailableSemaphores[i]);
+    CE::VULKAN_RESULT(vkCreateSemaphore, baseDevice->logical, &semaphoreInfo,
+                      nullptr, &renderFinishedSemaphores[i]);
+    CE::VULKAN_RESULT(vkCreateFence, baseDevice->logical, &fenceInfo, nullptr,
+                      &graphicsInFlightFences[i]);
+    CE::VULKAN_RESULT(vkCreateSemaphore, baseDevice->logical, &semaphoreInfo,
+                      nullptr, &computeFinishedSemaphores[i]);
+    CE::VULKAN_RESULT(vkCreateFence, baseDevice->logical, &fenceInfo, nullptr,
+                      &computeInFlightFences[i]);
   }
 }
 
@@ -910,13 +906,13 @@ void CE::InitializeVulkan::createInstance() {
     createInfo.pNext = &debugCreateInfo;
   }
 
-  CE::vulkanResult(vkCreateInstance, &createInfo, nullptr, &instance);
+  CE::VULKAN_RESULT(vkCreateInstance, &createInfo, nullptr, &instance);
 }
 
 void CE::InitializeVulkan::createSurface(GLFWwindow* window) {
   Log::text("{ [ ] }", "Surface");
-  CE::vulkanResult(glfwCreateWindowSurface, instance, window, nullptr,
-                   &surface);
+  CE::VULKAN_RESULT(glfwCreateWindowSurface, instance, window, nullptr,
+                    &surface);
 }
 
 std::vector<const char*> CE::InitializeVulkan::getRequiredExtensions() {
