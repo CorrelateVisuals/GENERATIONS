@@ -161,10 +161,13 @@ void Pipelines::createGraphicsPipeline_Cells(
   std::vector<VkPipelineShaderStageCreateInfo> shaderStages{
       setShaderStage(VK_SHADER_STAGE_VERTEX_BIT, "CellsVert.spv"),
       setShaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, "CellsFrag.spv")};
+
+
   static auto bindings = World::Cell::getBindingDescription();
   static auto attributes = World::Cell::getAttributeDescriptions();
   uint32_t bindingsSize = static_cast<uint32_t>(bindings.size());
   uint32_t attributeSize = static_cast<uint32_t>(attributes.size());
+
 
   VkPipelineVertexInputStateCreateInfo vertexInput{CE::vertexInputStateDefault};
   vertexInput.vertexBindingDescriptionCount = bindingsSize;
@@ -222,7 +225,7 @@ void Pipelines::createGraphicsPipeline_Landscape(
   std::vector<VkPipelineShaderStageCreateInfo> shaderStages = {
       setShaderStage(VK_SHADER_STAGE_VERTEX_BIT, "LandscapeVert.spv"),
       setShaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, "LandscapeFrag.spv")};
-  static auto bindings = World::Landscape::Vertex::getBindingDescription();
+  static auto bindings = World::Landscape::getBindingDescription();
   static auto attributes = World::Landscape::getAttributeDescriptions();
   uint32_t bindingsSize = static_cast<uint32_t>(bindings.size());
   uint32_t attributeSize = static_cast<uint32_t>(attributes.size());
@@ -350,7 +353,7 @@ void Pipelines::createGraphicsPipeline_Water(
       setShaderStage(VK_SHADER_STAGE_VERTEX_BIT, "WaterVert.spv"),
       setShaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, "WaterFrag.spv")};
 
-  static auto bindings = World::Rectangle::Vertex::getBindingDescription();
+  static auto bindings = World::Rectangle::getBindingDescription();
   static auto attributes = World::Rectangle::Vertex::getAttributeDescriptions();
   uint32_t bindingsSize = static_cast<uint32_t>(bindings.size());
   uint32_t attributeSize = static_cast<uint32_t>(attributes.size());
@@ -410,8 +413,8 @@ void Pipelines::createGraphicsPipeline_Texture(
       setShaderStage(VK_SHADER_STAGE_VERTEX_BIT, "TextureVert.spv"),
       setShaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, "TextureFrag.spv")};
 
-  static auto bindings = World::Rectangle::Vertex::getBindingDescription();
-  static auto attributes = World::Rectangle::Vertex::getAttributeDescriptions();
+  static auto bindings = World::Rectangle::getBindingDescription();
+  static auto attributes = World::Rectangle::getAttributeDescriptions();
   uint32_t bindingsSize = static_cast<uint32_t>(bindings.size());
   uint32_t attributeSize = static_cast<uint32_t>(attributes.size());
 

@@ -16,17 +16,8 @@
 
 const enum ORIENTATION_ORDER { ROTATE_SCALE_TRANSLATE, ROTATE_TRANSLATE_SCALE };
 
-class Geometry {
- public:
-  Geometry(const std::string& modelName = "");
-  ~Geometry() = default;
-
-  struct VertexBuffer : public CE::Buffer {
-  } vertexBuffer;
-  struct IndexBuffer : public CE::Buffer {
-  } indexBuffer;
-
-  struct Vertex {
+class Vertex {
+public:
     glm::vec3 instancePosition;
     glm::vec3 vertexPosition;
     glm::vec3 normal;
@@ -35,17 +26,27 @@ class Geometry {
 
     static std::vector<VkVertexInputBindingDescription> getBindingDescription();
     static std::vector<VkVertexInputAttributeDescription>
-    getAttributeDescriptions();
+        getAttributeDescriptions();
 
     bool operator==(const Vertex& other) const {
-      return vertexPosition == other.vertexPosition && color == other.color &&
-             textureCoordinates == other.textureCoordinates &&
-             normal == other.normal;
+        return vertexPosition == other.vertexPosition && color == other.color &&
+            textureCoordinates == other.textureCoordinates &&
+            normal == other.normal;
     }
-  };
+};
+
+class Geometry : public Vertex{
+ public:
+  Geometry(const std::string& modelName = "");
+  virtual ~Geometry() = default;
   std::vector<Vertex> allVertices;
   std::vector<Vertex> uniqueVertices;
   std::vector<uint32_t> indices;
+
+  struct VertexBuffer : public CE::Buffer {
+  } vertexBuffer;
+  struct IndexBuffer : public CE::Buffer {
+  } indexBuffer;
 
   void addVertexPosition(const glm::vec3& position);
   static std::vector<uint32_t> createGridPolygons(

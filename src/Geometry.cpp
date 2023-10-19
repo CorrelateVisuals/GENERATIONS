@@ -7,27 +7,27 @@
 #include <iostream>
 
 std::vector<VkVertexInputBindingDescription>
-Geometry::Vertex::getBindingDescription() {
+Vertex::getBindingDescription() {
   std::vector<VkVertexInputBindingDescription> bindingDescriptions{
-      {0, sizeof(Geometry::Vertex), VK_VERTEX_INPUT_RATE_VERTEX}};
+      {0, sizeof(Vertex), VK_VERTEX_INPUT_RATE_VERTEX}};
   return bindingDescriptions;
 }
 
 std::vector<VkVertexInputAttributeDescription>
-Geometry::Vertex::getAttributeDescriptions() {
+Vertex::getAttributeDescriptions() {
   std::vector<VkVertexInputAttributeDescription> attributeDescriptions{
       {0, 0, VK_FORMAT_R32G32B32_SFLOAT,
-       static_cast<uint32_t>(offsetof(Geometry::Vertex, vertexPosition))},
+       static_cast<uint32_t>(offsetof(Vertex, vertexPosition))},
       {1, 0, VK_FORMAT_R32G32B32_SFLOAT,
-       static_cast<uint32_t>(offsetof(Geometry::Vertex, color))},
+       static_cast<uint32_t>(offsetof(Vertex, color))},
       {2, 0, VK_FORMAT_R32G32_SFLOAT,
-       static_cast<uint32_t>(offsetof(Geometry::Vertex, textureCoordinates))}};
+       static_cast<uint32_t>(offsetof(Vertex, textureCoordinates))}};
   return attributeDescriptions;
 }
 
 template <>
-struct std::hash<Geometry::Vertex> {
-  size_t operator()(const Geometry::Vertex& vertex) const {
+struct std::hash<Vertex> {
+  size_t operator()(const Vertex& vertex) const {
     return ((std::hash<glm::vec3>()(vertex.instancePosition) ^
              (std::hash<glm::vec3>()(vertex.vertexPosition) << 1) ^
              (std::hash<glm::vec3>()(vertex.normal) << 2) ^
@@ -101,11 +101,11 @@ void Geometry::loadModel(const std::string& modelName, Geometry& geometry) {
     return;
   }
 
-  std::unordered_map<Geometry::Vertex, uint32_t> tempUniqueVertices;
+  std::unordered_map<Vertex, uint32_t> tempUniqueVertices;
 
   for (const auto& shape : shapes) {
     for (const auto& index : shape.mesh.indices) {
-      Geometry::Vertex vertex{};
+      Vertex vertex{};
 
       vertex.vertexPosition = {attrib.vertices[3 * index.vertex_index + 0],
                                attrib.vertices[3 * index.vertex_index + 1],
