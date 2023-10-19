@@ -35,7 +35,7 @@ class World {
     const float size = 0.5f;
   } cube;
 
-  struct Cell {
+  struct alignas(16) Cell{
     glm::vec4 instancePosition;
     glm::vec4 vertexPosition;
     glm::vec4 normal;
