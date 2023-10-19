@@ -12,8 +12,6 @@ VkCommandBuffer CE::Commands::singularCommandBuffer = VK_NULL_HANDLE;
 void CE::Device::createLogicalDevice(const InitializeVulkan& initVulkan,
                                      Queues& queues) {
   Log::text("{ +++ }", "Logical Device");
-  // Queues::FamilyIndices indices =
-  //     findQueueFamilies(mainDevice.physical, surface);
 
   std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
   std::set<uint32_t> uniqueQueueFamilies = {
@@ -57,7 +55,6 @@ void CE::Device::createLogicalDevice(const InitializeVulkan& initVulkan,
                    &queues.present);
 }
 
-// template <typename SC>
 void CE::Device::pickPhysicalDevice(const InitializeVulkan& initVulkan,
                                     Queues& queues,
                                     Swapchain& swapchain) {
@@ -76,7 +73,7 @@ void CE::Device::pickPhysicalDevice(const InitializeVulkan& initVulkan,
   for (const auto& device : devices) {
     if (isDeviceSuitable(device, queues, initVulkan, swapchain)) {
       physical = device;
-      getMaxUsableSampleCount(physical);
+      getMaxUsableSampleCount();
       break;
     }
   }
@@ -109,7 +106,7 @@ bool CE::Device::isDeviceSuitable(const VkPhysicalDevice& physical,
          swapchainAdequate;
 }
 
-void CE::Device::getMaxUsableSampleCount(const VkPhysicalDevice& physical) {
+void CE::Device::getMaxUsableSampleCount() {
   vkGetPhysicalDeviceProperties(physical, &properties);
   VkSampleCountFlags counts = properties.limits.framebufferColorSampleCounts &
                               properties.limits.framebufferDepthSampleCounts;

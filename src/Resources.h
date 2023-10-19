@@ -72,7 +72,9 @@ class Resources {
 
  public:
   void setupResources(Pipelines& _pipelines);
+
   void createFramebuffers(Pipelines& _pipelines);
+
   void updateUniformBuffer(uint32_t currentImage);
 
   void createDescriptorSetLayout(

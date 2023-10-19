@@ -13,6 +13,8 @@
 #include <vector>
 
 namespace CE {
+class Swapchain;
+
 // Mechanics
 class Queues {
  public:
@@ -37,7 +39,7 @@ class Queues {
 class InitializeVulkan {
  public:
   InitializeVulkan();
-  ~InitializeVulkan();
+  virtual ~InitializeVulkan();
   VkSurfaceKHR surface;
   VkInstance instance;
   ValidationLayers validation;
@@ -47,8 +49,6 @@ class InitializeVulkan {
   void createSurface(GLFWwindow* window);
   std::vector<const char*> getRequiredExtensions();
 };
-
-class Swapchain;
 
 class Device {
  public:
@@ -74,7 +74,7 @@ class Device {
                         Queues& queues,
                         const InitializeVulkan& initVulkan,
                         Swapchain& swapchain);
-  void getMaxUsableSampleCount(const VkPhysicalDevice& physical);
+  void getMaxUsableSampleCount();
   bool checkDeviceExtensionSupport(const VkPhysicalDevice& physical);
   static std::vector<VkDevice> destroyedDevices;
 };
