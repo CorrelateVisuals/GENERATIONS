@@ -36,7 +36,7 @@ class Vertex {
   };
   union{
     glm::vec2 textureCoordinates;
-    glm::ivec4 textureCoordinates_16bytes;
+    glm::ivec4 states_16bytes;
   };
 
   static std::vector<VkVertexInputBindingDescription> getBindingDescription();
