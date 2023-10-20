@@ -35,12 +35,12 @@ class World {
     const float size = 0.5f;
   } cube;
 
-  struct alignas(16) Cell{
-    glm::vec4 instancePosition;
-    glm::vec4 vertexPosition;
-    glm::vec4 normal;
-    glm::vec4 color;
-    glm::ivec4 states;
+  struct alignas(16) Cell : public Vertex{
+    using Vertex::instancePosition_16bytes;
+    using Vertex::vertexPosition_16bytes;
+    using Vertex::normal_16bytes;
+    using Vertex::color_16bytes;
+    using Vertex::states_16bytes;
 
     static std::vector<VkVertexInputBindingDescription> getBindingDescription();
     static std::vector<VkVertexInputAttributeDescription>
