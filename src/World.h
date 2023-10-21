@@ -1,7 +1,7 @@
 #pragma once
 #include "Geometry.h"
-#include "Timer.h"
 #include "Library.h"
+#include "Timer.h"
 
 #include <algorithm>
 #include <array>
@@ -35,12 +35,12 @@ class World {
     const float size = 0.5f;
   } cube;
 
-  struct alignas(16) Cell : public Vertex{
-    using Vertex::instancePosition_16bytes;
-    using Vertex::vertexPosition_16bytes;
-    using Vertex::normal_16bytes;
+  struct alignas(16) Cell : public Vertex {
     using Vertex::color_16bytes;
+    using Vertex::instancePosition_16bytes;
+    using Vertex::normal_16bytes;
     using Vertex::states_16bytes;
+    using Vertex::vertexPosition_16bytes;
 
     static std::vector<VkVertexInputBindingDescription> getBindingDescription();
     static std::vector<VkVertexInputAttributeDescription>

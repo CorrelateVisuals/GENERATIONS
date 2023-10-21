@@ -98,8 +98,8 @@ class Resources {
 
   void createVertexBuffers(
       const std::unordered_map<Geometry*, VkVertexInputRate>& buffers);
-  void createVertexBuffer(CE::Buffer& buffer,const auto& vertices);
-  void createIndexBuffer(CE::Buffer& buffer,const auto& indices);
+  void createVertexBuffer(CE::Buffer& buffer, const auto& vertices);
+  void createIndexBuffer(CE::Buffer& buffer, const auto& indices);
   void createShaderStorageBuffers();
   void createUniformBuffers();
   void setPushConstants();
