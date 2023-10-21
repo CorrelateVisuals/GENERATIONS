@@ -12,7 +12,7 @@ Pipelines::Pipelines(VulkanMechanics& mechanics, Resources& resources)
     : compute{}, _mechanics(mechanics), _resources(resources) {
   Log::text("{ === }", "constructing Pipelines");
 
-  compileShaders();
+  compileShaders(pipelineConfig);
 }
 
 Pipelines::~Pipelines() {
@@ -39,7 +39,8 @@ void Pipelines::setupPipelines(Resources& _resources) {
   createRenderPass(_resources);
   createGraphicsPipeline_Layout(_resources.descriptor);
 
-  CE::Pipeline::constructPipelinesFromShaders(pipelineObjects, shaders);
+  // CE::Pipeline::constructPipelinesFromShaders(pipelineObjects,
+  // pipelineConfig);
 
   createGraphicsPipeline_Cells(_resources.msaaImage.info.samples);
   createGraphicsPipeline_Landscape(_resources.msaaImage.info.samples);
@@ -489,19 +490,27 @@ VkPipelineShaderStageCreateInfo Pipelines::setShaderStage(
   return shaderStageInfo;
 }
 
-void Pipelines::compileShaders() {
+void Pipelines::compileShaders(const auto& pipelineConfig) {
   Log::text("{ GLSL }", "Compile Shaders");
 
   std::string systemCommand = "";
-  for (const auto& name : shaders) {
-    for (const auto& shader : name.second) {
-      std::string shaderExtension = Lib::upperToLowerCase(shader);
-      systemCommand =
-          Lib::path(shaderDir + name.first + "." + shaderExtension + " -o " +
-                    shaderDir + name.first + shader + ".spv");
-      system(systemCommand.c_str());
+  for (const auto& [pipelineName, pipelineConfig] : pipelineConfig) {
+    const auto& [shaderExtensions, randomInt] = pipelineConfig;
+    Log::text(" ", pipelineName, randomInt);
+
+    for (const auto& shader : shaderExtensions) {
+      Log::text(" ", shader);
     }
   }
+  // for (const auto& pipeline : pipelineConfig) {
+  //   for (const auto& shader : pipeline.second) {
+  //     std::string shaderExtension = Lib::upperToLowerCase(shader);
+  //     systemCommand =
+  //         Lib::path(shaderDir + pipeline.first + "." + shaderExtension +
+  //                   " -o " + shaderDir + pipeline.first + shader + ".spv");
+  //     system(systemCommand.c_str());
+  //   }
+  // }
 }
 
 std::vector<char> Pipelines::readShaderFile(const std::string& filename) {

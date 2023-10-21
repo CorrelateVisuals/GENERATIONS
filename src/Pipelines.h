@@ -4,6 +4,8 @@
 #include "Mechanics.h"
 #include "Resources.h"
 
+#include <tuple>
+
 class VulkanMechanics;
 class Resources;
 
@@ -15,13 +17,14 @@ class Pipelines {
   Resources& _resources;
 
   const std::string shaderDir = "shaders/";
-  const std::unordered_map<std::string, std::vector<std::string>> shaders = {
-      {"Engine", {"Comp"}},
-      {"Cells", {"Vert", "Frag"}},
-      {"Landscape", {"Vert", "Tesc", "Tese", "Frag"}},
-      {"Water", {"Vert", "Frag"}},
-      {"Texture", {"Vert", "Frag"}},
-      {"PostFX", {"Comp"}}};
+  const std::unordered_map<std::string,
+                           std::tuple<std::vector<std::string>, int>>
+      pipelineConfig = {{"Engine", {{"Comp"}, 1}},
+                        {"Cells", {{"Vert", "Frag"}, 1}},
+                        {"Landscape", {{"Vert", "Tesc", "Tese", "Frag"}, 1}},
+                        {"Water", {{"Vert", "Frag"}, 1}},
+                        {"Texture", {{"Vert", "Frag"}, 1}},
+                        {"PostFX", {{"Comp"}, 1}}};
   std::vector<VkShaderModule> shaderModules;
   std::unordered_map<std::string, CE::Pipeline> pipelineObjects;
 
@@ -59,7 +62,7 @@ class Pipelines {
 
   bool hasStencilComponent(VkFormat format);
 
-  void compileShaders();
+  void compileShaders(const auto& pipelineConfig);
   static std::vector<char> readShaderFile(const std::string& filename);
   VkShaderModule createShaderModule(const std::vector<char>& code);
   void destroyShaderModules(std::vector<VkShaderModule>& shaderModules);
