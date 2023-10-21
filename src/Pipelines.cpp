@@ -498,7 +498,7 @@ void Pipelines::compileShaders(const auto& pipelineConfig) {
 
   for (const auto& pipeline : pipelineConfig) {
     pipelineName = pipeline.first;
-    auto& [shaderExtensions, randomInt] = pipeline.second;
+    const auto& [shaderExtensions, randomInt] = pipeline.second;
 
     for (const auto& shader : shaderExtensions) {
       shaderExtension = Lib::upperToLowerCase(shader);
