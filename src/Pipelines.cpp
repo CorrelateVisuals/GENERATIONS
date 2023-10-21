@@ -492,25 +492,22 @@ VkPipelineShaderStageCreateInfo Pipelines::setShaderStage(
 
 void Pipelines::compileShaders(const auto& pipelineConfig) {
   Log::text("{ GLSL }", "Compile Shaders");
-
   std::string systemCommand = "";
-  for (const auto& [pipelineName, pipelineConfig] : pipelineConfig) {
-    const auto& [shaderExtensions, randomInt] = pipelineConfig;
-    Log::text(" ", pipelineName, randomInt);
+  std::string shaderExtension = "";
+  std::string pipelineName = "";
+
+  for (const auto& pipeline : pipelineConfig) {
+    pipelineName = pipeline.first;
+    auto& [shaderExtensions, randomInt] = pipeline.second;
 
     for (const auto& shader : shaderExtensions) {
-      Log::text(" ", shader);
+      shaderExtension = Lib::upperToLowerCase(shader);
+      systemCommand =
+          Lib::path(shaderDir + pipelineName + "." + shaderExtension + " -o " +
+                    shaderDir + pipelineName + shader + ".spv");
+      system(systemCommand.c_str());
     }
   }
-  // for (const auto& pipeline : pipelineConfig) {
-  //   for (const auto& shader : pipeline.second) {
-  //     std::string shaderExtension = Lib::upperToLowerCase(shader);
-  //     systemCommand =
-  //         Lib::path(shaderDir + pipeline.first + "." + shaderExtension +
-  //                   " -o " + shaderDir + pipeline.first + shader + ".spv");
-  //     system(systemCommand.c_str());
-  //   }
-  // }
 }
 
 std::vector<char> Pipelines::readShaderFile(const std::string& filename) {
