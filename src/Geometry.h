@@ -22,26 +22,25 @@ class Vertex {
     glm::vec3 instancePosition;
     glm::vec4 instancePosition_16bytes;
   };
-  union{
+  union {
     glm::vec3 vertexPosition;
     glm::vec4 vertexPosition_16bytes;
   };
-  union{
+  union {
     glm::vec3 normal;
     glm::vec4 normal_16bytes;
   };
-  union{
+  union {
     glm::vec3 color;
     glm::vec4 color_16bytes;
   };
-  union{
+  union {
     glm::vec2 textureCoordinates;
     glm::ivec4 states_16bytes;
   };
 
-  static std::vector<VkVertexInputBindingDescription> getBindingDescription();
-  static std::vector<VkVertexInputAttributeDescription>
-  getAttributeDescriptions();
+  std::vector<VkVertexInputBindingDescription> getBindingDescription();
+  std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions();
 
   bool operator==(const Vertex& other) const {
     return vertexPosition == other.vertexPosition && color == other.color &&
@@ -76,3 +75,6 @@ class Geometry : public Vertex {
                       const glm::vec3& translationDistance = glm::vec3(0.0f),
                       float scale = 1.0f);
 };
+
+struct NoVertexData : public Vertex {
+} inline NO_VERTEX_DATA;

@@ -45,7 +45,7 @@ class World {
     static std::vector<VkVertexInputBindingDescription> getBindingDescription();
     static std::vector<VkVertexInputAttributeDescription>
     getAttributeDescriptions();
-  };
+  } cell;
 
   struct UniformBufferObject {
     glm::vec4 light;

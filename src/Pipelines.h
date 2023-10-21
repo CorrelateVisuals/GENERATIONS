@@ -18,16 +18,25 @@ class Pipelines {
 
   const std::string shaderDir = "shaders/";
 
-  using PipelineTuple = std::tuple<std::vector<std::string>, VkPipeline>;
+  // using PipelineTuple = std::tuple<std::vector<std::string>, VkPipeline>;
+  // using PipelineConfiguration = std::unordered_map<std::string,
+  // PipelineTuple>;
+
+  using PipelineTuple =
+      std::tuple<std::vector<std::string>, VkPipeline, Vertex>;
   using PipelineConfiguration = std::unordered_map<std::string, PipelineTuple>;
 
   PipelineConfiguration pipelineConfig = {
-      {"Engine", {{"Comp"}, VK_NULL_HANDLE}},
-      {"Cells", {{"Vert", "Frag"}, VK_NULL_HANDLE}},
-      {"Landscape", {{"Vert", "Tesc", "Tese", "Frag"}, VK_NULL_HANDLE}},
-      {"Water", {{"Vert", "Frag"}, VK_NULL_HANDLE}},
-      {"Texture", {{"Vert", "Frag"}, VK_NULL_HANDLE}},
-      {"PostFX", {{"Comp"}, VK_NULL_HANDLE}}};
+      {"Engine", {{"Comp"}, VK_NULL_HANDLE, NO_VERTEX_DATA}},
+      {"Cells", {{"Vert", "Frag"}, VK_NULL_HANDLE, _resources.world.cell}},
+      {"Landscape",
+       {{"Vert", "Tesc", "Tese", "Frag"},
+        VK_NULL_HANDLE,
+        _resources.world.landscape}},
+      {"Water", {{"Vert", "Frag"}, VK_NULL_HANDLE, _resources.world.rectangle}},
+      {"Texture",
+       {{"Vert", "Frag"}, VK_NULL_HANDLE, _resources.world.rectangle}},
+      {"PostFX", {{"Comp"}, VK_NULL_HANDLE, NO_VERTEX_DATA}}};
   std::vector<VkShaderModule> shaderModules;
 
   VkPipeline& getVkPipelineObjectByName(const std::string& pipeline) {
@@ -35,6 +44,9 @@ class Pipelines {
     VkPipeline& pipelineHandle = std::get<VkPipeline>(currentPipeline);
     return pipelineHandle;
   }
+
+  static void constructPipelinesFromShaders(
+      PipelineConfiguration& pipelineConfig);
 
   ;
   //  std::unordered_map<std::string, CE::Pipeline> pipelineObjects;
@@ -61,7 +73,8 @@ class Pipelines {
       const Resources::DescriptorSets& _descriptorSets,
       const Resources::PushConstants& _pushConstants);
 
-  void createGraphicsPipeline_Cells(VkSampleCountFlagBits& msaaSamples);
+  void createGraphicsPipeline_Cells(PipelineConfiguration& pipelineConfig,
+                                    VkSampleCountFlagBits& msaaSamples);
   void createGraphicsPipeline_Landscape(VkSampleCountFlagBits& msaaSamples);
   // void createGraphicsPipeline_LandscapeWireframe(
   //     VkSampleCountFlagBits& msaaSamples);

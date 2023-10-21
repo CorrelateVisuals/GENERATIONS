@@ -927,16 +927,3 @@ std::vector<const char*> CE::InitializeVulkan::getRequiredExtensions() {
   }
   return extensions;
 }
-
-void CE::Pipeline::constructPipelinesFromShaders(
-    PipelineConfiguration& pipelineConfig) {
-  std::string pipelineName = "";
-  for (auto& entry : pipelineConfig) {
-    pipelineName = entry.first;
-    auto& [shaderExtensions, pipeline] = entry.second;
-
-    VkPipeline newPipeline{VK_NULL_HANDLE};
-    pipeline = newPipeline;
-  }
-  return;
-};

@@ -221,15 +221,12 @@ class Swapchain {
 // Pipelines
 class Pipeline {
  public:
-  std::string name;
-  std::vector<std::string> shaders;
-  VkPipeline pipeline;
-  // std::array<uint32_t, 3> workGroups;
-
-  using PipelineTuple = std::tuple<std::vector<std::string>, VkPipeline>;
-  using PipelineConfiguration = std::unordered_map<std::string, PipelineTuple>;
-  static void constructPipelinesFromShaders(
-      PipelineConfiguration& pipelineConfig);
+  Pipeline() = default;
+  virtual ~Pipeline() = default;
+  // std::string name;
+  // std::vector<std::string> shaders;
+  // VkPipeline pipeline;
+  //  std::array<uint32_t, 3> workGroups;
 };
 
 class PipelineLayout {
