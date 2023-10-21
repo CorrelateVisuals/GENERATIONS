@@ -17,16 +17,27 @@ class Pipelines {
   Resources& _resources;
 
   const std::string shaderDir = "shaders/";
-  const std::unordered_map<std::string,
-                           std::tuple<std::vector<std::string>, int>>
-      pipelineConfig = {{"Engine", {{"Comp"}, 1}},
-                        {"Cells", {{"Vert", "Frag"}, 1}},
-                        {"Landscape", {{"Vert", "Tesc", "Tese", "Frag"}, 1}},
-                        {"Water", {{"Vert", "Frag"}, 1}},
-                        {"Texture", {{"Vert", "Frag"}, 1}},
-                        {"PostFX", {{"Comp"}, 1}}};
+
+  using PipelineTuple = std::tuple<std::vector<std::string>, VkPipeline>;
+  using PipelineConfiguration = std::unordered_map<std::string, PipelineTuple>;
+
+  PipelineConfiguration pipelineConfig = {
+      {"Engine", {{"Comp"}, VK_NULL_HANDLE}},
+      {"Cells", {{"Vert", "Frag"}, VK_NULL_HANDLE}},
+      {"Landscape", {{"Vert", "Tesc", "Tese", "Frag"}, VK_NULL_HANDLE}},
+      {"Water", {{"Vert", "Frag"}, VK_NULL_HANDLE}},
+      {"Texture", {{"Vert", "Frag"}, VK_NULL_HANDLE}},
+      {"PostFX", {{"Comp"}, VK_NULL_HANDLE}}};
   std::vector<VkShaderModule> shaderModules;
-  std::unordered_map<std::string, CE::Pipeline> pipelineObjects;
+
+  VkPipeline& getVkPipelineObjectByName(const std::string& pipeline) {
+    PipelineTuple& currentPipeline = pipelineConfig.at(pipeline);
+    VkPipeline& pipelineHandle = std::get<VkPipeline>(currentPipeline);
+    return pipelineHandle;
+  }
+
+  ;
+  //  std::unordered_map<std::string, CE::Pipeline> pipelineObjects;
 
   struct Compute : public CE::PipelineLayout {
     const std::array<uint32_t, 3> workGroups{32, 32, 1};

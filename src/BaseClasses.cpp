@@ -929,12 +929,14 @@ std::vector<const char*> CE::InitializeVulkan::getRequiredExtensions() {
 }
 
 void CE::Pipeline::constructPipelinesFromShaders(
-    std::unordered_map<std::string, CE::Pipeline>& pipelineObjects,
-    const std::unordered_map<std::string, std::vector<std::string>> shaders) {
-  for (const auto& entry : shaders) {
-    CE::Pipeline newPipeline;
-    newPipeline.name = entry.first;
-    newPipeline.shaders = entry.second;
-    pipelineObjects[entry.first] = newPipeline;
+    PipelineConfiguration& pipelineConfig) {
+  std::string pipelineName = "";
+  for (auto& entry : pipelineConfig) {
+    pipelineName = entry.first;
+    auto& [shaderExtensions, pipeline] = entry.second;
+
+    VkPipeline newPipeline{VK_NULL_HANDLE};
+    pipeline = newPipeline;
   }
+  return;
 };

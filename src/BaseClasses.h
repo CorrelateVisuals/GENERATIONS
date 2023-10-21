@@ -226,9 +226,10 @@ class Pipeline {
   VkPipeline pipeline;
   // std::array<uint32_t, 3> workGroups;
 
+  using PipelineTuple = std::tuple<std::vector<std::string>, VkPipeline>;
+  using PipelineConfiguration = std::unordered_map<std::string, PipelineTuple>;
   static void constructPipelinesFromShaders(
-      std::unordered_map<std::string, CE::Pipeline>& pipelineObjects,
-      const std::unordered_map<std::string, std::vector<std::string>> shaders);
+      PipelineConfiguration& pipelineConfig);
 };
 
 class PipelineLayout {

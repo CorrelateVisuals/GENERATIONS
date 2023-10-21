@@ -18,9 +18,9 @@ Pipelines::Pipelines(VulkanMechanics& mechanics, Resources& resources)
 Pipelines::~Pipelines() {
   Log::text("{ === }", "destructing Pipelines");
 
-  for (const auto& pipeline : pipelineObjects) {
-    vkDestroyPipeline(_mechanics.mainDevice.logical,
-                      pipelineObjects[pipeline.first].pipeline, nullptr);
+  for (auto& pipeline : pipelineConfig) {
+    VkPipeline& pipelineObject = getVkPipelineObjectByName(pipeline.first);
+    vkDestroyPipeline(_mechanics.mainDevice.logical, pipelineObject, nullptr);
   }
 
   vkDestroyPipelineLayout(_mechanics.mainDevice.logical, graphics.layout,
@@ -39,8 +39,7 @@ void Pipelines::setupPipelines(Resources& _resources) {
   createRenderPass(_resources);
   createGraphicsPipeline_Layout(_resources.descriptor);
 
-  // CE::Pipeline::constructPipelinesFromShaders(pipelineObjects,
-  // pipelineConfig);
+  CE::Pipeline::constructPipelinesFromShaders(pipelineConfig);
 
   createGraphicsPipeline_Cells(_resources.msaaImage.info.samples);
   createGraphicsPipeline_Landscape(_resources.msaaImage.info.samples);
@@ -213,7 +212,7 @@ void Pipelines::createGraphicsPipeline_Cells(
 
   CE::VULKAN_RESULT(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
                     VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
-                    &pipelineObjects["Cells"].pipeline);
+                    &getVkPipelineObjectByName("Cells"));
   destroyShaderModules(shaderModules);
 }
 
@@ -272,7 +271,7 @@ void Pipelines::createGraphicsPipeline_Landscape(
 
   CE::VULKAN_RESULT(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
                     VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
-                    &pipelineObjects["Landscape"].pipeline);
+                    &getVkPipelineObjectByName("Landscape"));
   destroyShaderModules(shaderModules);
 }
 
@@ -402,7 +401,7 @@ void Pipelines::createGraphicsPipeline_Water(
 
   CE::VULKAN_RESULT(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
                     VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
-                    &pipelineObjects["Water"].pipeline);
+                    &getVkPipelineObjectByName("Water"));
   destroyShaderModules(shaderModules);
 }
 
@@ -462,7 +461,7 @@ void Pipelines::createGraphicsPipeline_Texture(
 
   CE::VULKAN_RESULT(vkCreateGraphicsPipelines, _mechanics.mainDevice.logical,
                     VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
-                    &pipelineObjects["Texture"].pipeline);
+                    &getVkPipelineObjectByName("Texture"));
   destroyShaderModules(shaderModules);
 }
 
@@ -498,7 +497,7 @@ void Pipelines::compileShaders(const auto& pipelineConfig) {
 
   for (const auto& pipeline : pipelineConfig) {
     pipelineName = pipeline.first;
-    const auto& [shaderExtensions, randomInt] = pipeline.second;
+    const auto& [shaderExtensions, pipeline] = pipeline.second;
 
     for (const auto& shader : shaderExtensions) {
       shaderExtension = Lib::upperToLowerCase(shader);
@@ -540,7 +539,7 @@ void Pipelines::createComputePipeline_Engine() {
 
   CE::VULKAN_RESULT(vkCreateComputePipelines, _mechanics.mainDevice.logical,
                     VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
-                    &pipelineObjects["Engine"].pipeline);
+                    &getVkPipelineObjectByName("Engine"));
 
   destroyShaderModules(shaderModules);
 }
@@ -558,7 +557,7 @@ void Pipelines::createComputePipeline_PostFX() {
 
   CE::VULKAN_RESULT(vkCreateComputePipelines, _mechanics.mainDevice.logical,
                     VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
-                    &pipelineObjects["PostFX"].pipeline);
+                    &getVkPipelineObjectByName("PostFX"));
 
   destroyShaderModules(shaderModules);
 }
