@@ -274,8 +274,10 @@ void Pipelines::createGraphicsPipeline_Landscape(
   std::vector<VkPipelineShaderStageCreateInfo> shaderStages = {
       setShaderStage(VK_SHADER_STAGE_VERTEX_BIT, "LandscapeVert.spv"),
       setShaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, "LandscapeFrag.spv")};
-  static auto bindings = World::Landscape::getBindingDescription();
-  static auto attributes = World::Landscape::getAttributeDescriptions();
+
+  World::Landscape landscape;
+  static auto bindings = landscape.getBindingDescription();
+  static auto attributes = landscape.getAttributeDescriptions();
   uint32_t bindingsSize = static_cast<uint32_t>(bindings.size());
   uint32_t attributeSize = static_cast<uint32_t>(attributes.size());
 
@@ -404,8 +406,9 @@ void Pipelines::createGraphicsPipeline_Water(
       setShaderStage(VK_SHADER_STAGE_VERTEX_BIT, "WaterVert.spv"),
       setShaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, "WaterFrag.spv")};
 
-  static auto bindings = World::Rectangle::getBindingDescription();
-  static auto attributes = World::Rectangle::Vertex::getAttributeDescriptions();
+  World::Rectangle rectangle;
+  static auto bindings = rectangle.getBindingDescription();       // rectangle
+  static auto attributes = rectangle.getAttributeDescriptions();  // vertex
   uint32_t bindingsSize = static_cast<uint32_t>(bindings.size());
   uint32_t attributeSize = static_cast<uint32_t>(attributes.size());
 
@@ -464,8 +467,9 @@ void Pipelines::createGraphicsPipeline_Texture(
       setShaderStage(VK_SHADER_STAGE_VERTEX_BIT, "TextureVert.spv"),
       setShaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, "TextureFrag.spv")};
 
-  static auto bindings = World::Rectangle::getBindingDescription();
-  static auto attributes = World::Rectangle::getAttributeDescriptions();
+  World::Rectangle rectangle;
+  static auto bindings = rectangle.getBindingDescription();
+  static auto attributes = rectangle.getAttributeDescriptions();
   uint32_t bindingsSize = static_cast<uint32_t>(bindings.size());
   uint32_t attributeSize = static_cast<uint32_t>(attributes.size());
 

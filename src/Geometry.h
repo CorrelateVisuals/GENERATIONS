@@ -39,8 +39,8 @@ class Vertex {
     glm::ivec4 states_16bytes;
   };
 
-  static std::vector<VkVertexInputBindingDescription> getBindingDescription();
-  static std::vector<VkVertexInputAttributeDescription>
+  virtual std::vector<VkVertexInputBindingDescription> getBindingDescription();
+  virtual std::vector<VkVertexInputAttributeDescription>
   getAttributeDescriptions();
 
   bool operator==(const Vertex& other) const {
