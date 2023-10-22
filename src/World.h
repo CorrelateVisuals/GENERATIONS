@@ -22,8 +22,8 @@ class World {
   } grid;
 
   struct Landscape : public Geometry {
-    std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions()
-        override;
+    static std::vector<VkVertexInputAttributeDescription>
+    getAttributeDescriptions();
   } landscape;
 
   struct Rectangle : public Geometry {
@@ -42,10 +42,9 @@ class World {
     using Vertex::states_16bytes;
     using Vertex::vertexPosition_16bytes;
 
-    std::vector<VkVertexInputBindingDescription> getBindingDescription()
-        override;
-    std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions()
-        override;
+    static std::vector<VkVertexInputBindingDescription> getBindingDescription();
+    static std::vector<VkVertexInputAttributeDescription>
+    getAttributeDescriptions();
   } cell;
 
   struct UniformBufferObject {

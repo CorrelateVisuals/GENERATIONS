@@ -179,7 +179,6 @@ void Pipelines::createGraphicsPipeline_Cells(
       auto& [shaderExtensions, pipeline, vertex] = entry.second;  // TODO
 
       std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
-
       VkShaderStageFlagBits shaderStage = VK_SHADER_STAGE_VERTEX_BIT;
       for (size_t i = 0; i < shaderExtensions.size(); i++) {
         if (shaderExtensions[i] == "Vert") {
@@ -197,12 +196,10 @@ void Pipelines::createGraphicsPipeline_Cells(
             shaderStage, pipelineName + shaderExtensions[i] + ".spv"));
       }
 
-      static auto bindings = vertex.getBindingDescription();
-      static auto attributes = vertex.getAttributeDescriptions();
+      static auto bindings = World::Cell::getBindingDescription();
+      static auto attributes = World::Cell::getAttributeDescriptions();
       uint32_t bindingsSize = static_cast<uint32_t>(bindings.size());
       uint32_t attributeSize = static_cast<uint32_t>(attributes.size());
-
-      Log::text("", bindingsSize, attributeSize);
 
       VkPipelineVertexInputStateCreateInfo vertexInput{
           CE::vertexInputStateDefault};
@@ -252,7 +249,7 @@ void Pipelines::createGraphicsPipeline_Cells(
       CE::VULKAN_RESULT(vkCreateGraphicsPipelines,
                         _mechanics.mainDevice.logical, VK_NULL_HANDLE, 1,
                         &pipelineInfo, nullptr,
-                        &getVkPipelineObjectByName("Cells"));
+                        &getVkPipelineObjectByName(pipelineName));
       destroyShaderModules(shaderModules);
     }
   }
@@ -274,10 +271,8 @@ void Pipelines::createGraphicsPipeline_Landscape(
   std::vector<VkPipelineShaderStageCreateInfo> shaderStages = {
       setShaderStage(VK_SHADER_STAGE_VERTEX_BIT, "LandscapeVert.spv"),
       setShaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, "LandscapeFrag.spv")};
-
-  World::Landscape landscape;
-  static auto bindings = landscape.getBindingDescription();
-  static auto attributes = landscape.getAttributeDescriptions();
+  static auto bindings = World::Landscape::getBindingDescription();
+  static auto attributes = World::Landscape::getAttributeDescriptions();
   uint32_t bindingsSize = static_cast<uint32_t>(bindings.size());
   uint32_t attributeSize = static_cast<uint32_t>(attributes.size());
 
@@ -406,9 +401,8 @@ void Pipelines::createGraphicsPipeline_Water(
       setShaderStage(VK_SHADER_STAGE_VERTEX_BIT, "WaterVert.spv"),
       setShaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, "WaterFrag.spv")};
 
-  World::Rectangle rectangle;
-  static auto bindings = rectangle.getBindingDescription();       // rectangle
-  static auto attributes = rectangle.getAttributeDescriptions();  // vertex
+  static auto bindings = World::Rectangle::getBindingDescription();
+  static auto attributes = World::Rectangle::Vertex::getAttributeDescriptions();
   uint32_t bindingsSize = static_cast<uint32_t>(bindings.size());
   uint32_t attributeSize = static_cast<uint32_t>(attributes.size());
 
@@ -467,9 +461,8 @@ void Pipelines::createGraphicsPipeline_Texture(
       setShaderStage(VK_SHADER_STAGE_VERTEX_BIT, "TextureVert.spv"),
       setShaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, "TextureFrag.spv")};
 
-  World::Rectangle rectangle;
-  static auto bindings = rectangle.getBindingDescription();
-  static auto attributes = rectangle.getAttributeDescriptions();
+  static auto bindings = World::Rectangle::getBindingDescription();
+  static auto attributes = World::Rectangle::getAttributeDescriptions();
   uint32_t bindingsSize = static_cast<uint32_t>(bindings.size());
   uint32_t attributeSize = static_cast<uint32_t>(attributes.size());
 
