@@ -148,11 +148,10 @@ void Pipelines::createPipelines(PipelineConfiguration& pipelineConfig,
   for (auto& entry : pipelineConfig) {
     PIPELINE_TUPLE_UNPACKED = entry.second;
 
-    bool graphicsPipeline =
-        std::find(shaderExtensions.begin(), shaderExtensions.end(), "Comp") ==
-        shaderExtensions.end();
+    bool isCompute = std::find(shaderExtensions.begin(), shaderExtensions.end(),
+                               "Comp") != shaderExtensions.end();
 
-    if (graphicsPipeline) {
+    if (!isCompute) {
       Log::text("{ === }", "Graphics Pipeline: ", entry.first);
       std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
 
@@ -235,7 +234,7 @@ void Pipelines::createPipelines(PipelineConfiguration& pipelineConfig,
                         &pipelineInfo, nullptr,
                         &getVkPipelineObjectByName(entry.first));
       destroyShaderModules(shaderModules);
-    } else if (!graphicsPipeline) {
+    } else if (isCompute) {
       Log::text("{ === }", "Compute  Pipeline: ", entry.first);
 
       VkPipelineShaderStageCreateInfo shaderStage{
