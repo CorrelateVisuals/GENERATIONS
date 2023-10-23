@@ -32,30 +32,15 @@ Pipelines::~Pipelines() {
                       nullptr);
 }
 
-void Pipelines::constructPipelinesFromShaders(
-    PipelineConfiguration& pipelineConfig) {
-  for (auto& entry : pipelineConfig) {
-    PIPELINE_ITEMS = entry.second;
-    VkPipeline newPipeline{};
-    pipeline = newPipeline;
-
-    Log::text("new pipeline:", &newPipeline, &pipeline);
-  }
-  return;
-}
-
 void Pipelines::setupPipelines(Resources& _resources) {
   Log::text(Log::Style::headerGuard);
   Log::text("{ >>> }", "Setup Pipelines");
 
   createRenderPass(_resources);
   createGraphicsPipeline_Layout(_resources.descriptor);
-
-  // constructPipelinesFromShaders(pipelineConfig);
-  createPipelines(pipelineConfig, _resources.msaaImage.info.samples);
-
   createComputePipeline_Layout(_resources.descriptor, _resources.pushConstants);
 
+  createPipelines(pipelineConfig, _resources.msaaImage.info.samples);
   createComputePipeline_Engine();
   createComputePipeline_PostFX();
 }
@@ -173,12 +158,7 @@ void Pipelines::createPipelines(PipelineConfiguration& pipelineConfig,
         std::find(shaderExtensions.begin(), shaderExtensions.end(), "Comp") ==
         shaderExtensions.end();
 
-    Log::text("!!!!", graphicsPipeline);
-
-    Log::text("???", entry.first == "Water", entry.first == "Cells");
-
-    if (entry.first == "Water" || entry.first == "Cells" ||
-        entry.first == "Texture" || entry.first == "Landscape") {
+    if (graphicsPipeline) {
       std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
 
       VkShaderStageFlagBits shaderStage = VK_SHADER_STAGE_VERTEX_BIT;

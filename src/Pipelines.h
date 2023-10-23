@@ -60,12 +60,6 @@ class Pipelines {
     return pipelineHandle;
   }
 
-  static void constructPipelinesFromShaders(
-      PipelineConfiguration& pipelineConfig);
-
-  ;
-  //  std::unordered_map<std::string, CE::Pipeline> pipelineObjects;
-
   struct Compute : public CE::PipelineLayout {
     const std::array<uint32_t, 3> workGroups{32, 32, 1};
   } compute;
