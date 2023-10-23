@@ -18,35 +18,20 @@ const enum ORIENTATION_ORDER { ROTATE_SCALE_TRANSLATE, ROTATE_TRANSLATE_SCALE };
 
 class Vertex {
  public:
-  union {
     glm::vec3 instancePosition;
-    glm::vec4 instancePosition_16bytes;
-  };
-  union{
     glm::vec3 vertexPosition;
-    glm::vec4 vertexPosition_16bytes;
-  };
-  union{
     glm::vec3 normal;
-    glm::vec4 normal_16bytes;
-  };
-  union{
     glm::vec3 color;
-    glm::vec4 color_16bytes;
-  };
-  union{
     glm::vec2 textureCoordinates;
-    glm::ivec4 states_16bytes;
-  };
 
-  static std::vector<VkVertexInputBindingDescription> getBindingDescription();
-  static std::vector<VkVertexInputAttributeDescription>
-  getAttributeDescriptions();
+    static std::vector<VkVertexInputBindingDescription> getBindingDescription();
+    static std::vector<VkVertexInputAttributeDescription>
+    getAttributeDescription();
 
-  bool operator==(const Vertex& other) const {
-    return vertexPosition == other.vertexPosition && color == other.color &&
-           textureCoordinates == other.textureCoordinates &&
-           normal == other.normal;
+    bool operator==(const Vertex& other) const {
+      return vertexPosition == other.vertexPosition && color == other.color &&
+             textureCoordinates == other.textureCoordinates &&
+             normal == other.normal;
   }
 };
 
@@ -76,3 +61,6 @@ class Geometry : public Vertex {
                       const glm::vec3& translationDistance = glm::vec3(0.0f),
                       float scale = 1.0f);
 };
+
+struct NoVertexData : public Vertex {
+} inline NO_VERTEX_DATA;

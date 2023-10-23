@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <array>
+#include <utility>
 #include <vector>
 
 class Timer;
@@ -23,7 +24,7 @@ class World {
 
   struct Landscape : public Geometry {
     static std::vector<VkVertexInputAttributeDescription>
-    getAttributeDescriptions();
+    getAttributeDescription();
   } landscape;
 
   struct Rectangle : public Geometry {
@@ -35,16 +36,35 @@ class World {
     const float size = 0.5f;
   } cube;
 
-  struct alignas(16) Cell : public Vertex {
-    using Vertex::color_16bytes;
-    using Vertex::instancePosition_16bytes;
-    using Vertex::normal_16bytes;
-    using Vertex::states_16bytes;
-    using Vertex::vertexPosition_16bytes;
+  struct alignas(16) Cell {
+    glm::vec4 instancePosition;
+    glm::vec4 vertexPosition;
+    glm::vec4 normal;
+    glm::vec4 color;
+    glm::ivec4 states;
 
-    static std::vector<VkVertexInputBindingDescription> getBindingDescription();
+    static std::vector<VkVertexInputBindingDescription>
+    getBindingDescription() {
+      std::vector<VkVertexInputBindingDescription> description{
+          {0, sizeof(Cell), VK_VERTEX_INPUT_RATE_INSTANCE},
+          {1, sizeof(Cube::Vertex), VK_VERTEX_INPUT_RATE_VERTEX}};
+      return description;
+    };
     static std::vector<VkVertexInputAttributeDescription>
-    getAttributeDescriptions();
+    getAttributeDescription() {
+      std::vector<VkVertexInputAttributeDescription> description{
+          {0, 0, VK_FORMAT_R32G32B32A32_SFLOAT,
+           static_cast<uint32_t>(offsetof(Cell, instancePosition))},
+          {1, 1, VK_FORMAT_R32G32B32A32_SFLOAT,
+           static_cast<uint32_t>(offsetof(Cube::Vertex, vertexPosition))},
+          {2, 1, VK_FORMAT_R32G32B32A32_SFLOAT,
+           static_cast<uint32_t>(offsetof(Cube::Vertex, normal))},
+          {3, 0, VK_FORMAT_R32G32B32A32_SFLOAT,
+           static_cast<uint32_t>(offsetof(Cell, color))},
+          {4, 0, VK_FORMAT_R32G32B32A32_SINT,
+           static_cast<uint32_t>(offsetof(Cell, states))}};
+      return description;
+    };
   };
 
   struct UniformBufferObject {

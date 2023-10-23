@@ -4,6 +4,9 @@
 #include "Mechanics.h"
 #include "Resources.h"
 
+#include <optional>
+#include <tuple>
+
 class VulkanMechanics;
 class Resources;
 
@@ -14,16 +17,40 @@ class Pipelines {
 
   Resources& _resources;
 
-  const std::string shaderDir = "shaders/";
-  const std::unordered_map<std::string, std::vector<std::string>> shaders = {
-      {"Engine", {"Comp"}},
-      {"Cells", {"Vert", "Frag"}},
-      {"Landscape", {"Vert", "Tesc", "Tese", "Frag"}},
-      {"Water", {"Vert", "Frag"}},
-      {"Texture", {"Vert", "Frag"}},
-      {"PostFX", {"Comp"}}};
+#define PIPELINE_TUPLE_UNPACKED \
+  auto& [shaderExtensions, pipeline, binding, attribute]
+  using PipelineTuple = std::tuple<
+      std::vector<std::string>,
+      VkPipeline,
+      std::optional<std::vector<VkVertexInputBindingDescription> (*)()>,
+      std::optional<std::vector<VkVertexInputAttributeDescription> (*)()>>;
+  using PipelineConfiguration = std::unordered_map<std::string, PipelineTuple>;
+
+  PipelineConfiguration pipelineConfig = {
+      {"Engine", {{"Comp"}, VK_NULL_HANDLE, std::nullopt, std::nullopt}},
+      {"Cells",
+       {{"Vert", "Frag"},
+        VK_NULL_HANDLE,
+        World::Cell::getBindingDescription,
+        World::Cell::getAttributeDescription}},
+      {"Landscape",
+       {{"Vert", "Frag"},  //  "Tesc", "Tese",
+        VK_NULL_HANDLE,
+        World::Landscape::getBindingDescription,
+        World::Landscape::getAttributeDescription}},
+      {"Water",
+       {{"Vert", "Frag"},
+        VK_NULL_HANDLE,
+        World::Rectangle::getBindingDescription,
+        World::Rectangle::getAttributeDescription}},
+      {"Texture",
+       {{"Vert", "Frag"},
+        VK_NULL_HANDLE,
+        World::Rectangle::getBindingDescription,
+        World::Rectangle::getAttributeDescription}},
+      {"PostFX", {{"Comp"}, VK_NULL_HANDLE, std::nullopt, std::nullopt}}};
   std::vector<VkShaderModule> shaderModules;
-  std::unordered_map<std::string, CE::Pipeline> pipelineObjects;
+  const std::string shaderDir = "shaders/";
 
   struct Compute : public CE::PipelineLayout {
     const std::array<uint32_t, 3> workGroups{32, 32, 1};
@@ -37,6 +64,11 @@ class Pipelines {
 
  public:
   void setupPipelines(Resources& _resources);
+  VkPipeline& getVkPipelineObjectByName(const std::string& pipeline) {
+    PipelineTuple& currentPipeline = pipelineConfig.at(pipeline);
+    VkPipeline& pipelineHandle = std::get<VkPipeline>(currentPipeline);
+    return pipelineHandle;
+  }
 
  private:
   void createRenderPass(Resources& _resources);
@@ -47,23 +79,15 @@ class Pipelines {
       const Resources::DescriptorSets& _descriptorSets,
       const Resources::PushConstants& _pushConstants);
 
-  void createGraphicsPipeline_Cells(VkSampleCountFlagBits& msaaSamples);
-  void createGraphicsPipeline_Landscape(VkSampleCountFlagBits& msaaSamples);
-  // void createGraphicsPipeline_LandscapeWireframe(
-  //     VkSampleCountFlagBits& msaaSamples);
-  void createGraphicsPipeline_Water(VkSampleCountFlagBits& msaaSamples);
-  void createGraphicsPipeline_Texture(VkSampleCountFlagBits& msaaSamples);
-
-  void createComputePipeline_Engine();
-  void createComputePipeline_PostFX();
+  void createPipelines(PipelineConfiguration& pipelineConfig,
+                       VkSampleCountFlagBits& msaaSamples);
 
   bool hasStencilComponent(VkFormat format);
 
-  void compileShaders();
+  void compileShaders(const auto& pipelineConfig);
   static std::vector<char> readShaderFile(const std::string& filename);
-  VkShaderModule createShaderModule(const std::vector<char>& code);
   void destroyShaderModules(std::vector<VkShaderModule>& shaderModules);
-  VkPipelineShaderStageCreateInfo setShaderStage(
+  VkPipelineShaderStageCreateInfo createShaderModules(
       VkShaderStageFlagBits shaderStage,
       std::string shaderName);
 

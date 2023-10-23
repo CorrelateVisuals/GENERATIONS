@@ -15,40 +15,12 @@ World::~World() {
   Log::text("{ wWw }", "destructing World");
 }
 
-std::vector<VkVertexInputBindingDescription>
-World::Cell::getBindingDescription() {
-  std::vector<VkVertexInputBindingDescription> bindingDescriptions{
-      {0, sizeof(Cell), VK_VERTEX_INPUT_RATE_INSTANCE},
-      {1, sizeof(Cube::Vertex), VK_VERTEX_INPUT_RATE_VERTEX},
-  };
-
-  std::cout << sizeof(Vertex) << " " << sizeof(Cell);
-  return bindingDescriptions;
-}
-
 std::vector<VkVertexInputAttributeDescription>
-World::Cell::getAttributeDescriptions() {
-  std::vector<VkVertexInputAttributeDescription> attributeDescriptions{
-      {0, 0, VK_FORMAT_R32G32B32A32_SFLOAT,
-       static_cast<uint32_t>(offsetof(Cell, instancePosition_16bytes))},
-      {1, 1, VK_FORMAT_R32G32B32A32_SFLOAT,
-       static_cast<uint32_t>(offsetof(Cube::Vertex, vertexPosition_16bytes))},
-      {2, 1, VK_FORMAT_R32G32B32A32_SFLOAT,
-       static_cast<uint32_t>(offsetof(Cube::Vertex, normal_16bytes))},
-      {3, 0, VK_FORMAT_R32G32B32A32_SFLOAT,
-       static_cast<uint32_t>(offsetof(Cell, color_16bytes))},
-      {4, 0, VK_FORMAT_R32G32B32A32_SINT,
-       static_cast<uint32_t>(offsetof(Cell, states_16bytes))},
-  };
-  return attributeDescriptions;
-}
-
-std::vector<VkVertexInputAttributeDescription>
-World::Landscape::getAttributeDescriptions() {
-  std::vector<VkVertexInputAttributeDescription> attributeDescriptions{
+World::Landscape::getAttributeDescription() {
+  std::vector<VkVertexInputAttributeDescription> attributes{
       {0, 0, VK_FORMAT_R32G32B32_SFLOAT,
        static_cast<uint32_t>(offsetof(Landscape::Vertex, vertexPosition))}};
-  return attributeDescriptions;
+  return attributes;
 }
 
 std::vector<World::Cell> World::initializeGrid() {
@@ -81,10 +53,10 @@ std::vector<World::Cell> World::initializeGrid() {
     const float posY = startY + y;
     const bool isAlive = isAliveIndices[i];
 
-    cells[i].instancePosition_16bytes = {posX, posY, landscapeHeight[i],
-                                         isAlive ? cube.size : 0.0f};
-    cells[i].color_16bytes = isAlive ? blue : red;
-    cells[i].states_16bytes = isAlive ? alive : dead;
+    cells[i].instancePosition = {posX, posY, landscapeHeight[i],
+                                 isAlive ? cube.size : 0.0f};
+    cells[i].color = isAlive ? blue : red;
+    cells[i].states = isAlive ? alive : dead;
 
     tempIndices[i] = i;
     landscape.addVertexPosition(glm::vec3(posX, posY, landscapeHeight[i]));

@@ -927,14 +927,3 @@ std::vector<const char*> CE::InitializeVulkan::getRequiredExtensions() {
   }
   return extensions;
 }
-
-void CE::Pipeline::constructPipelinesFromShaders(
-    std::unordered_map<std::string, CE::Pipeline>& pipelineObjects,
-    const std::unordered_map<std::string, std::vector<std::string>> shaders) {
-  for (const auto& entry : shaders) {
-    CE::Pipeline newPipeline;
-    newPipeline.name = entry.first;
-    newPipeline.shaders = entry.second;
-    pipelineObjects[entry.first] = newPipeline;
-  }
-};
