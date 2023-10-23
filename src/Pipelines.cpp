@@ -146,9 +146,7 @@ void Pipelines::createComputePipeline_Layout(
 void Pipelines::createPipelines(PipelineConfiguration& pipelineConfig,
                                 VkSampleCountFlagBits& msaaSamples) {
   for (auto& entry : pipelineConfig) {
-    PIPELINE_ITEMS = entry.second;
-    VkPipeline newPipeline{};
-    pipeline = newPipeline;
+    PIPELINE_TUPLE_UNPACKED = entry.second;
 
     bool graphicsPipeline =
         std::find(shaderExtensions.begin(), shaderExtensions.end(), "Comp") ==
@@ -361,7 +359,7 @@ void Pipelines::compileShaders(const auto& pipelineConfig) {
 
   for (const auto& pipeline : pipelineConfig) {
     pipelineName = pipeline.first;
-    PIPELINE_ITEMS = pipeline.second;
+    PIPELINE_TUPLE_UNPACKED = pipeline.second;
 
     for (const auto& shader : shaderExtensions) {
       shaderExtension = Lib::upperToLowerCase(shader);

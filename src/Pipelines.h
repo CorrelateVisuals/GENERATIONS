@@ -17,7 +17,8 @@ class Pipelines {
 
   Resources& _resources;
 
-#define PIPELINE_ITEMS auto& [shaderExtensions, pipeline, binding, attribute]
+#define PIPELINE_TUPLE_UNPACKED \
+  auto& [shaderExtensions, pipeline, binding, attribute]
   using PipelineTuple = std::tuple<
       std::vector<std::string>,
       VkPipeline,
