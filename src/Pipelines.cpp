@@ -56,8 +56,8 @@ void Pipelines::setupPipelines(Resources& _resources) {
   createGraphicsPipeline_Cells(pipelineConfig,
                                _resources.msaaImage.info.samples);
   createGraphicsPipeline_Landscape(_resources.msaaImage.info.samples);
-  //  createGraphicsPipeline_LandscapeWireframe(_resources.msaaImage.info.samples);
-  createGraphicsPipeline_Water(_resources.msaaImage.info.samples);
+  //   createGraphicsPipeline_LandscapeWireframe(_resources.msaaImage.info.samples);
+  // createGraphicsPipeline_Water(_resources.msaaImage.info.samples);
   createGraphicsPipeline_Texture(_resources.msaaImage.info.samples);
 
   createComputePipeline_Layout(_resources.descriptor, _resources.pushConstants);
@@ -178,7 +178,12 @@ void Pipelines::createGraphicsPipeline_Cells(
         std::find(shaderExtensions.begin(), shaderExtensions.end(), "Comp") ==
         shaderExtensions.end();
 
-    if (entry.first == "Cells") {  // entry.first == "Cells"
+    Log::text("!!!!", graphicsPipeline);
+
+    Log::text("???", entry.first == "Water", entry.first == "Cells");
+
+    if (entry.first == "Water" ||
+        entry.first == "Cells") {  // entry.first == "Cells"
       std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
 
       VkShaderStageFlagBits shaderStage = VK_SHADER_STAGE_VERTEX_BIT;
@@ -198,8 +203,8 @@ void Pipelines::createGraphicsPipeline_Cells(
             shaderStage, entry.first + shaderExtensions[i] + ".spv"));
       }
 
-      static const auto& bindingDescription = binding.value()();
-      static const auto& attributesDescription = attribute.value()();
+      const auto& bindingDescription = binding.value()();
+      const auto& attributesDescription = attribute.value()();
       uint32_t bindingsSize = static_cast<uint32_t>(bindingDescription.size());
       uint32_t attributeSize =
           static_cast<uint32_t>(attributesDescription.size());
