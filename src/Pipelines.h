@@ -88,13 +88,8 @@ class Pipelines {
       const Resources::DescriptorSets& _descriptorSets,
       const Resources::PushConstants& _pushConstants);
 
-  void createGraphicsPipeline_Cells(PipelineConfiguration& pipelineConfig,
-                                    VkSampleCountFlagBits& msaaSamples);
-  void createGraphicsPipeline_Landscape(VkSampleCountFlagBits& msaaSamples);
-  // void createGraphicsPipeline_LandscapeWireframe(
-  //     VkSampleCountFlagBits& msaaSamples);
-  void createGraphicsPipeline_Water(VkSampleCountFlagBits& msaaSamples);
-  void createGraphicsPipeline_Texture(VkSampleCountFlagBits& msaaSamples);
+  void createPipelines(PipelineConfiguration& pipelineConfig,
+                       VkSampleCountFlagBits& msaaSamples);
 
   void createComputePipeline_Engine();
   void createComputePipeline_PostFX();
