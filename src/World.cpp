@@ -16,7 +16,7 @@ World::~World() {
 }
 
 std::vector<VkVertexInputAttributeDescription>
-World::Landscape::getAttributeDescriptions() {
+World::Landscape::getAttributeDescription() {
   std::vector<VkVertexInputAttributeDescription> attributes{
       {0, 0, VK_FORMAT_R32G32B32_SFLOAT,
        static_cast<uint32_t>(offsetof(Landscape::Vertex, vertexPosition))}};
@@ -54,7 +54,7 @@ std::vector<World::Cell> World::initializeGrid() {
     const bool isAlive = isAliveIndices[i];
 
     cells[i].instancePosition = {posX, posY, landscapeHeight[i],
-                                         isAlive ? cube.size : 0.0f};
+                                 isAlive ? cube.size : 0.0f};
     cells[i].color = isAlive ? blue : red;
     cells[i].states = isAlive ? alive : dead;
 

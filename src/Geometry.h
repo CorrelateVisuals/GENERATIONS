@@ -24,15 +24,14 @@ class Vertex {
     glm::vec3 color;
     glm::vec2 textureCoordinates;
 
+    static std::vector<VkVertexInputBindingDescription> getBindingDescription();
+    static std::vector<VkVertexInputAttributeDescription>
+    getAttributeDescription();
 
-  static std::vector<VkVertexInputBindingDescription> getBindingDescription();
-  static std::vector<VkVertexInputAttributeDescription>
-  getAttributeDescriptions();
-
-  bool operator==(const Vertex& other) const {
-    return vertexPosition == other.vertexPosition && color == other.color &&
-           textureCoordinates == other.textureCoordinates &&
-           normal == other.normal;
+    bool operator==(const Vertex& other) const {
+      return vertexPosition == other.vertexPosition && color == other.color &&
+             textureCoordinates == other.textureCoordinates &&
+             normal == other.normal;
   }
 };
 

@@ -13,7 +13,7 @@ std::vector<VkVertexInputBindingDescription> Vertex::getBindingDescription() {
 }
 
 std::vector<VkVertexInputAttributeDescription>
-Vertex::getAttributeDescriptions() {
+Vertex::getAttributeDescription() {
   std::vector<VkVertexInputAttributeDescription> attributes{
       {0, 0, VK_FORMAT_R32G32B32_SFLOAT,
        static_cast<uint32_t>(offsetof(Vertex, vertexPosition))},

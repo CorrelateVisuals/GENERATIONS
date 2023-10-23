@@ -24,7 +24,7 @@ class World {
 
   struct Landscape : public Geometry {
     static std::vector<VkVertexInputAttributeDescription>
-    getAttributeDescriptions();
+    getAttributeDescription();
   } landscape;
 
   struct Rectangle : public Geometry {
@@ -43,25 +43,29 @@ class World {
     glm::vec4 color;
     glm::ivec4 states;
 
-   //std::vector<VkVertexInputBindingDescription> getBindingDescription();
-    
-  } cell;
-  struct PipelineShaderAccessDiscription {
-    std::vector<VkVertexInputBindingDescription> binding{
-        {0, sizeof(Cell), VK_VERTEX_INPUT_RATE_INSTANCE},
-        {1, sizeof(Cube::Vertex), VK_VERTEX_INPUT_RATE_VERTEX}};
-    std::vector<VkVertexInputAttributeDescription> attributes{
-        {0, 0, VK_FORMAT_R32G32B32A32_SFLOAT,
-         static_cast<uint32_t>(offsetof(Cell, instancePosition))},
-        {1, 1, VK_FORMAT_R32G32B32A32_SFLOAT,
-         static_cast<uint32_t>(offsetof(Cube::Vertex, vertexPosition))},
-        {2, 1, VK_FORMAT_R32G32B32A32_SFLOAT,
-         static_cast<uint32_t>(offsetof(Cube::Vertex, normal))},
-        {3, 0, VK_FORMAT_R32G32B32A32_SFLOAT,
-         static_cast<uint32_t>(offsetof(Cell, color))},
-        {4, 0, VK_FORMAT_R32G32B32A32_SINT,
-         static_cast<uint32_t>(offsetof(Cell, states))}};
-  } cellBindings;
+    static std::vector<VkVertexInputBindingDescription>
+    getBindingDescription() {
+      std::vector<VkVertexInputBindingDescription> description{
+          {0, sizeof(Cell), VK_VERTEX_INPUT_RATE_INSTANCE},
+          {1, sizeof(Cube::Vertex), VK_VERTEX_INPUT_RATE_VERTEX}};
+      return description;
+    };
+    static std::vector<VkVertexInputAttributeDescription>
+    getAttributeDescription() {
+      std::vector<VkVertexInputAttributeDescription> description{
+          {0, 0, VK_FORMAT_R32G32B32A32_SFLOAT,
+           static_cast<uint32_t>(offsetof(Cell, instancePosition))},
+          {1, 1, VK_FORMAT_R32G32B32A32_SFLOAT,
+           static_cast<uint32_t>(offsetof(Cube::Vertex, vertexPosition))},
+          {2, 1, VK_FORMAT_R32G32B32A32_SFLOAT,
+           static_cast<uint32_t>(offsetof(Cube::Vertex, normal))},
+          {3, 0, VK_FORMAT_R32G32B32A32_SFLOAT,
+           static_cast<uint32_t>(offsetof(Cell, color))},
+          {4, 0, VK_FORMAT_R32G32B32A32_SINT,
+           static_cast<uint32_t>(offsetof(Cell, states))}};
+      return description;
+    };
+  };
 
   struct UniformBufferObject {
     glm::vec4 light;
