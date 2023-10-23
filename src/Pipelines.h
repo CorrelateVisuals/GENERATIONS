@@ -17,8 +17,6 @@ class Pipelines {
 
   Resources& _resources;
 
-  const std::string shaderDir = "shaders/";
-
 #define PIPELINE_ITEMS auto& [shaderExtensions, pipeline, binding, attribute]
   using PipelineTuple = std::tuple<
       std::vector<std::string>,
@@ -51,12 +49,7 @@ class Pipelines {
         World::Rectangle::getAttributeDescription}},
       {"PostFX", {{"Comp"}, VK_NULL_HANDLE, std::nullopt, std::nullopt}}};
   std::vector<VkShaderModule> shaderModules;
-
-  VkPipeline& getVkPipelineObjectByName(const std::string& pipeline) {
-    PipelineTuple& currentPipeline = pipelineConfig.at(pipeline);
-    VkPipeline& pipelineHandle = std::get<VkPipeline>(currentPipeline);
-    return pipelineHandle;
-  }
+  const std::string shaderDir = "shaders/";
 
   struct Compute : public CE::PipelineLayout {
     const std::array<uint32_t, 3> workGroups{32, 32, 1};
@@ -70,6 +63,11 @@ class Pipelines {
 
  public:
   void setupPipelines(Resources& _resources);
+  VkPipeline& getVkPipelineObjectByName(const std::string& pipeline) {
+    PipelineTuple& currentPipeline = pipelineConfig.at(pipeline);
+    VkPipeline& pipelineHandle = std::get<VkPipeline>(currentPipeline);
+    return pipelineHandle;
+  }
 
  private:
   void createRenderPass(Resources& _resources);
@@ -82,9 +80,6 @@ class Pipelines {
 
   void createPipelines(PipelineConfiguration& pipelineConfig,
                        VkSampleCountFlagBits& msaaSamples);
-
-  void createComputePipeline_Engine();
-  void createComputePipeline_PostFX();
 
   bool hasStencilComponent(VkFormat format);
 

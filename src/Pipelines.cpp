@@ -39,10 +39,7 @@ void Pipelines::setupPipelines(Resources& _resources) {
   createRenderPass(_resources);
   createGraphicsPipeline_Layout(_resources.descriptor);
   createComputePipeline_Layout(_resources.descriptor, _resources.pushConstants);
-
   createPipelines(pipelineConfig, _resources.msaaImage.info.samples);
-  createComputePipeline_Engine();
-  createComputePipeline_PostFX();
 }
 
 void Pipelines::createRenderPass(Resources& _resources) {
@@ -149,7 +146,6 @@ void Pipelines::createComputePipeline_Layout(
 void Pipelines::createPipelines(PipelineConfiguration& pipelineConfig,
                                 VkSampleCountFlagBits& msaaSamples) {
   for (auto& entry : pipelineConfig) {
-    Log::text("{ === }", "Graphics Pipeline:", entry.first);
     PIPELINE_ITEMS = entry.second;
     VkPipeline newPipeline{};
     pipeline = newPipeline;
@@ -159,6 +155,7 @@ void Pipelines::createPipelines(PipelineConfiguration& pipelineConfig,
         shaderExtensions.end();
 
     if (graphicsPipeline) {
+      Log::text("{ === }", "Graphics Pipeline: ", entry.first);
       std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
 
       VkShaderStageFlagBits shaderStage = VK_SHADER_STAGE_VERTEX_BIT;
@@ -185,7 +182,7 @@ void Pipelines::createPipelines(PipelineConfiguration& pipelineConfig,
           static_cast<uint32_t>(attributesDescription.size());
 
       for (const auto& item : bindingDescription) {
-        Log::text("{ .... }", "binding:", item.binding,
+        Log::text(Log::Style::charLeader, "binding:", item.binding,
                   item.inputRate ? "VK_VERTEX_INPUT_RATE_INSTANCE"
                                  : "VK_VERTEX_INPUT_RATE_VERTEX");
       }
@@ -238,6 +235,22 @@ void Pipelines::createPipelines(PipelineConfiguration& pipelineConfig,
       CE::VULKAN_RESULT(vkCreateGraphicsPipelines,
                         _mechanics.mainDevice.logical, VK_NULL_HANDLE, 1,
                         &pipelineInfo, nullptr,
+                        &getVkPipelineObjectByName(entry.first));
+      destroyShaderModules(shaderModules);
+    } else if (!graphicsPipeline) {
+      Log::text("{ === }", "Compute  Pipeline: ", entry.first);
+
+      VkPipelineShaderStageCreateInfo shaderStage{
+          setShaderStage(VK_SHADER_STAGE_COMPUTE_BIT,
+                         entry.first + shaderExtensions[0] + ".spv")};
+
+      VkComputePipelineCreateInfo pipelineInfo{
+          .sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
+          .stage = shaderStage,
+          .layout = compute.layout};
+
+      CE::VULKAN_RESULT(vkCreateComputePipelines, _mechanics.mainDevice.logical,
+                        VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
                         &getVkPipelineObjectByName(entry.first));
       destroyShaderModules(shaderModules);
     }
@@ -375,42 +388,6 @@ std::vector<char> Pipelines::readShaderFile(const std::string& filename) {
   file.close();
 
   return buffer;
-}
-
-void Pipelines::createComputePipeline_Engine() {
-  Log::text("{ === }", "Compute Pipeline");
-
-  VkPipelineShaderStageCreateInfo shaderStage{
-      setShaderStage(VK_SHADER_STAGE_COMPUTE_BIT, "EngineComp.spv")};
-
-  VkComputePipelineCreateInfo pipelineInfo{
-      .sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
-      .stage = shaderStage,
-      .layout = compute.layout};
-
-  CE::VULKAN_RESULT(vkCreateComputePipelines, _mechanics.mainDevice.logical,
-                    VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
-                    &getVkPipelineObjectByName("Engine"));
-
-  destroyShaderModules(shaderModules);
-}
-
-void Pipelines::createComputePipeline_PostFX() {
-  Log::text("{ === }", "Compute Engine Pipeline");
-
-  VkPipelineShaderStageCreateInfo shaderStage{
-      setShaderStage(VK_SHADER_STAGE_COMPUTE_BIT, "PostFXComp.spv")};
-
-  VkComputePipelineCreateInfo pipelineInfo{
-      .sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
-      .stage = shaderStage,
-      .layout = compute.layout};
-
-  CE::VULKAN_RESULT(vkCreateComputePipelines, _mechanics.mainDevice.logical,
-                    VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
-                    &getVkPipelineObjectByName("PostFX"));
-
-  destroyShaderModules(shaderModules);
 }
 
 VkShaderModule Pipelines::createShaderModule(const std::vector<char>& code) {
