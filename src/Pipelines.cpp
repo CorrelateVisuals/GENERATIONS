@@ -49,6 +49,20 @@ void Pipelines::setupPipelines(Resources& _resources) {
   Log::text(Log::Style::headerGuard);
   Log::text("{ >>> }", "Setup Pipelines");
 
+  Log::text("pair:", _resources.world.cellBindings.first.color.r,
+            _resources.world.cellBindings.first.color.g,
+            _resources.world.cellBindings.first.color.b);
+
+  Log::text(
+      "pair:",
+      _resources.world.cellBindings.second.attributeDescriptions[2].location,
+      _resources.world.cellBindings.first.color.g,
+      _resources.world.cellBindings.first.color.b);
+  Log::text("pair:",
+            _resources.world.cellAttributeDescriptions.bindingDescriptions[0]
+                .inputRate,
+            _resources.world.cellBindings.first.color.b);
+
   createRenderPass(_resources);
   createGraphicsPipeline_Layout(_resources.descriptor);
 
@@ -196,10 +210,15 @@ void Pipelines::createGraphicsPipeline_Cells(
             shaderStage, pipelineName + shaderExtensions[i] + ".spv"));
       }
 
-      static auto bindings = World::Cell::getBindingDescription();
-      static auto attributes = World::Cell::getAttributeDescriptions();
+      // Log::text("!!!", descriptions.bindingDescriptions[0].inputRate);
+
+      static auto bindings = vertex.second.bindingDescriptions;
+      static std::vector<VkVertexInputAttributeDescription> attributes =
+          vertex.second.attributeDescriptions;
       uint32_t bindingsSize = static_cast<uint32_t>(bindings.size());
       uint32_t attributeSize = static_cast<uint32_t>(attributes.size());
+
+      Log::text("sizes", bindingsSize, attributeSize);
 
       VkPipelineVertexInputStateCreateInfo vertexInput{
           CE::vertexInputStateDefault};

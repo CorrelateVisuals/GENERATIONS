@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <array>
 #include <vector>
+#include <utility>
 
 class Timer;
 
@@ -35,6 +36,7 @@ class World {
     const float size = 0.5f;
   } cube;
 
+
   struct alignas(16) Cell : public Vertex {
     using Vertex::color_16bytes;
     using Vertex::instancePosition_16bytes;
@@ -46,6 +48,28 @@ class World {
     static std::vector<VkVertexInputAttributeDescription>
     getAttributeDescriptions();
   } cell;
+
+  struct PipelineShaderAccessDiscription {
+      std::vector<VkVertexInputBindingDescription> bindingDescriptions{
+          {0, sizeof(Cell), VK_VERTEX_INPUT_RATE_INSTANCE},
+          {1, sizeof(Cube::Vertex), VK_VERTEX_INPUT_RATE_VERTEX},
+      };
+      std::vector<VkVertexInputAttributeDescription> attributeDescriptions{
+          {0, 0, VK_FORMAT_R32G32B32A32_SFLOAT,
+           static_cast<uint32_t>(offsetof(Cell, instancePosition_16bytes))},
+          {1, 1, VK_FORMAT_R32G32B32A32_SFLOAT,
+           static_cast<uint32_t>(offsetof(Cube::Vertex, vertexPosition_16bytes))},
+          {2, 1, VK_FORMAT_R32G32B32A32_SFLOAT,
+           static_cast<uint32_t>(offsetof(Cube::Vertex, normal_16bytes))},
+          {3, 0, VK_FORMAT_R32G32B32A32_SFLOAT,
+           static_cast<uint32_t>(offsetof(Cell, color_16bytes))},
+          {4, 0, VK_FORMAT_R32G32B32A32_SINT,
+           static_cast<uint32_t>(offsetof(Cell, states_16bytes))},
+      };
+  } cellAttributeDescriptions;
+
+  std::pair<Cell, PipelineShaderAccessDiscription> cellBindings = std::make_pair(cell, cellAttributeDescriptions);
+
 
   struct UniformBufferObject {
     glm::vec4 light;

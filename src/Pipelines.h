@@ -23,20 +23,20 @@ class Pipelines {
   // PipelineTuple>;
 
   using PipelineTuple =
-      std::tuple<std::vector<std::string>, VkPipeline, Vertex>;
+      std::tuple<std::vector<std::string>,
+                 VkPipeline,
+                 std::pair<Vertex, World::PipelineShaderAccessDiscription>>;
   using PipelineConfiguration = std::unordered_map<std::string, PipelineTuple>;
 
+  World _world;
   PipelineConfiguration pipelineConfig = {
-      {"Engine", {{"Comp"}, VK_NULL_HANDLE, NO_VERTEX_DATA}},
-      {"Cells", {{"Vert", "Frag"}, VK_NULL_HANDLE, _resources.world.cell}},
+      {"Engine", {{"Comp"}, VK_NULL_HANDLE, _world.cellBindings}},
+      {"Cells", {{"Vert", "Frag"}, VK_NULL_HANDLE, _world.cellBindings}},
       {"Landscape",
-       {{"Vert", "Tesc", "Tese", "Frag"},
-        VK_NULL_HANDLE,
-        _resources.world.landscape}},
-      {"Water", {{"Vert", "Frag"}, VK_NULL_HANDLE, _resources.world.rectangle}},
-      {"Texture",
-       {{"Vert", "Frag"}, VK_NULL_HANDLE, _resources.world.rectangle}},
-      {"PostFX", {{"Comp"}, VK_NULL_HANDLE, NO_VERTEX_DATA}}};
+       {{"Vert", "Tesc", "Tese", "Frag"}, VK_NULL_HANDLE, _world.cellBindings}},
+      {"Water", {{"Vert", "Frag"}, VK_NULL_HANDLE, _world.cellBindings}},
+      {"Texture", {{"Vert", "Frag"}, VK_NULL_HANDLE, _world.cellBindings}},
+      {"PostFX", {{"Comp"}, VK_NULL_HANDLE, _world.cellBindings}}};
   std::vector<VkShaderModule> shaderModules;
 
   VkPipeline& getVkPipelineObjectByName(const std::string& pipeline) {
