@@ -19,9 +19,6 @@ class Pipelines {
 
   const std::string shaderDir = "shaders/";
 
-  // using PipelineTuple = std::tuple<std::vector<std::string>, VkPipeline>;
-  // using PipelineConfiguration = std::unordered_map<std::string,
-  // PipelineTuple>;
 #define PIPELINE_ITEMS auto& [shaderExtensions, pipeline, binding, attribute]
   using PipelineTuple = std::tuple<
       std::vector<std::string>,
@@ -58,6 +55,8 @@ class Pipelines {
   VkPipeline& getVkPipelineObjectByName(const std::string& pipeline) {
     PipelineTuple& currentPipeline = pipelineConfig.at(pipeline);
     VkPipeline& pipelineHandle = std::get<VkPipeline>(currentPipeline);
+
+    Log::text(pipeline, &currentPipeline);
     return pipelineHandle;
   }
 
