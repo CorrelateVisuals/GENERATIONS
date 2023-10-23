@@ -34,12 +34,12 @@ Pipelines::~Pipelines() {
 
 void Pipelines::constructPipelinesFromShaders(
     PipelineConfiguration& pipelineConfig) {
-  std::string pipelineName = "";
   for (auto& entry : pipelineConfig) {
-    pipelineName = entry.first;
     PIPELINE_ITEMS = entry.second;
-    VkPipeline newPipeline{VK_NULL_HANDLE};
+    VkPipeline newPipeline{};
     pipeline = newPipeline;
+
+    Log::text("new pipeline:", &newPipeline, &pipeline);
   }
   return;
 }
@@ -56,7 +56,7 @@ void Pipelines::setupPipelines(Resources& _resources) {
   createGraphicsPipeline_Cells(pipelineConfig,
                                _resources.msaaImage.info.samples);
   createGraphicsPipeline_Landscape(_resources.msaaImage.info.samples);
-  // createGraphicsPipeline_LandscapeWireframe(_resources.msaaImage.info.samples);
+  //  createGraphicsPipeline_LandscapeWireframe(_resources.msaaImage.info.samples);
   createGraphicsPipeline_Water(_resources.msaaImage.info.samples);
   createGraphicsPipeline_Texture(_resources.msaaImage.info.samples);
 
@@ -178,8 +178,9 @@ void Pipelines::createGraphicsPipeline_Cells(
         std::find(shaderExtensions.begin(), shaderExtensions.end(), "Comp") ==
         shaderExtensions.end();
 
-    if (entry.first == "Cells") {
+    if (entry.first == "Cells") {  // entry.first == "Cells"
       std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
+
       VkShaderStageFlagBits shaderStage = VK_SHADER_STAGE_VERTEX_BIT;
       for (size_t i = 0; i < shaderExtensions.size(); i++) {
         if (shaderExtensions[i] == "Vert") {

@@ -35,20 +35,20 @@ class Pipelines {
         World::Cell::getBindingDescription,
         World::Cell::getAttributeDescription}},
       {"Landscape",
-       {{"Vert", "Tesc", "Tese", "Frag"},
+       {{"Vert", "Frag"},  //  "Tesc", "Tese",
         VK_NULL_HANDLE,
-        World::Landscape::Vertex::getBindingDescription,
+        World::Landscape::getBindingDescription,
         World::Landscape::getAttributeDescription}},
       {"Water",
        {{"Vert", "Frag"},
         VK_NULL_HANDLE,
-        World::Rectangle::Vertex::getBindingDescription,
-        World::Rectangle::Vertex::getAttributeDescription}},
+        World::Rectangle::getBindingDescription,
+        World::Rectangle::getAttributeDescription}},
       {"Texture",
        {{"Vert", "Frag"},
         VK_NULL_HANDLE,
-        World::Rectangle::Vertex::getBindingDescription,
-        World::Rectangle::Vertex::getAttributeDescription}},
+        World::Rectangle::getBindingDescription,
+        World::Rectangle::getAttributeDescription}},
       {"PostFX", {{"Comp"}, VK_NULL_HANDLE, std::nullopt, std::nullopt}}};
   std::vector<VkShaderModule> shaderModules;
 
@@ -56,7 +56,7 @@ class Pipelines {
     PipelineTuple& currentPipeline = pipelineConfig.at(pipeline);
     VkPipeline& pipelineHandle = std::get<VkPipeline>(currentPipeline);
 
-    Log::text(pipeline, &currentPipeline);
+    Log::text(pipeline, &currentPipeline, &pipelineHandle);
     return pipelineHandle;
   }
 
