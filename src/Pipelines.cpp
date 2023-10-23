@@ -184,7 +184,11 @@ void Pipelines::createPipelines(PipelineConfiguration& pipelineConfig,
       uint32_t attributeSize =
           static_cast<uint32_t>(attributesDescription.size());
 
-      Log::text("sizes", bindingsSize, attributeSize);
+      for (const auto& item : bindingDescription) {
+        Log::text("{ .... }", "binding:", item.binding,
+                  item.inputRate ? "VK_VERTEX_INPUT_RATE_INSTANCE"
+                                 : "VK_VERTEX_INPUT_RATE_VERTEX");
+      }
 
       VkPipelineVertexInputStateCreateInfo vertexInput{
           CE::vertexInputStateDefault};

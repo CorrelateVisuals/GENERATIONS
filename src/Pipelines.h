@@ -55,8 +55,6 @@ class Pipelines {
   VkPipeline& getVkPipelineObjectByName(const std::string& pipeline) {
     PipelineTuple& currentPipeline = pipelineConfig.at(pipeline);
     VkPipeline& pipelineHandle = std::get<VkPipeline>(currentPipeline);
-
-    Log::text(pipeline, &currentPipeline, &pipelineHandle);
     return pipelineHandle;
   }
 
