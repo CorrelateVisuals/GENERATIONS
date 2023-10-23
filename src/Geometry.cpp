@@ -6,23 +6,22 @@
 
 #include <iostream>
 
-std::vector<VkVertexInputBindingDescription>
-Vertex::getBindingDescription() {
-  std::vector<VkVertexInputBindingDescription> bindingDescriptions{
+std::vector<VkVertexInputBindingDescription> Vertex::getBindingDescription() {
+  std::vector<VkVertexInputBindingDescription> binding{
       {0, sizeof(Vertex), VK_VERTEX_INPUT_RATE_VERTEX}};
-  return bindingDescriptions;
+  return binding;
 }
 
 std::vector<VkVertexInputAttributeDescription>
 Vertex::getAttributeDescriptions() {
-  std::vector<VkVertexInputAttributeDescription> attributeDescriptions{
+  std::vector<VkVertexInputAttributeDescription> attributes{
       {0, 0, VK_FORMAT_R32G32B32_SFLOAT,
        static_cast<uint32_t>(offsetof(Vertex, vertexPosition))},
       {1, 0, VK_FORMAT_R32G32B32_SFLOAT,
        static_cast<uint32_t>(offsetof(Vertex, color))},
       {2, 0, VK_FORMAT_R32G32_SFLOAT,
        static_cast<uint32_t>(offsetof(Vertex, textureCoordinates))}};
-  return attributeDescriptions;
+  return attributes;
 }
 
 template <>

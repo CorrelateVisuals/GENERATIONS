@@ -25,7 +25,7 @@ class Pipelines {
   using PipelineTuple =
       std::tuple<std::vector<std::string>,
                  VkPipeline,
-                 std::pair<Vertex, World::PipelineShaderAccessDiscription>>;
+                 World::PipelineShaderAccessDiscription>;
   using PipelineConfiguration = std::unordered_map<std::string, PipelineTuple>;
 
   World _world;

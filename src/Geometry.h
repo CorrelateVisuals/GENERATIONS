@@ -18,26 +18,12 @@ const enum ORIENTATION_ORDER { ROTATE_SCALE_TRANSLATE, ROTATE_TRANSLATE_SCALE };
 
 class Vertex {
  public:
-  union {
     glm::vec3 instancePosition;
-    glm::vec4 instancePosition_16bytes;
-  };
-  union {
     glm::vec3 vertexPosition;
-    glm::vec4 vertexPosition_16bytes;
-  };
-  union {
     glm::vec3 normal;
-    glm::vec4 normal_16bytes;
-  };
-  union {
     glm::vec3 color;
-    glm::vec4 color_16bytes;
-  };
-  union {
     glm::vec2 textureCoordinates;
-    glm::ivec4 states_16bytes;
-  };
+
 
   static std::vector<VkVertexInputBindingDescription> getBindingDescription();
   static std::vector<VkVertexInputAttributeDescription>

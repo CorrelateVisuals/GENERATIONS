@@ -49,20 +49,6 @@ void Pipelines::setupPipelines(Resources& _resources) {
   Log::text(Log::Style::headerGuard);
   Log::text("{ >>> }", "Setup Pipelines");
 
-  Log::text("pair:", _resources.world.cellBindings.first.color.r,
-            _resources.world.cellBindings.first.color.g,
-            _resources.world.cellBindings.first.color.b);
-
-  Log::text(
-      "pair:",
-      _resources.world.cellBindings.second.attributeDescriptions[2].location,
-      _resources.world.cellBindings.first.color.g,
-      _resources.world.cellBindings.first.color.b);
-  Log::text("pair:",
-            _resources.world.cellAttributeDescriptions.bindingDescriptions[0]
-                .inputRate,
-            _resources.world.cellBindings.first.color.b);
-
   createRenderPass(_resources);
   createGraphicsPipeline_Layout(_resources.descriptor);
 
@@ -190,7 +176,7 @@ void Pipelines::createGraphicsPipeline_Cells(
     pipelineName = entry.first;
     if (pipelineName == "Cells") {  // temp
       Log::text("{ === }", "Graphics Pipeline:", pipelineName);
-      auto& [shaderExtensions, pipeline, vertex] = entry.second;  // TODO
+      auto& [shaderExtensions, pipeline, bindings] = entry.second;  // TODO
 
       std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
       VkShaderStageFlagBits shaderStage = VK_SHADER_STAGE_VERTEX_BIT;
@@ -210,13 +196,11 @@ void Pipelines::createGraphicsPipeline_Cells(
             shaderStage, pipelineName + shaderExtensions[i] + ".spv"));
       }
 
-      // Log::text("!!!", descriptions.bindingDescriptions[0].inputRate);
-
-      static auto bindings = vertex.second.bindingDescriptions;
-      static std::vector<VkVertexInputAttributeDescription> attributes =
-          vertex.second.attributeDescriptions;
-      uint32_t bindingsSize = static_cast<uint32_t>(bindings.size());
-      uint32_t attributeSize = static_cast<uint32_t>(attributes.size());
+      static const auto& bindingDescription = bindings.binding;
+      static const auto& attributesDescription = bindings.attributes;
+      uint32_t bindingsSize = static_cast<uint32_t>(bindingDescription.size());
+      uint32_t attributeSize =
+          static_cast<uint32_t>(attributesDescription.size());
 
       Log::text("sizes", bindingsSize, attributeSize);
 
@@ -224,8 +208,8 @@ void Pipelines::createGraphicsPipeline_Cells(
           CE::vertexInputStateDefault};
       vertexInput.vertexBindingDescriptionCount = bindingsSize;
       vertexInput.vertexAttributeDescriptionCount = attributeSize;
-      vertexInput.pVertexBindingDescriptions = bindings.data();
-      vertexInput.pVertexAttributeDescriptions = attributes.data();
+      vertexInput.pVertexBindingDescriptions = bindingDescription.data();
+      vertexInput.pVertexAttributeDescriptions = attributesDescription.data();
 
       VkPipelineInputAssemblyStateCreateInfo inputAssembly{
           CE::inputAssemblyStateTriangleList};

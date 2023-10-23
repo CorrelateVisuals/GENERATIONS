@@ -3,8 +3,8 @@
 
 struct Cell {
     vec4 position;  
-    vec4 vertPosition;
-    vec4 normal;
+    vec3 vertPosition;
+    vec3 normal;
     vec4 color;     
     ivec4 states;
 } cell;
@@ -41,8 +41,8 @@ const float sizeDead    = 0.0f;
 vec4 inPos      = cellIn[index].position;
 vec4 inPosOn    = vec4( inPos.xyz, sizeAlive );
 vec4 inPosOff   = vec4( inPos.xyz, sizeDead );
-vec4 inVertPos  = cellIn[index].vertPosition;
-vec4 inNormal   = cellIn[index].normal;
+vec3 inVertPos  = cellIn[index].vertPosition;
+vec3 inNormal   = cellIn[index].normal;
 vec4 inColor    = cellIn[index].color;
 ivec4 inStates  = cellIn[index].states;
 
