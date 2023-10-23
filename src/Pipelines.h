@@ -86,9 +86,8 @@ class Pipelines {
 
   void compileShaders(const auto& pipelineConfig);
   static std::vector<char> readShaderFile(const std::string& filename);
-  VkShaderModule createShaderModule(const std::vector<char>& code);
   void destroyShaderModules(std::vector<VkShaderModule>& shaderModules);
-  VkPipelineShaderStageCreateInfo setShaderStage(
+  VkPipelineShaderStageCreateInfo createShaderModules(
       VkShaderStageFlagBits shaderStage,
       std::string shaderName);
 

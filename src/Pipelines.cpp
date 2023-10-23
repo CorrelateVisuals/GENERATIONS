@@ -168,7 +168,7 @@ void Pipelines::createPipelines(PipelineConfiguration& pipelineConfig,
         } else if (shaderExtensions[i] == "Tese") {
           shaderStage = VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
         }
-        shaderStages.push_back(setShaderStage(
+        shaderStages.push_back(createShaderModules(
             shaderStage, entry.first + shaderExtensions[i] + ".spv"));
       }
 
@@ -238,8 +238,8 @@ void Pipelines::createPipelines(PipelineConfiguration& pipelineConfig,
       Log::text("{ === }", "Compute  Pipeline: ", entry.first);
 
       VkPipelineShaderStageCreateInfo shaderStage{
-          setShaderStage(VK_SHADER_STAGE_COMPUTE_BIT,
-                         entry.first + shaderExtensions[0] + ".spv")};
+          createShaderModules(VK_SHADER_STAGE_COMPUTE_BIT,
+                              entry.first + shaderExtensions[0] + ".spv")};
 
       VkComputePipelineCreateInfo pipelineInfo{
           .sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
@@ -257,12 +257,13 @@ void Pipelines::createPipelines(PipelineConfiguration& pipelineConfig,
 // void Pipelines::createGraphicsPipeline_LandscapeWireframe(
 //     VkSampleCountFlagBits& msaaSamples) {
 //   std::vector<VkPipelineShaderStageCreateInfo> shaderStages = {
-//       setShaderStage(VK_SHADER_STAGE_VERTEX_BIT, "LandscapeVert.spv"),
-//       setShaderStage(VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT,
+//       createShaderModules(VK_SHADER_STAGE_VERTEX_BIT, "LandscapeVert.spv"),
+//       createShaderModules(VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT,
 //                      "LandscapeTesc.spv"),
-//       setShaderStage(VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT,
+//       createShaderModules(VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT,
 //                      "LandscapeTese.spv"),
-//       setShaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, "LandscapeFrag.spv")};
+//       createShaderModules(VK_SHADER_STAGE_FRAGMENT_BIT,
+//       "LandscapeFrag.spv")};
 //   static auto bindings = World::Landscape::Vertex::getBindingDescription();
 //   static auto attributes = World::Landscape::getAttributeDescriptions();
 //   uint32_t bindingsSize = static_cast<uint32_t>(bindings.size());
@@ -331,14 +332,23 @@ bool Pipelines::hasStencilComponent(VkFormat format) {
          format == VK_FORMAT_D24_UNORM_S8_UINT;
 }
 
-VkPipelineShaderStageCreateInfo Pipelines::setShaderStage(
+VkPipelineShaderStageCreateInfo Pipelines::createShaderModules(
     VkShaderStageFlagBits shaderStage,
     std::string shaderName) {
   Log::text(Log::Style::charLeader, "Shader Module", shaderName);
 
   std::string shaderPath = shaderDir + shaderName;
   auto shaderCode = readShaderFile(shaderPath);
-  VkShaderModule shaderModule = createShaderModule(shaderCode);
+  VkShaderModule shaderModule{VK_NULL_HANDLE};
+
+  VkShaderModuleCreateInfo createInfo{
+      .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
+      .codeSize = shaderCode.size(),
+      .pCode = reinterpret_cast<const uint32_t*>(shaderCode.data())};
+
+  CE::VULKAN_RESULT(vkCreateShaderModule, _mechanics.mainDevice.logical,
+                    &createInfo, nullptr, &shaderModule);
+
   shaderModules.push_back(shaderModule);
 
   VkPipelineShaderStageCreateInfo shaderStageInfo{
@@ -385,20 +395,6 @@ std::vector<char> Pipelines::readShaderFile(const std::string& filename) {
   file.close();
 
   return buffer;
-}
-
-VkShaderModule Pipelines::createShaderModule(const std::vector<char>& code) {
-  VkShaderModuleCreateInfo createInfo{
-      .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
-      .codeSize = code.size(),
-      .pCode = reinterpret_cast<const uint32_t*>(code.data())};
-
-  VkShaderModule shaderModule{};
-
-  CE::VULKAN_RESULT(vkCreateShaderModule, _mechanics.mainDevice.logical,
-                    &createInfo, nullptr, &shaderModule);
-
-  return shaderModule;
 }
 
 void Pipelines::destroyShaderModules(
