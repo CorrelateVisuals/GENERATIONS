@@ -21,27 +21,22 @@ class Pipelines {
     PipelineConfig() {
       pipelineMap["Engine"] =
           Config::Compute{.shaders = {"Comp"}, .workGroups = {32, 32, 1}};
-
       pipelineMap["Cells"] = Config::Graphics{
           .shaders = {"Vert", "Frag"},
           .vertexAttributes = World::Cell::getAttributeDescription(),
           .vertexBindings = World::Cell::getBindingDescription()};
-
       pipelineMap["Landscape"] = Config::Graphics{
           .shaders = {"Vert", "Frag"},
           .vertexAttributes = World::Landscape::getAttributeDescription(),
           .vertexBindings = World::Landscape::getBindingDescription()};
-
       pipelineMap["Texture"] = Config::Graphics{
           .shaders = {"Vert", "Frag"},
           .vertexAttributes = World::Rectangle::getAttributeDescription(),
           .vertexBindings = World::Rectangle::getBindingDescription()};
-
       pipelineMap["Water"] = Config::Graphics{
           .shaders = {"Vert", "Frag"},
           .vertexAttributes = World::Rectangle::getAttributeDescription(),
           .vertexBindings = World::Rectangle::getBindingDescription()};
-
       pipelineMap["PostFX"] =
           Config::Compute{.shaders = {"Comp"}, .workGroups = {16, 16, 1}};
     }
