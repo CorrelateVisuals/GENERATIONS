@@ -11,6 +11,7 @@
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
+#include <variant>
 #include <vector>
 
 namespace CE {
@@ -222,24 +223,23 @@ class Swapchain {
 // Pipelines
 class Pipelines {
  public:
-  Pipelines() = default;
-  virtual ~Pipelines() = default;
+  struct Config {
+#define PIPELINE_OBJECTS \
+  VkPipeline pipeline;   \
+  std::vector<std::string> shaders;
 
-  std::vector<std::string> shaderExtensions;
-  VkPipeline pipeline;
-
-  union Configuration {
     struct Graphics {
-      std::vector<VkVertexInputBindingDescription (*)()>
-          vertexBindingDescription;
-      std::vector<VkVertexInputAttributeDescription (*)()>
-          attributeBindingDescription;
+      PIPELINE_OBJECTS
+      std::vector<VkVertexInputAttributeDescription> vertexAttributes;
+      std::vector<VkVertexInputBindingDescription> vertexBindings;
     };
     struct Compute {
-      std::array<uint32_t, 3> workgroups;
+      PIPELINE_OBJECTS
+      std::array<uint32_t, 3> workGroups;
     };
   };
-  static std::unordered_map<std::string, Configuration> pipelineMap;
+  using myvariant_t = std::variant<Config::Graphics, Config::Compute>;
+  static std::unordered_map<std::string, Pipelines::myvariant_t> pipelineMap;
 };
 
 class PipelineLayout {
