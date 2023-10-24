@@ -35,23 +35,46 @@ class Resources {
   static std::vector<VkDescriptorSetLayoutBinding> descriptorSetLayoutBindings;
   struct Uniform : public CE::Descriptor::SetLayout {
     CE::Buffer buffer;
-    Uniform();
+    Uniform() {
+      layoutBinding.binding = 0;
+      layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+      layoutBinding.stageFlags =
+          VK_SHADER_STAGE_COMPUTE_BIT | VK_SHADER_STAGE_VERTEX_BIT;
+      descriptorSetLayoutBindings.push_back(layoutBinding);
+    }
   } uniform;
 
   struct ShaderStorage : public CE::Descriptor::SetLayout {
     CE::Buffer bufferIn;
     CE::Buffer bufferOut;
-    ShaderStorage();
+    ShaderStorage() {
+      layoutBinding.binding = 1;
+      layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+      layoutBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+      descriptorSetLayoutBindings.push_back(layoutBinding);
+      layoutBinding.binding = 2;
+      descriptorSetLayoutBindings.push_back(layoutBinding);
+    }
   } shaderStorage;
 
   struct ImageSampler : public CE::Descriptor::SetLayout {
     CE::Buffer buffer;
-    ImageSampler();
+    ImageSampler() {
+      layoutBinding.binding = 3;
+      layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+      layoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+      descriptorSetLayoutBindings.push_back(layoutBinding);
+    }
   } sampler;
 
   struct StorageImage : public CE::Descriptor::SetLayout {
     CE::Buffer buffer;
-    StorageImage();
+    StorageImage() {
+      layoutBinding.binding = 4;
+      layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+      layoutBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+      descriptorSetLayoutBindings.push_back(layoutBinding);
+    }
   } storageImage;
 
   struct PushConstants {

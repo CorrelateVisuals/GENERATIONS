@@ -17,13 +17,13 @@ class Pipelines {
 
   Resources& _resources;
 
-#define PIPELINE_TUPLE_UNPACKED \
-  auto& [shaderExtensions, pipeline, binding, attribute]
   using PipelineTuple = std::tuple<
       std::vector<std::string>,
       VkPipeline,
       std::optional<std::vector<VkVertexInputBindingDescription> (*)()>,
       std::optional<std::vector<VkVertexInputAttributeDescription> (*)()>>;
+#define PIPELINE_TUPLE_UNPACKED \
+  auto& [shaderExtensions, pipeline, binding, attribute]
   using PipelineConfiguration = std::unordered_map<std::string, PipelineTuple>;
 
   PipelineConfiguration pipelineConfig = {

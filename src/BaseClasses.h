@@ -10,6 +10,7 @@
 #include <optional>
 #include <stdexcept>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 namespace CE {
@@ -219,14 +220,26 @@ class Swapchain {
 };
 
 // Pipelines
-class Pipeline {
+class Pipelines {
  public:
-  Pipeline() = default;
-  virtual ~Pipeline() = default;
-  // std::string name;
-  // std::vector<std::string> shaders;
-  // VkPipeline pipeline;
-  //  std::array<uint32_t, 3> workGroups;
+  Pipelines() = default;
+  virtual ~Pipelines() = default;
+
+  std::vector<std::string> shaderExtensions;
+  VkPipeline pipeline;
+
+  union Configuration {
+    struct Graphics {
+      std::vector<VkVertexInputBindingDescription (*)()>
+          vertexBindingDescription;
+      std::vector<VkVertexInputAttributeDescription (*)()>
+          attributeBindingDescription;
+    };
+    struct Compute {
+      std::array<uint32_t, 3> workgroups;
+    };
+  };
+  static std::unordered_map<std::string, Configuration> pipelineMap;
 };
 
 class PipelineLayout {
