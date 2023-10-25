@@ -4,10 +4,6 @@
 #include "CapitalEngine.h"
 #include "Pipelines.h"
 
-#include <array>
-#include <cstring>
-#include <random>
-
 Pipelines::Pipelines(VulkanMechanics& mechanics)
     : compute{}, _mechanics(mechanics) {
   Log::text("{ === }", "constructing Pipelines");
