@@ -194,7 +194,6 @@
     <ClInclude Include="Terrain.h" />
     <ClInclude Include="Timer.h" />
     <ClInclude Include="ValidationLayers.h" />
-    <ClInclude Include="VulkanInitializers.hpp" />
     <ClInclude Include="Window.h" />
     <ClInclude Include="World.h" />
   </ItemGroup>

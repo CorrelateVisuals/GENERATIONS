@@ -1,5 +1,3 @@
-#include "VulkanInitializers.hpp"
-
 #include "CapitalEngine.h"
 #include "Resources.h"
 
