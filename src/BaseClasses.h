@@ -11,6 +11,7 @@
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
+#include <variant>
 #include <vector>
 
 namespace CE {
@@ -219,39 +220,6 @@ class Swapchain {
                         const VkSurfaceCapabilitiesKHR& capabilities);
 };
 
-// Pipelines
-class Pipelines {
- public:
-  Pipelines() = default;
-  virtual ~Pipelines() = default;
-
-  std::vector<std::string> shaderExtensions;
-  VkPipeline pipeline;
-
-  union Configuration {
-    struct Graphics {
-      std::vector<VkVertexInputBindingDescription (*)()>
-          vertexBindingDescription;
-      std::vector<VkVertexInputAttributeDescription (*)()>
-          attributeBindingDescription;
-    };
-    struct Compute {
-      std::array<uint32_t, 3> workgroups;
-    };
-  };
-  static std::unordered_map<std::string, Configuration> pipelineMap;
-};
-
-class PipelineLayout {
- public:
-  VkPipelineLayout layout;
-};
-
-class RenderPass {
- public:
-  VkRenderPass renderPass;
-};
-
 // Resources
 class Descriptor {
  public:
@@ -268,6 +236,75 @@ class Descriptor {
         .descriptorCount = 1,
         .stageFlags = NULL};
   };
+};
+
+struct PushConstants {
+  VkShaderStageFlags shaderStage;
+  uint32_t count;
+  uint32_t offset;
+  uint32_t size;
+  std::array<uint64_t, 32> data;
+};
+
+// Pipelines
+class PipelineLayout {
+ public:
+  VkPipelineLayout layout;
+  void createGraphicsLayout(const CE::Descriptor& _descriptorSets);
+  void createComputeLayout(const CE::Descriptor& _descriptorSets,
+                           const PushConstants& _pushConstants);
+};
+
+class RenderPass {
+ public:
+  RenderPass() = default;
+  virtual ~RenderPass(){
+      // vkDestroyRenderPass(baseDevice->logical, renderPass, nullptr);
+  };
+  VkRenderPass renderPass;
+  void create(VkSampleCountFlagBits msaaImageSamples,
+              VkFormat swapchainImageFormat);
+};
+
+class Pipelines {
+ public:
+  Pipelines() = default;
+  virtual ~Pipelines() = default;
+
+#define PIPELINE_OBJECTS \
+  VkPipeline pipeline;   \
+  std::vector<std::string> shaders;
+
+  struct Graphics {
+    PIPELINE_OBJECTS
+    std::vector<VkVertexInputAttributeDescription> vertexAttributes;
+    std::vector<VkVertexInputBindingDescription> vertexBindings;
+  };
+  struct Compute {
+    PIPELINE_OBJECTS
+    std::array<uint32_t, 3> workGroups;
+  };
+#undef PIPELINE_OBJECTS
+
+  std::vector<VkShaderModule> shaderModules;
+  const std::string shaderDir = "shaders/";
+  std::unordered_map<std::string, std::variant<Graphics, Compute>> pipelineMap;
+
+  void createPipelines(VkRenderPass& renderPass,
+                       const VkPipelineLayout& graphicsLayout,
+                       const VkPipelineLayout& computeLayout,
+                       VkSampleCountFlagBits& msaaSamples);
+
+  std::vector<char> readShaderFile(const std::string& filename);
+  void compileShaders();
+  VkPipelineShaderStageCreateInfo createShaderModules(
+      VkShaderStageFlagBits shaderStage,
+      std::string shaderName);
+  void destroyShaderModules();
+  std::vector<std::string>& getPipelineShadersByName(const std::string& name);
+
+  VkPipeline& getPipelineObjectByName(const std::string& name);
+  const std::array<uint32_t, 3>& getWorkGroupsByName(const std::string& name);
 };
 
 template <typename Checkresult, typename... Args>

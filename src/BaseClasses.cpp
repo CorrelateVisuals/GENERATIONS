@@ -2,6 +2,7 @@
 #include <stb_image.h>
 
 #include "BaseClasses.h"
+#include "Library.h"
 
 #include <algorithm>
 #include <set>
@@ -926,4 +927,319 @@ std::vector<const char*> CE::InitializeVulkan::getRequiredExtensions() {
     extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
   }
   return extensions;
+}
+
+void CE::RenderPass::create(VkSampleCountFlagBits msaaImageSamples,
+                            VkFormat swapchainImageFormat) {
+  Log::text("{ []< }", "Render Pass");
+  Log::text(Log::Style::charLeader,
+            "colorAttachment, depthAttachment, colorAttachmentResolve");
+
+  VkAttachmentDescription colorAttachment{
+      .format = swapchainImageFormat,
+      .samples = msaaImageSamples,
+      .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+      .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+      .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+      .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+      .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+      .finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL};
+
+  VkAttachmentDescription depthAttachment{
+      .format = CE::Image::findDepthFormat(),
+      .samples = msaaImageSamples,
+      .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+      .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+      .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+      .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+      .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+      .finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL};
+
+  VkAttachmentDescription colorAttachmentResolve{
+      .format = swapchainImageFormat,
+      .samples = VK_SAMPLE_COUNT_1_BIT,
+      .loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+      .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+      .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+      .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+      .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+      .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR};
+
+  VkAttachmentReference colorAttachmentRef{
+      .attachment = 0, .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL};
+
+  VkAttachmentReference depthAttachmentRef{
+      .attachment = 1,
+      .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL};
+
+  VkAttachmentReference colorAttachmentResolveRef{
+      .attachment = 2, .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL};
+
+  VkSubpassDescription subpass{
+      .pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
+      .colorAttachmentCount = 1,
+      .pColorAttachments = &colorAttachmentRef,
+      .pResolveAttachments = &colorAttachmentResolveRef,
+      .pDepthStencilAttachment = &depthAttachmentRef};
+
+  VkSubpassDependency dependency{
+      .srcSubpass = VK_SUBPASS_EXTERNAL,
+      .dstSubpass = 0,
+      .srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
+                      VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
+      .dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
+                      VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
+      .srcAccessMask = 0,
+      .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
+                       VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT};
+
+  std::vector<VkAttachmentDescription> attachments = {
+      colorAttachment, depthAttachment, colorAttachmentResolve};
+
+  VkRenderPassCreateInfo renderPassInfo{
+      .sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
+      .attachmentCount = static_cast<uint32_t>(attachments.size()),
+      .pAttachments = attachments.data(),
+      .subpassCount = 1,
+      .pSubpasses = &subpass,
+      .dependencyCount = 1,
+      .pDependencies = &dependency};
+
+  CE::VULKAN_RESULT(vkCreateRenderPass, baseDevice->logical, &renderPassInfo,
+                    nullptr, &renderPass);
+}
+
+void CE::Pipelines::createPipelines(VkRenderPass& renderPass,
+                                    const VkPipelineLayout& graphicsLayout,
+                                    const VkPipelineLayout& computeLayout,
+                                    VkSampleCountFlagBits& msaaSamples) {
+  for (auto& entry : pipelineMap) {
+    const std::string pipelineName = entry.first;
+
+    std::vector<std::string> shaders = getPipelineShadersByName(pipelineName);
+    bool isCompute =
+        std::find(shaders.begin(), shaders.end(), "Comp") != shaders.end();
+
+    if (!isCompute) {
+      Log::text("{ === }", "Graphics Pipeline: ", entry.first);
+      std::variant<Graphics, Compute>& variant = pipelineMap[pipelineName];
+
+      std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
+
+      VkShaderStageFlagBits shaderStage = VK_SHADER_STAGE_VERTEX_BIT;
+      for (size_t i = 0; i < shaders.size(); i++) {
+        if (shaders[i] == "Vert") {
+          shaderStage = VK_SHADER_STAGE_VERTEX_BIT;
+        } else if (shaders[i] == "Frag") {
+          shaderStage = VK_SHADER_STAGE_FRAGMENT_BIT;
+        } else if (shaders[i] == "Comp") {
+          shaderStage = VK_SHADER_STAGE_COMPUTE_BIT;
+        } else if (shaders[i] == "Tesc") {
+          shaderStage = VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
+        } else if (shaders[i] == "Tese") {
+          shaderStage = VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
+        }
+        shaderStages.push_back(createShaderModules(
+            shaderStage, entry.first + shaders[i] + ".spv"));
+      }
+
+      const auto& bindingDescription =
+          std::get<CE::Pipelines::Graphics>(variant).vertexBindings;
+      const auto& attributesDescription =
+          std::get<CE::Pipelines::Graphics>(variant).vertexAttributes;
+      uint32_t bindingsSize = static_cast<uint32_t>(bindingDescription.size());
+      uint32_t attributeSize =
+          static_cast<uint32_t>(attributesDescription.size());
+
+      for (const auto& item : bindingDescription) {
+        Log::text(Log::Style::charLeader, "binding:", item.binding,
+                  item.inputRate ? "VK_VERTEX_INPUT_RATE_INSTANCE"
+                                 : "VK_VERTEX_INPUT_RATE_VERTEX");
+      }
+
+      VkPipelineVertexInputStateCreateInfo vertexInput{
+          CE::vertexInputStateDefault};
+      vertexInput.vertexBindingDescriptionCount = bindingsSize;
+      vertexInput.vertexAttributeDescriptionCount = attributeSize;
+      vertexInput.pVertexBindingDescriptions = bindingDescription.data();
+      vertexInput.pVertexAttributeDescriptions = attributesDescription.data();
+
+      VkPipelineInputAssemblyStateCreateInfo inputAssembly{
+          CE::inputAssemblyStateTriangleList};
+
+      VkPipelineRasterizationStateCreateInfo rasterization{
+          CE::rasterizationCullBackBit};
+
+      VkPipelineMultisampleStateCreateInfo multisampling{
+          CE::multisampleStateDefault};
+      multisampling.rasterizationSamples = msaaSamples;
+      VkPipelineDepthStencilStateCreateInfo depthStencil{
+          CE::depthStencilStateDefault};
+
+      static VkPipelineColorBlendAttachmentState colorBlendAttachment{
+          CE::colorBlendAttachmentStateFalse};
+      VkPipelineColorBlendStateCreateInfo colorBlend{
+          CE::colorBlendStateDefault};
+      colorBlend.pAttachments = &colorBlendAttachment;
+
+      VkPipelineViewportStateCreateInfo viewport{CE::viewportStateDefault};
+      VkPipelineDynamicStateCreateInfo dynamic{CE::dynamicStateDefault};
+
+      VkGraphicsPipelineCreateInfo pipelineInfo{
+          .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
+          .stageCount = static_cast<uint32_t>(shaderStages.size()),
+          .pStages = shaderStages.data(),
+          .pVertexInputState = &vertexInput,
+          .pInputAssemblyState = &inputAssembly,
+          .pViewportState = &viewport,
+          .pRasterizationState = &rasterization,
+          .pMultisampleState = &multisampling,
+          .pDepthStencilState = &depthStencil,
+          .pColorBlendState = &colorBlend,
+          .pDynamicState = &dynamic,
+          .layout = graphicsLayout,
+          .renderPass = renderPass,
+          .subpass = 0,
+          .basePipelineHandle = VK_NULL_HANDLE};
+
+      CE::VULKAN_RESULT(vkCreateGraphicsPipelines, baseDevice->logical,
+                        VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
+                        &getPipelineObjectByName(pipelineName));
+      destroyShaderModules();
+    } else if (isCompute) {
+      Log::text("{ === }", "Compute  Pipeline: ", entry.first);
+
+      VkPipelineShaderStageCreateInfo shaderStage{createShaderModules(
+          VK_SHADER_STAGE_COMPUTE_BIT, entry.first + shaders[0] + ".spv")};
+
+      VkComputePipelineCreateInfo pipelineInfo{
+          .sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
+          .stage = shaderStage,
+          .layout = computeLayout};
+
+      CE::VULKAN_RESULT(vkCreateComputePipelines, baseDevice->logical,
+                        VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
+                        &getPipelineObjectByName(pipelineName));
+      destroyShaderModules();
+    }
+  }
+}
+
+std::vector<char> CE::Pipelines::readShaderFile(const std::string& filename) {
+  std::ifstream file(filename, std::ios::ate | std::ios::binary);
+
+  if (!file.is_open()) {
+    throw std::runtime_error("\n!ERROR! failed to open file!");
+  }
+
+  size_t fileSize = static_cast<size_t>(file.tellg());
+  std::vector<char> buffer(fileSize);
+
+  file.seekg(0);
+  file.read(buffer.data(), fileSize);
+  file.close();
+
+  return buffer;
+}
+
+VkPipelineShaderStageCreateInfo CE::Pipelines::createShaderModules(
+    VkShaderStageFlagBits shaderStage,
+    std::string shaderName) {
+  Log::text(Log::Style::charLeader, "Shader Module", shaderName);
+
+  std::string shaderPath = shaderDir + shaderName;
+  auto shaderCode = readShaderFile(shaderPath);
+  VkShaderModule shaderModule{VK_NULL_HANDLE};
+
+  VkShaderModuleCreateInfo createInfo{
+      .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
+      .codeSize = shaderCode.size(),
+      .pCode = reinterpret_cast<const uint32_t*>(shaderCode.data())};
+
+  CE::VULKAN_RESULT(vkCreateShaderModule, baseDevice->logical, &createInfo,
+                    nullptr, &shaderModule);
+
+  shaderModules.push_back(shaderModule);
+
+  VkPipelineShaderStageCreateInfo shaderStageInfo{
+      .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+      .stage = shaderStage,
+      .module = shaderModule,
+      .pName = "main"};
+
+  return shaderStageInfo;
+}
+
+void CE::Pipelines::compileShaders() {
+  Log::text("{ GLSL }", "Compile Shaders");
+  std::string systemCommand = "";
+  std::string shaderExtension = "";
+  std::string pipelineName = "";
+
+  for (const auto& entry : pipelineMap) {
+    pipelineName = entry.first;
+    std::vector<std::string> shaders = getPipelineShadersByName(pipelineName);
+    for (const auto& shader : shaders) {
+      shaderExtension = Lib::upperToLowerCase(shader);
+      systemCommand =
+          Lib::path(shaderDir + pipelineName + "." + shaderExtension + " -o " +
+                    shaderDir + pipelineName + shader + ".spv");
+      system(systemCommand.c_str());
+    }
+  }
+}
+
+VkPipeline& CE::Pipelines::getPipelineObjectByName(const std::string& name) {
+  std::variant<Graphics, Compute>& variant = pipelineMap[name];
+  if (std::holds_alternative<Graphics>(variant)) {
+    return std::get<Graphics>(variant).pipeline;
+  } else {
+    return std::get<Compute>(variant).pipeline;
+  }
+}
+
+void CE::Pipelines::destroyShaderModules() {
+  for (size_t i = 0; i < shaderModules.size(); i++) {
+    vkDestroyShaderModule(baseDevice->logical, shaderModules[i], nullptr);
+  }
+  shaderModules.resize(0);
+};
+
+std::vector<std::string>& CE::Pipelines::getPipelineShadersByName(
+    const std::string& name) {
+  std::variant<Graphics, Compute>& variant = pipelineMap[name];
+
+  if (std::holds_alternative<Graphics>(variant)) {
+    return std::get<Graphics>(variant).shaders;
+  } else {
+    return std::get<Compute>(variant).shaders;
+  }
+}
+
+const std::array<uint32_t, 3>& CE::Pipelines::getWorkGroupsByName(
+    const std::string& name) {
+  std::variant<Graphics, Compute>& variant = pipelineMap[name];
+  return std::get<CE::Pipelines::Compute>(variant).workGroups;
+};
+
+void CE::PipelineLayout::createGraphicsLayout(
+    const CE::Descriptor& _descriptorSets) {
+  VkPipelineLayoutCreateInfo graphicsLayout{CE::layoutDefault};
+  graphicsLayout.pSetLayouts = &_descriptorSets.setLayout;
+  CE::VULKAN_RESULT(vkCreatePipelineLayout, baseDevice->logical,
+                    &graphicsLayout, nullptr, &this->layout);
+}
+
+void CE::PipelineLayout::createComputeLayout(
+    const CE::Descriptor& _descriptorSets,
+    const PushConstants& _pushConstants) {
+  VkPushConstantRange constants{.stageFlags = _pushConstants.shaderStage,
+                                .offset = _pushConstants.offset,
+                                .size = _pushConstants.size};
+  VkPipelineLayoutCreateInfo computeLayout{CE::layoutDefault};
+  computeLayout.pSetLayouts = &_descriptorSets.setLayout;
+  computeLayout.pushConstantRangeCount = _pushConstants.count;
+  computeLayout.pPushConstantRanges = &constants;
+  CE::VULKAN_RESULT(vkCreatePipelineLayout, baseDevice->logical, &computeLayout,
+                    nullptr, &this->layout);
 }
