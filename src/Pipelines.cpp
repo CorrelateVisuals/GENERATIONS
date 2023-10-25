@@ -37,31 +37,9 @@ void Pipelines::setupPipelines(Resources& _resources) {
 
   renderPass.create(_resources.msaaImage.info.samples,
                     _mechanics.swapchain.imageFormat);
-  createGraphicsPipeline_Layout(_resources.descriptor);
-  createComputePipeline_Layout(_resources.descriptor, _resources.pushConstants);
+  graphics.createGraphicsLayout(_resources.descriptor);
+  compute.createComputeLayout(_resources.descriptor, _resources.pushConstants);
   createPipelines(config.pipelineMap, _resources.msaaImage.info.samples);
-}
-
-void Pipelines::createGraphicsPipeline_Layout(
-    const Resources::DescriptorSets& _descriptorSets) {
-  VkPipelineLayoutCreateInfo graphicsLayout{CE::layoutDefault};
-  graphicsLayout.pSetLayouts = &_descriptorSets.setLayout;
-  CE::VULKAN_RESULT(vkCreatePipelineLayout, _mechanics.mainDevice.logical,
-                    &graphicsLayout, nullptr, &graphics.layout);
-}
-
-void Pipelines::createComputePipeline_Layout(
-    const Resources::DescriptorSets& _descriptorSets,
-    const Resources::PushConstants& _pushConstants) {
-  VkPushConstantRange constants{.stageFlags = _pushConstants.shaderStage,
-                                .offset = _pushConstants.offset,
-                                .size = _pushConstants.size};
-  VkPipelineLayoutCreateInfo computeLayout{CE::layoutDefault};
-  computeLayout.pSetLayouts = &_descriptorSets.setLayout;
-  computeLayout.pushConstantRangeCount = _pushConstants.count;
-  computeLayout.pPushConstantRanges = &constants;
-  CE::VULKAN_RESULT(vkCreatePipelineLayout, _mechanics.mainDevice.logical,
-                    &computeLayout, nullptr, &compute.layout);
 }
 
 void Pipelines::createPipelines(

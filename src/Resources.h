@@ -77,7 +77,7 @@ class Resources {
     }
   } storageImage;
 
-  struct PushConstants {
+  struct PushConstants : public CE::PushConstants {
     VkShaderStageFlags shaderStage = {VK_SHADER_STAGE_COMPUTE_BIT};
     uint32_t count = 1;
     uint32_t offset = 0;

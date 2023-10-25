@@ -220,6 +220,32 @@ class Swapchain {
                         const VkSurfaceCapabilitiesKHR& capabilities);
 };
 
+// Resources
+class Descriptor {
+ public:
+  Descriptor();
+  virtual ~Descriptor();
+  VkDescriptorPool pool;
+  VkDescriptorSetLayout setLayout;
+  std::vector<VkDescriptorSet> sets;
+
+  struct SetLayout {
+    VkDescriptorSetLayoutBinding layoutBinding{
+        .binding = 0,
+        .descriptorType = VK_DESCRIPTOR_TYPE_MAX_ENUM,
+        .descriptorCount = 1,
+        .stageFlags = NULL};
+  };
+};
+
+struct PushConstants {
+  VkShaderStageFlags shaderStage;
+  uint32_t count;
+  uint32_t offset;
+  uint32_t size;
+  std::array<uint64_t, 32> data;
+};
+
 // Pipelines
 class Pipelines {
  public:
@@ -260,6 +286,9 @@ class Pipelines {
 class PipelineLayout {
  public:
   VkPipelineLayout layout;
+  void createGraphicsLayout(const CE::Descriptor& _descriptorSets);
+  void createComputeLayout(const CE::Descriptor& _descriptorSets,
+                           const PushConstants& _pushConstants);
 };
 
 class RenderPass {
@@ -273,24 +302,6 @@ class RenderPass {
               VkFormat swapchainImageFormat);
 
  private:
-};
-
-// Resources
-class Descriptor {
- public:
-  Descriptor();
-  virtual ~Descriptor();
-  VkDescriptorPool pool;
-  VkDescriptorSetLayout setLayout;
-  std::vector<VkDescriptorSet> sets;
-
-  struct SetLayout {
-    VkDescriptorSetLayoutBinding layoutBinding{
-        .binding = 0,
-        .descriptorType = VK_DESCRIPTOR_TYPE_MAX_ENUM,
-        .descriptorCount = 1,
-        .stageFlags = NULL};
-  };
 };
 
 template <typename Checkresult, typename... Args>

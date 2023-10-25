@@ -63,12 +63,6 @@ class Pipelines {
   void setupPipelines(Resources& _resources);
 
  private:
-  void createGraphicsPipeline_Layout(
-      const Resources::DescriptorSets& _descriptorSets);
-  void createComputePipeline_Layout(
-      const Resources::DescriptorSets& _descriptorSets,
-      const Resources::PushConstants& _pushConstants);
-
   void createPipelines(
       std::unordered_map<std::string,
                          std::variant<Configuration::Graphics,

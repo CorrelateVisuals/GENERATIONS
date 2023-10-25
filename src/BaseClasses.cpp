@@ -1105,3 +1105,25 @@ const std::array<uint32_t, 3>& CE::Pipelines::getWorkGroupsByName(
   std::variant<Graphics, Compute>& variant = pipelineMap[name];
   return std::get<CE::Pipelines::Compute>(variant).workGroups;
 };
+
+void CE::PipelineLayout::createGraphicsLayout(
+    const CE::Descriptor& _descriptorSets) {
+  VkPipelineLayoutCreateInfo graphicsLayout{CE::layoutDefault};
+  graphicsLayout.pSetLayouts = &_descriptorSets.setLayout;
+  CE::VULKAN_RESULT(vkCreatePipelineLayout, baseDevice->logical,
+                    &graphicsLayout, nullptr, &this->layout);
+}
+
+void CE::PipelineLayout::createComputeLayout(
+    const CE::Descriptor& _descriptorSets,
+    const PushConstants& _pushConstants) {
+  VkPushConstantRange constants{.stageFlags = _pushConstants.shaderStage,
+                                .offset = _pushConstants.offset,
+                                .size = _pushConstants.size};
+  VkPipelineLayoutCreateInfo computeLayout{CE::layoutDefault};
+  computeLayout.pSetLayouts = &_descriptorSets.setLayout;
+  computeLayout.pushConstantRangeCount = _pushConstants.count;
+  computeLayout.pPushConstantRanges = &constants;
+  CE::VULKAN_RESULT(vkCreatePipelineLayout, baseDevice->logical, &computeLayout,
+                    nullptr, &this->layout);
+}
