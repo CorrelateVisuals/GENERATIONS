@@ -8,8 +8,6 @@
 
 std::vector<VkDevice> CE::Device::destroyedDevices;
 VkCommandBuffer CE::Commands::singularCommandBuffer = VK_NULL_HANDLE;
-std::unordered_map<std::string, CE::Pipelines::myvariant_t>
-    CE::Pipelines::pipelineMap;
 
 void CE::Device::createLogicalDevice(const InitializeVulkan& initVulkan,
                                      Queues& queues) {

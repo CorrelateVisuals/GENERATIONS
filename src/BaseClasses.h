@@ -223,23 +223,23 @@ class Swapchain {
 // Pipelines
 class Pipelines {
  public:
-  struct Config {
 #define PIPELINE_OBJECTS \
   VkPipeline pipeline;   \
   std::vector<std::string> shaders;
 
-    struct Graphics {
-      PIPELINE_OBJECTS
-      std::vector<VkVertexInputAttributeDescription> vertexAttributes;
-      std::vector<VkVertexInputBindingDescription> vertexBindings;
-    };
-    struct Compute {
-      PIPELINE_OBJECTS
-      std::array<uint32_t, 3> workGroups;
-    };
+  struct Graphics {
+    PIPELINE_OBJECTS
+    std::vector<VkVertexInputAttributeDescription> vertexAttributes;
+    std::vector<VkVertexInputBindingDescription> vertexBindings;
   };
-  using myvariant_t = std::variant<Config::Graphics, Config::Compute>;
-  static std::unordered_map<std::string, Pipelines::myvariant_t> pipelineMap;
+  struct Compute {
+    PIPELINE_OBJECTS
+    std::array<uint32_t, 3> workGroups;
+  };
+
+  std::vector<VkShaderModule> shaderModules;
+  const std::string shaderDir = "shaders/";
+  std::unordered_map<std::string, std::variant<Graphics, Compute>> pipelineMap;
 };
 
 class PipelineLayout {

@@ -11,14 +11,13 @@
 Pipelines::Pipelines(VulkanMechanics& mechanics, Resources& resources)
     : compute{}, _mechanics(mechanics), _resources(resources) {
   Log::text("{ === }", "constructing Pipelines");
-
   compileShaders(config.pipelineMap);
 }
 
 Pipelines::~Pipelines() {
   Log::text("{ === }", "destructing Pipelines");
 
-  for (auto& pipeline : pipelineConfig) {
+  for (auto& pipeline : config.pipelineMap) {
     VkPipeline& pipelineObject = getPipelineObjectByName(pipeline.first);
     //    vkDestroyPipeline(_mechanics.mainDevice.logical, pipelineObject,
     //    nullptr);
@@ -40,7 +39,6 @@ void Pipelines::setupPipelines(Resources& _resources) {
   createRenderPass(_resources);
   createGraphicsPipeline_Layout(_resources.descriptor);
   createComputePipeline_Layout(_resources.descriptor, _resources.pushConstants);
-
   createPipelines(config.pipelineMap, _resources.msaaImage.info.samples);
 }
 
@@ -146,7 +144,9 @@ void Pipelines::createComputePipeline_Layout(
 }
 
 void Pipelines::createPipelines(
-    std::unordered_map<std::string, CE::Pipelines::myvariant_t>& pipelineMap,
+    std::unordered_map<std::string,
+                       std::variant<Configuration::Graphics,
+                                    Configuration::Compute>>& pipelineMap,
     VkSampleCountFlagBits& msaaSamples) {
   for (auto& entry : pipelineMap) {
     std::string pipelineName = entry.first;
@@ -158,7 +158,8 @@ void Pipelines::createPipelines(
 
     if (!isCompute) {
       Log::text("{ === }", "Graphics Pipeline: ", entry.first);
-      CE::Pipelines::myvariant_t& variant = pipelineMap[pipelineName];
+      std::variant<Configuration::Graphics, Configuration::Compute>& variant =
+          pipelineMap[pipelineName];
 
       std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
 
@@ -180,9 +181,9 @@ void Pipelines::createPipelines(
       }
 
       const auto& bindingDescription =
-          std::get<CE::Pipelines::Config::Graphics>(variant).vertexBindings;
+          std::get<CE::Pipelines::Graphics>(variant).vertexBindings;
       const auto& attributesDescription =
-          std::get<CE::Pipelines::Config::Graphics>(variant).vertexAttributes;
+          std::get<CE::Pipelines::Graphics>(variant).vertexAttributes;
       uint32_t bindingsSize = static_cast<uint32_t>(bindingDescription.size());
       uint32_t attributeSize =
           static_cast<uint32_t>(attributesDescription.size());
@@ -242,7 +243,7 @@ void Pipelines::createPipelines(
                         _mechanics.mainDevice.logical, VK_NULL_HANDLE, 1,
                         &pipelineInfo, nullptr,
                         &getPipelineObjectByName(pipelineName));
-      destroyShaderModules(shaderModules);
+      destroyShaderModules(config.shaderModules);
     } else if (isCompute) {
       Log::text("{ === }", "Compute  Pipeline: ", entry.first);
 
@@ -257,7 +258,7 @@ void Pipelines::createPipelines(
       CE::VULKAN_RESULT(vkCreateComputePipelines, _mechanics.mainDevice.logical,
                         VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
                         &getPipelineObjectByName(pipelineName));
-      destroyShaderModules(shaderModules);
+      destroyShaderModules(config.shaderModules);
     }
   }
 }
@@ -345,7 +346,7 @@ VkPipelineShaderStageCreateInfo Pipelines::createShaderModules(
     std::string shaderName) {
   Log::text(Log::Style::charLeader, "Shader Module", shaderName);
 
-  std::string shaderPath = shaderDir + shaderName;
+  std::string shaderPath = config.shaderDir + shaderName;
   auto shaderCode = readShaderFile(shaderPath);
   VkShaderModule shaderModule{VK_NULL_HANDLE};
 
@@ -357,7 +358,7 @@ VkPipelineShaderStageCreateInfo Pipelines::createShaderModules(
   CE::VULKAN_RESULT(vkCreateShaderModule, _mechanics.mainDevice.logical,
                     &createInfo, nullptr, &shaderModule);
 
-  shaderModules.push_back(shaderModule);
+  config.shaderModules.push_back(shaderModule);
 
   VkPipelineShaderStageCreateInfo shaderStageInfo{
       .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
@@ -366,26 +367,6 @@ VkPipelineShaderStageCreateInfo Pipelines::createShaderModules(
       .pName = "main"};
 
   return shaderStageInfo;
-}
-
-void Pipelines::compileShaders(const auto& pipelineConfig) {
-  Log::text("{ GLSL }", "Compile Shaders");
-  std::string systemCommand = "";
-  std::string shaderExtension = "";
-  std::string pipelineName = "";
-
-  for (const auto& pipeline : pipelineConfig) {
-    pipelineName = pipeline.first;
-    PIPELINE_TUPLE_UNPACKED = pipeline.second;
-
-    for (const auto& shader : shaderExtensions) {
-      shaderExtension = Lib::upperToLowerCase(shader);
-      systemCommand =
-          Lib::path(shaderDir + pipelineName + "." + shaderExtension + " -o " +
-                    shaderDir + pipelineName + shader + ".spv");
-      system(systemCommand.c_str());
-    }
-  }
 }
 
 std::vector<char> Pipelines::readShaderFile(const std::string& filename) {
