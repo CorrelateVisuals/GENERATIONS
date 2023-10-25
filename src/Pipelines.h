@@ -44,9 +44,8 @@ class Pipelines {
       pipelineMap["PostFX"] = Compute{
           .shaders = {"Comp"},
           .workGroups = {
-              static_cast<uint32_t>(Window::get().display.width + 15) / 16,
-              static_cast<uint32_t>(Window::get().display.height + 15) / 16,
-              1}};
+              static_cast<uint32_t>(Window::get().display.width + 7) / 8,
+              static_cast<uint32_t>(Window::get().display.height + 7) / 8, 1}};
     }
   } config;
 

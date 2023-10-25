@@ -15,11 +15,12 @@ class World {
   World();
   ~World();
 
-  Timer time{25.0f};
+  float speed = 25.0f;
+  Timer time{speed};
 
   struct Grid {
-    const uint_fast32_t initialAliveCells = 5000;
-    vec2_uint_fast16_t size = {100, 100};
+    const uint_fast32_t initialAliveCells = 35000;
+    vec2_uint_fast16_t size = {500, 500};
   } grid;
 
   struct Landscape : public Geometry {
@@ -32,7 +33,7 @@ class World {
   } rectangle;
 
   struct Cube : public Geometry {
-    Cube() : Geometry("SphereHR"){};
+    Cube() : Geometry("Cube"){};
     const float size = 0.5f;
   } cube;
 
@@ -43,28 +44,9 @@ class World {
     glm::vec4 color;
     glm::ivec4 states;
 
-    static std::vector<VkVertexInputBindingDescription>
-    getBindingDescription() {
-      std::vector<VkVertexInputBindingDescription> description{
-          {0, sizeof(Cell), VK_VERTEX_INPUT_RATE_INSTANCE},
-          {1, sizeof(Cube::Vertex), VK_VERTEX_INPUT_RATE_VERTEX}};
-      return description;
-    };
+    static std::vector<VkVertexInputBindingDescription> getBindingDescription();
     static std::vector<VkVertexInputAttributeDescription>
-    getAttributeDescription() {
-      std::vector<VkVertexInputAttributeDescription> description{
-          {0, 0, VK_FORMAT_R32G32B32A32_SFLOAT,
-           static_cast<uint32_t>(offsetof(Cell, instancePosition))},
-          {1, 1, VK_FORMAT_R32G32B32A32_SFLOAT,
-           static_cast<uint32_t>(offsetof(Cube::Vertex, vertexPosition))},
-          {2, 1, VK_FORMAT_R32G32B32A32_SFLOAT,
-           static_cast<uint32_t>(offsetof(Cube::Vertex, normal))},
-          {3, 0, VK_FORMAT_R32G32B32A32_SFLOAT,
-           static_cast<uint32_t>(offsetof(Cell, color))},
-          {4, 0, VK_FORMAT_R32G32B32A32_SINT,
-           static_cast<uint32_t>(offsetof(Cell, states))}};
-      return description;
-    };
+    getAttributeDescription();
   };
 
   struct UniformBufferObject {
