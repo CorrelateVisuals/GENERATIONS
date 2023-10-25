@@ -247,6 +247,25 @@ struct PushConstants {
 };
 
 // Pipelines
+class PipelineLayout {
+ public:
+  VkPipelineLayout layout;
+  void createGraphicsLayout(const CE::Descriptor& _descriptorSets);
+  void createComputeLayout(const CE::Descriptor& _descriptorSets,
+                           const PushConstants& _pushConstants);
+};
+
+class RenderPass {
+ public:
+  RenderPass() = default;
+  virtual ~RenderPass(){
+      // vkDestroyRenderPass(baseDevice->logical, renderPass, nullptr);
+  };
+  VkRenderPass renderPass;
+  void create(VkSampleCountFlagBits msaaImageSamples,
+              VkFormat swapchainImageFormat);
+};
+
 class Pipelines {
  public:
   Pipelines() = default;
@@ -271,6 +290,11 @@ class Pipelines {
   const std::string shaderDir = "shaders/";
   std::unordered_map<std::string, std::variant<Graphics, Compute>> pipelineMap;
 
+  void createPipelines(VkRenderPass& renderPass,
+                       const VkPipelineLayout& graphicsLayout,
+                       const VkPipelineLayout& computeLayout,
+                       VkSampleCountFlagBits& msaaSamples);
+
   std::vector<char> readShaderFile(const std::string& filename);
   void compileShaders();
   VkPipelineShaderStageCreateInfo createShaderModules(
@@ -281,27 +305,6 @@ class Pipelines {
 
   VkPipeline& getPipelineObjectByName(const std::string& name);
   const std::array<uint32_t, 3>& getWorkGroupsByName(const std::string& name);
-};
-
-class PipelineLayout {
- public:
-  VkPipelineLayout layout;
-  void createGraphicsLayout(const CE::Descriptor& _descriptorSets);
-  void createComputeLayout(const CE::Descriptor& _descriptorSets,
-                           const PushConstants& _pushConstants);
-};
-
-class RenderPass {
- public:
-  RenderPass() = default;
-  virtual ~RenderPass(){
-      // vkDestroyRenderPass(baseDevice->logical, renderPass, nullptr);
-  };
-  VkRenderPass renderPass;
-  void create(VkSampleCountFlagBits msaaImageSamples,
-              VkFormat swapchainImageFormat);
-
- private:
 };
 
 template <typename Checkresult, typename... Args>

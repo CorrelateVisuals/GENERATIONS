@@ -62,12 +62,12 @@ class Pipelines {
  public:
   void setupPipelines(Resources& _resources);
 
- private:
-  void createPipelines(
-      std::unordered_map<std::string,
-                         std::variant<Configuration::Graphics,
-                                      Configuration::Compute>>& pipelineMap,
-      VkSampleCountFlagBits& msaaSamples);
+  // private:
+  //  void createPipelines(
+  //      std::unordered_map<std::string,
+  //                         std::variant<Configuration::Graphics,
+  //                                      Configuration::Compute>>& pipelineMap,
+  //      VkSampleCountFlagBits& msaaSamples);
 
  private:
   VulkanMechanics& _mechanics;
