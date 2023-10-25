@@ -8,8 +8,8 @@
 #include <cstring>
 #include <random>
 
-Pipelines::Pipelines(VulkanMechanics& mechanics, Resources& resources)
-    : compute{}, _mechanics(mechanics), _resources(resources) {
+Pipelines::Pipelines(VulkanMechanics& mechanics)
+    : compute{}, _mechanics(mechanics) {
   Log::text("{ === }", "constructing Pipelines");
   config.compileShaders();
 }

@@ -4,18 +4,18 @@
 #include "Mechanics.h"
 #include "Resources.h"
 
-#include <optional>
-#include <tuple>
-
-class VulkanMechanics;
-class Resources;
-
 class Pipelines {
  public:
-  Pipelines(VulkanMechanics& mechanics, Resources& resources);
+  Pipelines(VulkanMechanics& mechanics);
   ~Pipelines();
+  void setupPipelines(Resources& _resources);
 
-  Resources& _resources;
+  struct ComputePipelineLayout : public CE::PipelineLayout {
+  } compute;
+  struct GraphicsPipelineLayouts : public CE::PipelineLayout {
+  } graphics;
+  struct RenderPass : public CE::RenderPass {
+  } renderPass;
 
   struct Configuration : public CE::Pipelines {
     Configuration() {
@@ -49,25 +49,6 @@ class Pipelines {
               1}};
     }
   } config;
-
-  struct Compute : public CE::PipelineLayout {
-  } compute;
-
-  struct PipelineLayouts : public CE::PipelineLayout {
-  } graphics;
-
-  struct RenderPass : public CE::RenderPass {
-  } renderPass;
-
- public:
-  void setupPipelines(Resources& _resources);
-
-  // private:
-  //  void createPipelines(
-  //      std::unordered_map<std::string,
-  //                         std::variant<Configuration::Graphics,
-  //                                      Configuration::Compute>>& pipelineMap,
-  //      VkSampleCountFlagBits& msaaSamples);
 
  private:
   VulkanMechanics& _mechanics;

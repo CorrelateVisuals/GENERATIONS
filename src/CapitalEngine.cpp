@@ -2,8 +2,7 @@
 
 #include <iostream>
 
-CapitalEngine::CapitalEngine()
-    : pipelines(mechanics, resources), resources(mechanics) {
+CapitalEngine::CapitalEngine() : pipelines(mechanics), resources(mechanics) {
   Log::text(Log::Style::headerGuard);
   Log::text("| CAPITAL Engine");
 
