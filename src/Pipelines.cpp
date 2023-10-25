@@ -12,15 +12,16 @@ Pipelines::Pipelines(VulkanMechanics& mechanics, Resources& resources)
     : compute{}, _mechanics(mechanics), _resources(resources) {
   Log::text("{ === }", "constructing Pipelines");
 
-  compileShaders(pipelineConfig);
+  compileShaders(config.pipelineMap);
 }
 
 Pipelines::~Pipelines() {
   Log::text("{ === }", "destructing Pipelines");
 
   for (auto& pipeline : pipelineConfig) {
-    VkPipeline& pipelineObject = getVkPipelineObjectByName(pipeline.first);
-    vkDestroyPipeline(_mechanics.mainDevice.logical, pipelineObject, nullptr);
+    VkPipeline& pipelineObject = getPipelineObjectByName(pipeline.first);
+    //    vkDestroyPipeline(_mechanics.mainDevice.logical, pipelineObject,
+    //    nullptr);
   }
 
   vkDestroyPipelineLayout(_mechanics.mainDevice.logical, graphics.layout,
@@ -39,10 +40,8 @@ void Pipelines::setupPipelines(Resources& _resources) {
   createRenderPass(_resources);
   createGraphicsPipeline_Layout(_resources.descriptor);
   createComputePipeline_Layout(_resources.descriptor, _resources.pushConstants);
-  createPipelines(pipelineConfig, _resources.msaaImage.info.samples);
 
-  compileShaders(config.pipelineMap);
-  getPipelineObjectByName("Cells", config.pipelineMap);
+  createPipelines(config.pipelineMap, _resources.msaaImage.info.samples);
 }
 
 void Pipelines::createRenderPass(Resources& _resources) {
@@ -146,37 +145,44 @@ void Pipelines::createComputePipeline_Layout(
                     &computeLayout, nullptr, &compute.layout);
 }
 
-void Pipelines::createPipelines(PipelineConfiguration& pipelineConfig,
-                                VkSampleCountFlagBits& msaaSamples) {
-  for (auto& entry : pipelineConfig) {
-    PIPELINE_TUPLE_UNPACKED = entry.second;
+void Pipelines::createPipelines(
+    std::unordered_map<std::string, CE::Pipelines::myvariant_t>& pipelineMap,
+    VkSampleCountFlagBits& msaaSamples) {
+  for (auto& entry : pipelineMap) {
+    std::string pipelineName = entry.first;
 
-    bool isCompute = std::find(shaderExtensions.begin(), shaderExtensions.end(),
-                               "Comp") != shaderExtensions.end();
+    std::vector<std::string> shaders =
+        getPipelineShadersByName(pipelineName, pipelineMap);
+    bool isCompute =
+        std::find(shaders.begin(), shaders.end(), "Comp") != shaders.end();
 
     if (!isCompute) {
       Log::text("{ === }", "Graphics Pipeline: ", entry.first);
+      CE::Pipelines::myvariant_t& variant = pipelineMap[pipelineName];
+
       std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
 
       VkShaderStageFlagBits shaderStage = VK_SHADER_STAGE_VERTEX_BIT;
-      for (size_t i = 0; i < shaderExtensions.size(); i++) {
-        if (shaderExtensions[i] == "Vert") {
+      for (size_t i = 0; i < shaders.size(); i++) {
+        if (shaders[i] == "Vert") {
           shaderStage = VK_SHADER_STAGE_VERTEX_BIT;
-        } else if (shaderExtensions[i] == "Frag") {
+        } else if (shaders[i] == "Frag") {
           shaderStage = VK_SHADER_STAGE_FRAGMENT_BIT;
-        } else if (shaderExtensions[i] == "Comp") {
+        } else if (shaders[i] == "Comp") {
           shaderStage = VK_SHADER_STAGE_COMPUTE_BIT;
-        } else if (shaderExtensions[i] == "Tesc") {
+        } else if (shaders[i] == "Tesc") {
           shaderStage = VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
-        } else if (shaderExtensions[i] == "Tese") {
+        } else if (shaders[i] == "Tese") {
           shaderStage = VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
         }
         shaderStages.push_back(createShaderModules(
-            shaderStage, entry.first + shaderExtensions[i] + ".spv"));
+            shaderStage, entry.first + shaders[i] + ".spv"));
       }
 
-      const auto& bindingDescription = binding.value()();
-      const auto& attributesDescription = attribute.value()();
+      const auto& bindingDescription =
+          std::get<CE::Pipelines::Config::Graphics>(variant).vertexBindings;
+      const auto& attributesDescription =
+          std::get<CE::Pipelines::Config::Graphics>(variant).vertexAttributes;
       uint32_t bindingsSize = static_cast<uint32_t>(bindingDescription.size());
       uint32_t attributeSize =
           static_cast<uint32_t>(attributesDescription.size());
@@ -235,14 +241,13 @@ void Pipelines::createPipelines(PipelineConfiguration& pipelineConfig,
       CE::VULKAN_RESULT(vkCreateGraphicsPipelines,
                         _mechanics.mainDevice.logical, VK_NULL_HANDLE, 1,
                         &pipelineInfo, nullptr,
-                        &getVkPipelineObjectByName(entry.first));
+                        &getPipelineObjectByName(pipelineName));
       destroyShaderModules(shaderModules);
     } else if (isCompute) {
       Log::text("{ === }", "Compute  Pipeline: ", entry.first);
 
-      VkPipelineShaderStageCreateInfo shaderStage{
-          createShaderModules(VK_SHADER_STAGE_COMPUTE_BIT,
-                              entry.first + shaderExtensions[0] + ".spv")};
+      VkPipelineShaderStageCreateInfo shaderStage{createShaderModules(
+          VK_SHADER_STAGE_COMPUTE_BIT, entry.first + shaders[0] + ".spv")};
 
       VkComputePipelineCreateInfo pipelineInfo{
           .sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
@@ -251,7 +256,7 @@ void Pipelines::createPipelines(PipelineConfiguration& pipelineConfig,
 
       CE::VULKAN_RESULT(vkCreateComputePipelines, _mechanics.mainDevice.logical,
                         VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
-                        &getVkPipelineObjectByName(entry.first));
+                        &getPipelineObjectByName(pipelineName));
       destroyShaderModules(shaderModules);
     }
   }

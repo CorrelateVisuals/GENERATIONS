@@ -96,11 +96,8 @@ class Pipelines {
     return pipelineHandle;
   }
 
-  VkPipeline& getPipelineObjectByName(
-      const std::string& name,
-      std::unordered_map<std::string, CE::Pipelines::myvariant_t>&
-          pipelineMap) {
-    CE::Pipelines::myvariant_t& variant = pipelineMap[name];
+  VkPipeline& getPipelineObjectByName(const std::string& name) {
+    CE::Pipelines::myvariant_t& variant = config.pipelineMap[name];
 
     if (std::holds_alternative<CE::Pipelines::Config::Graphics>(variant)) {
       return std::get<CE::Pipelines::Config::Graphics>(variant).pipeline;
@@ -135,7 +132,7 @@ class Pipelines {
     Log::text("comp  ", pipelineMap.size());
 
     for (const auto& entry : pipelineMap) {
-        Log::text("{ GLSL }", "Compile Shaders");
+      Log::text("{ GLSL }", "Compile Shaders");
       pipelineName = entry.first;
       std::vector<std::string> shaders =
           getPipelineShadersByName(pipelineName, pipelineMap);
@@ -160,8 +157,9 @@ class Pipelines {
       const Resources::DescriptorSets& _descriptorSets,
       const Resources::PushConstants& _pushConstants);
 
-  void createPipelines(PipelineConfiguration& pipelineConfig,
-                       VkSampleCountFlagBits& msaaSamples);
+  void createPipelines(
+      std::unordered_map<std::string, CE::Pipelines::myvariant_t>& pipelineMap,
+      VkSampleCountFlagBits& msaaSamples);
 
   bool hasStencilComponent(VkFormat format);
 
