@@ -369,7 +369,7 @@ void Resources::recordComputeCommandBuffer(VkCommandBuffer commandBuffer,
   //     nullptr);
 
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
-                    _pipelines.getPipelineObjectByName("Engine"));
+                    _pipelines.config.getPipelineObjectByName("Engine"));
 
   vkCmdBindDescriptorSets(
       commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, _pipelines.compute.layout,
@@ -381,7 +381,7 @@ void Resources::recordComputeCommandBuffer(VkCommandBuffer commandBuffer,
                      pushConstants.size, pushConstants.data.data());
 
   const std::array<uint32_t, 3>& workGroups =
-      _pipelines.getWorkGroupsByName("Engine");
+      _pipelines.config.getWorkGroupsByName("Engine");
   vkCmdDispatch(commandBuffer, workGroups[0], workGroups[0], workGroups[2]);
 
   CE::VULKAN_RESULT(vkEndCommandBuffer, commandBuffer);
@@ -428,7 +428,7 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
 
   // Pipeline 1
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                    _pipelines.getPipelineObjectByName("Cells"));
+                    _pipelines.config.getPipelineObjectByName("Cells"));
   VkDeviceSize offsets[]{0};
 
   VkDeviceSize offsets0[]{0, 0};
@@ -446,7 +446,7 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
 
   // Landscape
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                    _pipelines.getPipelineObjectByName("Landscape"));
+                    _pipelines.config.getPipelineObjectByName("Landscape"));
   VkBuffer vertexBuffers1[] = {world.landscape.vertexBuffer.buffer};
   vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers1, offsets);
   vkCmdBindIndexBuffer(commandBuffer, world.landscape.indexBuffer.buffer, 0,
@@ -464,7 +464,7 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
 
   // Pipeline 3
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                    _pipelines.getPipelineObjectByName("Water"));
+                    _pipelines.config.getPipelineObjectByName("Water"));
   VkBuffer vertexBuffers[] = {world.rectangle.vertexBuffer.buffer};
   vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
   vkCmdBindIndexBuffer(commandBuffer, world.rectangle.indexBuffer.buffer, 0,
@@ -475,7 +475,7 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
 
   // Pipeline 4
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                    _pipelines.getPipelineObjectByName("Texture"));
+                    _pipelines.config.getPipelineObjectByName("Texture"));
   vkCmdDrawIndexed(commandBuffer,
                    static_cast<uint32_t>(world.rectangle.indices.size()), 1, 0,
                    0, 0);
@@ -492,7 +492,7 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
   // vkDeviceWaitIdle(_mechanics.mainDevice.logical);
 
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
-                    _pipelines.getPipelineObjectByName("PostFX"));
+                    _pipelines.config.getPipelineObjectByName("PostFX"));
 
   vkCmdBindDescriptorSets(
       commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, _pipelines.compute.layout,
@@ -504,7 +504,7 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
                      pushConstants.size, pushConstants.data.data());
 
   const std::array<uint32_t, 3>& workGroups =
-      _pipelines.getWorkGroupsByName("PostFX");
+      _pipelines.config.getWorkGroupsByName("PostFX");
   vkCmdDispatch(commandBuffer, workGroups[0], workGroups[1], workGroups[2]);
 
   _mechanics.swapchain.images[_mechanics.syncObjects.currentFrame]

@@ -62,23 +62,7 @@ class Pipelines {
  public:
   void setupPipelines(Resources& _resources);
 
-  VkPipeline& getPipelineObjectByName(const std::string& name);
-  const std::array<uint32_t, 3>& getWorkGroupsByName(const std::string& name);
-
  private:
-  void createRenderPass(Resources& _resources);
-
-  std::vector<std::string>& getPipelineShadersByName(
-      const std::string& name,
-      std::unordered_map<std::string,
-                         std::variant<Configuration::Graphics,
-                                      Configuration::Compute>>& pipelineMap);
-
-  void compileShaders(
-      std::unordered_map<std::string,
-                         std::variant<Configuration::Graphics,
-                                      Configuration::Compute>>& pipelineMap);
-
   void createGraphicsPipeline_Layout(
       const Resources::DescriptorSets& _descriptorSets);
   void createComputePipeline_Layout(
@@ -90,14 +74,6 @@ class Pipelines {
                          std::variant<Configuration::Graphics,
                                       Configuration::Compute>>& pipelineMap,
       VkSampleCountFlagBits& msaaSamples);
-
-  bool hasStencilComponent(VkFormat format);
-
-  static std::vector<char> readShaderFile(const std::string& filename);
-  void destroyShaderModules(std::vector<VkShaderModule>& shaderModules);
-  VkPipelineShaderStageCreateInfo createShaderModules(
-      VkShaderStageFlagBits shaderStage,
-      std::string shaderName);
 
  private:
   VulkanMechanics& _mechanics;

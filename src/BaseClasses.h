@@ -223,6 +223,9 @@ class Swapchain {
 // Pipelines
 class Pipelines {
  public:
+  Pipelines() = default;
+  virtual ~Pipelines() = default;
+
 #define PIPELINE_OBJECTS \
   VkPipeline pipeline;   \
   std::vector<std::string> shaders;
@@ -236,10 +239,22 @@ class Pipelines {
     PIPELINE_OBJECTS
     std::array<uint32_t, 3> workGroups;
   };
+#undef PIPELINE_OBJECTS
 
   std::vector<VkShaderModule> shaderModules;
   const std::string shaderDir = "shaders/";
   std::unordered_map<std::string, std::variant<Graphics, Compute>> pipelineMap;
+
+  std::vector<char> readShaderFile(const std::string& filename);
+  void compileShaders();
+  VkPipelineShaderStageCreateInfo createShaderModules(
+      VkShaderStageFlagBits shaderStage,
+      std::string shaderName);
+  void destroyShaderModules();
+  std::vector<std::string>& getPipelineShadersByName(const std::string& name);
+
+  VkPipeline& getPipelineObjectByName(const std::string& name);
+  const std::array<uint32_t, 3>& getWorkGroupsByName(const std::string& name);
 };
 
 class PipelineLayout {
@@ -249,7 +264,15 @@ class PipelineLayout {
 
 class RenderPass {
  public:
+  RenderPass() = default;
+  virtual ~RenderPass(){
+      // vkDestroyRenderPass(baseDevice->logical, renderPass, nullptr);
+  };
   VkRenderPass renderPass;
+  void create(VkSampleCountFlagBits msaaImageSamples,
+              VkFormat swapchainImageFormat);
+
+ private:
 };
 
 // Resources
