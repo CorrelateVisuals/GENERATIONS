@@ -19,8 +19,12 @@ class Pipelines {
 
   struct Configuration : public CE::Pipelines {
     Configuration() {
+      World world;
       pipelineMap["Engine"] =
-          Compute{.shaders = {"Comp"}, .workGroups = {32, 32, 1}};
+          Compute{.shaders = {"Comp"},
+                  .workGroups = {
+                      static_cast<uint32_t>(world.grid.size.x + 31) / 32,
+                      static_cast<uint32_t>(world.grid.size.y + 31) / 32, 1}};
       pipelineMap["Cells"] =
           Graphics{.shaders = {"Vert", "Frag"},
                    .vertexAttributes = World::Cell::getAttributeDescription(),
@@ -37,13 +41,16 @@ class Pipelines {
           .shaders = {"Vert", "Frag"},
           .vertexAttributes = World::Rectangle::getAttributeDescription(),
           .vertexBindings = World::Rectangle::getBindingDescription()};
-      pipelineMap["PostFX"] =
-          Compute{.shaders = {"Comp"}, .workGroups = {16, 16, 1}};
+      pipelineMap["PostFX"] = Compute{
+          .shaders = {"Comp"},
+          .workGroups = {
+              static_cast<uint32_t>(Window::get().display.width + 15) / 16,
+              static_cast<uint32_t>(Window::get().display.height + 15) / 16,
+              1}};
     }
   } config;
 
   struct Compute : public CE::PipelineLayout {
-    const std::array<uint32_t, 3> workGroups{32, 32, 1};
   } compute;
 
   struct PipelineLayouts : public CE::PipelineLayout {
@@ -56,6 +63,7 @@ class Pipelines {
   void setupPipelines(Resources& _resources);
 
   VkPipeline& getPipelineObjectByName(const std::string& name);
+  const std::array<uint32_t, 3>& getWorkGroupsByName(const std::string& name);
 
  private:
   void createRenderPass(Resources& _resources);

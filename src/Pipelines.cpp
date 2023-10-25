@@ -53,6 +53,14 @@ VkPipeline& Pipelines::getPipelineObjectByName(const std::string& name) {
   }
 }
 
+const std::array<uint32_t, 3>& Pipelines::getWorkGroupsByName(
+    const std::string& name) {
+  std::variant<Pipelines::Configuration::Graphics,
+               Pipelines::Configuration::Compute>& variant =
+      config.pipelineMap[name];
+  return std::get<CE::Pipelines::Compute>(variant).workGroups;
+};
+
 std::vector<std::string>& Pipelines::getPipelineShadersByName(
     const std::string& name,
     std::unordered_map<std::string,

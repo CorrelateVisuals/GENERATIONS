@@ -380,15 +380,9 @@ void Resources::recordComputeCommandBuffer(VkCommandBuffer commandBuffer,
                      pushConstants.shaderStage, pushConstants.offset,
                      pushConstants.size, pushConstants.data.data());
 
-  uint32_t workgroupSizeX =
-      (world.grid.size.x + _pipelines.compute.workGroups[0] - 1) /
-      _pipelines.compute.workGroups[0];
-  uint32_t workgroupSizeY =
-      (world.grid.size.y + _pipelines.compute.workGroups[1] - 1) /
-      _pipelines.compute.workGroups[1];
-
-  vkCmdDispatch(commandBuffer, workgroupSizeX, workgroupSizeY,
-                _pipelines.compute.workGroups[2]);
+  const std::array<uint32_t, 3>& workGroups =
+      _pipelines.getWorkGroupsByName("Engine");
+  vkCmdDispatch(commandBuffer, workGroups[0], workGroups[0], workGroups[2]);
 
   CE::VULKAN_RESULT(vkEndCommandBuffer, commandBuffer);
 }
@@ -509,12 +503,9 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
                      pushConstants.shaderStage, pushConstants.offset,
                      pushConstants.size, pushConstants.data.data());
 
-  uint32_t workgroupSizeX =
-      (static_cast<uint32_t>(Window::get().display.width) + 15) / 16;
-  uint32_t workgroupSizeY =
-      (static_cast<uint32_t>(Window::get().display.height) + 15) / 16;
-
-  vkCmdDispatch(commandBuffer, workgroupSizeX, workgroupSizeY, 1);
+  const std::array<uint32_t, 3>& workGroups =
+      _pipelines.getWorkGroupsByName("PostFX");
+  vkCmdDispatch(commandBuffer, workGroups[0], workGroups[1], workGroups[2]);
 
   _mechanics.swapchain.images[_mechanics.syncObjects.currentFrame]
       .transitionLayout(commandBuffer, VK_FORMAT_R8G8B8A8_SRGB,
