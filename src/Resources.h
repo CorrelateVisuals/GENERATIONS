@@ -78,11 +78,13 @@ class Resources {
   } storageImage;
 
   struct PushConstants : public CE::PushConstants {
-    VkShaderStageFlags shaderStage = {VK_SHADER_STAGE_COMPUTE_BIT};
-    uint32_t count = 1;
-    uint32_t offset = 0;
-    uint32_t size = 128;
-    std::array<uint64_t, 32> data;
+    PushConstants() {
+      shaderStage = VK_SHADER_STAGE_COMPUTE_BIT;
+      count = 1;
+      offset = 0;
+      size = 128;
+      data.fill(0);
+    }
   } pushConstants;
 
   struct CommandBuffers : public CE::Commands {
