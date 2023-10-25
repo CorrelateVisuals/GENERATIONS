@@ -40,6 +40,9 @@ void Pipelines::setupPipelines(Resources& _resources) {
   createGraphicsPipeline_Layout(_resources.descriptor);
   createComputePipeline_Layout(_resources.descriptor, _resources.pushConstants);
   createPipelines(pipelineConfig, _resources.msaaImage.info.samples);
+
+  compileShaders(config.pipelineMap);
+  getPipelineObjectByName("Cells", config.pipelineMap);
 }
 
 void Pipelines::createRenderPass(Resources& _resources) {

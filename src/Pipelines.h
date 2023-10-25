@@ -40,7 +40,7 @@ class Pipelines {
       pipelineMap["PostFX"] =
           Config::Compute{.shaders = {"Comp"}, .workGroups = {16, 16, 1}};
     }
-  };
+  } config;
 
   using PipelineTuple = std::tuple<
       std::vector<std::string>,
@@ -89,10 +89,66 @@ class Pipelines {
 
  public:
   void setupPipelines(Resources& _resources);
+
   VkPipeline& getVkPipelineObjectByName(const std::string& pipeline) {
     PipelineTuple& currentPipeline = pipelineConfig.at(pipeline);
     VkPipeline& pipelineHandle = std::get<VkPipeline>(currentPipeline);
     return pipelineHandle;
+  }
+
+  VkPipeline& getPipelineObjectByName(
+      const std::string& name,
+      std::unordered_map<std::string, CE::Pipelines::myvariant_t>&
+          pipelineMap) {
+    CE::Pipelines::myvariant_t& variant = pipelineMap[name];
+
+    if (std::holds_alternative<CE::Pipelines::Config::Graphics>(variant)) {
+      return std::get<CE::Pipelines::Config::Graphics>(variant).pipeline;
+    } else if (std::holds_alternative<CE::Pipelines::Config::Compute>(
+                   variant)) {
+      return std::get<CE::Pipelines::Config::Compute>(variant).pipeline;
+    }
+  }
+
+  std::vector<std::string>& getPipelineShadersByName(
+      const std::string& name,
+      std::unordered_map<std::string, CE::Pipelines::myvariant_t>&
+          pipelineMap) {
+    CE::Pipelines::myvariant_t& variant = pipelineMap[name];
+
+    if (std::holds_alternative<CE::Pipelines::Config::Graphics>(variant)) {
+      return std::get<CE::Pipelines::Config::Graphics>(variant).shaders;
+    } else if (std::holds_alternative<CE::Pipelines::Config::Compute>(
+                   variant)) {
+      return std::get<CE::Pipelines::Config::Compute>(variant).shaders;
+    }
+  }
+
+  void compileShaders(
+      std::unordered_map<std::string, CE::Pipelines::myvariant_t>&
+          pipelineMap) {
+    Log::text("{ GLSL }", "Compile Shaders");
+    std::string systemCommand = "";
+    std::string shaderExtension = "";
+    std::string pipelineName = "";
+
+    Log::text("comp  ", pipelineMap.size());
+
+    for (const auto& entry : pipelineMap) {
+        Log::text("{ GLSL }", "Compile Shaders");
+      pipelineName = entry.first;
+      std::vector<std::string> shaders =
+          getPipelineShadersByName(pipelineName, pipelineMap);
+
+      Log::text("comp  ", shaders.size());
+      for (const auto& shader : shaders) {
+        shaderExtension = Lib::upperToLowerCase(shader);
+        systemCommand =
+            Lib::path(shaderDir + pipelineName + "." + shaderExtension +
+                      " -o " + shaderDir + pipelineName + shader + ".spv");
+        system(systemCommand.c_str());
+      }
+    }
   }
 
  private:
