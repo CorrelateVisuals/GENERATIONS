@@ -37,7 +37,6 @@ class Queues {
   FamilyIndices findQueueFamilies(const VkPhysicalDevice& physicalDevice,
                                   const VkSurfaceKHR& surface);
 };
-
 class InitializeVulkan {
  public:
   InitializeVulkan();
@@ -51,7 +50,6 @@ class InitializeVulkan {
   void createSurface(GLFWwindow* window);
   std::vector<const char*> getRequiredExtensions();
 };
-
 class Device {
  public:
   Device() = default;
@@ -95,7 +93,6 @@ class Commands {
   static void endSingularCommands(const VkCommandPool& commandPool,
                                   const VkQueue& queue);
 };
-
 class Buffer {
  public:
   Buffer();
@@ -123,7 +120,6 @@ class Buffer {
                           const VkCommandPool& commandPool,
                           const VkQueue& queue);
 };
-
 class Image {
  public:
   Image();
@@ -177,7 +173,6 @@ class Image {
   void createDepthResources(const VkExtent2D& dimensions,
                             const VkFormat format);
 };
-
 struct SynchronizationObjects {
   void create(const int maxFramesInFlight);
   void destroy(const int maxFramesInFlight);
@@ -188,7 +183,6 @@ struct SynchronizationObjects {
   std::vector<VkFence> computeInFlightFences;
   uint32_t currentFrame = 0;
 };
-
 class Swapchain {
  public:
   Swapchain() = default;
@@ -237,7 +231,6 @@ class Descriptor {
         .stageFlags = NULL};
   };
 };
-
 struct PushConstants {
   VkShaderStageFlags shaderStage;
   uint32_t count;
@@ -254,7 +247,6 @@ class PipelineLayout {
   void createComputeLayout(const CE::Descriptor& _descriptorSets,
                            const PushConstants& _pushConstants);
 };
-
 class RenderPass {
  public:
   RenderPass() = default;
@@ -265,7 +257,6 @@ class RenderPass {
   void create(VkSampleCountFlagBits msaaImageSamples,
               VkFormat swapchainImageFormat);
 };
-
 class Pipelines {
  public:
   Pipelines() = default;
@@ -327,13 +318,11 @@ constexpr static inline VkPipelineRasterizationStateCreateInfo
         .depthBiasClamp = 0.01f,
         .depthBiasSlopeFactor = 0.02f,
         .lineWidth = 1.0f};
-
 constexpr static inline VkPipelineInputAssemblyStateCreateInfo
     inputAssemblyStateTriangleList{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
         .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
         .primitiveRestartEnable = VK_FALSE};
-
 constexpr static inline VkPipelineVertexInputStateCreateInfo
     vertexInputStateDefault{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
@@ -343,14 +332,12 @@ constexpr static inline VkPipelineVertexInputStateCreateInfo
         .pVertexBindingDescriptions = nullptr,
         .vertexAttributeDescriptionCount = 0,
         .pVertexAttributeDescriptions = nullptr};
-
 constexpr static inline VkPipelineMultisampleStateCreateInfo
     multisampleStateDefault{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
         .rasterizationSamples = VK_SAMPLE_COUNT_1_BIT,
         .sampleShadingEnable = VK_TRUE,
         .minSampleShading = 1.0f};
-
 constexpr static inline VkPipelineDepthStencilStateCreateInfo
     depthStencilStateDefault{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
@@ -359,7 +346,6 @@ constexpr static inline VkPipelineDepthStencilStateCreateInfo
         .depthCompareOp = VK_COMPARE_OP_LESS,
         .depthBoundsTestEnable = VK_FALSE,
         .stencilTestEnable = VK_FALSE};
-
 constexpr static inline VkPipelineColorBlendAttachmentState
     colorBlendAttachmentStateFalse{
         .blendEnable = VK_FALSE,
@@ -371,7 +357,6 @@ constexpr static inline VkPipelineColorBlendAttachmentState
         .alphaBlendOp = VK_BLEND_OP_ADD,
         .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
                           VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT};
-
 constexpr static inline VkPipelineColorBlendAttachmentState
     colorBlendAttachmentStateMultiply{
         .blendEnable = VK_TRUE,
@@ -383,7 +368,6 @@ constexpr static inline VkPipelineColorBlendAttachmentState
         .alphaBlendOp = VK_BLEND_OP_ADD,
         .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
                           VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT};
-
 constexpr static inline VkPipelineColorBlendAttachmentState
     colorBlendAttachmentStateAdd{
         .blendEnable = VK_TRUE,
@@ -395,7 +379,6 @@ constexpr static inline VkPipelineColorBlendAttachmentState
         .alphaBlendOp = VK_BLEND_OP_ADD,
         .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
                           VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT};
-
 constexpr static inline VkPipelineColorBlendAttachmentState
     colorBlendAttachmentStateAverage{
         .blendEnable = VK_TRUE,
@@ -407,7 +390,6 @@ constexpr static inline VkPipelineColorBlendAttachmentState
         .alphaBlendOp = VK_BLEND_OP_ADD,
         .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
                           VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT};
-
 constexpr static inline VkPipelineColorBlendAttachmentState
     colorBlendAttachmentStateSubtract{
         .blendEnable = VK_TRUE,
@@ -419,7 +401,6 @@ constexpr static inline VkPipelineColorBlendAttachmentState
         .alphaBlendOp = VK_BLEND_OP_ADD,
         .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
                           VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT};
-
 constexpr static inline VkPipelineColorBlendAttachmentState
     colorBlendAttachmentStateScreen{
         .blendEnable = VK_TRUE,
@@ -431,7 +412,6 @@ constexpr static inline VkPipelineColorBlendAttachmentState
         .alphaBlendOp = VK_BLEND_OP_ADD,
         .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
                           VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT};
-
 constexpr static inline VkPipelineColorBlendStateCreateInfo
     colorBlendStateDefault{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
@@ -442,24 +422,20 @@ constexpr static inline VkPipelineColorBlendStateCreateInfo
         .attachmentCount = 1,
         .pAttachments = nullptr,
         .blendConstants = {0.0f, 0.0f, 0.0f, 0.0f}};
-
 constexpr static inline VkPipelineViewportStateCreateInfo viewportStateDefault{
     .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
     .viewportCount = 1,
     .scissorCount = 1};
-
 constexpr static inline VkDynamicState dynamicStates[] = {
     VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
 constexpr static inline VkPipelineDynamicStateCreateInfo dynamicStateDefault{
     .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
     .dynamicStateCount = sizeof(dynamicStates) / sizeof(dynamicStates[0]),
     .pDynamicStates = dynamicStates};
-
 constexpr static inline VkPipelineLayoutCreateInfo layoutDefault{
     .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
     .setLayoutCount = 1,
     .pSetLayouts = nullptr};
-
 const static inline uint32_t tessellationTopologyTriangle = 3;
 constexpr static inline VkPipelineTessellationStateCreateInfo
     tessellationStateDefault{
