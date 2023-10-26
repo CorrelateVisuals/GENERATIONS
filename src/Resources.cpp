@@ -1,5 +1,3 @@
-#include "VulkanInitializers.hpp"
-
 #include "CapitalEngine.h"
 #include "Resources.h"
 
@@ -56,16 +54,16 @@ void Resources::createFramebuffers(Pipelines& _pipelines) {
 
     VkFramebufferCreateInfo framebufferInfo{
         .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
-        .renderPass = _pipelines.graphics.renderPass,
+        .renderPass = _pipelines.renderPass.renderPass,
         .attachmentCount = static_cast<uint32_t>(attachments.size()),
         .pAttachments = attachments.data(),
         .width = _mechanics.swapchain.extent.width,
         .height = _mechanics.swapchain.extent.height,
         .layers = 1};
 
-    CE::vulkanResult(vkCreateFramebuffer, _mechanics.mainDevice.logical,
-                     &framebufferInfo, nullptr,
-                     &_mechanics.swapchain.framebuffers[i]);
+    CE::VULKAN_RESULT(vkCreateFramebuffer, _mechanics.mainDevice.logical,
+                      &framebufferInfo, nullptr,
+                      &_mechanics.swapchain.framebuffers[i]);
   }
 }
 
@@ -138,8 +136,8 @@ void Resources::createDescriptorSetLayout(
       .bindingCount = static_cast<uint32_t>(layoutBindings.size()),
       .pBindings = layoutBindings.data()};
 
-  CE::vulkanResult(vkCreateDescriptorSetLayout, _mechanics.mainDevice.logical,
-                   &layoutInfo, nullptr, &descriptor.setLayout);
+  CE::VULKAN_RESULT(vkCreateDescriptorSetLayout, _mechanics.mainDevice.logical,
+                    &layoutInfo, nullptr, &descriptor.setLayout);
 }
 
 void Resources::createDescriptorPool() {
@@ -165,8 +163,8 @@ void Resources::createDescriptorPool() {
       .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
       .pPoolSizes = poolSizes.data()};
 
-  CE::vulkanResult(vkCreateDescriptorPool, _mechanics.mainDevice.logical,
-                   &poolInfo, nullptr, &descriptor.pool);
+  CE::VULKAN_RESULT(vkCreateDescriptorPool, _mechanics.mainDevice.logical,
+                    &poolInfo, nullptr, &descriptor.pool);
 }
 
 void Resources::allocateDescriptorSets() {
@@ -179,8 +177,8 @@ void Resources::allocateDescriptorSets() {
       .pSetLayouts = layouts.data()};
 
   descriptor.sets.resize(MAX_FRAMES_IN_FLIGHT);
-  CE::vulkanResult(vkAllocateDescriptorSets, _mechanics.mainDevice.logical,
-                   &allocateInfo, descriptor.sets.data());
+  CE::VULKAN_RESULT(vkAllocateDescriptorSets, _mechanics.mainDevice.logical,
+                    &allocateInfo, descriptor.sets.data());
 }
 
 void Resources::createCommandBuffers(
@@ -195,8 +193,8 @@ void Resources::createCommandBuffers(
       .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
       .commandBufferCount = static_cast<uint32_t>(commandBuffers.size())};
 
-  CE::vulkanResult(vkAllocateCommandBuffers, _mechanics.mainDevice.logical,
-                   &allocateInfo, commandBuffers.data());
+  CE::VULKAN_RESULT(vkAllocateCommandBuffers, _mechanics.mainDevice.logical,
+                    &allocateInfo, commandBuffers.data());
 }
 
 void Resources::createVertexBuffers(
@@ -369,7 +367,7 @@ void Resources::recordComputeCommandBuffer(VkCommandBuffer commandBuffer,
   //     nullptr);
 
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
-                    _pipelines.compute.engine);
+                    _pipelines.config.getPipelineObjectByName("Engine"));
 
   vkCmdBindDescriptorSets(
       commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, _pipelines.compute.layout,
@@ -380,17 +378,11 @@ void Resources::recordComputeCommandBuffer(VkCommandBuffer commandBuffer,
                      pushConstants.shaderStage, pushConstants.offset,
                      pushConstants.size, pushConstants.data.data());
 
-  uint32_t workgroupSizeX =
-      (world.grid.size.x + _pipelines.compute.workGroups[0] - 1) /
-      _pipelines.compute.workGroups[0];
-  uint32_t workgroupSizeY =
-      (world.grid.size.y + _pipelines.compute.workGroups[1] - 1) /
-      _pipelines.compute.workGroups[1];
+  const std::array<uint32_t, 3>& workGroups =
+      _pipelines.config.getWorkGroupsByName("Engine");
+  vkCmdDispatch(commandBuffer, workGroups[0], workGroups[0], workGroups[2]);
 
-  vkCmdDispatch(commandBuffer, workgroupSizeX, workgroupSizeY,
-                _pipelines.compute.workGroups[2]);
-
-  CE::vulkanResult(vkEndCommandBuffer, commandBuffer);
+  CE::VULKAN_RESULT(vkEndCommandBuffer, commandBuffer);
 }
 
 void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
@@ -399,7 +391,7 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
   VkCommandBufferBeginInfo beginInfo{
       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO};
 
-  CE::vulkanResult(vkBeginCommandBuffer, commandBuffer, &beginInfo);
+  CE::VULKAN_RESULT(vkBeginCommandBuffer, commandBuffer, &beginInfo);
 
   std::vector<VkClearValue> clearValues{{.color = {{0.0f, 0.0f, 0.0f, 1.0f}}},
                                         {.depthStencil = {1.0f, 0}}};
@@ -407,7 +399,7 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
   VkRenderPassBeginInfo renderPassInfo{
       .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
       .pNext = nullptr,
-      .renderPass = _pipelines.graphics.renderPass,
+      .renderPass = _pipelines.renderPass.renderPass,
       .framebuffer = _mechanics.swapchain.framebuffers[imageIndex],
       .renderArea = {.offset = {0, 0}, .extent = _mechanics.swapchain.extent},
       .clearValueCount = static_cast<uint32_t>(clearValues.size()),
@@ -434,7 +426,7 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
 
   // Pipeline 1
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                    _pipelines.graphics.cells);
+                    _pipelines.config.getPipelineObjectByName("Cells"));
   VkDeviceSize offsets[]{0};
 
   VkDeviceSize offsets0[]{0, 0};
@@ -452,7 +444,7 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
 
   // Landscape
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                    _pipelines.graphics.landscape);
+                    _pipelines.config.getPipelineObjectByName("Landscape"));
   VkBuffer vertexBuffers1[] = {world.landscape.vertexBuffer.buffer};
   vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers1, offsets);
   vkCmdBindIndexBuffer(commandBuffer, world.landscape.indexBuffer.buffer, 0,
@@ -462,15 +454,15 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
                    0, 0);
 
   // Landscape Wireframe
-  vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                    _pipelines.graphics.landscapeWireframe);
-  vkCmdDrawIndexed(commandBuffer,
-                   static_cast<uint32_t>(world.landscape.indices.size()), 1, 0,
-                   0, 0);
+  // vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+  //                  _pipelines.graphics.landscapeWireframe);
+  // vkCmdDrawIndexed(commandBuffer,
+  //                 static_cast<uint32_t>(world.landscape.indices.size()), 1,
+  //                 0, 0, 0);
 
   // Pipeline 3
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                    _pipelines.graphics.water);
+                    _pipelines.config.getPipelineObjectByName("Water"));
   VkBuffer vertexBuffers[] = {world.rectangle.vertexBuffer.buffer};
   vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
   vkCmdBindIndexBuffer(commandBuffer, world.rectangle.indexBuffer.buffer, 0,
@@ -481,7 +473,7 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
 
   // Pipeline 4
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                    _pipelines.graphics.texture);
+                    _pipelines.config.getPipelineObjectByName("Texture"));
   vkCmdDrawIndexed(commandBuffer,
                    static_cast<uint32_t>(world.rectangle.indices.size()), 1, 0,
                    0, 0);
@@ -498,7 +490,7 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
   // vkDeviceWaitIdle(_mechanics.mainDevice.logical);
 
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
-                    _pipelines.compute.postFX);
+                    _pipelines.config.getPipelineObjectByName("PostFX"));
 
   vkCmdBindDescriptorSets(
       commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, _pipelines.compute.layout,
@@ -509,48 +501,14 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
                      pushConstants.shaderStage, pushConstants.offset,
                      pushConstants.size, pushConstants.data.data());
 
-  uint32_t workgroupSizeX =
-      (static_cast<uint32_t>(Window::get().display.width) + 15) / 16;
-  uint32_t workgroupSizeY =
-      (static_cast<uint32_t>(Window::get().display.height) + 15) / 16;
-
-  vkCmdDispatch(commandBuffer, workgroupSizeX, workgroupSizeY, 1);
+  const std::array<uint32_t, 3>& workGroups =
+      _pipelines.config.getWorkGroupsByName("PostFX");
+  vkCmdDispatch(commandBuffer, workGroups[0], workGroups[1], workGroups[2]);
 
   _mechanics.swapchain.images[_mechanics.syncObjects.currentFrame]
       .transitionLayout(commandBuffer, VK_FORMAT_R8G8B8A8_SRGB,
                         VK_IMAGE_LAYOUT_GENERAL,
                         /* -> */ VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
-  CE::vulkanResult(vkEndCommandBuffer, commandBuffer);
-}
-
-Resources::Uniform::Uniform() {
-  layoutBinding.binding = 0;
-  layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-  layoutBinding.stageFlags =
-      VK_SHADER_STAGE_COMPUTE_BIT | VK_SHADER_STAGE_VERTEX_BIT;
-  descriptorSetLayoutBindings.push_back(layoutBinding);
-}
-
-Resources::ShaderStorage::ShaderStorage() {
-  layoutBinding.binding = 1;
-  layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-  layoutBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-  descriptorSetLayoutBindings.push_back(layoutBinding);
-  layoutBinding.binding = 2;
-  descriptorSetLayoutBindings.push_back(layoutBinding);
-}
-
-Resources::ImageSampler::ImageSampler() {
-  layoutBinding.binding = 3;
-  layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-  layoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-  descriptorSetLayoutBindings.push_back(layoutBinding);
-}
-
-Resources::StorageImage::StorageImage() {
-  layoutBinding.binding = 4;
-  layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-  layoutBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-  descriptorSetLayoutBindings.push_back(layoutBinding);
+  CE::VULKAN_RESULT(vkEndCommandBuffer, commandBuffer);
 }

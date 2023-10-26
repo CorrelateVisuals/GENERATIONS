@@ -1,10 +1,11 @@
 #pragma once
 #include "Geometry.h"
-#include "Timer.h"
 #include "Library.h"
+#include "Timer.h"
 
 #include <algorithm>
 #include <array>
+#include <utility>
 #include <vector>
 
 class Timer;
@@ -14,7 +15,8 @@ class World {
   World();
   ~World();
 
-  Timer time{25.0f};
+  float speed = 25.0f;
+  Timer time{speed};
 
   struct Grid {
     const uint_fast32_t initialAliveCells = 5000;
@@ -23,7 +25,7 @@ class World {
 
   struct Landscape : public Geometry {
     static std::vector<VkVertexInputAttributeDescription>
-    getAttributeDescriptions();
+    getAttributeDescription();
   } landscape;
 
   struct Rectangle : public Geometry {
@@ -31,11 +33,11 @@ class World {
   } rectangle;
 
   struct Cube : public Geometry {
-    Cube() : Geometry("SphereHR"){};
+    Cube() : Geometry("Cube"){};
     const float size = 0.5f;
   } cube;
 
-  struct Cell {
+  struct alignas(16) Cell {
     glm::vec4 instancePosition;
     glm::vec4 vertexPosition;
     glm::vec4 normal;
@@ -44,7 +46,7 @@ class World {
 
     static std::vector<VkVertexInputBindingDescription> getBindingDescription();
     static std::vector<VkVertexInputAttributeDescription>
-    getAttributeDescriptions();
+    getAttributeDescription();
   };
 
   struct UniformBufferObject {

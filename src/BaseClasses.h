@@ -10,10 +10,14 @@
 #include <optional>
 #include <stdexcept>
 #include <string>
+#include <unordered_map>
+#include <variant>
 #include <vector>
 
 namespace CE {
+class Swapchain;
 
+// Mechanics
 class Queues {
  public:
   Queues() = default;
@@ -33,49 +37,45 @@ class Queues {
   FamilyIndices findQueueFamilies(const VkPhysicalDevice& physicalDevice,
                                   const VkSurfaceKHR& surface);
 };
-
 class InitializeVulkan {
  public:
   InitializeVulkan();
-  ~InitializeVulkan();
+  virtual ~InitializeVulkan();
   VkSurfaceKHR surface;
   VkInstance instance;
   ValidationLayers validation;
 
+ private:
   void createInstance();
   void createSurface(GLFWwindow* window);
   std::vector<const char*> getRequiredExtensions();
 };
-
-class Swapchain;
-
 class Device {
  public:
   Device() = default;
   virtual ~Device() { destroyDevice(); }
   VkPhysicalDevice physical{VK_NULL_HANDLE};
-  VkPhysicalDeviceProperties properties;
   VkPhysicalDeviceFeatures features{};
-  std::vector<const char*> extensions{VK_KHR_SWAPCHAIN_EXTENSION_NAME};
   VkSampleCountFlagBits maxUsableSampleCount;
   VkDevice logical{VK_NULL_HANDLE};
 
-  // template <typename SC>
   void pickPhysicalDevice(const InitializeVulkan& initVulkan,
                           Queues& queues,
                           Swapchain& swapchain);
-  // template <typename NSC>
+  void createLogicalDevice(const InitializeVulkan& initVulkan, Queues& queues);
+  void setBaseDevice(const CE::Device& device);
+  void destroyDevice();
+
+ private:
+  VkPhysicalDeviceProperties properties;
+  std::vector<const char*> extensions{VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+
   bool isDeviceSuitable(const VkPhysicalDevice& physical,
                         Queues& queues,
                         const InitializeVulkan& initVulkan,
                         Swapchain& swapchain);
-
-  void getMaxUsableSampleCount(const VkPhysicalDevice& physical);
+  void getMaxUsableSampleCount();
   bool checkDeviceExtensionSupport(const VkPhysicalDevice& physical);
-
-  void createLogicalDevice(const InitializeVulkan& initVulkan, Queues& queues);
-  void destroyDevice();
-  void setBaseDevice(const CE::Device& device);
   static std::vector<VkDevice> destroyedDevices;
 };
 static std::unique_ptr<Device> baseDevice;
@@ -93,7 +93,6 @@ class Commands {
   static void endSingularCommands(const VkCommandPool& commandPool,
                                   const VkQueue& queue);
 };
-
 class Buffer {
  public:
   Buffer();
@@ -121,7 +120,6 @@ class Buffer {
                           const VkCommandPool& commandPool,
                           const VkQueue& queue);
 };
-
 class Image {
  public:
   Image();
@@ -175,7 +173,6 @@ class Image {
   void createDepthResources(const VkExtent2D& dimensions,
                             const VkFormat format);
 };
-
 struct SynchronizationObjects {
   void create(const int maxFramesInFlight);
   void destroy(const int maxFramesInFlight);
@@ -186,7 +183,6 @@ struct SynchronizationObjects {
   std::vector<VkFence> computeInFlightFences;
   uint32_t currentFrame = 0;
 };
-
 class Swapchain {
  public:
   Swapchain() = default;
@@ -218,6 +214,7 @@ class Swapchain {
                         const VkSurfaceCapabilitiesKHR& capabilities);
 };
 
+// Resources
 class Descriptor {
  public:
   Descriptor();
@@ -234,9 +231,75 @@ class Descriptor {
         .stageFlags = NULL};
   };
 };
+struct PushConstants {
+  VkShaderStageFlags shaderStage;
+  uint32_t count;
+  uint32_t offset;
+  uint32_t size;
+  std::array<uint64_t, 32> data;
+};
+
+// Pipelines
+class PipelineLayout {
+ public:
+  VkPipelineLayout layout;
+  void createGraphicsLayout(const CE::Descriptor& _descriptorSets);
+  void createComputeLayout(const CE::Descriptor& _descriptorSets,
+                           const PushConstants& _pushConstants);
+};
+class RenderPass {
+ public:
+  RenderPass() = default;
+  virtual ~RenderPass(){
+      // vkDestroyRenderPass(baseDevice->logical, renderPass, nullptr);
+  };
+  VkRenderPass renderPass;
+  void create(VkSampleCountFlagBits msaaImageSamples,
+              VkFormat swapchainImageFormat);
+};
+class Pipelines {
+ public:
+  Pipelines() = default;
+  virtual ~Pipelines() = default;
+
+#define PIPELINE_OBJECTS \
+  VkPipeline pipeline;   \
+  std::vector<std::string> shaders;
+
+  struct Graphics {
+    PIPELINE_OBJECTS
+    std::vector<VkVertexInputAttributeDescription> vertexAttributes;
+    std::vector<VkVertexInputBindingDescription> vertexBindings;
+  };
+  struct Compute {
+    PIPELINE_OBJECTS
+    std::array<uint32_t, 3> workGroups;
+  };
+#undef PIPELINE_OBJECTS
+
+  std::vector<VkShaderModule> shaderModules;
+  const std::string shaderDir = "shaders/";
+  std::unordered_map<std::string, std::variant<Graphics, Compute>> pipelineMap;
+
+  void createPipelines(VkRenderPass& renderPass,
+                       const VkPipelineLayout& graphicsLayout,
+                       const VkPipelineLayout& computeLayout,
+                       VkSampleCountFlagBits& msaaSamples);
+
+  std::vector<char> readShaderFile(const std::string& filename);
+  void compileShaders();
+  VkPipelineShaderStageCreateInfo createShaderModules(
+      VkShaderStageFlagBits shaderStage,
+      std::string shaderName);
+  void destroyShaderModules();
+  std::vector<std::string>& getPipelineShadersByName(const std::string& name);
+
+  VkPipeline& getPipelineObjectByName(const std::string& name);
+  const std::array<uint32_t, 3>& getWorkGroupsByName(const std::string& name);
+};
 
 template <typename Checkresult, typename... Args>
-static void vulkanResult(Checkresult vkResult, Args&&... args);
+static void VULKAN_RESULT(Checkresult vkResult, Args&&... args);
 
 static uint32_t findMemoryType(const uint32_t typeFilter,
                                const VkMemoryPropertyFlags properties);
@@ -255,13 +318,11 @@ constexpr static inline VkPipelineRasterizationStateCreateInfo
         .depthBiasClamp = 0.01f,
         .depthBiasSlopeFactor = 0.02f,
         .lineWidth = 1.0f};
-
 constexpr static inline VkPipelineInputAssemblyStateCreateInfo
     inputAssemblyStateTriangleList{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
         .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
         .primitiveRestartEnable = VK_FALSE};
-
 constexpr static inline VkPipelineVertexInputStateCreateInfo
     vertexInputStateDefault{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
@@ -271,14 +332,12 @@ constexpr static inline VkPipelineVertexInputStateCreateInfo
         .pVertexBindingDescriptions = nullptr,
         .vertexAttributeDescriptionCount = 0,
         .pVertexAttributeDescriptions = nullptr};
-
 constexpr static inline VkPipelineMultisampleStateCreateInfo
     multisampleStateDefault{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
         .rasterizationSamples = VK_SAMPLE_COUNT_1_BIT,
         .sampleShadingEnable = VK_TRUE,
         .minSampleShading = 1.0f};
-
 constexpr static inline VkPipelineDepthStencilStateCreateInfo
     depthStencilStateDefault{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
@@ -287,7 +346,6 @@ constexpr static inline VkPipelineDepthStencilStateCreateInfo
         .depthCompareOp = VK_COMPARE_OP_LESS,
         .depthBoundsTestEnable = VK_FALSE,
         .stencilTestEnable = VK_FALSE};
-
 constexpr static inline VkPipelineColorBlendAttachmentState
     colorBlendAttachmentStateFalse{
         .blendEnable = VK_FALSE,
@@ -299,7 +357,6 @@ constexpr static inline VkPipelineColorBlendAttachmentState
         .alphaBlendOp = VK_BLEND_OP_ADD,
         .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
                           VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT};
-
 constexpr static inline VkPipelineColorBlendAttachmentState
     colorBlendAttachmentStateMultiply{
         .blendEnable = VK_TRUE,
@@ -311,7 +368,6 @@ constexpr static inline VkPipelineColorBlendAttachmentState
         .alphaBlendOp = VK_BLEND_OP_ADD,
         .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
                           VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT};
-
 constexpr static inline VkPipelineColorBlendAttachmentState
     colorBlendAttachmentStateAdd{
         .blendEnable = VK_TRUE,
@@ -323,7 +379,6 @@ constexpr static inline VkPipelineColorBlendAttachmentState
         .alphaBlendOp = VK_BLEND_OP_ADD,
         .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
                           VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT};
-
 constexpr static inline VkPipelineColorBlendAttachmentState
     colorBlendAttachmentStateAverage{
         .blendEnable = VK_TRUE,
@@ -335,7 +390,6 @@ constexpr static inline VkPipelineColorBlendAttachmentState
         .alphaBlendOp = VK_BLEND_OP_ADD,
         .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
                           VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT};
-
 constexpr static inline VkPipelineColorBlendAttachmentState
     colorBlendAttachmentStateSubtract{
         .blendEnable = VK_TRUE,
@@ -347,7 +401,6 @@ constexpr static inline VkPipelineColorBlendAttachmentState
         .alphaBlendOp = VK_BLEND_OP_ADD,
         .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
                           VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT};
-
 constexpr static inline VkPipelineColorBlendAttachmentState
     colorBlendAttachmentStateScreen{
         .blendEnable = VK_TRUE,
@@ -359,7 +412,6 @@ constexpr static inline VkPipelineColorBlendAttachmentState
         .alphaBlendOp = VK_BLEND_OP_ADD,
         .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
                           VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT};
-
 constexpr static inline VkPipelineColorBlendStateCreateInfo
     colorBlendStateDefault{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
@@ -370,24 +422,20 @@ constexpr static inline VkPipelineColorBlendStateCreateInfo
         .attachmentCount = 1,
         .pAttachments = nullptr,
         .blendConstants = {0.0f, 0.0f, 0.0f, 0.0f}};
-
 constexpr static inline VkPipelineViewportStateCreateInfo viewportStateDefault{
     .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
     .viewportCount = 1,
     .scissorCount = 1};
-
 constexpr static inline VkDynamicState dynamicStates[] = {
     VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
 constexpr static inline VkPipelineDynamicStateCreateInfo dynamicStateDefault{
     .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
     .dynamicStateCount = sizeof(dynamicStates) / sizeof(dynamicStates[0]),
     .pDynamicStates = dynamicStates};
-
 constexpr static inline VkPipelineLayoutCreateInfo layoutDefault{
     .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
     .setLayoutCount = 1,
     .pSetLayouts = nullptr};
-
 const static inline uint32_t tessellationTopologyTriangle = 3;
 constexpr static inline VkPipelineTessellationStateCreateInfo
     tessellationStateDefault{
@@ -398,7 +446,7 @@ constexpr static inline VkPipelineTessellationStateCreateInfo
 };  // namespace CE
 
 template <typename Checkresult, typename... Args>
-void CE::vulkanResult(Checkresult vkResult, Args&&... args) {
+void CE::VULKAN_RESULT(Checkresult vkResult, Args&&... args) {
   using ObjectType = std::remove_pointer_t<std::decay_t<Checkresult>>;
   std::string objectName = typeid(ObjectType).name();
 

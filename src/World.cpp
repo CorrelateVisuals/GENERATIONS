@@ -17,16 +17,15 @@ World::~World() {
 
 std::vector<VkVertexInputBindingDescription>
 World::Cell::getBindingDescription() {
-  std::vector<VkVertexInputBindingDescription> bindingDescriptions{
+  std::vector<VkVertexInputBindingDescription> description{
       {0, sizeof(Cell), VK_VERTEX_INPUT_RATE_INSTANCE},
-      {1, sizeof(Cube::Vertex), VK_VERTEX_INPUT_RATE_VERTEX},
-  };
-  return bindingDescriptions;
+      {1, sizeof(Cube::Vertex), VK_VERTEX_INPUT_RATE_VERTEX}};
+  return description;
 }
 
 std::vector<VkVertexInputAttributeDescription>
-World::Cell::getAttributeDescriptions() {
-  std::vector<VkVertexInputAttributeDescription> attributeDescriptions{
+World::Cell::getAttributeDescription() {
+  std::vector<VkVertexInputAttributeDescription> description{
       {0, 0, VK_FORMAT_R32G32B32A32_SFLOAT,
        static_cast<uint32_t>(offsetof(Cell, instancePosition))},
       {1, 1, VK_FORMAT_R32G32B32A32_SFLOAT,
@@ -36,17 +35,16 @@ World::Cell::getAttributeDescriptions() {
       {3, 0, VK_FORMAT_R32G32B32A32_SFLOAT,
        static_cast<uint32_t>(offsetof(Cell, color))},
       {4, 0, VK_FORMAT_R32G32B32A32_SINT,
-       static_cast<uint32_t>(offsetof(Cell, states))},
-  };
-  return attributeDescriptions;
-}
+       static_cast<uint32_t>(offsetof(Cell, states))}};
+  return description;
+};
 
 std::vector<VkVertexInputAttributeDescription>
-World::Landscape::getAttributeDescriptions() {
-  std::vector<VkVertexInputAttributeDescription> attributeDescriptions{
+World::Landscape::getAttributeDescription() {
+  std::vector<VkVertexInputAttributeDescription> attributes{
       {0, 0, VK_FORMAT_R32G32B32_SFLOAT,
        static_cast<uint32_t>(offsetof(Landscape::Vertex, vertexPosition))}};
-  return attributeDescriptions;
+  return attributes;
 }
 
 std::vector<World::Cell> World::initializeGrid() {
