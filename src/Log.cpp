@@ -35,12 +35,10 @@ bool Log::skipLogging(uint8_t logLevel, std::string icon) {
     std::cerr << "\n!ERROR! Could not open logFile for writing" << std::endl;
     return false;
   }
-  if (logLevel == LogLevel::OFF ||
-      (logLevel == LogLevel::MINIMIAL &&
-       (icon == std::string("{ ... }") ||
-        icon == std::string(Style::charLeader))) ||
-      (logLevel == LogLevel::MODERATE &&
-       icon == std::string(Style::charLeader))) {
+  if (logLevel == OFF ||
+      (logLevel == MINIMIAL && (icon == std::string("{ ... }") ||
+                                icon == std::string(Style::charLeader))) ||
+      (logLevel == MODERATE && icon == std::string(Style::charLeader))) {
     return true;
   }
   return false;
