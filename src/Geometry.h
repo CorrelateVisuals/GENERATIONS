@@ -18,20 +18,20 @@ const enum ORIENTATION_ORDER { ROTATE_SCALE_TRANSLATE, ROTATE_TRANSLATE_SCALE };
 
 class Vertex {
  public:
-    glm::vec3 instancePosition;
-    glm::vec3 vertexPosition;
-    glm::vec3 normal;
-    glm::vec3 color;
-    glm::vec2 textureCoordinates;
+  glm::vec3 instancePosition;
+  glm::vec3 vertexPosition;
+  glm::vec3 normal;
+  glm::vec3 color;
+  glm::vec2 textureCoordinates;
 
-    static std::vector<VkVertexInputBindingDescription> getBindingDescription();
-    static std::vector<VkVertexInputAttributeDescription>
-    getAttributeDescription();
+  static std::vector<VkVertexInputBindingDescription> getBindingDescription();
+  static std::vector<VkVertexInputAttributeDescription>
+  getAttributeDescription();
 
-    bool operator==(const Vertex& other) const {
-      return vertexPosition == other.vertexPosition && color == other.color &&
-             textureCoordinates == other.textureCoordinates &&
-             normal == other.normal;
+  bool operator==(const Vertex& other) const {
+    return vertexPosition == other.vertexPosition && color == other.color &&
+           textureCoordinates == other.textureCoordinates &&
+           normal == other.normal;
   }
 };
 

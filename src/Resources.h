@@ -20,17 +20,15 @@ class Resources {
 
   World world;
 
+  enum VertexOrIndexBuffer {VERTEX, INDEX};
   const std::unordered_map<Geometry*, VkVertexInputRate> vertexBuffers = {
       {&world.landscape, VK_VERTEX_INPUT_RATE_INSTANCE},
       {&world.rectangle, VK_VERTEX_INPUT_RATE_INSTANCE},
       {&world.cube, VK_VERTEX_INPUT_RATE_VERTEX}};
 
-  struct DepthImage : public CE::Image {
-  } depthImage;
-  struct MultiSamplingImage : public CE::Image {
-  } msaaImage;
-  struct Texture : public CE::Image {
-  } textureImage;
+  CE::Image depthImage;
+  CE::Image msaaImage;
+  CE::Image textureImage;
 
   static std::vector<VkDescriptorSetLayoutBinding> descriptorSetLayoutBindings;
   struct Uniform : public CE::Descriptor::SetLayout {

@@ -10,14 +10,11 @@ class Pipelines {
   ~Pipelines();
   void setupPipelines(Resources& _resources);
 
-  struct ComputePipelineLayout : public CE::PipelineLayout {
-  } compute;
-  struct GraphicsPipelineLayouts : public CE::PipelineLayout {
-  } graphics;
-  struct RenderPass : public CE::RenderPass {
-  } renderPass;
+  CE::PipelineLayout compute;
+  CE::PipelineLayout graphics;
+  CE::RenderPass render;
 
-  struct Configuration : public CE::Pipelines {
+  struct Configuration : public CE::PipelinesConfiguration {
     Configuration() {
       World world;
       pipelineMap["Engine"] =

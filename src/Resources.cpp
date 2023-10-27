@@ -54,7 +54,7 @@ void Resources::createFramebuffers(Pipelines& _pipelines) {
 
     VkFramebufferCreateInfo framebufferInfo{
         .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
-        .renderPass = _pipelines.renderPass.renderPass,
+        .renderPass = _pipelines.render.renderPass,
         .attachmentCount = static_cast<uint32_t>(attachments.size()),
         .pAttachments = attachments.data(),
         .width = _mechanics.swapchain.extent.width,
@@ -399,7 +399,7 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
   VkRenderPassBeginInfo renderPassInfo{
       .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
       .pNext = nullptr,
-      .renderPass = _pipelines.renderPass.renderPass,
+      .renderPass = _pipelines.render.renderPass,
       .framebuffer = _mechanics.swapchain.framebuffers[imageIndex],
       .renderArea = {.offset = {0, 0}, .extent = _mechanics.swapchain.extent},
       .clearValueCount = static_cast<uint32_t>(clearValues.size()),

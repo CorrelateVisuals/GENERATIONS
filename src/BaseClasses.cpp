@@ -1009,7 +1009,7 @@ void CE::RenderPass::create(VkSampleCountFlagBits msaaImageSamples,
                     nullptr, &renderPass);
 }
 
-void CE::Pipelines::createPipelines(VkRenderPass& renderPass,
+void CE::PipelinesConfiguration::createPipelines(VkRenderPass& renderPass,
                                     const VkPipelineLayout& graphicsLayout,
                                     const VkPipelineLayout& computeLayout,
                                     VkSampleCountFlagBits& msaaSamples) {
@@ -1044,9 +1044,9 @@ void CE::Pipelines::createPipelines(VkRenderPass& renderPass,
       }
 
       const auto& bindingDescription =
-          std::get<CE::Pipelines::Graphics>(variant).vertexBindings;
+          std::get<CE::PipelinesConfiguration::Graphics>(variant).vertexBindings;
       const auto& attributesDescription =
-          std::get<CE::Pipelines::Graphics>(variant).vertexAttributes;
+          std::get<CE::PipelinesConfiguration::Graphics>(variant).vertexAttributes;
       uint32_t bindingsSize = static_cast<uint32_t>(bindingDescription.size());
       uint32_t attributeSize =
           static_cast<uint32_t>(attributesDescription.size());
@@ -1125,7 +1125,7 @@ void CE::Pipelines::createPipelines(VkRenderPass& renderPass,
   }
 }
 
-std::vector<char> CE::Pipelines::readShaderFile(const std::string& filename) {
+std::vector<char> CE::PipelinesConfiguration::readShaderFile(const std::string& filename) {
   std::ifstream file(filename, std::ios::ate | std::ios::binary);
 
   if (!file.is_open()) {
@@ -1142,7 +1142,7 @@ std::vector<char> CE::Pipelines::readShaderFile(const std::string& filename) {
   return buffer;
 }
 
-VkPipelineShaderStageCreateInfo CE::Pipelines::createShaderModules(
+VkPipelineShaderStageCreateInfo CE::PipelinesConfiguration::createShaderModules(
     VkShaderStageFlagBits shaderStage,
     std::string shaderName) {
   Log::text(Log::Style::charLeader, "Shader Module", shaderName);
@@ -1170,7 +1170,7 @@ VkPipelineShaderStageCreateInfo CE::Pipelines::createShaderModules(
   return shaderStageInfo;
 }
 
-void CE::Pipelines::compileShaders() {
+void CE::PipelinesConfiguration::compileShaders() {
   Log::text("{ GLSL }", "Compile Shaders");
   std::string systemCommand = "";
   std::string shaderExtension = "";
@@ -1189,7 +1189,7 @@ void CE::Pipelines::compileShaders() {
   }
 }
 
-VkPipeline& CE::Pipelines::getPipelineObjectByName(const std::string& name) {
+VkPipeline& CE::PipelinesConfiguration::getPipelineObjectByName(const std::string& name) {
   std::variant<Graphics, Compute>& variant = pipelineMap[name];
   if (std::holds_alternative<Graphics>(variant)) {
     return std::get<Graphics>(variant).pipeline;
@@ -1198,14 +1198,14 @@ VkPipeline& CE::Pipelines::getPipelineObjectByName(const std::string& name) {
   }
 }
 
-void CE::Pipelines::destroyShaderModules() {
+void CE::PipelinesConfiguration::destroyShaderModules() {
   for (size_t i = 0; i < shaderModules.size(); i++) {
     vkDestroyShaderModule(baseDevice->logical, shaderModules[i], nullptr);
   }
   shaderModules.resize(0);
 };
 
-std::vector<std::string>& CE::Pipelines::getPipelineShadersByName(
+std::vector<std::string>& CE::PipelinesConfiguration::getPipelineShadersByName(
     const std::string& name) {
   std::variant<Graphics, Compute>& variant = pipelineMap[name];
 
@@ -1216,14 +1216,14 @@ std::vector<std::string>& CE::Pipelines::getPipelineShadersByName(
   }
 }
 
-const std::array<uint32_t, 3>& CE::Pipelines::getWorkGroupsByName(
+const std::array<uint32_t, 3>& CE::PipelinesConfiguration::getWorkGroupsByName(
     const std::string& name) {
   std::variant<Graphics, Compute>& variant = pipelineMap[name];
-  return std::get<CE::Pipelines::Compute>(variant).workGroups;
+  return std::get<CE::PipelinesConfiguration::Compute>(variant).workGroups;
 };
 
 void CE::PipelineLayout::createGraphicsLayout(
-    const CE::Descriptor& _descriptorSets) {
+    const Descriptor& _descriptorSets) {
   VkPipelineLayoutCreateInfo graphicsLayout{CE::layoutDefault};
   graphicsLayout.pSetLayouts = &_descriptorSets.setLayout;
   CE::VULKAN_RESULT(vkCreatePipelineLayout, baseDevice->logical,
@@ -1231,7 +1231,7 @@ void CE::PipelineLayout::createGraphicsLayout(
 }
 
 void CE::PipelineLayout::createComputeLayout(
-    const CE::Descriptor& _descriptorSets,
+    const Descriptor& _descriptorSets,
     const PushConstants& _pushConstants) {
   VkPushConstantRange constants{.stageFlags = _pushConstants.shaderStage,
                                 .offset = _pushConstants.offset,

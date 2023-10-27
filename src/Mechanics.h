@@ -10,8 +10,10 @@ class VulkanMechanics {
   VulkanMechanics();
   ~VulkanMechanics();
 
-  struct InitializeVulkan : public CE::InitializeVulkan {
-  } initVulkan;
+  CE::InitializeVulkan initVulkan;
+  CE::Queues queues;
+  struct SynchronizationObjects : public CE::SynchronizationObjects {
+  } syncObjects;
 
   struct Device : public CE::Device {
     Device() {
@@ -26,15 +28,9 @@ class VulkanMechanics {
     };
   } mainDevice;
 
-  struct Queues : public CE::Queues {
-  } queues;
-
-  struct SynchronizationObjects : public CE::SynchronizationObjects {
-  } syncObjects;
-
   struct Swapchain : public CE::Swapchain {
     void recreate(const VkSurfaceKHR& surface,
-                  const Queues& queues,
+                  const CE::Queues& queues,
                   SynchronizationObjects& syncObjects,
                   Pipelines& _pipelines,
                   Resources& _resources);

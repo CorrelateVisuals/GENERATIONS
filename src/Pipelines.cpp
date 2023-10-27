@@ -23,7 +23,7 @@ Pipelines::~Pipelines() {
   vkDestroyPipelineLayout(_mechanics.mainDevice.logical, compute.layout,
                           nullptr);
 
-  vkDestroyRenderPass(_mechanics.mainDevice.logical, renderPass.renderPass,
+  vkDestroyRenderPass(_mechanics.mainDevice.logical, render.renderPass,
                       nullptr);
 }
 
@@ -31,10 +31,10 @@ void Pipelines::setupPipelines(Resources& _resources) {
   Log::text(Log::Style::headerGuard);
   Log::text("{ >>> }", "Setup Pipelines");
 
-  renderPass.create(_resources.msaaImage.info.samples,
+  render.create(_resources.msaaImage.info.samples,
                     _mechanics.swapchain.imageFormat);
   graphics.createGraphicsLayout(_resources.descriptor);
   compute.createComputeLayout(_resources.descriptor, _resources.pushConstants);
-  config.createPipelines(renderPass.renderPass, graphics.layout, compute.layout,
+  config.createPipelines(render.renderPass, graphics.layout, compute.layout,
                          _resources.msaaImage.info.samples);
 }

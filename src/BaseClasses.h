@@ -173,7 +173,8 @@ class Image {
   void createDepthResources(const VkExtent2D& dimensions,
                             const VkFormat format);
 };
-struct SynchronizationObjects {
+class SynchronizationObjects {
+public:
   void create(const int maxFramesInFlight);
   void destroy(const int maxFramesInFlight);
   std::vector<VkSemaphore> imageAvailableSemaphores;
@@ -243,8 +244,8 @@ struct PushConstants {
 class PipelineLayout {
  public:
   VkPipelineLayout layout;
-  void createGraphicsLayout(const CE::Descriptor& _descriptorSets);
-  void createComputeLayout(const CE::Descriptor& _descriptorSets,
+  void createGraphicsLayout(const Descriptor& _descriptorSets);
+  void createComputeLayout(const Descriptor& _descriptorSets,
                            const PushConstants& _pushConstants);
 };
 class RenderPass {
@@ -257,10 +258,10 @@ class RenderPass {
   void create(VkSampleCountFlagBits msaaImageSamples,
               VkFormat swapchainImageFormat);
 };
-class Pipelines {
+class PipelinesConfiguration {
  public:
-  Pipelines() = default;
-  virtual ~Pipelines() = default;
+  PipelinesConfiguration() = default;
+  virtual ~PipelinesConfiguration() = default;
 
 #define PIPELINE_OBJECTS \
   VkPipeline pipeline;   \
