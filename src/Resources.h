@@ -20,7 +20,6 @@ class Resources {
 
   World world;
 
-  enum VertexOrIndexBuffer {VERTEX, INDEX};
   const std::unordered_map<Geometry*, VkVertexInputRate> vertexBuffers = {
       {&world.landscape, VK_VERTEX_INPUT_RATE_INSTANCE},
       {&world.rectangle, VK_VERTEX_INPUT_RATE_INSTANCE},

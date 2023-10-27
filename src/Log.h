@@ -9,13 +9,10 @@
 
 #define STRINGIFICATION(x) #x
 
-constexpr uint8_t LOG_LEVEL_OFF = 0;
-constexpr uint8_t LOG_LEVEL_MINIMAL = 1;
-constexpr uint8_t LOG_LEVEL_MODERATE = 2;
-constexpr uint8_t LOG_LEVEL_DETAILED = 3;
+const enum LogLevel { OFF, MINIMIAL, MODERATE, DETAILED };
 
 namespace Log {
-static uint8_t logLevel = LOG_LEVEL_MODERATE;
+static uint8_t logLevel = LogLevel::DETAILED;
 
 struct Style {
   static std::string charLeader;
