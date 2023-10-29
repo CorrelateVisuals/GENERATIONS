@@ -5,16 +5,12 @@ Currently GENERATIONS is running ![Conway's Game of Life](https://en.wikipedia.o
 
 ![Cover Image](https://github.com/CorrelateVisuals/GENERATION/blob/main/assets/GenerationsCapture.PNG?raw=true)
 
-### Expanding Vulkan Functionality
-- Tesselation shader stages
+### Expanding Functionality
 - Texture/Image reading and writing GPU & CPU
 - Color picking/Render picking
 - Culling and level-of-detail (LOD)
 - Integration GUI (Dear ImGui)
 - Helper functions for Resource and Pipeline creation
-
-### Extra additions
-- Geometry loading
 - Arcball Camera
 
 [Development enviroment](https://vulkan-tutorial.com/Development_environment)
