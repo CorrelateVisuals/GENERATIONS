@@ -22,18 +22,18 @@ class Queues {
  public:
   Queues() = default;
   virtual ~Queues() = default;
-  VkQueue graphics;
-  VkQueue compute;
-  VkQueue present;
+  VkQueue graphics{};
+  VkQueue compute{};
+  VkQueue present{};
 
   struct FamilyIndices {
-    std::optional<uint32_t> graphicsAndComputeFamily;
-    std::optional<uint32_t> presentFamily;
+    std::optional<uint32_t> graphicsAndComputeFamily{};
+    std::optional<uint32_t> presentFamily{};
     bool isComplete() const {
       return graphicsAndComputeFamily.has_value() && presentFamily.has_value();
     }
   };
-  FamilyIndices familyIndices;
+  FamilyIndices familyIndices{};
   FamilyIndices findQueueFamilies(const VkPhysicalDevice& physicalDevice,
                                   const VkSurfaceKHR& surface);
 };
@@ -41,9 +41,9 @@ class InitializeVulkan {
  public:
   InitializeVulkan();
   virtual ~InitializeVulkan();
-  VkSurfaceKHR surface;
-  VkInstance instance;
-  ValidationLayers validation;
+  VkSurfaceKHR surface{};
+  VkInstance instance{};
+  ValidationLayers validation{};
 
  private:
   void createInstance();
@@ -56,7 +56,7 @@ class Device {
   virtual ~Device() { destroyDevice(); }
   VkPhysicalDevice physical{VK_NULL_HANDLE};
   VkPhysicalDeviceFeatures features{};
-  VkSampleCountFlagBits maxUsableSampleCount;
+  VkSampleCountFlagBits maxUsableSampleCount{VK_SAMPLE_COUNT_1_BIT};
   VkDevice logical{VK_NULL_HANDLE};
 
   void pickPhysicalDevice(const InitializeVulkan& initVulkan,
@@ -67,7 +67,7 @@ class Device {
   void destroyDevice();
 
  private:
-  VkPhysicalDeviceProperties properties;
+  VkPhysicalDeviceProperties properties{};
   std::vector<const char*> extensions{VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 
   bool isDeviceSuitable(const VkPhysicalDevice& physical,
@@ -78,13 +78,13 @@ class Device {
   bool checkDeviceExtensionSupport(const VkPhysicalDevice& physical);
   static std::vector<VkDevice> destroyedDevices;
 };
-static std::unique_ptr<Device> baseDevice;
+static std::unique_ptr<Device> baseDevice{};
 
 class Commands {
  public:
   Commands() = default;
   virtual ~Commands();
-  VkCommandPool pool;
+  VkCommandPool pool{};
   static VkCommandBuffer singularCommandBuffer;
 
   void createCommandPool(const Queues::FamilyIndices& familyIndices);
@@ -98,9 +98,9 @@ class Buffer {
   Buffer();
   virtual ~Buffer();
 
-  VkBuffer buffer;
-  VkDeviceMemory memory;
-  void* mapped;
+  VkBuffer buffer{};
+  VkDeviceMemory memory{};
+  void* mapped{};
 
   static void create(const VkDeviceSize& size,
                      const VkBufferUsageFlags& usage,
@@ -124,10 +124,10 @@ class Image {
  public:
   Image();
   virtual ~Image() { destroyVulkanImages(); };
-  VkImage image;
-  VkDeviceMemory memory;
-  VkImageView view;
-  VkSampler sampler;
+  VkImage image{};
+  VkDeviceMemory memory{};
+  VkImageView view{};
+  VkSampler sampler{};
   VkImageCreateInfo info{.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
                          .pNext = nullptr,
                          .flags = 0,
@@ -174,31 +174,31 @@ class Image {
                             const VkFormat format);
 };
 class SynchronizationObjects {
-public:
+ public:
   void create(const int maxFramesInFlight);
   void destroy(const int maxFramesInFlight);
-  std::vector<VkSemaphore> imageAvailableSemaphores;
-  std::vector<VkSemaphore> renderFinishedSemaphores;
-  std::vector<VkSemaphore> computeFinishedSemaphores;
-  std::vector<VkFence> graphicsInFlightFences;
-  std::vector<VkFence> computeInFlightFences;
+  std::vector<VkSemaphore> imageAvailableSemaphores{};
+  std::vector<VkSemaphore> renderFinishedSemaphores{};
+  std::vector<VkSemaphore> computeFinishedSemaphores{};
+  std::vector<VkFence> graphicsInFlightFences{};
+  std::vector<VkFence> computeInFlightFences{};
   uint32_t currentFrame = 0;
 };
 class Swapchain {
  public:
   Swapchain() = default;
   virtual ~Swapchain() = default;
-  VkSwapchainKHR swapchain;
-  VkExtent2D extent;
-  VkFormat imageFormat;
-  std::vector<CE::Image> images;
-  std::vector<VkFramebuffer> framebuffers;
+  VkSwapchainKHR swapchain{};
+  VkExtent2D extent{};
+  VkFormat imageFormat{};
+  std::vector<CE::Image> images{};
+  std::vector<VkFramebuffer> framebuffers{};
 
   struct SupportDetails {
     VkSurfaceCapabilitiesKHR capabilities{};
-    std::vector<VkSurfaceFormatKHR> formats;
-    std::vector<VkPresentModeKHR> presentModes;
-  } supportDetails;
+    std::vector<VkSurfaceFormatKHR> formats{};
+    std::vector<VkPresentModeKHR> presentModes{};
+  } supportDetails{};
 
   void create(const VkSurfaceKHR& surface, const Queues& queues);
   void recreate(const VkSurfaceKHR& surface,
@@ -220,9 +220,9 @@ class Descriptor {
  public:
   Descriptor();
   virtual ~Descriptor();
-  VkDescriptorPool pool;
-  VkDescriptorSetLayout setLayout;
-  std::vector<VkDescriptorSet> sets;
+  VkDescriptorPool pool{};
+  VkDescriptorSetLayout setLayout{};
+  std::vector<VkDescriptorSet> sets{};
 
   struct SetLayout {
     VkDescriptorSetLayoutBinding layoutBinding{
@@ -233,17 +233,17 @@ class Descriptor {
   };
 };
 struct PushConstants {
-  VkShaderStageFlags shaderStage;
-  uint32_t count;
-  uint32_t offset;
-  uint32_t size;
-  std::array<uint64_t, 32> data;
+  VkShaderStageFlags shaderStage{};
+  uint32_t count{};
+  uint32_t offset{};
+  uint32_t size{};
+  std::array<uint64_t, 32> data{};
 };
 
 // Pipelines
 class PipelineLayout {
  public:
-  VkPipelineLayout layout;
+  VkPipelineLayout layout{};
   void createGraphicsLayout(const Descriptor& _descriptorSets);
   void createComputeLayout(const Descriptor& _descriptorSets,
                            const PushConstants& _pushConstants);
@@ -254,7 +254,7 @@ class RenderPass {
   virtual ~RenderPass(){
       // vkDestroyRenderPass(baseDevice->logical, renderPass, nullptr);
   };
-  VkRenderPass renderPass;
+  VkRenderPass renderPass{};
   void create(VkSampleCountFlagBits msaaImageSamples,
               VkFormat swapchainImageFormat);
 };
@@ -264,23 +264,24 @@ class PipelinesConfiguration {
   virtual ~PipelinesConfiguration() = default;
 
 #define PIPELINE_OBJECTS \
-  VkPipeline pipeline;   \
-  std::vector<std::string> shaders;
+  VkPipeline pipeline{}; \
+  std::vector<std::string> shaders{};
 
   struct Graphics {
     PIPELINE_OBJECTS
-    std::vector<VkVertexInputAttributeDescription> vertexAttributes;
-    std::vector<VkVertexInputBindingDescription> vertexBindings;
+    std::vector<VkVertexInputAttributeDescription> vertexAttributes{};
+    std::vector<VkVertexInputBindingDescription> vertexBindings{};
   };
   struct Compute {
     PIPELINE_OBJECTS
-    std::array<uint32_t, 3> workGroups;
+    std::array<uint32_t, 3> workGroups{};
   };
 #undef PIPELINE_OBJECTS
 
-  std::vector<VkShaderModule> shaderModules;
+  std::vector<VkShaderModule> shaderModules{};
   const std::string shaderDir = "shaders/";
-  std::unordered_map<std::string, std::variant<Graphics, Compute>> pipelineMap;
+  std::unordered_map<std::string, std::variant<Graphics, Compute>>
+      pipelineMap{};
 
   void createPipelines(VkRenderPass& renderPass,
                        const VkPipelineLayout& graphicsLayout,
