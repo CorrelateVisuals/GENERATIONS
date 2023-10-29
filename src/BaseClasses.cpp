@@ -14,7 +14,7 @@ void CE::Device::createLogicalDevice(const InitializeVulkan& initVulkan,
                                      Queues& queues) {
   Log::text("{ +++ }", "Logical Device");
 
-  std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+  std::vector<VkDeviceQueueCreateInfo> queueCreateInfos{};
   std::set<uint32_t> uniqueQueueFamilies = {
       queues.familyIndices.graphicsAndComputeFamily.value(),
       queues.familyIndices.presentFamily.value()};
@@ -34,9 +34,9 @@ void CE::Device::createLogicalDevice(const InitializeVulkan& initVulkan,
       .queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size()),
       .pQueueCreateInfos = queueCreateInfos.data(),
       .enabledLayerCount = 0,
-      .enabledExtensionCount = static_cast<uint32_t>(extensions.size()),
-      .ppEnabledExtensionNames = extensions.data(),
-      .pEnabledFeatures = &features};
+      .enabledExtensionCount = static_cast<uint32_t>(this->extensions.size()),
+      .ppEnabledExtensionNames = this->extensions.data(),
+      .pEnabledFeatures = &this->features};
 
   if (initVulkan.validation.enableValidationLayers) {
     createInfo.enabledLayerCount =
@@ -44,15 +44,16 @@ void CE::Device::createLogicalDevice(const InitializeVulkan& initVulkan,
     createInfo.ppEnabledLayerNames = initVulkan.validation.validation.data();
   }
 
-  CE::VULKAN_RESULT(vkCreateDevice, physical, &createInfo, nullptr, &logical);
+  CE::VULKAN_RESULT(vkCreateDevice, this->physical, &createInfo, nullptr,
+                    &this->logical);
 
-  vkGetDeviceQueue(logical,
+  vkGetDeviceQueue(this->logical,
                    queues.familyIndices.graphicsAndComputeFamily.value(), 0,
                    &queues.graphics);
-  vkGetDeviceQueue(logical,
+  vkGetDeviceQueue(this->logical,
                    queues.familyIndices.graphicsAndComputeFamily.value(), 0,
                    &queues.compute);
-  vkGetDeviceQueue(logical, queues.familyIndices.presentFamily.value(), 0,
+  vkGetDeviceQueue(this->logical, queues.familyIndices.presentFamily.value(), 0,
                    &queues.present);
 }
 
@@ -60,7 +61,7 @@ void CE::Device::pickPhysicalDevice(const InitializeVulkan& initVulkan,
                                     Queues& queues,
                                     Swapchain& swapchain) {
   Log::text("{ ### }", "Physical Device");
-  uint32_t deviceCount = 0;
+  uint32_t deviceCount(0);
   vkEnumeratePhysicalDevices(initVulkan.instance, &deviceCount, nullptr);
 
   if (deviceCount == 0) {
@@ -73,17 +74,16 @@ void CE::Device::pickPhysicalDevice(const InitializeVulkan& initVulkan,
 
   for (const auto& device : devices) {
     if (isDeviceSuitable(device, queues, initVulkan, swapchain)) {
-      physical = device;
+      this->physical = device;
       getMaxUsableSampleCount();
       break;
     }
   }
-  if (physical == VK_NULL_HANDLE) {
+  if (this->physical == VK_NULL_HANDLE) {
     throw std::runtime_error("\n!ERROR! failed to find a suitable GPU!");
   }
 }
 
-// template <typename NSC>
 bool CE::Device::isDeviceSuitable(const VkPhysicalDevice& physical,
                                   Queues& queues,
                                   const InitializeVulkan& initVulkan,
@@ -108,15 +108,16 @@ bool CE::Device::isDeviceSuitable(const VkPhysicalDevice& physical,
 }
 
 void CE::Device::getMaxUsableSampleCount() {
-  vkGetPhysicalDeviceProperties(physical, &properties);
-  VkSampleCountFlags counts = properties.limits.framebufferColorSampleCounts &
-                              properties.limits.framebufferDepthSampleCounts;
+  vkGetPhysicalDeviceProperties(this->physical, &this->properties);
+  VkSampleCountFlags counts =
+      this->properties.limits.framebufferColorSampleCounts &
+      this->properties.limits.framebufferDepthSampleCounts;
   for (size_t i = VK_SAMPLE_COUNT_64_BIT; i >= VK_SAMPLE_COUNT_1_BIT; i >>= 1) {
     if (counts & i) {
-      maxUsableSampleCount = static_cast<VkSampleCountFlagBits>(i);
+      this->maxUsableSampleCount = static_cast<VkSampleCountFlagBits>(i);
       return;
     } else {
-      maxUsableSampleCount = VK_SAMPLE_COUNT_1_BIT;
+      this->maxUsableSampleCount = VK_SAMPLE_COUNT_1_BIT;
     }
   }
   return;
@@ -124,7 +125,7 @@ void CE::Device::getMaxUsableSampleCount() {
 
 bool CE::Device::checkDeviceExtensionSupport(const VkPhysicalDevice& physical) {
   Log::text(Log::Style::charLeader, "Check Device Extension Support");
-  uint32_t extensionCount;
+  uint32_t extensionCount(0);
   vkEnumerateDeviceExtensionProperties(physical, nullptr, &extensionCount,
                                        nullptr);
 
@@ -132,13 +133,12 @@ bool CE::Device::checkDeviceExtensionSupport(const VkPhysicalDevice& physical) {
   vkEnumerateDeviceExtensionProperties(physical, nullptr, &extensionCount,
                                        availableExtensions.data());
 
-  std::set<std::string> requiredExtensions(extensions.begin(),
-                                           extensions.end());
+  std::set<std::string> requiredExtensions(this->extensions.begin(),
+                                           this->extensions.end());
 
   for (const auto& extension : availableExtensions) {
     requiredExtensions.erase(extension.extensionName);
   }
-
   return requiredExtensions.empty();
 }
 
@@ -148,7 +148,7 @@ void CE::Device::setBaseDevice(const CE::Device& device) {
 
 uint32_t CE::findMemoryType(const uint32_t typeFilter,
                             const VkMemoryPropertyFlags properties) {
-  VkPhysicalDeviceMemoryProperties memProperties;
+  VkPhysicalDeviceMemoryProperties memProperties{};
   vkGetPhysicalDeviceMemoryProperties(baseDevice->physical, &memProperties);
 
   for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
@@ -164,13 +164,13 @@ CE::Buffer::Buffer() : buffer{}, memory{}, mapped{} {}
 
 CE::Buffer::~Buffer() {
   if (baseDevice) {
-    if (buffer != VK_NULL_HANDLE) {
-      vkDestroyBuffer(baseDevice->logical, buffer, nullptr);
-      buffer = VK_NULL_HANDLE;
+    if (this->buffer != VK_NULL_HANDLE) {
+      vkDestroyBuffer(baseDevice->logical, this->buffer, nullptr);
+      this->buffer = VK_NULL_HANDLE;
     }
-    if (memory != VK_NULL_HANDLE) {
-      vkFreeMemory(baseDevice->logical, memory, nullptr);
-      memory = VK_NULL_HANDLE;
+    if (this->memory != VK_NULL_HANDLE) {
+      vkFreeMemory(baseDevice->logical, this->memory, nullptr);
+      this->memory = VK_NULL_HANDLE;
     }
   }
 }
@@ -190,7 +190,7 @@ void CE::Buffer::create(const VkDeviceSize& size,
   VULKAN_RESULT(vkCreateBuffer, baseDevice->logical, &bufferInfo, nullptr,
                 &buffer.buffer);
 
-  VkMemoryRequirements memRequirements;
+  VkMemoryRequirements memRequirements{};
   vkGetBufferMemoryRequirements(baseDevice->logical, buffer.buffer,
                                 &memRequirements);
 
@@ -1009,10 +1009,11 @@ void CE::RenderPass::create(VkSampleCountFlagBits msaaImageSamples,
                     nullptr, &renderPass);
 }
 
-void CE::PipelinesConfiguration::createPipelines(VkRenderPass& renderPass,
-                                    const VkPipelineLayout& graphicsLayout,
-                                    const VkPipelineLayout& computeLayout,
-                                    VkSampleCountFlagBits& msaaSamples) {
+void CE::PipelinesConfiguration::createPipelines(
+    VkRenderPass& renderPass,
+    const VkPipelineLayout& graphicsLayout,
+    const VkPipelineLayout& computeLayout,
+    VkSampleCountFlagBits& msaaSamples) {
   for (auto& entry : pipelineMap) {
     const std::string pipelineName = entry.first;
 
@@ -1044,9 +1045,11 @@ void CE::PipelinesConfiguration::createPipelines(VkRenderPass& renderPass,
       }
 
       const auto& bindingDescription =
-          std::get<CE::PipelinesConfiguration::Graphics>(variant).vertexBindings;
+          std::get<CE::PipelinesConfiguration::Graphics>(variant)
+              .vertexBindings;
       const auto& attributesDescription =
-          std::get<CE::PipelinesConfiguration::Graphics>(variant).vertexAttributes;
+          std::get<CE::PipelinesConfiguration::Graphics>(variant)
+              .vertexAttributes;
       uint32_t bindingsSize = static_cast<uint32_t>(bindingDescription.size());
       uint32_t attributeSize =
           static_cast<uint32_t>(attributesDescription.size());
@@ -1125,7 +1128,8 @@ void CE::PipelinesConfiguration::createPipelines(VkRenderPass& renderPass,
   }
 }
 
-std::vector<char> CE::PipelinesConfiguration::readShaderFile(const std::string& filename) {
+std::vector<char> CE::PipelinesConfiguration::readShaderFile(
+    const std::string& filename) {
   std::ifstream file(filename, std::ios::ate | std::ios::binary);
 
   if (!file.is_open()) {
@@ -1189,7 +1193,8 @@ void CE::PipelinesConfiguration::compileShaders() {
   }
 }
 
-VkPipeline& CE::PipelinesConfiguration::getPipelineObjectByName(const std::string& name) {
+VkPipeline& CE::PipelinesConfiguration::getPipelineObjectByName(
+    const std::string& name) {
   std::variant<Graphics, Compute>& variant = pipelineMap[name];
   if (std::holds_alternative<Graphics>(variant)) {
     return std::get<Graphics>(variant).pipeline;
