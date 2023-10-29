@@ -529,8 +529,7 @@ CE::Commands::~Commands() {
   }
 };
 
-void CE::Commands::createCommandPool(
-    const Queues::FamilyIndices& familyIndices) {
+void CE::Commands::createPool(const Queues::FamilyIndices& familyIndices) {
   Log::text("{ cmd }", "Command Pool");
 
   VkCommandPoolCreateInfo poolInfo{
@@ -538,8 +537,23 @@ void CE::Commands::createCommandPool(
       .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
       .queueFamilyIndex = familyIndices.graphicsAndComputeFamily.value()};
 
-  CE::VULKAN_RESULT(vkCreateCommandPool, baseDevice->logical, &poolInfo,
-                    nullptr, &pool);
+  CE::VULKAN_RESULT(vkcreatePool, baseDevice->logical, &poolInfo, nullptr,
+                    &pool);
+}
+
+void CE::Commands::createBuffer(std::vector<VkCommandBuffer>& commandBuffers,
+                                const int size) {
+  Log::text("{ cmd }", "Command Buffers:", size);
+
+  commandBuffers.resize(size);
+  VkCommandBufferAllocateInfo allocateInfo{
+      .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+      .commandPool = this->pool,
+      .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+      .commandBufferCount = static_cast<uint32_t>(commandBuffers.size())};
+
+  CE::VULKAN_RESULT(vkAllocateCommandBuffers, baseDevice->logical,
+                    &allocateInfo, commandBuffers.data());
 }
 
 void CE::Commands::beginSingularCommands(const VkCommandPool& commandPool,
@@ -1009,10 +1023,11 @@ void CE::RenderPass::create(VkSampleCountFlagBits msaaImageSamples,
                     nullptr, &renderPass);
 }
 
-void CE::PipelinesConfiguration::createPipelines(VkRenderPass& renderPass,
-                                    const VkPipelineLayout& graphicsLayout,
-                                    const VkPipelineLayout& computeLayout,
-                                    VkSampleCountFlagBits& msaaSamples) {
+void CE::PipelinesConfiguration::createPipelines(
+    VkRenderPass& renderPass,
+    const VkPipelineLayout& graphicsLayout,
+    const VkPipelineLayout& computeLayout,
+    VkSampleCountFlagBits& msaaSamples) {
   for (auto& entry : pipelineMap) {
     const std::string pipelineName = entry.first;
 
@@ -1044,9 +1059,11 @@ void CE::PipelinesConfiguration::createPipelines(VkRenderPass& renderPass,
       }
 
       const auto& bindingDescription =
-          std::get<CE::PipelinesConfiguration::Graphics>(variant).vertexBindings;
+          std::get<CE::PipelinesConfiguration::Graphics>(variant)
+              .vertexBindings;
       const auto& attributesDescription =
-          std::get<CE::PipelinesConfiguration::Graphics>(variant).vertexAttributes;
+          std::get<CE::PipelinesConfiguration::Graphics>(variant)
+              .vertexAttributes;
       uint32_t bindingsSize = static_cast<uint32_t>(bindingDescription.size());
       uint32_t attributeSize =
           static_cast<uint32_t>(attributesDescription.size());
@@ -1125,7 +1142,8 @@ void CE::PipelinesConfiguration::createPipelines(VkRenderPass& renderPass,
   }
 }
 
-std::vector<char> CE::PipelinesConfiguration::readShaderFile(const std::string& filename) {
+std::vector<char> CE::PipelinesConfiguration::readShaderFile(
+    const std::string& filename) {
   std::ifstream file(filename, std::ios::ate | std::ios::binary);
 
   if (!file.is_open()) {
@@ -1189,7 +1207,8 @@ void CE::PipelinesConfiguration::compileShaders() {
   }
 }
 
-VkPipeline& CE::PipelinesConfiguration::getPipelineObjectByName(const std::string& name) {
+VkPipeline& CE::PipelinesConfiguration::getPipelineObjectByName(
+    const std::string& name) {
   std::variant<Graphics, Compute>& variant = pipelineMap[name];
   if (std::holds_alternative<Graphics>(variant)) {
     return std::get<Graphics>(variant).pipeline;

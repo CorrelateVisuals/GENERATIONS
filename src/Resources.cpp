@@ -1,5 +1,5 @@
-#include "CapitalEngine.h"
 #include "Resources.h"
+#include "CapitalEngine.h"
 
 std::vector<VkDescriptorSetLayoutBinding>
     Resources::descriptorSetLayoutBindings;
@@ -37,8 +37,8 @@ void Resources::setupResources(Pipelines& _pipelines) {
   allocateDescriptorSets();
   createDescriptorSets();
 
-  createCommandBuffers(command.graphics, MAX_FRAMES_IN_FLIGHT);
-  createCommandBuffers(command.compute, MAX_FRAMES_IN_FLIGHT);
+  command.createBuffer(command.graphics, MAX_FRAMES_IN_FLIGHT);
+  command.createBuffer(command.compute, MAX_FRAMES_IN_FLIGHT);
 }
 
 void Resources::createFramebuffers(Pipelines& _pipelines) {
@@ -181,21 +181,21 @@ void Resources::allocateDescriptorSets() {
                     &allocateInfo, descriptor.sets.data());
 }
 
-void Resources::createCommandBuffers(
-    std::vector<VkCommandBuffer>& commandBuffers,
-    const int size) {
-  Log::text("{ cmd }", "Command Buffers:", size);
-
-  commandBuffers.resize(size);
-  VkCommandBufferAllocateInfo allocateInfo{
-      .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-      .commandPool = command.pool,
-      .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-      .commandBufferCount = static_cast<uint32_t>(commandBuffers.size())};
-
-  CE::VULKAN_RESULT(vkAllocateCommandBuffers, _mechanics.mainDevice.logical,
-                    &allocateInfo, commandBuffers.data());
-}
+// void Resources::createBuffer(
+//     std::vector<VkCommandBuffer>& commandBuffers,
+//     const int size) {
+//   Log::text("{ cmd }", "Command Buffers:", size);
+//
+//   commandBuffers.resize(size);
+//   VkCommandBufferAllocateInfo allocateInfo{
+//       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+//       .commandPool = command.pool,
+//       .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+//       .commandBufferCount = static_cast<uint32_t>(commandBuffers.size())};
+//
+//   CE::VULKAN_RESULT(vkAllocateCommandBuffers, _mechanics.mainDevice.logical,
+//                     &allocateInfo, commandBuffers.data());
+// }
 
 void Resources::createVertexBuffers(
     const std::unordered_map<Geometry*, VkVertexInputRate>& buffers) {

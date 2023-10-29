@@ -87,7 +87,9 @@ class Commands {
   VkCommandPool pool;
   static VkCommandBuffer singularCommandBuffer;
 
-  void createCommandPool(const Queues::FamilyIndices& familyIndices);
+  void createPool(const Queues::FamilyIndices& familyIndices);
+  void createBuffer(std::vector<VkCommandBuffer>& commandBuffers,
+                    const int size);
   static void beginSingularCommands(const VkCommandPool& commandPool,
                                     const VkQueue& queue);
   static void endSingularCommands(const VkCommandPool& commandPool,
@@ -174,7 +176,7 @@ class Image {
                             const VkFormat format);
 };
 class SynchronizationObjects {
-public:
+ public:
   void create(const int maxFramesInFlight);
   void destroy(const int maxFramesInFlight);
   std::vector<VkSemaphore> imageAvailableSemaphores;
