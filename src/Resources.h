@@ -20,14 +20,14 @@ class Resources {
 
   World world;
 
-  CE::Image depthImage;
-  CE::Image msaaImage;
-  CE::Image textureImage;
-
   const std::unordered_map<Geometry*, VkVertexInputRate> vertexBuffers = {
       {&world.landscape, VK_VERTEX_INPUT_RATE_INSTANCE},
       {&world.rectangle, VK_VERTEX_INPUT_RATE_INSTANCE},
       {&world.cube, VK_VERTEX_INPUT_RATE_VERTEX}};
+
+  CE::Image depthImage;
+  CE::Image msaaImage;
+  CE::Image textureImage;
 
   static std::vector<VkDescriptorSetLayoutBinding> descriptorSetLayoutBindings;
   struct Uniform : public CE::Descriptor::SetLayout {
@@ -115,8 +115,8 @@ class Resources {
   void createDescriptorPool();
   void allocateDescriptorSets();
 
-  //void createBuffer(std::vector<VkCommandBuffer>& commandBuffers,
-  //                          const int size);
+  void createCommandBuffers(std::vector<VkCommandBuffer>& commandBuffers,
+                            const int size);
 
   void createVertexBuffers(
       const std::unordered_map<Geometry*, VkVertexInputRate>& buffers);
