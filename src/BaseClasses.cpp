@@ -247,18 +247,18 @@ void CE::Buffer::copyToImage(const VkBuffer& buffer,
 CE::Image::Image() : image{}, memory{}, view{}, sampler{} {}
 
 void CE::Image::destroyVulkanImages() {
-  if (baseDevice && memory) {
-    if (sampler != VK_NULL_HANDLE) {
-      vkDestroySampler(baseDevice->logical, sampler, nullptr);
+  if (baseDevice && this->memory) {
+    if (this->sampler != VK_NULL_HANDLE) {
+      vkDestroySampler(baseDevice->logical, this->sampler, nullptr);
     };
-    if (view != VK_NULL_HANDLE) {
-      vkDestroyImageView(baseDevice->logical, view, nullptr);
+    if (this->view != VK_NULL_HANDLE) {
+      vkDestroyImageView(baseDevice->logical, this->view, nullptr);
     };
-    if (image != VK_NULL_HANDLE) {
-      vkDestroyImage(baseDevice->logical, image, nullptr);
+    if (this->image != VK_NULL_HANDLE) {
+      vkDestroyImage(baseDevice->logical, this->image, nullptr);
     };
-    if (memory != VK_NULL_HANDLE) {
-      vkFreeMemory(baseDevice->logical, memory, nullptr);
+    if (this->memory != VK_NULL_HANDLE) {
+      vkFreeMemory(baseDevice->logical, this->memory, nullptr);
     };
   };
 }
@@ -283,9 +283,10 @@ void CE::Image::create(const uint32_t width,
   info.tiling = tiling;
   info.usage = usage;
 
-  VULKAN_RESULT(vkCreateImage, baseDevice->logical, &info, nullptr, &image);
+  VULKAN_RESULT(vkCreateImage, baseDevice->logical, &this->info, nullptr,
+                &this->image);
 
-  VkMemoryRequirements memRequirements;
+  VkMemoryRequirements memRequirements{};
   vkGetImageMemoryRequirements(baseDevice->logical, this->image,
                                &memRequirements);
 
@@ -307,7 +308,7 @@ void CE::Image::createView(const VkImageAspectFlags aspectFlags) {
       .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
       .image = this->image,
       .viewType = VK_IMAGE_VIEW_TYPE_2D,
-      .format = info.format,
+      .format = this->info.format,
       .subresourceRange = {.aspectMask = aspectFlags,
                            .baseMipLevel = 0,
                            .levelCount = 1,
@@ -335,8 +336,8 @@ void CE::Image::transitionLayout(const VkCommandBuffer& commandBuffer,
   barrier.subresourceRange.baseArrayLayer = 0;
   barrier.subresourceRange.layerCount = 1;
 
-  VkPipelineStageFlags sourceStage;
-  VkPipelineStageFlags destinationStage;
+  VkPipelineStageFlags sourceStage{};
+  VkPipelineStageFlags destinationStage{};
 
   if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED &&
       newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
@@ -382,8 +383,7 @@ void CE::Image::loadTexture(const std::string& imagePath,
                             const VkQueue& queue) {
   Log::text("{ img }", "Image Texture: ", imagePath);
 
-  int texWidth{0}, texHeight{0}, texChannels{0};
-  int rgba = 4;
+  int texWidth(0), texHeight(0), texChannels(0), rgba(4);
   stbi_uc* pixels = stbi_load(imagePath.c_str(), &texWidth, &texHeight,
                               &texChannels, STBI_rgb_alpha);
   VkDeviceSize imageSize = static_cast<VkDeviceSize>(texWidth) *
@@ -394,7 +394,7 @@ void CE::Image::loadTexture(const std::string& imagePath,
     throw std::runtime_error("failed to load texture image!");
   }
 
-  Buffer stagingResources;
+  Buffer stagingResources{};
 
   Buffer::create(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                  VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
@@ -441,7 +441,7 @@ VkFormat CE::Image::findSupportedFormat(const std::vector<VkFormat>& candidates,
                                         const VkImageTiling tiling,
                                         const VkFormatFeatureFlags& features) {
   for (VkFormat format : candidates) {
-    VkFormatProperties props;
+    VkFormatProperties props{};
     vkGetPhysicalDeviceFormatProperties(baseDevice->physical, format, &props);
 
     if (tiling == VK_IMAGE_TILING_LINEAR &&
@@ -514,18 +514,19 @@ CE::Descriptor::Descriptor() {
 
 CE::Descriptor::~Descriptor() {
   if (baseDevice) {
-    if (pool != VK_NULL_HANDLE) {
-      vkDestroyDescriptorPool(baseDevice->logical, pool, nullptr);
+    if (this->pool != VK_NULL_HANDLE) {
+      vkDestroyDescriptorPool(baseDevice->logical, this->pool, nullptr);
     };
-    if (setLayout != VK_NULL_HANDLE) {
-      vkDestroyDescriptorSetLayout(baseDevice->logical, setLayout, nullptr);
+    if (this->setLayout != VK_NULL_HANDLE) {
+      vkDestroyDescriptorSetLayout(baseDevice->logical, this->setLayout,
+                                   nullptr);
     };
   }
 }
 
 CE::Commands::~Commands() {
-  if (baseDevice && pool != VK_NULL_HANDLE) {
-    vkDestroyCommandPool(baseDevice->logical, pool, nullptr);
+  if (baseDevice && this->pool != VK_NULL_HANDLE) {
+    vkDestroyCommandPool(baseDevice->logical, this->pool, nullptr);
   }
 };
 
@@ -539,7 +540,7 @@ void CE::Commands::createCommandPool(
       .queueFamilyIndex = familyIndices.graphicsAndComputeFamily.value()};
 
   CE::VULKAN_RESULT(vkCreateCommandPool, baseDevice->logical, &poolInfo,
-                    nullptr, &pool);
+                    nullptr, &this->pool);
 }
 
 void CE::Commands::beginSingularCommands(const VkCommandPool& commandPool,
@@ -581,16 +582,16 @@ void CE::Commands::endSingularCommands(const VkCommandPool& commandPool,
 void CE::Device::destroyDevice() {
   static bool isDeviceDestroyed = false;
   for (const VkDevice& device : destroyedDevices) {
-    if (device == logical) {
+    if (device == this->logical) {
       isDeviceDestroyed = true;
       break;
     }
   }
   if (!isDeviceDestroyed) {
-    Log::text("{ +++ }", "Destroy Device", logical, "@", &logical);
+    Log::text("{ +++ }", "Destroy Device", this->logical, "@", &this->logical);
     extensions.clear();
-    vkDestroyDevice(logical, nullptr);
-    destroyedDevices.push_back(logical);
+    vkDestroyDevice(this->logical, nullptr);
+    destroyedDevices.push_back(this->logical);
   }
 }
 
@@ -599,10 +600,10 @@ CE::Swapchain::SupportDetails CE::Swapchain::checkSupport(
     const VkSurfaceKHR& surface) {
   Log::text(Log::Style::charLeader, "Query Swap Chain Support");
   {
-    Swapchain::SupportDetails details;
+    Swapchain::SupportDetails details{};
     vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface,
                                               &details.capabilities);
-    uint32_t formatCount;
+    uint32_t formatCount(0);
     vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &formatCount,
                                          nullptr);
     if (formatCount != 0) {
@@ -610,7 +611,7 @@ CE::Swapchain::SupportDetails CE::Swapchain::checkSupport(
       vkGetPhysicalDeviceSurfaceFormatsKHR(
           physicalDevice, surface, &formatCount, details.formats.data());
     }
-    uint32_t presentModeCount;
+    uint32_t presentModeCount(0);
     vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface,
                                               &presentModeCount, nullptr);
     if (presentModeCount != 0) {
@@ -619,8 +620,7 @@ CE::Swapchain::SupportDetails CE::Swapchain::checkSupport(
                                                 &presentModeCount,
                                                 details.presentModes.data());
     }
-
-    supportDetails = details;
+    this->supportDetails = details;
     return details;
   }
 }
@@ -658,7 +658,7 @@ VkExtent2D CE::Swapchain::pickExtent(
       std::numeric_limits<uint32_t>::max()) {
     return capabilities.currentExtent;
   } else {
-    int width, height;
+    int width(0), height(0);
     glfwGetFramebufferSize(window, &width, &height);
 
     VkExtent2D actualExtent{static_cast<uint32_t>(width),
@@ -678,20 +678,20 @@ void CE::Swapchain::destroy() {
   if (baseDevice) {
     Log::text("{ <-> }", "Destroy Swapchain");
 
-    for (size_t i = 0; i < framebuffers.size(); i++) {
-      vkDestroyFramebuffer(baseDevice->logical, framebuffers[i], nullptr);
+    for (size_t i = 0; i < this->framebuffers.size(); i++) {
+      vkDestroyFramebuffer(baseDevice->logical, this->framebuffers[i], nullptr);
     }
-    for (size_t i = 0; i < images.size(); i++) {
-      vkDestroyImageView(baseDevice->logical, images[i].view, nullptr);
+    for (size_t i = 0; i < this->images.size(); i++) {
+      vkDestroyImageView(baseDevice->logical, this->images[i].view, nullptr);
     }
-    vkDestroySwapchainKHR(baseDevice->logical, swapchain, nullptr);
+    vkDestroySwapchainKHR(baseDevice->logical, this->swapchain, nullptr);
   }
 }
 
 void CE::Swapchain::recreate(const VkSurfaceKHR& surface,
                              const Queues& queues,
                              SynchronizationObjects& syncObjects) {
-  int width = 0, height = 0;
+  int width(0), height(0);
   glfwGetFramebufferSize(Window::get().window, &width, &height);
   while (width == 0 || height == 0) {
     glfwGetFramebufferSize(Window::get().window, &width, &height);
@@ -755,22 +755,23 @@ void CE::Swapchain::create(const VkSurfaceKHR& surface, const Queues& queues) {
   }
 
   CE::VULKAN_RESULT(vkCreateSwapchainKHR, baseDevice->logical, &createInfo,
-                    nullptr, &swapchain);
+                    nullptr, &this->swapchain);
 
-  vkGetSwapchainImagesKHR(baseDevice->logical, swapchain, &imageCount, nullptr);
+  vkGetSwapchainImagesKHR(baseDevice->logical, this->swapchain, &imageCount,
+                          nullptr);
 
-  images.resize(imageCount);
-  imageFormat = surfaceFormat.format;
+  this->images.resize(imageCount);
+  this->imageFormat = surfaceFormat.format;
   this->extent = extent;
 
-  std::vector<VkImage> swapchainImages(2);
-  vkGetSwapchainImagesKHR(baseDevice->logical, swapchain, &imageCount,
+  std::vector<VkImage> swapchainImages(2);  // TODO max frames in flight
+  vkGetSwapchainImagesKHR(baseDevice->logical, this->swapchain, &imageCount,
                           swapchainImages.data());
 
   for (size_t i = 0; i < imageCount; i++) {
-    images[i].image = swapchainImages[i];
-    images[i].info.format = imageFormat;
-    images[i].createView(VK_IMAGE_ASPECT_COLOR_BIT);
+    this->images[i].image = swapchainImages[i];
+    this->images[i].info.format = this->imageFormat;
+    this->images[i].createView(VK_IMAGE_ASPECT_COLOR_BIT);
   };
 }
 
@@ -779,8 +780,8 @@ CE::Queues::FamilyIndices CE::Queues::findQueueFamilies(
     const VkSurfaceKHR& surface) {
   Log::text(Log::Style::charLeader, "Find Queue Families");
 
-  CE::Queues::FamilyIndices indices;
-  uint32_t queueFamilyCount = 0;
+  CE::Queues::FamilyIndices indices{};
+  uint32_t queueFamilyCount(0);
   vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount,
                                            nullptr);
   std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
@@ -810,11 +811,11 @@ CE::Queues::FamilyIndices CE::Queues::findQueueFamilies(
 void CE::SynchronizationObjects::create(const int maxFramesInFlight) {
   Log::text("{ ||| }", "Sync Objects");
 
-  imageAvailableSemaphores.resize(maxFramesInFlight);
-  renderFinishedSemaphores.resize(maxFramesInFlight);
-  computeFinishedSemaphores.resize(maxFramesInFlight);
-  graphicsInFlightFences.resize(maxFramesInFlight);
-  computeInFlightFences.resize(maxFramesInFlight);
+  this->imageAvailableSemaphores.resize(maxFramesInFlight);
+  this->renderFinishedSemaphores.resize(maxFramesInFlight);
+  this->computeFinishedSemaphores.resize(maxFramesInFlight);
+  this->graphicsInFlightFences.resize(maxFramesInFlight);
+  this->computeInFlightFences.resize(maxFramesInFlight);
 
   VkSemaphoreCreateInfo semaphoreInfo{
       .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO};
@@ -824,15 +825,15 @@ void CE::SynchronizationObjects::create(const int maxFramesInFlight) {
 
   for (size_t i = 0; i < maxFramesInFlight; i++) {
     CE::VULKAN_RESULT(vkCreateSemaphore, baseDevice->logical, &semaphoreInfo,
-                      nullptr, &imageAvailableSemaphores[i]);
+                      nullptr, &this->imageAvailableSemaphores[i]);
     CE::VULKAN_RESULT(vkCreateSemaphore, baseDevice->logical, &semaphoreInfo,
-                      nullptr, &renderFinishedSemaphores[i]);
+                      nullptr, &this->renderFinishedSemaphores[i]);
     CE::VULKAN_RESULT(vkCreateFence, baseDevice->logical, &fenceInfo, nullptr,
-                      &graphicsInFlightFences[i]);
+                      &this->graphicsInFlightFences[i]);
     CE::VULKAN_RESULT(vkCreateSemaphore, baseDevice->logical, &semaphoreInfo,
-                      nullptr, &computeFinishedSemaphores[i]);
+                      nullptr, &this->computeFinishedSemaphores[i]);
     CE::VULKAN_RESULT(vkCreateFence, baseDevice->logical, &fenceInfo, nullptr,
-                      &computeInFlightFences[i]);
+                      &this->computeInFlightFences[i]);
   }
 }
 
@@ -840,14 +841,16 @@ void CE::SynchronizationObjects::destroy(const int maxFramesInFlight) {
   if (baseDevice) {
     Log::text("{ ||| }", "Destroy Synchronization Objects");
     for (size_t i = 0; i < maxFramesInFlight; i++) {
-      vkDestroySemaphore(baseDevice->logical, renderFinishedSemaphores[i],
+      vkDestroySemaphore(baseDevice->logical, this->renderFinishedSemaphores[i],
                          nullptr);
-      vkDestroySemaphore(baseDevice->logical, imageAvailableSemaphores[i],
+      vkDestroySemaphore(baseDevice->logical, this->imageAvailableSemaphores[i],
                          nullptr);
-      vkDestroySemaphore(baseDevice->logical, computeFinishedSemaphores[i],
-                         nullptr);
-      vkDestroyFence(baseDevice->logical, graphicsInFlightFences[i], nullptr);
-      vkDestroyFence(baseDevice->logical, computeInFlightFences[i], nullptr);
+      vkDestroySemaphore(baseDevice->logical,
+                         this->computeFinishedSemaphores[i], nullptr);
+      vkDestroyFence(baseDevice->logical, this->graphicsInFlightFences[i],
+                     nullptr);
+      vkDestroyFence(baseDevice->logical, this->computeInFlightFences[i],
+                     nullptr);
     };
   }
 }
@@ -855,24 +858,24 @@ void CE::SynchronizationObjects::destroy(const int maxFramesInFlight) {
 CE::InitializeVulkan::InitializeVulkan() {
   Log::text("{ VkI }", "constructing Initialize Vulkan");
   createInstance();
-  validation.setupDebugMessenger(instance);
+  this->validation.setupDebugMessenger(instance);
   createSurface(Window::get().window);
 }
 
 CE::InitializeVulkan::~InitializeVulkan() {
   Log::text("{ VkI }", "destructing Initialize Vulkan");
-  if (validation.enableValidationLayers) {
-    validation.DestroyDebugUtilsMessengerEXT(
-        instance, validation.debugMessenger, nullptr);
+  if (this->validation.enableValidationLayers) {
+    this->validation.DestroyDebugUtilsMessengerEXT(
+        this->instance, this->validation.debugMessenger, nullptr);
   }
-  vkDestroySurfaceKHR(instance, surface, nullptr);
-  vkDestroyInstance(instance, nullptr);
+  vkDestroySurfaceKHR(this->instance, this->surface, nullptr);
+  vkDestroyInstance(this->instance, nullptr);
 }
 
 void CE::InitializeVulkan::createInstance() {
   Log::text("{ VkI }", "Vulkan Instance");
-  if (validation.enableValidationLayers &&
-      !validation.checkValidationLayerSupport()) {
+  if (this->validation.enableValidationLayers &&
+      !this->validation.checkValidationLayerSupport()) {
     throw std::runtime_error(
         "\n!ERROR! validation layers requested, but not available!");
   }
@@ -887,7 +890,7 @@ void CE::InitializeVulkan::createInstance() {
             appInfo.applicationVersion, "-", appInfo.pEngineName,
             appInfo.engineVersion, "-", "Vulkan", 1.3);
 
-  auto extensions = getRequiredExtensions();
+  std::vector<const char*> extensions = getRequiredExtensions();
 
   VkInstanceCreateInfo createInfo{
       .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
@@ -898,32 +901,31 @@ void CE::InitializeVulkan::createInstance() {
       .ppEnabledExtensionNames = extensions.data()};
 
   VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
-  if (validation.enableValidationLayers) {
+  if (this->validation.enableValidationLayers) {
     createInfo.enabledLayerCount =
-        static_cast<uint32_t>(validation.validation.size());
-    createInfo.ppEnabledLayerNames = validation.validation.data();
+        static_cast<uint32_t>(this->validation.validation.size());
+    createInfo.ppEnabledLayerNames = this->validation.validation.data();
 
-    validation.populateDebugMessengerCreateInfo(debugCreateInfo);
+    this->validation.populateDebugMessengerCreateInfo(debugCreateInfo);
     createInfo.pNext = &debugCreateInfo;
   }
-
-  CE::VULKAN_RESULT(vkCreateInstance, &createInfo, nullptr, &instance);
+  CE::VULKAN_RESULT(vkCreateInstance, &createInfo, nullptr, &this->instance);
 }
 
 void CE::InitializeVulkan::createSurface(GLFWwindow* window) {
   Log::text("{ [ ] }", "Surface");
-  CE::VULKAN_RESULT(glfwCreateWindowSurface, instance, window, nullptr,
-                    &surface);
+  CE::VULKAN_RESULT(glfwCreateWindowSurface, this->instance, window, nullptr,
+                    &this->surface);
 }
 
 std::vector<const char*> CE::InitializeVulkan::getRequiredExtensions() {
-  uint32_t glfwExtensionCount = 0;
+  uint32_t glfwExtensionCount(0);
   const char** glfwExtensions;
   glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
 
   std::vector<const char*> extensions(glfwExtensions,
                                       glfwExtensions + glfwExtensionCount);
-  if (validation.enableValidationLayers) {
+  if (this->validation.enableValidationLayers) {
     extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
   }
   return extensions;
@@ -1006,7 +1008,7 @@ void CE::RenderPass::create(VkSampleCountFlagBits msaaImageSamples,
       .pDependencies = &dependency};
 
   CE::VULKAN_RESULT(vkCreateRenderPass, baseDevice->logical, &renderPassInfo,
-                    nullptr, &renderPass);
+                    nullptr, &this->renderPass);
 }
 
 void CE::PipelinesConfiguration::createPipelines(
@@ -1014,7 +1016,7 @@ void CE::PipelinesConfiguration::createPipelines(
     const VkPipelineLayout& graphicsLayout,
     const VkPipelineLayout& computeLayout,
     VkSampleCountFlagBits& msaaSamples) {
-  for (auto& entry : pipelineMap) {
+  for (auto& entry : this->pipelineMap) {
     const std::string pipelineName = entry.first;
 
     std::vector<std::string> shaders = getPipelineShadersByName(pipelineName);
@@ -1023,7 +1025,8 @@ void CE::PipelinesConfiguration::createPipelines(
 
     if (!isCompute) {
       Log::text("{ === }", "Graphics Pipeline: ", entry.first);
-      std::variant<Graphics, Compute>& variant = pipelineMap[pipelineName];
+      std::variant<Graphics, Compute>& variant =
+          this->pipelineMap[pipelineName];
 
       std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
 
@@ -1151,7 +1154,7 @@ VkPipelineShaderStageCreateInfo CE::PipelinesConfiguration::createShaderModules(
     std::string shaderName) {
   Log::text(Log::Style::charLeader, "Shader Module", shaderName);
 
-  std::string shaderPath = shaderDir + shaderName;
+  std::string shaderPath = this->shaderDir + shaderName;
   auto shaderCode = readShaderFile(shaderPath);
   VkShaderModule shaderModule{VK_NULL_HANDLE};
 
@@ -1180,14 +1183,14 @@ void CE::PipelinesConfiguration::compileShaders() {
   std::string shaderExtension = "";
   std::string pipelineName = "";
 
-  for (const auto& entry : pipelineMap) {
+  for (const auto& entry : this->pipelineMap) {
     pipelineName = entry.first;
     std::vector<std::string> shaders = getPipelineShadersByName(pipelineName);
     for (const auto& shader : shaders) {
       shaderExtension = Lib::upperToLowerCase(shader);
       systemCommand =
-          Lib::path(shaderDir + pipelineName + "." + shaderExtension + " -o " +
-                    shaderDir + pipelineName + shader + ".spv");
+          Lib::path(this->shaderDir + pipelineName + "." + shaderExtension +
+                    " -o " + this->shaderDir + pipelineName + shader + ".spv");
       system(systemCommand.c_str());
     }
   }
@@ -1195,7 +1198,7 @@ void CE::PipelinesConfiguration::compileShaders() {
 
 VkPipeline& CE::PipelinesConfiguration::getPipelineObjectByName(
     const std::string& name) {
-  std::variant<Graphics, Compute>& variant = pipelineMap[name];
+  std::variant<Graphics, Compute>& variant = this->pipelineMap[name];
   if (std::holds_alternative<Graphics>(variant)) {
     return std::get<Graphics>(variant).pipeline;
   } else {
@@ -1204,15 +1207,15 @@ VkPipeline& CE::PipelinesConfiguration::getPipelineObjectByName(
 }
 
 void CE::PipelinesConfiguration::destroyShaderModules() {
-  for (size_t i = 0; i < shaderModules.size(); i++) {
-    vkDestroyShaderModule(baseDevice->logical, shaderModules[i], nullptr);
+  for (size_t i = 0; i < this->shaderModules.size(); i++) {
+    vkDestroyShaderModule(baseDevice->logical, this->shaderModules[i], nullptr);
   }
-  shaderModules.resize(0);
+  this->shaderModules.resize(0);
 };
 
 std::vector<std::string>& CE::PipelinesConfiguration::getPipelineShadersByName(
     const std::string& name) {
-  std::variant<Graphics, Compute>& variant = pipelineMap[name];
+  std::variant<Graphics, Compute>& variant = this->pipelineMap[name];
 
   if (std::holds_alternative<Graphics>(variant)) {
     return std::get<Graphics>(variant).shaders;
@@ -1223,7 +1226,7 @@ std::vector<std::string>& CE::PipelinesConfiguration::getPipelineShadersByName(
 
 const std::array<uint32_t, 3>& CE::PipelinesConfiguration::getWorkGroupsByName(
     const std::string& name) {
-  std::variant<Graphics, Compute>& variant = pipelineMap[name];
+  std::variant<Graphics, Compute>& variant = this->pipelineMap[name];
   return std::get<CE::PipelinesConfiguration::Compute>(variant).workGroups;
 };
 
