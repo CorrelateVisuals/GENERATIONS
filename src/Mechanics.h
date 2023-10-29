@@ -10,10 +10,10 @@ class VulkanMechanics {
   VulkanMechanics();
   ~VulkanMechanics();
 
-  CE::InitializeVulkan initVulkan;
-  CE::Queues queues;
+  CE::InitializeVulkan initVulkan{};
+  CE::Queues queues{};
   struct SynchronizationObjects : public CE::SynchronizationObjects {
-  } syncObjects;
+  } syncObjects{};
 
   struct Device : public CE::Device {
     Device() {
@@ -26,7 +26,7 @@ class VulkanMechanics {
       features.samplerAnisotropy = VK_TRUE;
       features.shaderInt64 = VK_TRUE;
     };
-  } mainDevice;
+  } mainDevice{};
 
   struct Swapchain : public CE::Swapchain {
     void recreate(const VkSurfaceKHR& surface,
@@ -34,5 +34,5 @@ class VulkanMechanics {
                   SynchronizationObjects& syncObjects,
                   Pipelines& _pipelines,
                   Resources& _resources);
-  } swapchain;
+  } swapchain{};
 };

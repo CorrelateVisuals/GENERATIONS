@@ -18,20 +18,20 @@ class Resources {
   Resources(VulkanMechanics& mechanics);
   ~Resources();
 
-  World world;
+  World world{};
 
   const std::unordered_map<Geometry*, VkVertexInputRate> vertexBuffers = {
       {&world.landscape, VK_VERTEX_INPUT_RATE_INSTANCE},
       {&world.rectangle, VK_VERTEX_INPUT_RATE_INSTANCE},
       {&world.cube, VK_VERTEX_INPUT_RATE_VERTEX}};
 
-  CE::Image depthImage;
-  CE::Image msaaImage;
-  CE::Image textureImage;
+  CE::Image depthImage{};
+  CE::Image msaaImage{};
+  CE::Image textureImage{};
 
   static std::vector<VkDescriptorSetLayoutBinding> descriptorSetLayoutBindings;
   struct Uniform : public CE::Descriptor::SetLayout {
-    CE::Buffer buffer;
+    CE::Buffer buffer{};
     Uniform() {
       layoutBinding.binding = 0;
       layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -39,11 +39,11 @@ class Resources {
           VK_SHADER_STAGE_COMPUTE_BIT | VK_SHADER_STAGE_VERTEX_BIT;
       descriptorSetLayoutBindings.push_back(layoutBinding);
     }
-  } uniform;
+  } uniform{};
 
   struct ShaderStorage : public CE::Descriptor::SetLayout {
-    CE::Buffer bufferIn;
-    CE::Buffer bufferOut;
+    CE::Buffer bufferIn{};
+    CE::Buffer bufferOut{};
     ShaderStorage() {
       layoutBinding.binding = 1;
       layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
@@ -52,27 +52,27 @@ class Resources {
       layoutBinding.binding = 2;
       descriptorSetLayoutBindings.push_back(layoutBinding);
     }
-  } shaderStorage;
+  } shaderStorage{};
 
   struct ImageSampler : public CE::Descriptor::SetLayout {
-    CE::Buffer buffer;
+    CE::Buffer buffer{};
     ImageSampler() {
       layoutBinding.binding = 3;
       layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
       layoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
       descriptorSetLayoutBindings.push_back(layoutBinding);
     }
-  } sampler;
+  } sampler{};
 
   struct StorageImage : public CE::Descriptor::SetLayout {
-    CE::Buffer buffer;
+    CE::Buffer buffer{};
     StorageImage() {
       layoutBinding.binding = 4;
       layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
       layoutBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
       descriptorSetLayoutBindings.push_back(layoutBinding);
     }
-  } storageImage;
+  } storageImage{};
 
   struct PushConstants : public CE::PushConstants {
     PushConstants() {
@@ -82,15 +82,15 @@ class Resources {
       size = 128;
       data.fill(0);
     }
-  } pushConstants;
+  } pushConstants{};
 
   struct CommandBuffers : public CE::Commands {
-    std::vector<VkCommandBuffer> graphics;
-    std::vector<VkCommandBuffer> compute;
-  } command;
+    std::vector<VkCommandBuffer> graphics{};
+    std::vector<VkCommandBuffer> compute{};
+  } command{};
 
   struct DescriptorSets : CE::Descriptor {
-  } descriptor;
+  } descriptor{};
 
  public:
   void setupResources(Pipelines& _pipelines);

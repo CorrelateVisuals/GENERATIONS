@@ -10,13 +10,13 @@ class Pipelines {
   ~Pipelines();
   void setupPipelines(Resources& _resources);
 
-  CE::PipelineLayout compute;
-  CE::PipelineLayout graphics;
-  CE::RenderPass render;
+  CE::PipelineLayout compute{};
+  CE::PipelineLayout graphics{};
+  CE::RenderPass render{};
 
   struct Configuration : public CE::PipelinesConfiguration {
     Configuration() {
-      World world;
+      World world{};
       pipelineMap["Engine"] =
           Compute{.shaders = {"Comp"},
                   .workGroups = {
@@ -44,7 +44,7 @@ class Pipelines {
               static_cast<uint32_t>(Window::get().display.width + 7) / 8,
               static_cast<uint32_t>(Window::get().display.height + 7) / 8, 1}};
     }
-  } config;
+  } config{};
 
  private:
   VulkanMechanics& _mechanics;
