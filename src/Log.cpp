@@ -60,7 +60,7 @@ void Log::logFooter() {
 
 bool Log::skipLogging(uint8_t logLevel, std::string icon) {
   if (!logFile.is_open()) {
-    std::cerr << "\n!ERROR! Could not open logFile for writing" << std::endl;
+    std::cerr << "\n!ERROR! Could not open logFile for writing" << '\n';
     return false;
   }
   if (logLevel == LOG_OFF ||

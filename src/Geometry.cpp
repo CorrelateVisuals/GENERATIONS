@@ -93,10 +93,10 @@ void Geometry::loadModel(const std::string& modelName, Geometry& geometry) {
     throw std::runtime_error(warn + err);
   }
   if (!warn.empty()) {
-    std::cout << "WARN: " << warn << std::endl;
+    std::cout << "WARN: " << warn << '\n';
   }
   if (!err.empty()) {
-    std::cerr << err << std::endl;
+    std::cerr << err << '\n';
     return;
   }
 
