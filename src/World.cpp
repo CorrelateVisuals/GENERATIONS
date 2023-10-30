@@ -103,7 +103,8 @@ std::vector<uint_fast32_t> World::setCellsAliveRandomly(
 
   while (CellIDs.size() < numberOfCells) {
     int CellID = distribution(generate);
-    if (std::find(CellIDs.begin(), CellIDs.end(), CellID) == CellIDs.end()) {
+    if (std::find(CellIDs.begin(), CellIDs.end(), CellID) == CellIDs.end())
+        [[likely]] {
       CellIDs.push_back(CellID);
     }
   }
