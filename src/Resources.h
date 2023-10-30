@@ -39,7 +39,7 @@ class Resources {
           VK_SHADER_STAGE_COMPUTE_BIT | VK_SHADER_STAGE_VERTEX_BIT;
       descriptorSetLayoutBindings.push_back(layoutBinding);
     }
-  } uniform{};
+  } uniform;
 
   struct ShaderStorage : public CE::Descriptor::SetLayout {
     CE::Buffer bufferIn{};
@@ -52,7 +52,7 @@ class Resources {
       layoutBinding.binding = 2;
       descriptorSetLayoutBindings.push_back(layoutBinding);
     }
-  } shaderStorage{};
+  } shaderStorage;
 
   struct ImageSampler : public CE::Descriptor::SetLayout {
     CE::Buffer buffer{};
@@ -62,7 +62,7 @@ class Resources {
       layoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
       descriptorSetLayoutBindings.push_back(layoutBinding);
     }
-  } sampler{};
+  } sampler;
 
   struct StorageImage : public CE::Descriptor::SetLayout {
     CE::Buffer buffer{};
@@ -72,7 +72,7 @@ class Resources {
       layoutBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
       descriptorSetLayoutBindings.push_back(layoutBinding);
     }
-  } storageImage{};
+  } storageImage;
 
   struct PushConstants : public CE::PushConstants {
     PushConstants() {
@@ -82,15 +82,15 @@ class Resources {
       size = 128;
       data.fill(0);
     }
-  } pushConstants{};
+  } pushConstants;
 
   struct CommandBuffers : public CE::Commands {
     std::vector<VkCommandBuffer> graphics{};
     std::vector<VkCommandBuffer> compute{};
-  } command{};
+  } command;
 
   struct DescriptorSets : CE::Descriptor {
-  } descriptor{};
+  } descriptor;
 
  public:
   void setupResources(Pipelines& _pipelines);

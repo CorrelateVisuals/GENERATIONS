@@ -13,7 +13,7 @@ VulkanMechanics::VulkanMechanics()
   mainDevice.createLogicalDevice(initVulkan, queues);
   CE::baseDevice->setBaseDevice(mainDevice);
 
-  swapchain.create(initVulkan.surface, queues);
+  swapchain.create(initVulkan.surface, queues, MAX_FRAMES_IN_FLIGHT);
 }
 
 VulkanMechanics::~VulkanMechanics() {
@@ -28,7 +28,7 @@ void VulkanMechanics::Swapchain::recreate(const VkSurfaceKHR& surface,
                                           SynchronizationObjects& syncObjects,
                                           Pipelines& _pipelines,
                                           Resources& _resources) {
-  CE::Swapchain::recreate(surface, queues, syncObjects);
+  CE::Swapchain::recreate(surface, queues, syncObjects, MAX_FRAMES_IN_FLIGHT);
   _resources.msaaImage.createColorResources(extent, imageFormat);
   _resources.depthImage.createDepthResources(extent,
                                              CE::Image::findDepthFormat());

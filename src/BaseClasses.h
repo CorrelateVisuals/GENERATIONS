@@ -200,10 +200,13 @@ class Swapchain {
     std::vector<VkPresentModeKHR> presentModes{};
   } supportDetails{};
 
-  void create(const VkSurfaceKHR& surface, const Queues& queues);
+  void create(const VkSurfaceKHR& surface,
+              const Queues& queues,
+              const uint32_t maxFramesInFlight);
   void recreate(const VkSurfaceKHR& surface,
                 const Queues& queues,
-                SynchronizationObjects& syncObjects);
+                SynchronizationObjects& syncObjects,
+                const uint32_t maxFramesInFlight);
   void destroy();
   SupportDetails checkSupport(const VkPhysicalDevice& physicalDevice,
                               const VkSurfaceKHR& surface);

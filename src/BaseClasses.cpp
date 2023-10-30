@@ -690,7 +690,8 @@ void CE::Swapchain::destroy() {
 
 void CE::Swapchain::recreate(const VkSurfaceKHR& surface,
                              const Queues& queues,
-                             SynchronizationObjects& syncObjects) {
+                             SynchronizationObjects& syncObjects,
+                             const uint32_t maxFramesInFlight) {
   int width(0), height(0);
   glfwGetFramebufferSize(Window::get().window, &width, &height);
   while (width == 0 || height == 0) {
@@ -701,13 +702,15 @@ void CE::Swapchain::recreate(const VkSurfaceKHR& surface,
   vkDeviceWaitIdle(baseDevice->logical);
 
   destroy();
-  create(surface, queues);
+  create(surface, queues, maxFramesInFlight);
 
   uint32_t reset = 1;
   syncObjects.currentFrame = reset;
 }
 
-void CE::Swapchain::create(const VkSurfaceKHR& surface, const Queues& queues) {
+void CE::Swapchain::create(const VkSurfaceKHR& surface,
+                           const Queues& queues,
+                           uint32_t maxFramesInFlight) {
   Log::text("{ <-> }", "Swap Chain");
   Swapchain::SupportDetails swapchainSupport =
       checkSupport(baseDevice->physical, surface);
@@ -764,7 +767,7 @@ void CE::Swapchain::create(const VkSurfaceKHR& surface, const Queues& queues) {
   this->imageFormat = surfaceFormat.format;
   this->extent = extent;
 
-  std::vector<VkImage> swapchainImages(2);  // TODO max frames in flight
+  std::vector<VkImage> swapchainImages(maxFramesInFlight);
   vkGetSwapchainImagesKHR(baseDevice->logical, this->swapchain, &imageCount,
                           swapchainImages.data());
 
