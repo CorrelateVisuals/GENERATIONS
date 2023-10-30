@@ -1,3 +1,5 @@
+#include "vulkan/vulkan.h"
+
 #include "CapitalEngine.h"
 #include "Resources.h"
 
