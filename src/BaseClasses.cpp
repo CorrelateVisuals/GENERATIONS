@@ -401,7 +401,7 @@ void CE::Image::loadTexture(const std::string& imagePath,
                      VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                  stagingResources);
 
-  void* data;
+  void* data{};
   vkMapMemory(baseDevice->logical, stagingResources.memory, 0, imageSize, 0,
               &data);
   memcpy(data, pixels, static_cast<size_t>(imageSize));
