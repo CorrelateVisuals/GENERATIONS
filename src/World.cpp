@@ -112,11 +112,6 @@ std::vector<uint_fast32_t> World::setCellsAliveRandomly(
   return CellIDs;
 }
 
-bool World::isCellIndexAlive(const std::vector<int>& aliveCells, int index) {
-  return std::find(aliveCells.begin(), aliveCells.end(), index) !=
-         aliveCells.end();
-}
-
 std::vector<float> World::generateLandscapeHeight() {
   Terrain::Config terrainLayer1 = {.width = grid.size.x,
                                    .height = grid.size.y,

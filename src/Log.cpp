@@ -27,13 +27,13 @@ void Log::measureElapsedTime() {
   if (firstCall) {
     firstCall = false;
     lastCall = now;
-    Log::text("{ TIME }", "0.0", "seconds");
+    Log::text("{ TIME START }", "0.0", "seconds");
   } else {
     double elapsedTime =
         std::chrono::duration_cast<std::chrono::duration<double>>(now -
                                                                   lastCall)
             .count();
-    Log::text("{ TIME }", elapsedTime, "seconds");
+    Log::text("{ TIME INTERVAL }", elapsedTime, "seconds");
     lastCall = now;
   }
 }

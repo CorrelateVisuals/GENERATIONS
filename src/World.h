@@ -87,7 +87,6 @@ class World {
  private:
   void updateCamera();
   std::vector<uint_fast32_t> setCellsAliveRandomly(uint_fast32_t numberOfCells);
-  bool isCellIndexAlive(const std::vector<int>& aliveCells, int index);
   std::vector<float> generateLandscapeHeight();
 
   glm::mat4 setModel();
