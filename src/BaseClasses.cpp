@@ -791,7 +791,7 @@ CE::Queues::FamilyIndices CE::Queues::findQueueFamilies(
   vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount,
                                            queueFamilies.data());
 
-  int i = 0;
+  int i(0);
   for (const auto& queueFamily : queueFamilies) {
     if ((queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) &&
         (queueFamily.queueFlags & VK_QUEUE_COMPUTE_BIT)) {
@@ -1026,7 +1026,7 @@ void CE::PipelinesConfiguration::createPipelines(
     bool isCompute =
         std::find(shaders.begin(), shaders.end(), "Comp") != shaders.end();
 
-    if (!isCompute) {
+    if (!isCompute) [[likely]] {
       Log::text("{ === }", "Graphics Pipeline: ", entry.first);
       std::variant<Graphics, Compute>& variant =
           this->pipelineMap[pipelineName];
@@ -1039,8 +1039,6 @@ void CE::PipelinesConfiguration::createPipelines(
           shaderStage = VK_SHADER_STAGE_VERTEX_BIT;
         } else if (shaders[i] == "Frag") {
           shaderStage = VK_SHADER_STAGE_FRAGMENT_BIT;
-        } else if (shaders[i] == "Comp") {
-          shaderStage = VK_SHADER_STAGE_COMPUTE_BIT;
         } else if (shaders[i] == "Tesc") {
           shaderStage = VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
         } else if (shaders[i] == "Tese") {
@@ -1181,6 +1179,7 @@ VkPipelineShaderStageCreateInfo CE::PipelinesConfiguration::createShaderModules(
 }
 
 void CE::PipelinesConfiguration::compileShaders() {
+#ifdef DEBUG
   Log::text("{ GLSL }", "Compile Shaders");
   std::string systemCommand = "";
   std::string shaderExtension = "";
@@ -1197,6 +1196,7 @@ void CE::PipelinesConfiguration::compileShaders() {
       system(systemCommand.c_str());
     }
   }
+#endif
 }
 
 VkPipeline& CE::PipelinesConfiguration::getPipelineObjectByName(

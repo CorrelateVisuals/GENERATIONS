@@ -31,6 +31,7 @@ CapitalEngine::~CapitalEngine() {
 void CapitalEngine::mainLoop() {
   Log::text(Log::Style::headerGuard);
   Log::text("{ Main Loop }");
+  Log::measureElapsedTime();
 
   while (!glfwWindowShouldClose(Window::get().window)) {
     glfwPollEvents();
@@ -47,6 +48,7 @@ void CapitalEngine::mainLoop() {
   }
   vkDeviceWaitIdle(mechanics.mainDevice.logical);
 
+  Log::measureElapsedTime();
   Log::text("{ Main Loop }");
   Log::text(Log::Style::headerGuard);
 }

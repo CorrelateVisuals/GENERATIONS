@@ -17,15 +17,38 @@ int Log::Style::columnCountOffset = 4;
 
 std::string Log::previousTime;
 
+void Log::measureElapsedTime() {
+  static std::chrono::high_resolution_clock::time_point lastCall;
+  static bool firstCall = true;
+
+  std::chrono::high_resolution_clock::time_point now =
+      std::chrono::high_resolution_clock::now();
+
+  if (firstCall) {
+    firstCall = false;
+    lastCall = now;
+    Log::text("{ TIME }", "0.0", "seconds");
+  } else {
+    double elapsedTime =
+        std::chrono::duration_cast<std::chrono::duration<double>>(now -
+                                                                  lastCall)
+            .count();
+    Log::text("{ TIME }", elapsedTime, "seconds");
+    lastCall = now;
+  }
+}
+
 void Log::logTitle() {
   Log::text(Log::Style::headerGuard);
   Log::text("                 . - < < { ", "G E N E R A T I O N S",
             " } > > - .");
   Log::text(Log::Style::headerGuard);
+  Log::measureElapsedTime();
   Log::text("{ dir }", std::filesystem::current_path().string());
 }
 
 void Log::logFooter() {
+  Log::measureElapsedTime();
   Log::text(Log::Style::headerGuard);
   Log::text("© Jakob Povel | Correlate Visuals ©");
 }
