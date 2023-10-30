@@ -44,6 +44,11 @@ void Log::logTitle() {
             " } > > - .");
   Log::text(Log::Style::headerGuard);
   Log::measureElapsedTime();
+#ifdef _DEBUG
+  Log::text("{ DEBUG ON }", "compiling shaders");
+#else
+  Log::text("{ DEBUG OFF }", "not compiling shaders");
+#endif
   Log::text("{ dir }", std::filesystem::current_path().string());
 }
 
