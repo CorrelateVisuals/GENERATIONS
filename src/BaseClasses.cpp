@@ -302,7 +302,7 @@ void CE::Image::create(const uint32_t width,
 }
 
 void CE::Image::createView(const VkImageAspectFlags aspectFlags) {
-  Log::text("{ ... }", ":  Image View");
+  Log::text(Log::Style::charLeader, "Image View");
 
   VkImageViewCreateInfo viewInfo{
       .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
