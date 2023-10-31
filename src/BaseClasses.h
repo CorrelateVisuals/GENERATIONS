@@ -225,7 +225,7 @@ class Descriptor {
   virtual ~Descriptor();
   VkDescriptorPool pool{};
   VkDescriptorSetLayout setLayout{};
-  VkDescriptorSetLayoutBinding layoutBinding{};
+  VkDescriptorSetLayoutBinding setLayoutBinding{};
 
   std::vector<VkDescriptorSet> sets{};
 

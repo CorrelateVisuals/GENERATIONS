@@ -29,18 +29,18 @@ class Resources {
   CE::Image msaaImage{};
   CE::Image textureImage{};
 
-  // std::unordered_map<std::string, CE::Descriptor::SetLayout> newResourceMap;
+  // std::unordered_map<std::string, CE::Descriptor> newResourceMap;
 
   static std::vector<VkDescriptorSetLayoutBinding> descriptorSetLayoutBindings;
   struct Uniform : public CE::Descriptor {
     CE::Buffer buffer{};
     Uniform() {
-      layoutBinding.binding = 0;
-      layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-      layoutBinding.descriptorCount = 1;
-      layoutBinding.stageFlags =
+      setLayoutBinding.binding = 0;
+      setLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+      setLayoutBinding.descriptorCount = 1;
+      setLayoutBinding.stageFlags =
           VK_SHADER_STAGE_COMPUTE_BIT | VK_SHADER_STAGE_VERTEX_BIT;
-      descriptorSetLayoutBindings.push_back(layoutBinding);
+      descriptorSetLayoutBindings.push_back(setLayoutBinding);
     }
   } uniform;
 
@@ -48,35 +48,36 @@ class Resources {
     CE::Buffer bufferIn{};
     CE::Buffer bufferOut{};
     ShaderStorage() {
-      layoutBinding.binding = 1;
-      layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-      layoutBinding.descriptorCount = 1;
-      layoutBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-      descriptorSetLayoutBindings.push_back(layoutBinding);
-      layoutBinding.binding = 2;
-      descriptorSetLayoutBindings.push_back(layoutBinding);
+      setLayoutBinding.binding = 1;
+      setLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+      setLayoutBinding.descriptorCount = 1;
+      setLayoutBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+      descriptorSetLayoutBindings.push_back(setLayoutBinding);
+      setLayoutBinding.binding = 2;
+      descriptorSetLayoutBindings.push_back(setLayoutBinding);
     }
   } shaderStorage;
 
   struct ImageSampler : public CE::Descriptor {
     CE::Buffer buffer{};
     ImageSampler() {
-      layoutBinding.binding = 3;
-      layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-      layoutBinding.descriptorCount = 1;
-      layoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-      descriptorSetLayoutBindings.push_back(layoutBinding);
+      setLayoutBinding.binding = 3;
+      setLayoutBinding.descriptorType =
+          VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+      setLayoutBinding.descriptorCount = 1;
+      setLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+      descriptorSetLayoutBindings.push_back(setLayoutBinding);
     }
   } sampler;
 
   struct StorageImage : public CE::Descriptor {
     CE::Buffer buffer{};
     StorageImage() {
-      layoutBinding.binding = 4;
-      layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-      layoutBinding.descriptorCount = 1;
-      layoutBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-      descriptorSetLayoutBindings.push_back(layoutBinding);
+      setLayoutBinding.binding = 4;
+      setLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+      setLayoutBinding.descriptorCount = 1;
+      setLayoutBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+      descriptorSetLayoutBindings.push_back(setLayoutBinding);
     }
   } storageImage;
 
