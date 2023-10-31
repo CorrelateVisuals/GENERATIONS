@@ -29,26 +29,28 @@ class Resources {
   CE::Image msaaImage{};
   CE::Image textureImage{};
 
-  std::unordered_map<std::string, CE::Descriptor::SetLayout> newResourceMap;
+  // std::unordered_map<std::string, CE::Descriptor::SetLayout> newResourceMap;
 
   static std::vector<VkDescriptorSetLayoutBinding> descriptorSetLayoutBindings;
-  struct Uniform : public CE::Descriptor::SetLayout {
+  struct Uniform : public CE::Descriptor {
     CE::Buffer buffer{};
     Uniform() {
       layoutBinding.binding = 0;
       layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+      layoutBinding.descriptorCount = 1;
       layoutBinding.stageFlags =
           VK_SHADER_STAGE_COMPUTE_BIT | VK_SHADER_STAGE_VERTEX_BIT;
       descriptorSetLayoutBindings.push_back(layoutBinding);
     }
   } uniform;
 
-  struct ShaderStorage : public CE::Descriptor::SetLayout {
+  struct ShaderStorage : public CE::Descriptor {
     CE::Buffer bufferIn{};
     CE::Buffer bufferOut{};
     ShaderStorage() {
       layoutBinding.binding = 1;
       layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+      layoutBinding.descriptorCount = 1;
       layoutBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
       descriptorSetLayoutBindings.push_back(layoutBinding);
       layoutBinding.binding = 2;
@@ -56,21 +58,23 @@ class Resources {
     }
   } shaderStorage;
 
-  struct ImageSampler : public CE::Descriptor::SetLayout {
+  struct ImageSampler : public CE::Descriptor {
     CE::Buffer buffer{};
     ImageSampler() {
       layoutBinding.binding = 3;
       layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+      layoutBinding.descriptorCount = 1;
       layoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
       descriptorSetLayoutBindings.push_back(layoutBinding);
     }
   } sampler;
 
-  struct StorageImage : public CE::Descriptor::SetLayout {
+  struct StorageImage : public CE::Descriptor {
     CE::Buffer buffer{};
     StorageImage() {
       layoutBinding.binding = 4;
       layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+      layoutBinding.descriptorCount = 1;
       layoutBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
       descriptorSetLayoutBindings.push_back(layoutBinding);
     }

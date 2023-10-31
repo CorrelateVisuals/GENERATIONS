@@ -225,21 +225,15 @@ class Descriptor {
   virtual ~Descriptor();
   VkDescriptorPool pool{};
   VkDescriptorSetLayout setLayout{};
+  VkDescriptorSetLayoutBinding layoutBinding{};
 
   std::vector<VkDescriptorSet> sets{};
 
   VkDescriptorPoolSize poolSize{};
   VkDescriptorBufferInfo BufferInfo{};
   VkWriteDescriptorSet WriteSet{};
-
-  struct SetLayout {
-    VkDescriptorSetLayoutBinding layoutBinding{
-        .binding = 0,
-        .descriptorType = VK_DESCRIPTOR_TYPE_MAX_ENUM,
-        .descriptorCount = 1,
-        .stageFlags = NULL};
-  };
 };
+
 struct PushConstants {
   VkShaderStageFlags shaderStage{};
   uint32_t count{};
