@@ -55,7 +55,7 @@ class Resources {
   struct ShaderStorage : public CE::Descriptor {
     CE::Buffer bufferIn{};
     CE::Buffer bufferOut{};
-    ShaderStorage() {
+    ShaderStorage(uint32_t range) {
       setLayoutBinding.binding = 1;
       setLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
       setLayoutBinding.descriptorCount = 1;
@@ -70,8 +70,7 @@ class Resources {
 
       bufferInfo.buffer = bufferIn.buffer;
       bufferInfo.offset = 0;
-      bufferInfo.range =
-          sizeof(World::Cell) * world.grid.size.x * world.grid.size.y;
+      bufferInfo.range = range;
 
       bufferInfo.buffer = bufferOut.buffer;
     }
@@ -79,7 +78,7 @@ class Resources {
 
   struct ImageSampler : public CE::Descriptor {
     CE::Buffer buffer{};
-    ImageSampler() {
+    ImageSampler(CE::Image image) {
       setLayoutBinding.binding = 3;
       setLayoutBinding.descriptorType =
           VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -91,15 +90,15 @@ class Resources {
       poolSize.descriptorCount = static_cast<uint32_t>(2);
       newPoolSizes.push_back(poolSize);
 
-      imageInfo.sampler = textureImage.sampler;
-      imageInfo.imageView = textureImage.view;
+      imageInfo.sampler = image.sampler;
+      imageInfo.imageView = image.view;
       imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
     }
   } sampler;
 
   struct StorageImage : public CE::Descriptor {
     CE::Buffer buffer{};
-    StorageImage() {
+    StorageImage(std::vector<CE::Image>& images) {
       setLayoutBinding.binding = 4;
       setLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
       setLayoutBinding.descriptorCount = 1;
@@ -110,8 +109,10 @@ class Resources {
       poolSize.descriptorCount = static_cast<uint32_t>(2);
       newPoolSizes.push_back(poolSize);
 
+      int i = 0;  // TODO 0 and 1.
       imageInfo.sampler = VK_NULL_HANDLE;
-      imageInfo.imageView = swapchain.images[i].view;
+      // imageInfo.imageView = images[i].view; // TODO ERROR FOR VECTOR SIZE
+      // HERE
       imageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
     }
   } storageImage;

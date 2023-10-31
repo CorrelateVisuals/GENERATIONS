@@ -13,7 +13,11 @@ Resources::Resources(VulkanMechanics& mechanics)
       textureImage{},
       command{},
       descriptor{},
-      msaaImage{} {
+      msaaImage{},
+      shaderStorage{sizeof(World::Cell) * world.grid.size.x *
+                    world.grid.size.y},
+      sampler{textureImage},
+      storageImage{_mechanics.swapchain.images} {
   Log::text("{ /// }", "constructing Resources");
 }
 
