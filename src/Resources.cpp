@@ -143,16 +143,6 @@ void Resources::createDescriptorSetLayout(
 }
 
 void Resources::createDescriptorPool() {
-  std::vector<VkDescriptorPoolSize> poolSizes{
-      {.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-       .descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT)},
-      {.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-       .descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT) * 2},
-      {.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-       .descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT)},
-      {.type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
-       .descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT)}};
-
   Log::text("{ |=| }", "Descriptor Pool");
   for (size_t i = 0; i < poolSizes.size(); i++) {
     Log::text(Log::Style::charLeader,

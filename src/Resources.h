@@ -29,6 +29,8 @@ class Resources {
   CE::Image msaaImage{};
   CE::Image textureImage{};
 
+  std::unordered_map<std::string, CE::Descriptor::SetLayout> newResourceMap;
+
   static std::vector<VkDescriptorSetLayoutBinding> descriptorSetLayoutBindings;
   struct Uniform : public CE::Descriptor::SetLayout {
     CE::Buffer buffer{};
@@ -111,6 +113,16 @@ class Resources {
 
  private:
   VulkanMechanics& _mechanics;
+
+  std::vector<VkDescriptorPoolSize> poolSizes{
+      {.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+       .descriptorCount = static_cast<uint32_t>(2)},
+      {.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+       .descriptorCount = static_cast<uint32_t>(2) * 2},
+      {.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+       .descriptorCount = static_cast<uint32_t>(2)},
+      {.type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
+       .descriptorCount = static_cast<uint32_t>(2)}};
 
   void createDescriptorPool();
   void allocateDescriptorSets();

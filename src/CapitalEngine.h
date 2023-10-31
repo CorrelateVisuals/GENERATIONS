@@ -12,6 +12,10 @@
 #include "Pipelines.h"
 #include "Resources.h"
 
+#ifndef _DEBUG
+#define _DEBUG 0
+#endif
+
 class CapitalEngine {
  public:
   CapitalEngine();

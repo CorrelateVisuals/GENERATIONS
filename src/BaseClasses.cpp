@@ -1179,7 +1179,6 @@ VkPipelineShaderStageCreateInfo CE::PipelinesConfiguration::createShaderModules(
 }
 
 void CE::PipelinesConfiguration::compileShaders() {
-#ifdef _DEBUG
   Log::text("{ GLSL }", "Compile Shaders");
   std::string systemCommand = "";
   std::string shaderExtension = "";
@@ -1196,7 +1195,6 @@ void CE::PipelinesConfiguration::compileShaders() {
       system(systemCommand.c_str());
     }
   }
-#endif
 }
 
 VkPipeline& CE::PipelinesConfiguration::getPipelineObjectByName(
