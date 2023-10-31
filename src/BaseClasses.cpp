@@ -861,7 +861,7 @@ void CE::SynchronizationObjects::destroy(const int maxFramesInFlight) {
 CE::InitializeVulkan::InitializeVulkan() {
   Log::text("{ VkI }", "constructing Initialize Vulkan");
   createInstance();
-  this->validation.setupDebugMessenger(instance);
+  this->validation.setupDebugMessenger(this->instance);
   createSurface(Window::get().window);
 }
 
