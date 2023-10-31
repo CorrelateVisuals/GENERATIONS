@@ -230,7 +230,10 @@ class Descriptor {
   std::vector<VkDescriptorSet> sets{};
 
   VkDescriptorPoolSize poolSize{};
+
   VkDescriptorBufferInfo bufferInfo{};
+  VkDescriptorImageInfo imageInfo{};
+
   VkWriteDescriptorSet writeSet{};
 };
 
