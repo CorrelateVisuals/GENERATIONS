@@ -149,7 +149,6 @@ void Resources::createDescriptorPool() {
     Log::text(Log::Style::charLeader,
               Log::getDescriptorTypeString(newPoolSizes[i].type));
   }
-
   VkDescriptorPoolCreateInfo poolInfo{
       .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
       .maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT),

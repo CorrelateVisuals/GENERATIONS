@@ -230,8 +230,8 @@ class Descriptor {
   std::vector<VkDescriptorSet> sets{};
 
   VkDescriptorPoolSize poolSize{};
-  VkDescriptorBufferInfo BufferInfo{};
-  VkWriteDescriptorSet WriteSet{};
+  VkDescriptorBufferInfo bufferInfo{};
+  VkWriteDescriptorSet writeSet{};
 };
 
 struct PushConstants {

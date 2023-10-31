@@ -45,8 +45,89 @@ class Resources {
       poolSize.type = setLayoutBinding.descriptorType;
       poolSize.descriptorCount = static_cast<uint32_t>(2);
       newPoolSizes.push_back(poolSize);
+
+      //  bufferInfo.buffer = this->buffer;
+      //  bufferInfo.offset = 0;
+      //  bufferInfo.range = sizeof(World::UniformBufferObject);
+
+      //  std::vector<VkWriteDescriptorSet> descriptorWrites{
+      //{.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+      // .dstSet = descriptor.sets[i],
+      // .dstBinding = 0,
+      // .dstArrayElement = 0,
+      // .descriptorCount = 1,
+      // .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+      // .pBufferInfo = &uniformBufferInfo},
     }
   } uniform;
+
+
+
+  //VkDescriptorBufferInfo uniformBufferInfo{
+  //      .buffer = uniform.buffer.buffer,
+  //      .offset = 0,
+  //      .range = sizeof(World::UniformBufferObject) };
+
+  //VkDescriptorBufferInfo storageBufferInfoLastFrame{
+  //    .buffer = shaderStorage.bufferIn.buffer,
+  //    .offset = 0,
+  //    .range = sizeof(World::Cell) * world.grid.size.x * world.grid.size.y };
+
+  //VkDescriptorBufferInfo storageBufferInfoCurrentFrame{
+  //    .buffer = shaderStorage.bufferOut.buffer,
+  //    .offset = 0,
+  //    .range = sizeof(World::Cell) * world.grid.size.x * world.grid.size.y };
+
+  //VkDescriptorImageInfo imageInfo{
+  //    .sampler = textureImage.sampler,
+  //    .imageView = textureImage.view,
+  //    .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL };
+
+  //VkDescriptorImageInfo swapchainImageInfo{
+  //    .sampler = VK_NULL_HANDLE,
+  //    .imageView = _mechanics.swapchain.images[i].view,
+  //    .imageLayout = VK_IMAGE_LAYOUT_GENERAL };
+
+  //std::vector<VkWriteDescriptorSet> descriptorWrites{
+  //    {.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+  //     .dstSet = descriptor.sets[i],
+  //     .dstBinding = 0,
+  //     .dstArrayElement = 0,
+  //     .descriptorCount = 1,
+  //     .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+  //     .pBufferInfo = &uniformBufferInfo},
+
+  //    {.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+  //     .dstSet = descriptor.sets[i],
+  //     .dstBinding = static_cast<uint32_t>(i ? 2 : 1),
+  //     .dstArrayElement = 0,
+  //     .descriptorCount = 1,
+  //     .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+  //     .pBufferInfo = &storageBufferInfoLastFrame},
+
+  //    {.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+  //     .dstSet = descriptor.sets[i],
+  //     .dstBinding = static_cast<uint32_t>(i ? 1 : 2),
+  //     .dstArrayElement = 0,
+  //     .descriptorCount = 1,
+  //     .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+  //     .pBufferInfo = &storageBufferInfoCurrentFrame},
+
+  //    {.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+  //     .dstSet = descriptor.sets[i],
+  //     .dstBinding = 3,
+  //     .dstArrayElement = 0,
+  //     .descriptorCount = 1,
+  //     .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+  //     .pImageInfo = &imageInfo},
+
+  //    {.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+  //     .dstSet = descriptor.sets[i],
+  //     .dstBinding = 4,
+  //     .dstArrayElement = 0,
+  //     .descriptorCount = 1,
+  //     .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
+  //     .pImageInfo = &swapchainImageInfo},
 
   struct ShaderStorage : public CE::Descriptor {
     CE::Buffer bufferIn{};
