@@ -29,9 +29,9 @@ class Resources {
   CE::Image msaaImage{};
   CE::Image textureImage{};
 
-  // std::unordered_map<std::string, CE::Descriptor> newResourceMap;
-
   static std::vector<VkDescriptorSetLayoutBinding> descriptorSetLayoutBindings;
+  static std::vector<VkDescriptorPoolSize> newPoolSizes;
+
   struct Uniform : public CE::Descriptor {
     CE::Buffer buffer{};
     Uniform() {
@@ -41,6 +41,10 @@ class Resources {
       setLayoutBinding.stageFlags =
           VK_SHADER_STAGE_COMPUTE_BIT | VK_SHADER_STAGE_VERTEX_BIT;
       descriptorSetLayoutBindings.push_back(setLayoutBinding);
+
+      poolSize.type = setLayoutBinding.descriptorType;
+      poolSize.descriptorCount = static_cast<uint32_t>(2);
+      newPoolSizes.push_back(poolSize);
     }
   } uniform;
 
@@ -55,6 +59,10 @@ class Resources {
       descriptorSetLayoutBindings.push_back(setLayoutBinding);
       setLayoutBinding.binding = 2;
       descriptorSetLayoutBindings.push_back(setLayoutBinding);
+
+      poolSize.type = setLayoutBinding.descriptorType;
+      poolSize.descriptorCount = static_cast<uint32_t>(2) * 2;
+      newPoolSizes.push_back(poolSize);
     }
   } shaderStorage;
 
@@ -67,6 +75,10 @@ class Resources {
       setLayoutBinding.descriptorCount = 1;
       setLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
       descriptorSetLayoutBindings.push_back(setLayoutBinding);
+
+      poolSize.type = setLayoutBinding.descriptorType;
+      poolSize.descriptorCount = static_cast<uint32_t>(2);
+      newPoolSizes.push_back(poolSize);
     }
   } sampler;
 
@@ -78,6 +90,10 @@ class Resources {
       setLayoutBinding.descriptorCount = 1;
       setLayoutBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
       descriptorSetLayoutBindings.push_back(setLayoutBinding);
+
+      poolSize.type = setLayoutBinding.descriptorType;
+      poolSize.descriptorCount = static_cast<uint32_t>(2);
+      newPoolSizes.push_back(poolSize);
     }
   } storageImage;
 
@@ -118,16 +134,6 @@ class Resources {
 
  private:
   VulkanMechanics& _mechanics;
-
-  std::vector<VkDescriptorPoolSize> poolSizes{
-      {.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-       .descriptorCount = static_cast<uint32_t>(2)},
-      {.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-       .descriptorCount = static_cast<uint32_t>(2) * 2},
-      {.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-       .descriptorCount = static_cast<uint32_t>(2)},
-      {.type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
-       .descriptorCount = static_cast<uint32_t>(2)}};
 
   void createDescriptorPool();
   void allocateDescriptorSets();

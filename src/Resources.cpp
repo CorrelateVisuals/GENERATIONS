@@ -5,6 +5,7 @@
 
 std::vector<VkDescriptorSetLayoutBinding>
     Resources::descriptorSetLayoutBindings;
+std::vector<VkDescriptorPoolSize> Resources::newPoolSizes;
 
 Resources::Resources(VulkanMechanics& mechanics)
     : _mechanics(mechanics),
@@ -144,16 +145,16 @@ void Resources::createDescriptorSetLayout(
 
 void Resources::createDescriptorPool() {
   Log::text("{ |=| }", "Descriptor Pool");
-  for (size_t i = 0; i < poolSizes.size(); i++) {
+  for (size_t i = 0; i < newPoolSizes.size(); i++) {
     Log::text(Log::Style::charLeader,
-              Log::getDescriptorTypeString(poolSizes[i].type));
+              Log::getDescriptorTypeString(newPoolSizes[i].type));
   }
 
   VkDescriptorPoolCreateInfo poolInfo{
       .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
       .maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT),
-      .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
-      .pPoolSizes = poolSizes.data()};
+      .poolSizeCount = static_cast<uint32_t>(newPoolSizes.size()),
+      .pPoolSizes = newPoolSizes.data()};
 
   CE::VULKAN_RESULT(vkCreateDescriptorPool, _mechanics.mainDevice.logical,
                     &poolInfo, nullptr, &descriptor.pool);
