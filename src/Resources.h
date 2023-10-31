@@ -111,8 +111,7 @@ class Resources {
 
       int i = 0;  // TODO 0 and 1.
       imageInfo.sampler = VK_NULL_HANDLE;
-      // imageInfo.imageView = images[i].view; // TODO ERROR FOR VECTOR SIZE
-      // HERE
+      // imageInfo.imageView = images[i].view;  // TODO ERROR FOR VECTOR SIZE
       imageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
     }
   } storageImage;

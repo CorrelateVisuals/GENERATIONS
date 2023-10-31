@@ -37,6 +37,7 @@ class Queues {
   FamilyIndices findQueueFamilies(const VkPhysicalDevice& physicalDevice,
                                   const VkSurfaceKHR& surface);
 };
+
 class InitializeVulkan {
  public:
   InitializeVulkan();
@@ -50,6 +51,7 @@ class InitializeVulkan {
   void createSurface(GLFWwindow* window);
   std::vector<const char*> getRequiredExtensions();
 };
+
 class Device {
  public:
   Device() = default;

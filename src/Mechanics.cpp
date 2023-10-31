@@ -4,13 +4,15 @@
 #include "Mechanics.h"
 
 VulkanMechanics::VulkanMechanics()
-    : initVulkan{}, mainDevice{}, queues{}, swapchain{}, syncObjects{} {
+    : initVulkan{},
+      mainDevice{initVulkan, queues, swapchain},
+      queues{},
+      swapchain{},
+      syncObjects{} {
   Log::text("{ Vk. }", "constructing Vulkan Mechanics");
   Log::text(Log::Style::headerGuard);
   Log::text("{ Vk. }", "Setup Vulkan");
 
-  mainDevice.pickPhysicalDevice(initVulkan, queues, swapchain);
-  mainDevice.createLogicalDevice(initVulkan, queues);
   CE::baseDevice->setBaseDevice(mainDevice);
 
   swapchain.create(initVulkan.surface, queues, MAX_FRAMES_IN_FLIGHT);
