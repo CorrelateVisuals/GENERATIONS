@@ -41,7 +41,6 @@ class VulkanMechanics {
     Swapchain(const VkSurfaceKHR& surface, const CE::Queues& queues) {
       create(surface, queues, MAX_FRAMES_IN_FLIGHT);
     }
-    ~Swapchain() { destroy(); }
     void recreate(const VkSurfaceKHR& surface,
                   const CE::Queues& queues,
                   SynchronizationObjects& syncObjects,

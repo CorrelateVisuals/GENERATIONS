@@ -189,7 +189,7 @@ class SynchronizationObjects {
 class Swapchain {
  public:
   Swapchain() = default;
-  virtual ~Swapchain() = default;
+  virtual ~Swapchain() { destroy(); };
   VkSwapchainKHR swapchain{};
   VkExtent2D extent{};
   VkFormat imageFormat{};
@@ -202,6 +202,10 @@ class Swapchain {
     std::vector<VkPresentModeKHR> presentModes{};
   } supportDetails{};
 
+  SupportDetails checkSupport(const VkPhysicalDevice& physicalDevice,
+                              const VkSurfaceKHR& surface);
+
+ protected:
   void create(const VkSurfaceKHR& surface,
               const Queues& queues,
               const uint32_t maxFramesInFlight);
@@ -209,9 +213,9 @@ class Swapchain {
                 const Queues& queues,
                 SynchronizationObjects& syncObjects,
                 const uint32_t maxFramesInFlight);
+
+ private:
   void destroy();
-  SupportDetails checkSupport(const VkPhysicalDevice& physicalDevice,
-                              const VkSurfaceKHR& surface);
   VkSurfaceFormatKHR pickSurfaceFormat(
       const std::vector<VkSurfaceFormatKHR>& availableFormats);
   VkPresentModeKHR pickPresentMode(
