@@ -35,20 +35,30 @@ class Resources {
   struct Uniform : public CE::Descriptor {
     CE::Buffer buffer{};
     Uniform() {
+      VkDescriptorType type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
       setLayoutBinding.binding = 0;
-      setLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+      setLayoutBinding.descriptorType = type;
       setLayoutBinding.descriptorCount = 1;
       setLayoutBinding.stageFlags =
           VK_SHADER_STAGE_COMPUTE_BIT | VK_SHADER_STAGE_VERTEX_BIT;
       descriptorSetLayoutBindings.push_back(setLayoutBinding);
 
-      poolSize.type = setLayoutBinding.descriptorType;
+      poolSize.type = type;
       poolSize.descriptorCount = static_cast<uint32_t>(2);
       newPoolSizes.push_back(poolSize);
 
-      bufferInfo.buffer = buffer.buffer;
-      bufferInfo.offset = 0;
-      bufferInfo.range = sizeof(World::UniformBufferObject);
+      for (uint_fast8_t i = 0; i < 2; i++) {
+        bufferInfo.buffer = buffer.buffer;
+        bufferInfo.offset = 0;
+        bufferInfo.range = sizeof(World::UniformBufferObject);
+        writeSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        writeSet.dstSet = sets[i];
+        writeSet.dstBinding = 0;
+        writeSet.dstArrayElement = 0;
+        writeSet.descriptorCount = 1;
+        writeSet.descriptorType = type;
+        writeSet.pBufferInfo = &bufferInfo;
+      }
     }
   } uniform;
 
@@ -109,10 +119,10 @@ class Resources {
       poolSize.descriptorCount = static_cast<uint32_t>(2);
       newPoolSizes.push_back(poolSize);
 
-      for (uint_fast8_t i = 0; i < images.size(); i++){
-          imageInfo.sampler = VK_NULL_HANDLE;
-          imageInfo.imageView = images[i].view;  // TODO ERROR FOR VECTOR SIZE
-          imageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+      for (uint_fast8_t i = 0; i < images.size(); i++) {
+        imageInfo.sampler = VK_NULL_HANDLE;
+        imageInfo.imageView = images[i].view;  // TODO ERROR FOR VECTOR SIZE
+        imageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
       }
     }
   } storageImage;
