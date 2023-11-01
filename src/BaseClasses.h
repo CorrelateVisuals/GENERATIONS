@@ -310,7 +310,6 @@ class PipelinesConfiguration {
                        const VkPipelineLayout& graphicsLayout,
                        const VkPipelineLayout& computeLayout,
                        VkSampleCountFlagBits& msaaSamples);
-
   std::vector<std::string>& getPipelineShadersByName(const std::string& name);
   VkPipeline& getPipelineObjectByName(const std::string& name);
   const std::array<uint32_t, 3>& getWorkGroupsByName(const std::string& name);

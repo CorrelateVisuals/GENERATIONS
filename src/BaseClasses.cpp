@@ -76,6 +76,8 @@ void CE::Device::pickPhysicalDevice(const InitializeVulkan& initVulkan,
     if (isDeviceSuitable(device, queues, initVulkan, swapchain)) {
       this->physical = device;
       getMaxUsableSampleCount();
+      Log::text(Log::Style::charLeader,
+                Log::getSampleCountString(this->maxUsableSampleCount));
       break;
     }
   }
@@ -1020,7 +1022,8 @@ void CE::RenderPass::create(VkSampleCountFlagBits msaaImageSamples,
 
 CE::PipelinesConfiguration::~PipelinesConfiguration() {
   if (baseDevice) {
-    Log::text("{ === }", "destructing", this->pipelineMap.size(), "Pipelines");
+    Log::text("{ === }", "destructing", this->pipelineMap.size(),
+              "Pipelines Configuration");
     for (auto& pipeline : this->pipelineMap) {
       VkPipeline& pipelineObject = getPipelineObjectByName(pipeline.first);
       vkDestroyPipeline(baseDevice->logical, pipelineObject, nullptr);
