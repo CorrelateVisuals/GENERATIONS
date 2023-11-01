@@ -14,6 +14,8 @@
 #include <variant>
 #include <vector>
 
+const uint32_t CE_MAX_FRAMES_IN_FLIGHT = 2;
+
 namespace CE {
 class Swapchain;
 
@@ -180,8 +182,10 @@ class Image {
 
 class SynchronizationObjects {
  public:
-  void create(const int maxFramesInFlight);
-  void destroy(const int maxFramesInFlight);
+  SynchronizationObjects() = default;
+  ~SynchronizationObjects() { destroy(); };
+  void create();
+  void destroy();
   std::vector<VkSemaphore> imageAvailableSemaphores{};
   std::vector<VkSemaphore> renderFinishedSemaphores{};
   std::vector<VkSemaphore> computeFinishedSemaphores{};
@@ -210,13 +214,10 @@ class Swapchain {
                               const VkSurfaceKHR& surface);
 
  protected:
-  void create(const VkSurfaceKHR& surface,
-              const Queues& queues,
-              const uint32_t maxFramesInFlight);
+  void create(const VkSurfaceKHR& surface, const Queues& queues);
   void recreate(const VkSurfaceKHR& surface,
                 const Queues& queues,
-                SynchronizationObjects& syncObjects,
-                const uint32_t maxFramesInFlight);
+                SynchronizationObjects& syncObjects);
 
  private:
   void destroy();

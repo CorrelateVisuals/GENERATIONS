@@ -690,8 +690,7 @@ void CE::Swapchain::destroy() {
 
 void CE::Swapchain::recreate(const VkSurfaceKHR& surface,
                              const Queues& queues,
-                             SynchronizationObjects& syncObjects,
-                             const uint32_t maxFramesInFlight) {
+                             SynchronizationObjects& syncObjects) {
   int width(0), height(0);
   glfwGetFramebufferSize(Window::get().window, &width, &height);
   while (width == 0 || height == 0) {
@@ -702,15 +701,13 @@ void CE::Swapchain::recreate(const VkSurfaceKHR& surface,
   vkDeviceWaitIdle(baseDevice->logical);
 
   destroy();
-  create(surface, queues, maxFramesInFlight);
+  create(surface, queues);
 
   uint32_t reset = 1;
   syncObjects.currentFrame = reset;
 }
 
-void CE::Swapchain::create(const VkSurfaceKHR& surface,
-                           const Queues& queues,
-                           uint32_t maxFramesInFlight) {
+void CE::Swapchain::create(const VkSurfaceKHR& surface, const Queues& queues) {
   Log::text("{ <-> }", "Swap Chain");
   Swapchain::SupportDetails swapchainSupport =
       checkSupport(baseDevice->physical, surface);
@@ -767,7 +764,7 @@ void CE::Swapchain::create(const VkSurfaceKHR& surface,
   this->imageFormat = surfaceFormat.format;
   this->extent = extent;
 
-  std::vector<VkImage> swapchainImages(maxFramesInFlight);
+  std::vector<VkImage> swapchainImages(CE_MAX_FRAMES_IN_FLIGHT);
   vkGetSwapchainImagesKHR(baseDevice->logical, this->swapchain, &imageCount,
                           swapchainImages.data());
 
@@ -811,14 +808,14 @@ CE::Queues::FamilyIndices CE::Queues::findQueueFamilies(
   return indices;
 }
 
-void CE::SynchronizationObjects::create(const int maxFramesInFlight) {
+void CE::SynchronizationObjects::create() {
   Log::text("{ ||| }", "Sync Objects");
 
-  this->imageAvailableSemaphores.resize(maxFramesInFlight);
-  this->renderFinishedSemaphores.resize(maxFramesInFlight);
-  this->computeFinishedSemaphores.resize(maxFramesInFlight);
-  this->graphicsInFlightFences.resize(maxFramesInFlight);
-  this->computeInFlightFences.resize(maxFramesInFlight);
+  this->imageAvailableSemaphores.resize(CE_MAX_FRAMES_IN_FLIGHT);
+  this->renderFinishedSemaphores.resize(CE_MAX_FRAMES_IN_FLIGHT);
+  this->computeFinishedSemaphores.resize(CE_MAX_FRAMES_IN_FLIGHT);
+  this->graphicsInFlightFences.resize(CE_MAX_FRAMES_IN_FLIGHT);
+  this->computeInFlightFences.resize(CE_MAX_FRAMES_IN_FLIGHT);
 
   VkSemaphoreCreateInfo semaphoreInfo{
       .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO};
@@ -826,7 +823,7 @@ void CE::SynchronizationObjects::create(const int maxFramesInFlight) {
   VkFenceCreateInfo fenceInfo{.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
                               .flags = VK_FENCE_CREATE_SIGNALED_BIT};
 
-  for (size_t i = 0; i < maxFramesInFlight; i++) {
+  for (size_t i = 0; i < CE_MAX_FRAMES_IN_FLIGHT; i++) {
     CE::VULKAN_RESULT(vkCreateSemaphore, baseDevice->logical, &semaphoreInfo,
                       nullptr, &this->imageAvailableSemaphores[i]);
     CE::VULKAN_RESULT(vkCreateSemaphore, baseDevice->logical, &semaphoreInfo,
@@ -840,10 +837,10 @@ void CE::SynchronizationObjects::create(const int maxFramesInFlight) {
   }
 }
 
-void CE::SynchronizationObjects::destroy(const int maxFramesInFlight) {
+void CE::SynchronizationObjects::destroy() {
   if (baseDevice) {
     Log::text("{ ||| }", "Destroy Synchronization Objects");
-    for (size_t i = 0; i < maxFramesInFlight; i++) {
+    for (size_t i = 0; i < CE_MAX_FRAMES_IN_FLIGHT; i++) {
       vkDestroySemaphore(baseDevice->logical, this->renderFinishedSemaphores[i],
                          nullptr);
       vkDestroySemaphore(baseDevice->logical, this->imageAvailableSemaphores[i],

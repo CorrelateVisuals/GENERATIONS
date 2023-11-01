@@ -16,7 +16,7 @@ CapitalEngine::CapitalEngine() : pipelines(mechanics), resources(mechanics) {
   pipelines.setupPipelines(resources);
   resources.setupResources(pipelines);
 
-  mechanics.syncObjects.create(MAX_FRAMES_IN_FLIGHT);
+  mechanics.syncObjects.create();
 }
 
 CapitalEngine::~CapitalEngine() {

@@ -34,12 +34,11 @@ class VulkanMechanics {
   } mainDevice;
 
   struct SynchronizationObjects : public CE::SynchronizationObjects {
-    ~SynchronizationObjects() { destroy(MAX_FRAMES_IN_FLIGHT); }
   } syncObjects;
 
   struct Swapchain : public CE::Swapchain {
     Swapchain(const VkSurfaceKHR& surface, const CE::Queues& queues) {
-      create(surface, queues, MAX_FRAMES_IN_FLIGHT);
+      create(surface, queues);
     }
     void recreate(const VkSurfaceKHR& surface,
                   const CE::Queues& queues,
