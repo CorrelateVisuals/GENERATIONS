@@ -13,8 +13,6 @@ VulkanMechanics::VulkanMechanics()
   Log::text(Log::Style::headerGuard);
   Log::text("{ Vk. }", "Setup Vulkan");
 
-  CE::baseDevice->setBaseDevice(mainDevice);
-
   swapchain.create(initVulkan.surface, queues, MAX_FRAMES_IN_FLIGHT);
 }
 
