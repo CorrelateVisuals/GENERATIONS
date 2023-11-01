@@ -20,12 +20,9 @@ class Swapchain;
 // Mechanics
 class Queues {
  public:
-  Queues() = default;
-  virtual ~Queues() = default;
   VkQueue graphics{};
   VkQueue compute{};
   VkQueue present{};
-
   struct FamilyIndices {
     std::optional<uint32_t> graphicsAndComputeFamily{};
     std::optional<uint32_t> presentFamily{};
@@ -34,17 +31,21 @@ class Queues {
     }
   };
   FamilyIndices familyIndices{};
+
+  Queues() = default;
+  virtual ~Queues() = default;
   FamilyIndices findQueueFamilies(const VkPhysicalDevice& physicalDevice,
                                   const VkSurfaceKHR& surface);
 };
 
 class InitializeVulkan {
  public:
-  InitializeVulkan();
-  virtual ~InitializeVulkan();
   VkSurfaceKHR surface{};
   VkInstance instance{};
   ValidationLayers validation{};
+
+  InitializeVulkan();
+  virtual ~InitializeVulkan();
 
  private:
   void createInstance();
@@ -54,13 +55,13 @@ class InitializeVulkan {
 
 class Device {
  public:
-  Device() = default;
-  virtual ~Device() { destroyDevice(); }
   VkPhysicalDevice physical{VK_NULL_HANDLE};
   VkPhysicalDeviceFeatures features{};
   VkSampleCountFlagBits maxUsableSampleCount{VK_SAMPLE_COUNT_1_BIT};
   VkDevice logical{VK_NULL_HANDLE};
 
+  Device() = default;
+  virtual ~Device() { destroyDevice(); }
   void setBaseDevice(const CE::Device& device);
 
  protected:
@@ -86,11 +87,11 @@ static std::unique_ptr<Device> baseDevice{};
 
 class Commands {
  public:
-  Commands() = default;
-  virtual ~Commands();
   VkCommandPool pool{};
   static VkCommandBuffer singularCommandBuffer;
 
+  Commands() = default;
+  virtual ~Commands();
   void createCommandPool(const Queues::FamilyIndices& familyIndices);
   static void beginSingularCommands(const VkCommandPool& commandPool,
                                     const VkQueue& queue);
@@ -99,13 +100,12 @@ class Commands {
 };
 class Buffer {
  public:
-  Buffer();
-  virtual ~Buffer();
-
   VkBuffer buffer{};
   VkDeviceMemory memory{};
   void* mapped{};
 
+  Buffer();
+  virtual ~Buffer();
   static void create(const VkDeviceSize& size,
                      const VkBufferUsageFlags& usage,
                      const VkMemoryPropertyFlags& properties,
@@ -126,8 +126,6 @@ class Buffer {
 };
 class Image {
  public:
-  Image();
-  virtual ~Image() { destroyVulkanImages(); };
   VkImage image{};
   VkDeviceMemory memory{};
   VkImageView view{};
@@ -148,6 +146,8 @@ class Image {
                          .pQueueFamilyIndices = nullptr,
                          .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED};
 
+  Image();
+  virtual ~Image() { destroyVulkanImages(); };
   void create(const uint32_t width,
               const uint32_t height,
               const VkSampleCountFlagBits numSamples,
@@ -192,8 +192,6 @@ class SynchronizationObjects {
 
 class Swapchain {
  public:
-  Swapchain() = default;
-  virtual ~Swapchain() { destroy(); };
   VkSwapchainKHR swapchain{};
   VkExtent2D extent{};
   VkFormat imageFormat{};
@@ -206,6 +204,8 @@ class Swapchain {
     std::vector<VkPresentModeKHR> presentModes{};
   } supportDetails{};
 
+  Swapchain() = default;
+  virtual ~Swapchain() { destroy(); };
   SupportDetails checkSupport(const VkPhysicalDevice& physicalDevice,
                               const VkSurfaceKHR& surface);
 
@@ -231,8 +231,6 @@ class Swapchain {
 // Resources
 class Descriptor {
  public:
-  Descriptor();
-  virtual ~Descriptor();
   VkDescriptorPool pool{};
   VkDescriptorSetLayout setLayout{};
   VkDescriptorSetLayoutBinding setLayoutBinding{};
@@ -245,6 +243,9 @@ class Descriptor {
   VkDescriptorImageInfo imageInfo{};
 
   VkWriteDescriptorSet writeSet{};
+
+  Descriptor();
+  virtual ~Descriptor();
 };
 
 struct PushConstants {
@@ -259,25 +260,24 @@ struct PushConstants {
 class PipelineLayout {
  public:
   VkPipelineLayout layout{};
+
   void createGraphicsLayout(const Descriptor& _descriptorSets);
   void createComputeLayout(const Descriptor& _descriptorSets,
                            const PushConstants& _pushConstants);
 };
+
 class RenderPass {
  public:
-  RenderPass() = default;
-  virtual ~RenderPass(){
-      // vkDestroyRenderPass(baseDevice->logical, renderPass, nullptr);
-  };
   VkRenderPass renderPass{};
+
+  RenderPass() = default;
+  virtual ~RenderPass() = default;
   void create(VkSampleCountFlagBits msaaImageSamples,
               VkFormat swapchainImageFormat);
 };
+
 class PipelinesConfiguration {
  public:
-  PipelinesConfiguration() = default;
-  virtual ~PipelinesConfiguration() = default;
-
 #define PIPELINE_OBJECTS \
   VkPipeline pipeline{}; \
   std::vector<std::string> shaders{};
@@ -298,20 +298,24 @@ class PipelinesConfiguration {
   std::unordered_map<std::string, std::variant<Graphics, Compute>>
       pipelineMap{};
 
+  PipelinesConfiguration() = default;
+  virtual ~PipelinesConfiguration() = default;
   void createPipelines(VkRenderPass& renderPass,
                        const VkPipelineLayout& graphicsLayout,
                        const VkPipelineLayout& computeLayout,
                        VkSampleCountFlagBits& msaaSamples);
 
+  std::vector<std::string>& getPipelineShadersByName(const std::string& name);
+  VkPipeline& getPipelineObjectByName(const std::string& name);
+  const std::array<uint32_t, 3>& getWorkGroupsByName(const std::string& name);
+
+ private:
   std::vector<char> readShaderFile(const std::string& filename);
   void compileShaders();
   VkPipelineShaderStageCreateInfo createShaderModules(
       VkShaderStageFlagBits shaderStage,
       std::string shaderName);
   void destroyShaderModules();
-  std::vector<std::string>& getPipelineShadersByName(const std::string& name);
-  VkPipeline& getPipelineObjectByName(const std::string& name);
-  const std::array<uint32_t, 3>& getWorkGroupsByName(const std::string& name);
 };
 
 template <typename Checkresult, typename... Args>
