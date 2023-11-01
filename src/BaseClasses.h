@@ -61,11 +61,13 @@ class Device {
   VkSampleCountFlagBits maxUsableSampleCount{VK_SAMPLE_COUNT_1_BIT};
   VkDevice logical{VK_NULL_HANDLE};
 
+  void setBaseDevice(const CE::Device& device);
+
+ protected:
   void pickPhysicalDevice(const InitializeVulkan& initVulkan,
                           Queues& queues,
                           Swapchain& swapchain);
   void createLogicalDevice(const InitializeVulkan& initVulkan, Queues& queues);
-  void setBaseDevice(const CE::Device& device);
   void destroyDevice();
 
  private:
@@ -175,6 +177,7 @@ class Image {
   void createDepthResources(const VkExtent2D& dimensions,
                             const VkFormat format);
 };
+
 class SynchronizationObjects {
  public:
   void create(const int maxFramesInFlight);
@@ -186,6 +189,7 @@ class SynchronizationObjects {
   std::vector<VkFence> computeInFlightFences{};
   uint32_t currentFrame = 0;
 };
+
 class Swapchain {
  public:
   Swapchain() = default;
