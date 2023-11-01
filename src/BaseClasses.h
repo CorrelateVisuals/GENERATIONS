@@ -305,7 +305,7 @@ class PipelinesConfiguration {
       pipelineMap{};
 
   PipelinesConfiguration() = default;
-  virtual ~PipelinesConfiguration() = default;
+  virtual ~PipelinesConfiguration();
   void createPipelines(VkRenderPass& renderPass,
                        const VkPipelineLayout& graphicsLayout,
                        const VkPipelineLayout& computeLayout,

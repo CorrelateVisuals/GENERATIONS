@@ -1018,6 +1018,16 @@ void CE::RenderPass::create(VkSampleCountFlagBits msaaImageSamples,
                     nullptr, &this->renderPass);
 }
 
+CE::PipelinesConfiguration::~PipelinesConfiguration() {
+  if (baseDevice) {
+    Log::text("{ === }", "destructing", this->pipelineMap.size(), "Pipelines");
+    for (auto& pipeline : this->pipelineMap) {
+      VkPipeline& pipelineObject = getPipelineObjectByName(pipeline.first);
+      vkDestroyPipeline(baseDevice->logical, pipelineObject, nullptr);
+    }
+  }
+}
+
 void CE::PipelinesConfiguration::createPipelines(
     VkRenderPass& renderPass,
     const VkPipelineLayout& graphicsLayout,

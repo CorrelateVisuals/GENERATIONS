@@ -14,11 +14,6 @@ Pipelines::Pipelines(VulkanMechanics& mechanics)
 
 Pipelines::~Pipelines() {
   Log::text("{ === }", "destructing Pipelines");
-
-  for (auto& pipeline : config.pipelineMap) {
-    VkPipeline& pipelineObject = config.getPipelineObjectByName(pipeline.first);
-    vkDestroyPipeline(_mechanics.mainDevice.logical, pipelineObject, nullptr);
-  }
 }
 
 void Pipelines::setupPipelines(Resources& _resources) {
