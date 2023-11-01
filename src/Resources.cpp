@@ -17,8 +17,9 @@ Resources::Resources(VulkanMechanics& mechanics)
       shaderStorage{sizeof(World::Cell) * world.grid.size.x *
                     world.grid.size.y},
       sampler{textureImage},
-      storageImage{_mechanics.swapchain.images} {
+      storageImage{mechanics.swapchain.images} {
   Log::text("{ /// }", "constructing Resources");
+
 }
 
 Resources::~Resources() {
@@ -55,7 +56,7 @@ void Resources::createFramebuffers(Pipelines& _pipelines) {
 
   Log::text(Log::Style::charLeader,
             "attachments: msaaImage., depthImage, swapchain imageViews");
-  for (size_t i = 0; i < _mechanics.swapchain.images.size(); i++) {
+  for (uint_fast8_t i = 0; i < _mechanics.swapchain.images.size(); i++) {
     std::vector<VkImageView> attachments{msaaImage.view, depthImage.view,
                                          _mechanics.swapchain.images[i].view};
 
@@ -266,7 +267,7 @@ void Resources::setPushConstants() {
 void Resources::createDescriptorSets() {
   Log::text("{ |=| }", "Descriptor Sets");
 
-  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+  for (uint_fast8_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
     VkDescriptorBufferInfo uniformBufferInfo{
         .buffer = uniform.buffer.buffer,
         .offset = 0,

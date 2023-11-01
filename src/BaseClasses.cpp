@@ -20,7 +20,7 @@ void CE::Device::createLogicalDevice(const InitializeVulkan& initVulkan,
       queues.familyIndices.presentFamily.value()};
 
   float queuePriority = 1.0f;
-  for (uint32_t queueFamily : uniqueQueueFamilies) {
+  for (uint_fast8_t queueFamily : uniqueQueueFamilies) {
     VkDeviceQueueCreateInfo queueCreateInfo{
         .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
         .queueFamilyIndex = queueFamily,
@@ -114,7 +114,7 @@ void CE::Device::getMaxUsableSampleCount() {
   VkSampleCountFlags counts =
       this->properties.limits.framebufferColorSampleCounts &
       this->properties.limits.framebufferDepthSampleCounts;
-  for (size_t i = VK_SAMPLE_COUNT_64_BIT; i >= VK_SAMPLE_COUNT_1_BIT; i >>= 1) {
+  for (uint_fast8_t i = VK_SAMPLE_COUNT_64_BIT; i >= VK_SAMPLE_COUNT_1_BIT; i >>= 1) {
     if (counts & i) {
       this->maxUsableSampleCount = static_cast<VkSampleCountFlagBits>(i);
       return;
@@ -680,10 +680,10 @@ void CE::Swapchain::destroy() {
   if (baseDevice) {
     Log::text("{ <-> }", "Destroy Swapchain");
 
-    for (size_t i = 0; i < this->framebuffers.size(); i++) {
+    for (uint_fast8_t i = 0; i < this->framebuffers.size(); i++) {
       vkDestroyFramebuffer(baseDevice->logical, this->framebuffers[i], nullptr);
     }
-    for (size_t i = 0; i < this->images.size(); i++) {
+    for (uint_fast8_t i = 0; i < this->images.size(); i++) {
       vkDestroyImageView(baseDevice->logical, this->images[i].view, nullptr);
     }
     vkDestroySwapchainKHR(baseDevice->logical, this->swapchain, nullptr);
@@ -770,7 +770,7 @@ void CE::Swapchain::create(const VkSurfaceKHR& surface, const Queues& queues) {
   vkGetSwapchainImagesKHR(baseDevice->logical, this->swapchain, &imageCount,
                           swapchainImages.data());
 
-  for (size_t i = 0; i < imageCount; i++) {
+  for (uint_fast8_t i = 0; i < imageCount; i++) {
     this->images[i].image = swapchainImages[i];
     this->images[i].info.format = this->imageFormat;
     this->images[i].createView(VK_IMAGE_ASPECT_COLOR_BIT);
@@ -825,7 +825,7 @@ void CE::SynchronizationObjects::create() {
   VkFenceCreateInfo fenceInfo{.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
                               .flags = VK_FENCE_CREATE_SIGNALED_BIT};
 
-  for (size_t i = 0; i < CE_MAX_FRAMES_IN_FLIGHT; i++) {
+  for (uint_fast8_t i = 0; i < CE_MAX_FRAMES_IN_FLIGHT; i++) {
     CE::VULKAN_RESULT(vkCreateSemaphore, baseDevice->logical, &semaphoreInfo,
                       nullptr, &this->imageAvailableSemaphores[i]);
     CE::VULKAN_RESULT(vkCreateSemaphore, baseDevice->logical, &semaphoreInfo,
@@ -842,7 +842,7 @@ void CE::SynchronizationObjects::create() {
 void CE::SynchronizationObjects::destroy() {
   if (baseDevice) {
     Log::text("{ ||| }", "Destroy Synchronization Objects");
-    for (size_t i = 0; i < CE_MAX_FRAMES_IN_FLIGHT; i++) {
+    for (uint_fast8_t i = 0; i < CE_MAX_FRAMES_IN_FLIGHT; i++) {
       vkDestroySemaphore(baseDevice->logical, this->renderFinishedSemaphores[i],
                          nullptr);
       vkDestroySemaphore(baseDevice->logical, this->imageAvailableSemaphores[i],
@@ -1051,7 +1051,7 @@ void CE::PipelinesConfiguration::createPipelines(
       std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
 
       VkShaderStageFlagBits shaderStage = VK_SHADER_STAGE_VERTEX_BIT;
-      for (size_t i = 0; i < shaders.size(); i++) {
+      for (uint_fast8_t i = 0; i < shaders.size(); i++) {
         if (shaders[i] == "Vert") {
           shaderStage = VK_SHADER_STAGE_VERTEX_BIT;
         } else if (shaders[i] == "Frag") {
@@ -1225,7 +1225,7 @@ VkPipeline& CE::PipelinesConfiguration::getPipelineObjectByName(
 }
 
 void CE::PipelinesConfiguration::destroyShaderModules() {
-  for (size_t i = 0; i < this->shaderModules.size(); i++) {
+  for (uint_fast8_t i = 0; i < this->shaderModules.size(); i++) {
     vkDestroyShaderModule(baseDevice->logical, this->shaderModules[i], nullptr);
   }
   this->shaderModules.resize(0);
