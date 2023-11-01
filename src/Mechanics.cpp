@@ -7,13 +7,11 @@ VulkanMechanics::VulkanMechanics()
     : initVulkan{},
       mainDevice{initVulkan, queues, swapchain},
       queues{},
-      swapchain{},
+      swapchain{initVulkan.surface, queues},
       syncObjects{} {
   Log::text("{ Vk. }", "constructing Vulkan Mechanics");
   Log::text(Log::Style::headerGuard);
   Log::text("{ Vk. }", "Setup Vulkan");
-
-  swapchain.create(initVulkan.surface, queues, MAX_FRAMES_IN_FLIGHT);
 }
 
 VulkanMechanics::~VulkanMechanics() {
