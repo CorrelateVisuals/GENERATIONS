@@ -38,6 +38,8 @@ class VulkanMechanics {
 
       pickPhysicalDevice(initVulkan, queues, swapchain);
       createLogicalDevice(initVulkan, queues);
+
+      // CE::baseDevice = std::make_unique<CE::Device>(*this);
     };
   } mainDevice;
 };
