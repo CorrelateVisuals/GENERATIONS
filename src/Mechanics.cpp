@@ -16,9 +16,6 @@ VulkanMechanics::VulkanMechanics()
 
 VulkanMechanics::~VulkanMechanics() {
   Log::text("{ Vk. }", "destructing Vulkan Mechanics");
-  swapchain.destroy();
-  syncObjects.destroy(MAX_FRAMES_IN_FLIGHT);
-  mainDevice.destroyDevice();
 }
 
 void VulkanMechanics::Swapchain::recreate(const VkSurfaceKHR& surface,

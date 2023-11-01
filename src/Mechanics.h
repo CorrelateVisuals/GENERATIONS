@@ -12,8 +12,6 @@ class VulkanMechanics {
 
   CE::InitializeVulkan initVulkan{};
   CE::Queues queues{};
-  struct SynchronizationObjects : public CE::SynchronizationObjects {
-  } syncObjects;
 
   struct Device : public CE::Device {
     Device(const CE::InitializeVulkan& initVulkan,
@@ -32,12 +30,18 @@ class VulkanMechanics {
       createLogicalDevice(initVulkan, queues);
       CE::baseDevice->setBaseDevice(*this);
     };
+    ~Device() { destroyDevice(); }
   } mainDevice;
+
+  struct SynchronizationObjects : public CE::SynchronizationObjects {
+    ~SynchronizationObjects() { destroy(MAX_FRAMES_IN_FLIGHT); }
+  } syncObjects;
 
   struct Swapchain : public CE::Swapchain {
     Swapchain(const VkSurfaceKHR& surface, const CE::Queues& queues) {
       create(surface, queues, MAX_FRAMES_IN_FLIGHT);
     }
+    ~Swapchain() { destroy(); }
     void recreate(const VkSurfaceKHR& surface,
                   const CE::Queues& queues,
                   SynchronizationObjects& syncObjects,
