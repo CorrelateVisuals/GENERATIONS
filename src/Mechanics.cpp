@@ -11,7 +11,6 @@ VulkanMechanics::VulkanMechanics()
       syncObjects{} {
   Log::text("{ Vk. }", "constructing Vulkan Mechanics");
   Log::text(Log::Style::headerGuard);
-  Log::text("{ Vk. }", "Setup Vulkan");
 }
 
 VulkanMechanics::~VulkanMechanics() {

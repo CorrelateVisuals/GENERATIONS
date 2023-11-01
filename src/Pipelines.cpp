@@ -19,14 +19,6 @@ Pipelines::~Pipelines() {
     VkPipeline& pipelineObject = config.getPipelineObjectByName(pipeline.first);
     vkDestroyPipeline(_mechanics.mainDevice.logical, pipelineObject, nullptr);
   }
-
-  vkDestroyPipelineLayout(_mechanics.mainDevice.logical, graphics.layout,
-                          nullptr);
-  vkDestroyPipelineLayout(_mechanics.mainDevice.logical, compute.layout,
-                          nullptr);
-
-  vkDestroyRenderPass(_mechanics.mainDevice.logical, render.renderPass,
-                      nullptr);
 }
 
 void Pipelines::setupPipelines(Resources& _resources) {

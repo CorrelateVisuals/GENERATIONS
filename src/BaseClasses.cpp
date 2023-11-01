@@ -931,6 +931,13 @@ std::vector<const char*> CE::InitializeVulkan::getRequiredExtensions() {
   return extensions;
 }
 
+CE::RenderPass::~RenderPass() {
+  Log::text("{ []< }", "destructing Render Pass");
+  if (baseDevice) {
+    vkDestroyRenderPass(baseDevice->logical, this->renderPass, nullptr);
+  }
+}
+
 void CE::RenderPass::create(VkSampleCountFlagBits msaaImageSamples,
                             VkFormat swapchainImageFormat) {
   Log::text("{ []< }", "Render Pass");

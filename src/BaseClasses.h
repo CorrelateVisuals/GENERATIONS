@@ -262,6 +262,11 @@ class PipelineLayout {
  public:
   VkPipelineLayout layout{};
 
+  virtual ~PipelineLayout() {
+    if (baseDevice) {
+      vkDestroyPipelineLayout(baseDevice->logical, this->layout, nullptr);
+    }
+  }
   void createGraphicsLayout(const Descriptor& _descriptorSets);
   void createComputeLayout(const Descriptor& _descriptorSets,
                            const PushConstants& _pushConstants);
@@ -272,7 +277,7 @@ class RenderPass {
   VkRenderPass renderPass{};
 
   RenderPass() = default;
-  virtual ~RenderPass() = default;
+  virtual ~RenderPass();
   void create(VkSampleCountFlagBits msaaImageSamples,
               VkFormat swapchainImageFormat);
 };
