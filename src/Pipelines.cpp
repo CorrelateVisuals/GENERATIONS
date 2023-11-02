@@ -22,8 +22,8 @@ void Pipelines::setupPipelines(Resources& _resources) {
 
   render.create(_resources.msaaImage.info.samples,
                 _mechanics.swapchain.imageFormat);
-  graphics.createGraphicsLayout(_resources.descriptor);
-  compute.createComputeLayout(_resources.descriptor, _resources.pushConstants);
+  graphics.createGraphicsLayout();
+  compute.createComputeLayout(_resources.pushConstants);
   config.createPipelines(render.renderPass, graphics.layout, compute.layout,
                          _resources.msaaImage.info.samples);
 }

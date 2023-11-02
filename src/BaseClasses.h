@@ -232,11 +232,13 @@ class Swapchain {
 // Resources
 class Descriptor {
  public:
-  VkDescriptorPool pool{};
-  VkDescriptorSetLayout setLayout{};
+  static VkDescriptorPool pool;
+  static VkDescriptorSetLayout setLayout;
+  static std::vector<VkDescriptorSet> sets;
+
+
   VkDescriptorSetLayoutBinding setLayoutBinding{};
 
-  std::vector<VkDescriptorSet> sets{};
 
   VkDescriptorPoolSize poolSize{};
 
@@ -267,9 +269,8 @@ class PipelineLayout {
       vkDestroyPipelineLayout(baseDevice->logical, this->layout, nullptr);
     }
   }
-  void createGraphicsLayout(const Descriptor& _descriptorSets);
-  void createComputeLayout(const Descriptor& _descriptorSets,
-                           const PushConstants& _pushConstants);
+  void createGraphicsLayout();
+  void createComputeLayout(const PushConstants& _pushConstants);
 };
 
 class RenderPass {

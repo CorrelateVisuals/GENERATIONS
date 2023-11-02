@@ -10,6 +10,10 @@
 std::vector<VkDevice> CE::Device::destroyedDevices;
 VkCommandBuffer CE::Commands::singularCommandBuffer = VK_NULL_HANDLE;
 
+VkDescriptorPool CE::Descriptor::pool;
+VkDescriptorSetLayout CE::Descriptor::setLayout;
+std::vector<VkDescriptorSet> CE::Descriptor::sets;
+
 void CE::Device::createLogicalDevice(const InitializeVulkan& initVulkan,
                                      Queues& queues) {
   Log::text("{ +++ }", "Logical Device");
@@ -114,7 +118,8 @@ void CE::Device::getMaxUsableSampleCount() {
   VkSampleCountFlags counts =
       this->properties.limits.framebufferColorSampleCounts &
       this->properties.limits.framebufferDepthSampleCounts;
-  for (uint_fast8_t i = VK_SAMPLE_COUNT_64_BIT; i >= VK_SAMPLE_COUNT_1_BIT; i >>= 1) {
+  for (uint_fast8_t i = VK_SAMPLE_COUNT_64_BIT; i >= VK_SAMPLE_COUNT_1_BIT;
+       i >>= 1) {
     if (counts & i) {
       this->maxUsableSampleCount = static_cast<VkSampleCountFlagBits>(i);
       return;
@@ -515,15 +520,15 @@ CE::Descriptor::Descriptor() {
 }
 
 CE::Descriptor::~Descriptor() {
-  if (baseDevice) {
-    if (this->pool != VK_NULL_HANDLE) {
-      vkDestroyDescriptorPool(baseDevice->logical, this->pool, nullptr);
-    };
-    if (this->setLayout != VK_NULL_HANDLE) {
-      vkDestroyDescriptorSetLayout(baseDevice->logical, this->setLayout,
-                                   nullptr);
-    };
-  }
+  //if (baseDevice) {
+  //  if (this->pool != VK_NULL_HANDLE) {
+  //    vkDestroyDescriptorPool(baseDevice->logical, this->pool, nullptr);
+  //  };
+  //  if (this->setLayout != VK_NULL_HANDLE) {
+  //    vkDestroyDescriptorSetLayout(baseDevice->logical, this->setLayout,
+  //                                 nullptr);
+  //  };
+  //}
 }
 
 CE::Commands::~Commands() {
@@ -1248,22 +1253,21 @@ const std::array<uint32_t, 3>& CE::PipelinesConfiguration::getWorkGroupsByName(
   return std::get<CE::PipelinesConfiguration::Compute>(variant).workGroups;
 };
 
-void CE::PipelineLayout::createGraphicsLayout(
-    const Descriptor& _descriptorSets) {
+void CE::PipelineLayout::createGraphicsLayout() {
   VkPipelineLayoutCreateInfo graphicsLayout{CE::layoutDefault};
-  graphicsLayout.pSetLayouts = &_descriptorSets.setLayout;
+  graphicsLayout.pSetLayouts = &CE::Descriptor::setLayout;
   CE::VULKAN_RESULT(vkCreatePipelineLayout, baseDevice->logical,
                     &graphicsLayout, nullptr, &this->layout);
 }
 
 void CE::PipelineLayout::createComputeLayout(
-    const Descriptor& _descriptorSets,
+
     const PushConstants& _pushConstants) {
   VkPushConstantRange constants{.stageFlags = _pushConstants.shaderStage,
                                 .offset = _pushConstants.offset,
                                 .size = _pushConstants.size};
   VkPipelineLayoutCreateInfo computeLayout{CE::layoutDefault};
-  computeLayout.pSetLayouts = &_descriptorSets.setLayout;
+  computeLayout.pSetLayouts = &CE::Descriptor::setLayout;
   computeLayout.pushConstantRangeCount = _pushConstants.count;
   computeLayout.pPushConstantRanges = &constants;
   CE::VULKAN_RESULT(vkCreatePipelineLayout, baseDevice->logical, &computeLayout,

@@ -12,7 +12,6 @@ Resources::Resources(VulkanMechanics& mechanics)
       pushConstants{},
       textureImage{},
       command{},
-      descriptor{},
       msaaImage{},
       shaderStorage{sizeof(World::Cell) * world.grid.size.x *
                     world.grid.size.y},
@@ -145,7 +144,7 @@ void Resources::createDescriptorSetLayout(
       .pBindings = layoutBindings.data()};
 
   CE::VULKAN_RESULT(vkCreateDescriptorSetLayout, _mechanics.mainDevice.logical,
-                    &layoutInfo, nullptr, &descriptor.setLayout);
+                    &layoutInfo, nullptr, &CE::Descriptor::setLayout);
 }
 
 void Resources::createDescriptorPool() {
@@ -161,21 +160,21 @@ void Resources::createDescriptorPool() {
       .pPoolSizes = newPoolSizes.data()};
 
   CE::VULKAN_RESULT(vkCreateDescriptorPool, _mechanics.mainDevice.logical,
-                    &poolInfo, nullptr, &descriptor.pool);
+                    &poolInfo, nullptr, &CE::Descriptor::pool);
 }
 
 void Resources::allocateDescriptorSets() {
   std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT,
-                                             descriptor.setLayout);
+      CE::Descriptor::setLayout);
   VkDescriptorSetAllocateInfo allocateInfo{
       .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-      .descriptorPool = descriptor.pool,
+      .descriptorPool = CE::Descriptor::pool,
       .descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT),
       .pSetLayouts = layouts.data()};
 
-  descriptor.sets.resize(MAX_FRAMES_IN_FLIGHT);
+  CE::Descriptor::sets.resize(MAX_FRAMES_IN_FLIGHT);
   CE::VULKAN_RESULT(vkAllocateDescriptorSets, _mechanics.mainDevice.logical,
-                    &allocateInfo, descriptor.sets.data());
+                    &allocateInfo, CE::Descriptor::sets.data());
 }
 
 void Resources::createCommandBuffers(
@@ -295,7 +294,7 @@ void Resources::createDescriptorSets() {
 
     std::vector<VkWriteDescriptorSet> descriptorWrites{
         {.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-         .dstSet = descriptor.sets[i],
+         .dstSet = CE::Descriptor::sets[i],
          .dstBinding = 0,
          .dstArrayElement = 0,
          .descriptorCount = 1,
@@ -303,7 +302,7 @@ void Resources::createDescriptorSets() {
          .pBufferInfo = &uniformBufferInfo},
 
         {.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-         .dstSet = descriptor.sets[i],
+         .dstSet = CE::Descriptor::sets[i],
          .dstBinding = static_cast<uint32_t>(i ? 2 : 1),
          .dstArrayElement = 0,
          .descriptorCount = 1,
@@ -311,7 +310,7 @@ void Resources::createDescriptorSets() {
          .pBufferInfo = &storageBufferInfoLastFrame},
 
         {.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-         .dstSet = descriptor.sets[i],
+         .dstSet = CE::Descriptor::sets[i],
          .dstBinding = static_cast<uint32_t>(i ? 1 : 2),
          .dstArrayElement = 0,
          .descriptorCount = 1,
@@ -319,7 +318,7 @@ void Resources::createDescriptorSets() {
          .pBufferInfo = &storageBufferInfoCurrentFrame},
 
         {.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-         .dstSet = descriptor.sets[i],
+         .dstSet = CE::Descriptor::sets[i],
          .dstBinding = 3,
          .dstArrayElement = 0,
          .descriptorCount = 1,
@@ -327,7 +326,7 @@ void Resources::createDescriptorSets() {
          .pImageInfo = &imageInfo},
 
         {.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-         .dstSet = descriptor.sets[i],
+         .dstSet = CE::Descriptor::sets[i],
          .dstBinding = 4,
          .dstArrayElement = 0,
          .descriptorCount = 1,
@@ -368,7 +367,7 @@ void Resources::recordComputeCommandBuffer(VkCommandBuffer commandBuffer,
 
   vkCmdBindDescriptorSets(
       commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, _pipelines.compute.layout,
-      0, 1, &descriptor.sets[_mechanics.syncObjects.currentFrame], 0, nullptr);
+      0, 1, &CE::Descriptor::sets[_mechanics.syncObjects.currentFrame], 0, nullptr);
 
   setPushConstants();
   vkCmdPushConstants(commandBuffer, _pipelines.compute.layout,
@@ -418,7 +417,7 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
 
   vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                           _pipelines.graphics.layout, 0, 1,
-                          &descriptor.sets[_mechanics.syncObjects.currentFrame],
+                          &CE::Descriptor::sets[_mechanics.syncObjects.currentFrame],
                           0, nullptr);
 
   // Pipeline 1
@@ -491,7 +490,7 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
 
   vkCmdBindDescriptorSets(
       commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, _pipelines.compute.layout,
-      0, 1, &descriptor.sets[_mechanics.syncObjects.currentFrame], 0, nullptr);
+      0, 1, &CE::Descriptor::sets[_mechanics.syncObjects.currentFrame], 0, nullptr);
 
   setPushConstants();
   vkCmdPushConstants(commandBuffer, _pipelines.compute.layout,
