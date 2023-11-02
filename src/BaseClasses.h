@@ -234,7 +234,7 @@ class Descriptor {
  public:
   static VkDescriptorPool pool;
   static VkDescriptorSetLayout setLayout;
-  static std::vector<VkDescriptorSet> sets;
+   static std::vector<VkDescriptorSet> sets;
 
 
   VkDescriptorSetLayoutBinding setLayoutBinding{};
@@ -269,8 +269,9 @@ class PipelineLayout {
       vkDestroyPipelineLayout(baseDevice->logical, this->layout, nullptr);
     }
   }
-  void createGraphicsLayout();
-  void createComputeLayout(const PushConstants& _pushConstants);
+  void createGraphicsLayout(const VkDescriptorSetLayout& setLayout);
+  void createComputeLayout(const VkDescriptorSetLayout& setLayout,
+                           const PushConstants& _pushConstants);
 };
 
 class RenderPass {

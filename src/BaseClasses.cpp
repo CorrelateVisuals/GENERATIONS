@@ -520,15 +520,15 @@ CE::Descriptor::Descriptor() {
 }
 
 CE::Descriptor::~Descriptor() {
-  //if (baseDevice) {
-  //  if (this->pool != VK_NULL_HANDLE) {
-  //    vkDestroyDescriptorPool(baseDevice->logical, this->pool, nullptr);
-  //  };
-  //  if (this->setLayout != VK_NULL_HANDLE) {
-  //    vkDestroyDescriptorSetLayout(baseDevice->logical, this->setLayout,
-  //                                 nullptr);
-  //  };
-  //}
+ /* if (baseDevice) {
+    if (this->pool != VK_NULL_HANDLE) {
+      vkDestroyDescriptorPool(baseDevice->logical, this->pool, nullptr);
+    };
+    if (this->setLayout != VK_NULL_HANDLE) {
+      vkDestroyDescriptorSetLayout(baseDevice->logical, this->setLayout,
+                                   nullptr);
+    };
+  }*/
 }
 
 CE::Commands::~Commands() {
@@ -1253,21 +1253,22 @@ const std::array<uint32_t, 3>& CE::PipelinesConfiguration::getWorkGroupsByName(
   return std::get<CE::PipelinesConfiguration::Compute>(variant).workGroups;
 };
 
-void CE::PipelineLayout::createGraphicsLayout() {
+void CE::PipelineLayout::createGraphicsLayout(
+    const VkDescriptorSetLayout& setLayout) {
   VkPipelineLayoutCreateInfo graphicsLayout{CE::layoutDefault};
-  graphicsLayout.pSetLayouts = &CE::Descriptor::setLayout;
+  graphicsLayout.pSetLayouts = &setLayout;
   CE::VULKAN_RESULT(vkCreatePipelineLayout, baseDevice->logical,
                     &graphicsLayout, nullptr, &this->layout);
 }
 
 void CE::PipelineLayout::createComputeLayout(
-
+    const VkDescriptorSetLayout& setLayout,
     const PushConstants& _pushConstants) {
   VkPushConstantRange constants{.stageFlags = _pushConstants.shaderStage,
                                 .offset = _pushConstants.offset,
                                 .size = _pushConstants.size};
   VkPipelineLayoutCreateInfo computeLayout{CE::layoutDefault};
-  computeLayout.pSetLayouts = &CE::Descriptor::setLayout;
+  computeLayout.pSetLayouts = &setLayout;
   computeLayout.pushConstantRangeCount = _pushConstants.count;
   computeLayout.pPushConstantRanges = &constants;
   CE::VULKAN_RESULT(vkCreatePipelineLayout, baseDevice->logical, &computeLayout,
