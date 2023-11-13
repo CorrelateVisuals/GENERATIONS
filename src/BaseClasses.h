@@ -62,9 +62,11 @@ class Device {
   VkSampleCountFlagBits maxUsableSampleCount{VK_SAMPLE_COUNT_1_BIT};
   VkDevice logical{VK_NULL_HANDLE};
 
+  static Device* baseDevice;
+
   Device() = default;
   virtual ~Device() { destroyDevice(); }
-  void setBaseDevice(const CE::Device& device);
+  // void setBaseDevice(const CE::Device& device);
 
  protected:
   void pickPhysicalDevice(const InitializeVulkan& initVulkan,
@@ -85,7 +87,7 @@ class Device {
   bool checkDeviceExtensionSupport(const VkPhysicalDevice& physical);
   static std::vector<VkDevice> destroyedDevices;
 };
-static std::unique_ptr<Device> baseDevice{};
+// static std::unique_ptr<Device> baseDevice{};
 
 class Commands {
  public:
@@ -234,11 +236,9 @@ class Descriptor {
  public:
   static VkDescriptorPool pool;
   static VkDescriptorSetLayout setLayout;
-   static std::vector<VkDescriptorSet> sets;
-
+  static std::vector<VkDescriptorSet> sets;
 
   VkDescriptorSetLayoutBinding setLayoutBinding{};
-
 
   VkDescriptorPoolSize poolSize{};
 
@@ -265,8 +265,9 @@ class PipelineLayout {
   VkPipelineLayout layout{};
 
   virtual ~PipelineLayout() {
-    if (baseDevice) {
-      vkDestroyPipelineLayout(baseDevice->logical, this->layout, nullptr);
+    if (Device::baseDevice) {
+      vkDestroyPipelineLayout(Device::baseDevice->logical, this->layout,
+                              nullptr);
     }
   }
   void createGraphicsLayout(const VkDescriptorSetLayout& setLayout);
@@ -306,7 +307,12 @@ class PipelinesConfiguration {
   std::unordered_map<std::string, std::variant<Graphics, Compute>>
       pipelineMap{};
 
-  PipelinesConfiguration() = default;
+  PipelinesConfiguration() {
+#if _DEBUG
+    compileShaders();
+#endif
+  };
+
   virtual ~PipelinesConfiguration();
   void createPipelines(VkRenderPass& renderPass,
                        const VkPipelineLayout& graphicsLayout,

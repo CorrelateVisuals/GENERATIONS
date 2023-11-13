@@ -26,9 +26,10 @@ class VulkanMechanics {
       features.samplerAnisotropy = VK_TRUE;
       features.shaderInt64 = VK_TRUE;
 
+      CE::Device::baseDevice = this;
       pickPhysicalDevice(initVulkan, queues, swapchain);
       createLogicalDevice(initVulkan, queues);
-      CE::baseDevice->setBaseDevice(*this);
+      // CE::baseDevice->setBaseDevice(*this);
     };
     ~Device() { destroyDevice(); }
   } mainDevice;
