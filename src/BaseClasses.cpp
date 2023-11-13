@@ -515,9 +515,17 @@ void CE::Image::createSampler() {
 }
 
 CE::Descriptor::Descriptor() {
-  // createDescriptorPool();
-  // allocateDescriptorSets();
-  // createDescriptorSets();
+  // std::vector<VkDescriptorSetLayout> layouts(CE_MAX_FRAMES_IN_FLIGHT,
+  //                                            this->setLayout);
+  // VkDescriptorSetAllocateInfo allocateInfo{
+  //     .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
+  //     .descriptorPool = this->pool,
+  //     .descriptorSetCount = static_cast<uint32_t>(CE_MAX_FRAMES_IN_FLIGHT),
+  //     .pSetLayouts = layouts.data()};
+
+  // this->sets.resize(CE_MAX_FRAMES_IN_FLIGHT);
+  // CE::VULKAN_RESULT(vkAllocateDescriptorSets, Device::baseDevice->logical,
+  //                   &allocateInfo, this->sets.data());
 }
 
 CE::Descriptor::~Descriptor() {

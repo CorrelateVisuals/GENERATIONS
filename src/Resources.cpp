@@ -18,7 +18,6 @@ Resources::Resources(VulkanMechanics& mechanics)
       sampler{textureImage},
       storageImage{mechanics.swapchain.images} {
   Log::text("{ /// }", "constructing Resources");
-
 }
 
 Resources::~Resources() {
@@ -165,7 +164,7 @@ void Resources::createDescriptorPool() {
 
 void Resources::allocateDescriptorSets() {
   std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT,
-      CE::Descriptor::setLayout);
+                                             CE::Descriptor::setLayout);
   VkDescriptorSetAllocateInfo allocateInfo{
       .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
       .descriptorPool = CE::Descriptor::pool,
@@ -367,7 +366,8 @@ void Resources::recordComputeCommandBuffer(VkCommandBuffer commandBuffer,
 
   vkCmdBindDescriptorSets(
       commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, _pipelines.compute.layout,
-      0, 1, &CE::Descriptor::sets[_mechanics.syncObjects.currentFrame], 0, nullptr);
+      0, 1, &CE::Descriptor::sets[_mechanics.syncObjects.currentFrame], 0,
+      nullptr);
 
   setPushConstants();
   vkCmdPushConstants(commandBuffer, _pipelines.compute.layout,
@@ -415,10 +415,10 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
   VkRect2D scissor{.offset = {0, 0}, .extent = _mechanics.swapchain.extent};
   vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-  vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                          _pipelines.graphics.layout, 0, 1,
-                          &CE::Descriptor::sets[_mechanics.syncObjects.currentFrame],
-                          0, nullptr);
+  vkCmdBindDescriptorSets(
+      commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+      _pipelines.graphics.layout, 0, 1,
+      &CE::Descriptor::sets[_mechanics.syncObjects.currentFrame], 0, nullptr);
 
   // Pipeline 1
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -490,7 +490,8 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
 
   vkCmdBindDescriptorSets(
       commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, _pipelines.compute.layout,
-      0, 1, &CE::Descriptor::sets[_mechanics.syncObjects.currentFrame], 0, nullptr);
+      0, 1, &CE::Descriptor::sets[_mechanics.syncObjects.currentFrame], 0,
+      nullptr);
 
   setPushConstants();
   vkCmdPushConstants(commandBuffer, _pipelines.compute.layout,
