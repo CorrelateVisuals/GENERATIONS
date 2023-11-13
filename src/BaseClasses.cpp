@@ -15,6 +15,7 @@ VkDescriptorPool CE::Descriptor::pool;
 VkDescriptorSetLayout CE::Descriptor::setLayout;
 std::vector<VkDescriptorSet> CE::Descriptor::sets;
 std::vector<VkDescriptorPoolSize> CE::Descriptor::poolSizes;
+std::vector<VkDescriptorSetLayoutBinding> CE::Descriptor::setLayoutBindings;
 
 void CE::Device::createLogicalDevice(const InitializeVulkan& initVulkan,
                                      Queues& queues) {

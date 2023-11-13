@@ -237,6 +237,7 @@ class Descriptor {
   static std::vector<VkDescriptorSet> sets;
 
   static std::vector<VkDescriptorPoolSize> poolSizes;
+  static std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings;
 
   VkDescriptorPoolSize poolSize{};
   VkDescriptorSetLayoutBinding setLayoutBinding{};
