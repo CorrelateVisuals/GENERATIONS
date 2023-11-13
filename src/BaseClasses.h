@@ -86,7 +86,6 @@ class Device {
   bool checkDeviceExtensionSupport(const VkPhysicalDevice& physical);
   static std::vector<VkDevice> destroyedDevices;
 };
-// static std::unique_ptr<Device> baseDevice{};
 
 class Commands {
  public:
