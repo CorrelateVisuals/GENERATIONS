@@ -14,6 +14,7 @@ VkCommandBuffer CE::Commands::singularCommandBuffer = VK_NULL_HANDLE;
 VkDescriptorPool CE::Descriptor::pool;
 VkDescriptorSetLayout CE::Descriptor::setLayout;
 std::vector<VkDescriptorSet> CE::Descriptor::sets;
+std::vector<VkDescriptorPoolSize> CE::Descriptor::poolSizes;
 
 void CE::Device::createLogicalDevice(const InitializeVulkan& initVulkan,
                                      Queues& queues) {
@@ -539,6 +540,22 @@ CE::Descriptor::~Descriptor() {
    this->setLayout, nullptr);
      };
    }*/
+}
+
+void CE::Descriptor::createPool() {
+  Log::text("{ |=| }", "Descriptor Pool");
+  for (size_t i = 0; i < this->poolSizes.size(); i++) {
+    Log::text(Log::Style::charLeader,
+              Log::getDescriptorTypeString(this->poolSizes[i].type));
+  }
+  VkDescriptorPoolCreateInfo poolInfo{
+      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
+      .maxSets = static_cast<uint32_t>(CE_MAX_FRAMES_IN_FLIGHT),
+      .poolSizeCount = static_cast<uint32_t>(this->poolSizes.size()),
+      .pPoolSizes = this->poolSizes.data()};
+
+  CE::VULKAN_RESULT(vkCreateDescriptorPool, Device::baseDevice->logical,
+                    &poolInfo, nullptr, &CE::Descriptor::pool);
 }
 
 CE::Commands::~Commands() {

@@ -236,17 +236,19 @@ class Descriptor {
   static VkDescriptorSetLayout setLayout;
   static std::vector<VkDescriptorSet> sets;
 
-  VkDescriptorSetLayoutBinding setLayoutBinding{};
+  static std::vector<VkDescriptorPoolSize> poolSizes;
 
   VkDescriptorPoolSize poolSize{};
+  VkDescriptorSetLayoutBinding setLayoutBinding{};
+  VkWriteDescriptorSet writeSet{};
 
   VkDescriptorBufferInfo bufferInfo{};
   VkDescriptorImageInfo imageInfo{};
 
-  VkWriteDescriptorSet writeSet{};
-
   Descriptor();
   virtual ~Descriptor();
+
+  void createPool();
 };
 
 struct PushConstants {
