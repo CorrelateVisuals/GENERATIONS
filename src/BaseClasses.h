@@ -66,7 +66,6 @@ class Device {
 
   Device() = default;
   virtual ~Device() { destroyDevice(); }
-  // void setBaseDevice(const CE::Device& device);
 
  protected:
   void pickPhysicalDevice(const InitializeVulkan& initVulkan,

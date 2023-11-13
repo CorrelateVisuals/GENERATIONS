@@ -17,6 +17,8 @@ class VulkanMechanics {
     Device(const CE::InitializeVulkan& initVulkan,
            CE::Queues& queues,
            CE::Swapchain& swapchain) {
+      CE::Device::baseDevice = this;
+
       features.tessellationShader = VK_TRUE;
       features.sampleRateShading = VK_TRUE;
       features.depthClamp = VK_TRUE;
@@ -26,10 +28,8 @@ class VulkanMechanics {
       features.samplerAnisotropy = VK_TRUE;
       features.shaderInt64 = VK_TRUE;
 
-      CE::Device::baseDevice = this;
       pickPhysicalDevice(initVulkan, queues, swapchain);
       createLogicalDevice(initVulkan, queues);
-      // CE::baseDevice->setBaseDevice(*this);
     };
     ~Device() { destroyDevice(); }
   } mainDevice;

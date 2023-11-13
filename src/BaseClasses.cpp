@@ -150,10 +150,6 @@ bool CE::Device::checkDeviceExtensionSupport(const VkPhysicalDevice& physical) {
   return requiredExtensions.empty();
 }
 
-// void CE::Device::setBaseDevice(const CE::Device& device) {
-//   baseDevice = std::make_unique<Device>(static_cast<const Device&>(device));
-// }
-
 uint32_t CE::findMemoryType(const uint32_t typeFilter,
                             const VkMemoryPropertyFlags properties) {
   VkPhysicalDeviceMemoryProperties memProperties{};
