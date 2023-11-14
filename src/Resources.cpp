@@ -39,8 +39,8 @@ void Resources::setupResources(Pipelines& _pipelines) {
   createUniformBuffers();
   createVertexBuffers(vertexBuffers);
 
-  createDescriptorPool();
-  allocateDescriptorSets();
+  createDescriptorPool(); // moved
+  allocateDescriptorSets(); 
   createDescriptorSets();
 
   createCommandBuffers(command.graphics, MAX_FRAMES_IN_FLIGHT);

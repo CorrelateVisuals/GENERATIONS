@@ -250,6 +250,7 @@ class Descriptor {
   virtual ~Descriptor();
 
   void createPool();
+  void allocateSets();
 };
 
 struct PushConstants {

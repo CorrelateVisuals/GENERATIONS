@@ -172,8 +172,7 @@ CE::Buffer::Buffer() : buffer{}, memory{}, mapped{} {}
 CE::Buffer::~Buffer() {
   if (Device::baseDevice) {
     if (this->buffer != VK_NULL_HANDLE) {
-      vkDestroyBuffer(Device::Device::baseDevice->logical, this->buffer,
-                      nullptr);
+      vkDestroyBuffer(Device::baseDevice->logical, this->buffer, nullptr);
       this->buffer = VK_NULL_HANDLE;
     }
     if (this->memory != VK_NULL_HANDLE) {
@@ -516,19 +515,7 @@ void CE::Image::createSampler() {
   }
 }
 
-CE::Descriptor::Descriptor() {
-  // std::vector<VkDescriptorSetLayout> layouts(CE_MAX_FRAMES_IN_FLIGHT,
-  //                                            this->setLayout);
-  // VkDescriptorSetAllocateInfo allocateInfo{
-  //     .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-  //     .descriptorPool = this->pool,
-  //     .descriptorSetCount = static_cast<uint32_t>(CE_MAX_FRAMES_IN_FLIGHT),
-  //     .pSetLayouts = layouts.data()};
-
-  // this->sets.resize(CE_MAX_FRAMES_IN_FLIGHT);
-  // CE::VULKAN_RESULT(vkAllocateDescriptorSets, Device::baseDevice->logical,
-  //                   &allocateInfo, this->sets.data());
-}
+CE::Descriptor::Descriptor() {}
 
 CE::Descriptor::~Descriptor() {
   /* if (baseDevice) {
@@ -541,6 +528,20 @@ CE::Descriptor::~Descriptor() {
    this->setLayout, nullptr);
      };
    }*/
+}
+
+void CE::Descriptor::allocateSets() {
+  std::vector<VkDescriptorSetLayout> layouts(CE_MAX_FRAMES_IN_FLIGHT,
+                                             this->setLayout);
+  VkDescriptorSetAllocateInfo allocateInfo{
+      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
+      .descriptorPool = this->pool,
+      .descriptorSetCount = static_cast<uint32_t>(CE_MAX_FRAMES_IN_FLIGHT),
+      .pSetLayouts = layouts.data()};
+
+  this->sets.resize(CE_MAX_FRAMES_IN_FLIGHT);
+  CE::VULKAN_RESULT(vkAllocateDescriptorSets, Device::baseDevice->logical,
+                    &allocateInfo, this->sets.data());
 }
 
 void CE::Descriptor::createPool() {

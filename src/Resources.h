@@ -52,7 +52,7 @@ class Resources {
         bufferInfo.offset = 0;
         bufferInfo.range = sizeof(World::UniformBufferObject);
         writeSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        //writeSet.dstSet = sets[i];
+        // writeSet.dstSet = sets[i];
         writeSet.dstBinding = 0;
         writeSet.dstArrayElement = 0;
         writeSet.descriptorCount = 1;
@@ -141,9 +141,6 @@ class Resources {
     std::vector<VkCommandBuffer> graphics{};
     std::vector<VkCommandBuffer> compute{};
   } command;
-
-  //struct DescriptorSets : CE::Descriptor {
-  //} descriptor;
 
  public:
   void setupResources(Pipelines& _pipelines);

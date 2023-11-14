@@ -71,10 +71,8 @@ std::vector<World::Cell> World::initializeGrid() {
   float startX = (grid.size.x - 1) / -2.0f;
   float startY = (grid.size.y - 1) / -2.0f;
   for (uint_fast32_t i = 0; i < numGridPoints; ++i) {
-    const uint_fast16_t x = static_cast<uint_fast16_t>(i % grid.size.x);
-    const uint_fast16_t y = static_cast<uint_fast16_t>(i / grid.size.x);
-    const float posX = startX + x;
-    const float posY = startY + y;
+    const float posX = startX + static_cast<uint_fast16_t>(i % grid.size.x);
+    const float posY = startY + static_cast<uint_fast16_t>(i / grid.size.x);
     const bool isAlive = isAliveIndices[i];
 
     cells[i].instancePosition = {posX, posY, landscapeHeight[i],
