@@ -6,13 +6,6 @@ CapitalEngine::CapitalEngine() : pipelines(mechanics), resources(mechanics) {
   Log::text(Log::Style::headerGuard);
   Log::text("| CAPITAL Engine");
 
-  resources.command.createCommandPool(mechanics.queues.familyIndices);
-  resources.createDescriptorSetLayout(CE::Descriptor::setLayoutBindings);
-  resources.msaaImage.createColorResources(mechanics.swapchain.extent,
-                                           mechanics.swapchain.imageFormat);
-  resources.depthImage.createDepthResources(mechanics.swapchain.extent,
-                                            CE::Image::findDepthFormat());
-
   pipelines.setupPipelines(resources);
   resources.setupResources(pipelines);
 

@@ -249,6 +249,9 @@ class Descriptor {
   Descriptor();
   virtual ~Descriptor();
 
+  static void createSetLayout(
+      const std::vector<VkDescriptorSetLayoutBinding>& layoutBindings);
+
   void createPool();
   void allocateSets();
 };

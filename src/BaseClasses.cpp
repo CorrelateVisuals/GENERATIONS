@@ -515,7 +515,13 @@ void CE::Image::createSampler() {
   }
 }
 
-CE::Descriptor::Descriptor() {}
+CE::Descriptor::Descriptor() {
+  // static bool setLayoutCreated = false;
+  // if (!setLayoutCreated) {
+  //   createSetLayout(CE::Descriptor::setLayoutBindings);
+  //   setLayoutCreated = true;
+  // }
+}
 
 CE::Descriptor::~Descriptor() {
   if (Device::baseDevice) {
@@ -529,6 +535,27 @@ CE::Descriptor::~Descriptor() {
       this->setLayout = VK_NULL_HANDLE;
     };
   }
+}
+
+void CE::Descriptor::createSetLayout(
+    const std::vector<VkDescriptorSetLayoutBinding>& layoutBindings) {
+  Log::text("{ |=| }", "Descriptor Set Layout:", layoutBindings.size(),
+            "bindings");
+  for (const VkDescriptorSetLayoutBinding& item : layoutBindings) {
+    Log::text("{ ", item.binding, " }",
+              Log::getDescriptorTypeString(item.descriptorType));
+    Log::text(Log::Style::charLeader,
+              Log::getShaderStageString(item.stageFlags));
+  }
+
+  VkDescriptorSetLayoutCreateInfo layoutInfo{
+      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+      .bindingCount = static_cast<uint32_t>(layoutBindings.size()),
+      .pBindings = layoutBindings.data()};
+
+  CE::VULKAN_RESULT(vkCreateDescriptorSetLayout,
+                    CE::Device::baseDevice->logical, &layoutInfo, nullptr,
+                    &CE::Descriptor::setLayout);
 }
 
 void CE::Descriptor::allocateSets() {

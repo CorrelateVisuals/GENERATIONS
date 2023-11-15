@@ -146,8 +146,8 @@ class Resources {
 
   void updateUniformBuffer(uint32_t currentImage);
 
-  void createDescriptorSetLayout(
-      const std::vector<VkDescriptorSetLayoutBinding>& layoutBindings);
+  // void createDescriptorSetLayout(
+  //     const std::vector<VkDescriptorSetLayoutBinding>& layoutBindings);
   void createDescriptorSets();
 
   void recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,

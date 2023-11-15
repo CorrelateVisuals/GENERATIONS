@@ -14,6 +14,13 @@ Resources::Resources(VulkanMechanics& mechanics)
       sampler{textureImage},
       storageImage{mechanics.swapchain.images} {
   Log::text("{ /// }", "constructing Resources");
+
+  CE::Descriptor::createSetLayout(CE::Descriptor::setLayoutBindings);
+  command.createCommandPool(mechanics.queues.familyIndices);
+  msaaImage.createColorResources(mechanics.swapchain.extent,
+                                 mechanics.swapchain.imageFormat);
+  depthImage.createDepthResources(mechanics.swapchain.extent,
+                                  CE::Image::findDepthFormat());
 }
 
 Resources::~Resources() {
@@ -35,8 +42,8 @@ void Resources::setupResources(Pipelines& _pipelines) {
   createUniformBuffers();
   createVertexBuffers(vertexBuffers);
 
-  createDescriptorPool(); // moved
-  allocateDescriptorSets(); 
+  createDescriptorPool();  // moved
+  allocateDescriptorSets();
   createDescriptorSets();
 
   createCommandBuffers(command.graphics, MAX_FRAMES_IN_FLIGHT);
@@ -122,25 +129,26 @@ void Resources::createUniformBuffers() {
               bufferSize, 0, &uniform.buffer.mapped);
 }
 
-void Resources::createDescriptorSetLayout(
-    const std::vector<VkDescriptorSetLayoutBinding>& layoutBindings) {
-  Log::text("{ |=| }", "Descriptor Set Layout:", layoutBindings.size(),
-            "bindings");
-  for (const VkDescriptorSetLayoutBinding& item : layoutBindings) {
-    Log::text("{ ", item.binding, " }",
-              Log::getDescriptorTypeString(item.descriptorType));
-    Log::text(Log::Style::charLeader,
-              Log::getShaderStageString(item.stageFlags));
-  }
-
-  VkDescriptorSetLayoutCreateInfo layoutInfo{
-      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-      .bindingCount = static_cast<uint32_t>(layoutBindings.size()),
-      .pBindings = layoutBindings.data()};
-
-  CE::VULKAN_RESULT(vkCreateDescriptorSetLayout, _mechanics.mainDevice.logical,
-                    &layoutInfo, nullptr, &CE::Descriptor::setLayout);
-}
+// void Resources::createDescriptorSetLayout(
+//     const std::vector<VkDescriptorSetLayoutBinding>& layoutBindings) {
+//   Log::text("{ |=| }", "Descriptor Set Layout:", layoutBindings.size(),
+//             "bindings");
+//   for (const VkDescriptorSetLayoutBinding& item : layoutBindings) {
+//     Log::text("{ ", item.binding, " }",
+//               Log::getDescriptorTypeString(item.descriptorType));
+//     Log::text(Log::Style::charLeader,
+//               Log::getShaderStageString(item.stageFlags));
+//   }
+//
+//   VkDescriptorSetLayoutCreateInfo layoutInfo{
+//       .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+//       .bindingCount = static_cast<uint32_t>(layoutBindings.size()),
+//       .pBindings = layoutBindings.data()};
+//
+//   CE::VULKAN_RESULT(vkCreateDescriptorSetLayout,
+//   _mechanics.mainDevice.logical,
+//                     &layoutInfo, nullptr, &CE::Descriptor::setLayout);
+// }
 
 void Resources::createDescriptorPool() {
   Log::text("{ |=| }", "Descriptor Pool");
