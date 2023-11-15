@@ -8,10 +8,16 @@ class Pipelines {
  public:
   Pipelines(VulkanMechanics& mechanics, Resources& resources);
   ~Pipelines();
-  void setupPipelines(Resources& _resources);
 
-  CE::PipelineLayout compute{};
-  CE::PipelineLayout graphics{};
+  struct ComputeLayout : public CE::PipelineLayout {
+    ComputeLayout(CE::PushConstants& pushConstants) {
+      createComputeLayout(CE::Descriptor::setLayout, pushConstants);
+    }
+  } compute;
+
+  struct GraphicsLayout : public CE::PipelineLayout {
+    GraphicsLayout() { createGraphicsLayout(CE::Descriptor::setLayout); }
+  } graphics;
 
   struct Render : public CE::RenderPass {
     Render(const VkSampleCountFlagBits samples, const VkFormat format) {
@@ -20,7 +26,10 @@ class Pipelines {
   } render;
 
   struct Configuration : public CE::PipelinesConfiguration {
-    Configuration() {
+    Configuration(VkRenderPass& renderPass,
+                  const VkPipelineLayout& graphicsLayout,
+                  const VkPipelineLayout& computeLayout,
+                  VkSampleCountFlagBits& msaaSamples) {
       World world{};
 
       pipelineMap["Engine"] =
@@ -51,9 +60,7 @@ class Pipelines {
               static_cast<uint32_t>(Window::get().display.height + 7) / 8, 1}};
 
       compileShaders();
+      createPipelines(renderPass, graphicsLayout, computeLayout, msaaSamples);
     }
   } config;
-
- private:
-  VulkanMechanics& _mechanics;
 };

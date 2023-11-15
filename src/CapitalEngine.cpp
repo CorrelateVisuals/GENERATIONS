@@ -7,7 +7,6 @@ CapitalEngine::CapitalEngine()
   Log::text(Log::Style::headerGuard);
   Log::text("| CAPITAL Engine");
 
-  pipelines.setupPipelines(resources);
   resources.setupResources(pipelines);
 }
 
