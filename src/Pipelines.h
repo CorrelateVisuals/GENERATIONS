@@ -19,8 +19,6 @@ class Pipelines {
     Configuration() {
       World world{};
 
-      compileShaders();
-
       pipelineMap["Engine"] =
           Compute{.shaders = {"Comp"},
                   .workGroups = {
@@ -47,6 +45,8 @@ class Pipelines {
           .workGroups = {
               static_cast<uint32_t>(Window::get().display.width + 7) / 8,
               static_cast<uint32_t>(Window::get().display.height + 7) / 8, 1}};
+
+      compileShaders();
     }
   } config;
 
