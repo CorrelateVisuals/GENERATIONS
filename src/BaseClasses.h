@@ -309,11 +309,7 @@ class PipelinesConfiguration {
   std::unordered_map<std::string, std::variant<Graphics, Compute>>
       pipelineMap{};
 
-  PipelinesConfiguration() {
-#if _DEBUG
-    compileShaders();
-#endif
-  };
+  PipelinesConfiguration(){};
 
   virtual ~PipelinesConfiguration();
   void createPipelines(VkRenderPass& renderPass,
@@ -323,10 +319,10 @@ class PipelinesConfiguration {
   std::vector<std::string>& getPipelineShadersByName(const std::string& name);
   VkPipeline& getPipelineObjectByName(const std::string& name);
   const std::array<uint32_t, 3>& getWorkGroupsByName(const std::string& name);
+  void compileShaders();
 
  private:
   std::vector<char> readShaderFile(const std::string& filename);
-  void compileShaders();
   VkPipelineShaderStageCreateInfo createShaderModules(
       VkShaderStageFlagBits shaderStage,
       std::string shaderName);

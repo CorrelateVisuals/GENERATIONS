@@ -29,9 +29,6 @@ class Resources {
   CE::Image msaaImage{};
   CE::Image textureImage{};
 
-  //static std::vector<VkDescriptorSetLayoutBinding> descriptorSetLayoutBindings;
-  //static std::vector<VkDescriptorPoolSize> newPoolSizes;
-
   struct Uniform : public CE::Descriptor {
     CE::Buffer buffer{};
     Uniform() {
