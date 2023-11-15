@@ -174,10 +174,10 @@ class Image {
   static VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates,
                                       const VkImageTiling tiling,
                                       const VkFormatFeatureFlags& features);
-  void createColorResources(const VkExtent2D& dimensions,
-                            const VkFormat format);
-  void createDepthResources(const VkExtent2D& dimensions,
-                            const VkFormat format);
+  void createResources(const VkExtent2D& dimensions,
+                       const VkFormat format,
+                       const VkImageUsageFlags usage,
+                       const VkImageAspectFlagBits aspect);
 };
 
 class SynchronizationObjects {

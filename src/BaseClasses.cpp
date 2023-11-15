@@ -464,29 +464,18 @@ VkFormat CE::Image::findSupportedFormat(const std::vector<VkFormat>& candidates,
   throw std::runtime_error("\n!ERROR! failed to find supported format!");
 }
 
-void CE::Image::createColorResources(const VkExtent2D& dimensions,
-                                     const VkFormat format) {
+void CE::Image::createResources(const VkExtent2D& dimensions,
+                                const VkFormat format,
+                                const VkImageUsageFlags usage,
+                                const VkImageAspectFlagBits aspect) {
   Log::text("{ []< }", "Color Resources ");
   this->destroyVulkanImages();
   this->create(dimensions.width, dimensions.height,
                Device::baseDevice->maxUsableSampleCount, format,
                VK_IMAGE_TILING_OPTIMAL,
-               VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT |
-                   VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+               usage,
                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-  this->createView(VK_IMAGE_ASPECT_COLOR_BIT);
-}
-
-void CE::Image::createDepthResources(const VkExtent2D& dimensions,
-                                     const VkFormat format) {
-  Log::text("{ []< }", "Depth Resources ");
-  this->destroyVulkanImages();
-  this->create(dimensions.width, dimensions.height,
-               Device::baseDevice->maxUsableSampleCount, format,
-               VK_IMAGE_TILING_OPTIMAL,
-               VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
-               VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-  this->createView(VK_IMAGE_ASPECT_DEPTH_BIT);
+  this->createView(aspect);
 }
 
 void CE::Image::createSampler() {

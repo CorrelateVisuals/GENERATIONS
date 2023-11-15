@@ -5,21 +5,19 @@
 
 Resources::Resources(VulkanMechanics& mechanics)
     : _mechanics(mechanics),
-      pushConstants{},
-      textureImage{},
       command{mechanics.queues.familyIndices},
-      msaaImage{},
+      pushConstants{},
+      textureImage{command.singularCommandBuffer, command.pool,
+                   mechanics.queues.graphics},
+
+      depthImage{mechanics.swapchain.extent, CE::Image::findDepthFormat()},
+      msaaImage{mechanics.swapchain.extent, mechanics.swapchain.imageFormat},
       shaderStorage{sizeof(World::Cell) * world.grid.size.x *
                     world.grid.size.y},
       sampler{textureImage},
       storageImage{mechanics.swapchain.images} {
   Log::text("{ /// }", "constructing Resources");
-
   CE::Descriptor::createSetLayout(CE::Descriptor::setLayoutBindings);
-  msaaImage.createColorResources(mechanics.swapchain.extent,
-                                 mechanics.swapchain.imageFormat);
-  depthImage.createDepthResources(mechanics.swapchain.extent,
-                                  CE::Image::findDepthFormat());
 }
 
 Resources::~Resources() {
@@ -30,11 +28,12 @@ void Resources::setupResources(Pipelines& _pipelines) {
   Log::text(Log::Style::headerGuard);
   Log::text("{ /// }", "Setup Resources");
 
-  textureImage.loadTexture(
-      Lib::path("assets/Avatar.PNG"), VK_FORMAT_R8G8B8A8_SRGB,
-      command.singularCommandBuffer, command.pool, _mechanics.queues.graphics);
-  textureImage.createView(VK_IMAGE_ASPECT_COLOR_BIT);
-  textureImage.createSampler();
+  // textureImage.loadTexture(
+  //     Lib::path("assets/Avatar.PNG"), VK_FORMAT_R8G8B8A8_SRGB,
+  //     command.singularCommandBuffer, command.pool,
+  //     _mechanics.queues.graphics);
+  // textureImage.createView(VK_IMAGE_ASPECT_COLOR_BIT);
+  // textureImage.createSampler();
 
   createFramebuffers(_pipelines);
   createShaderStorageBuffers();
@@ -511,4 +510,31 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
                         /* -> */ VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
   CE::VULKAN_RESULT(vkEndCommandBuffer, commandBuffer);
+}
+
+Resources::CommandBuffers::CommandBuffers(
+    const CE::Queues::FamilyIndices& familyIndices) {
+  createPool(familyIndices);
+}
+
+Resources::DepthImage::DepthImage(const VkExtent2D extent,
+                                  const VkFormat format) {
+  createResources(extent, format, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+                  VK_IMAGE_ASPECT_DEPTH_BIT);
+}
+
+Resources::MultisamplingImage::MultisamplingImage(const VkExtent2D extent,
+                                                  const VkFormat format) {
+  createResources(extent, format,
+                  VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT |
+                      VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+                  VK_IMAGE_ASPECT_COLOR_BIT);
+}
+
+Resources::TextureImage::TextureImage(VkCommandBuffer& commandBuffer,
+                                      VkCommandPool& commandPool,
+                                      const VkQueue& queue) {
+  loadTexture(path, VK_FORMAT_R8G8B8A8_SRGB, commandBuffer, commandPool, queue);
+  createView(VK_IMAGE_ASPECT_COLOR_BIT);
+  createSampler();
 }

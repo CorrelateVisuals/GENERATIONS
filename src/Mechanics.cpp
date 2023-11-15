@@ -23,9 +23,13 @@ void VulkanMechanics::Swapchain::recreate(const VkSurfaceKHR& surface,
                                           Pipelines& _pipelines,
                                           Resources& _resources) {
   CE::Swapchain::recreate(surface, queues, syncObjects);
-  _resources.msaaImage.createColorResources(extent, imageFormat);
-  _resources.depthImage.createDepthResources(extent,
-                                             CE::Image::findDepthFormat());
+  _resources.msaaImage.createResources(extent, imageFormat,
+                                       VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT |
+                                           VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+                                       VK_IMAGE_ASPECT_COLOR_BIT);
+  _resources.depthImage.createResources(
+      extent, CE::Image::findDepthFormat(),
+      VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_IMAGE_ASPECT_DEPTH_BIT);
   _resources.createFramebuffers(_pipelines);
   _resources.createDescriptorSets();
 }

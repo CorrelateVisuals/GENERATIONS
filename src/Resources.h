@@ -25,9 +25,19 @@ class Resources {
       {&world.rectangle, VK_VERTEX_INPUT_RATE_INSTANCE},
       {&world.cube, VK_VERTEX_INPUT_RATE_VERTEX}};
 
-  CE::Image depthImage{};
-  CE::Image msaaImage{};
-  CE::Image textureImage{};
+  struct CommandBuffers : public CE::Commands {
+    CommandBuffers(const CE::Queues::FamilyIndices& familyIndices);
+    std::vector<VkCommandBuffer> graphics{};
+    std::vector<VkCommandBuffer> compute{};
+  } command;
+
+  struct DepthImage : public CE::Image {
+    DepthImage(const VkExtent2D extent, const VkFormat format);
+  } depthImage;
+
+  struct MultisamplingImage : public CE::Image {
+    MultisamplingImage(const VkExtent2D extent, const VkFormat format);
+  } msaaImage;
 
   struct Uniform : public CE::Descriptor {
     CE::Buffer buffer{};
@@ -103,6 +113,13 @@ class Resources {
     }
   } sampler;
 
+  struct TextureImage : public CE::Image {
+    const std::string& path = Lib::path("assets/Avatar.PNG");
+    TextureImage(VkCommandBuffer& commandBuffer,
+                 VkCommandPool& commandPool,
+                 const VkQueue& queue);
+  } textureImage;
+
   struct StorageImage : public CE::Descriptor {
     CE::Buffer buffer{};
     StorageImage(std::vector<CE::Image>& images) {
@@ -133,14 +150,6 @@ class Resources {
       data.fill(0);
     }
   } pushConstants;
-
-  struct CommandBuffers : public CE::Commands {
-    CommandBuffers(const CE::Queues::FamilyIndices& familyIndices) {
-      createPool(familyIndices);
-    };
-    std::vector<VkCommandBuffer> graphics{};
-    std::vector<VkCommandBuffer> compute{};
-  } command;
 
  public:
   void setupResources(Pipelines& _pipelines);
