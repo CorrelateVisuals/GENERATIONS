@@ -1,5 +1,4 @@
 #include <vulkan/vulkan.h>
-#include <vulkan/vulkan.hpp>
 
 #include "CapitalEngine.h"
 #include "Pipelines.h"
