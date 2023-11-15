@@ -9,7 +9,6 @@ Resources::Resources(VulkanMechanics& mechanics)
       pushConstants{},
       textureImage{command.singularCommandBuffer, command.pool,
                    mechanics.queues.graphics},
-
       depthImage{mechanics.swapchain.extent, CE::Image::findDepthFormat()},
       msaaImage{mechanics.swapchain.extent, mechanics.swapchain.imageFormat},
       shaderStorage{sizeof(World::Cell) * world.grid.size.x *
@@ -28,20 +27,13 @@ void Resources::setupResources(Pipelines& _pipelines) {
   Log::text(Log::Style::headerGuard);
   Log::text("{ /// }", "Setup Resources");
 
-  // textureImage.loadTexture(
-  //     Lib::path("assets/Avatar.PNG"), VK_FORMAT_R8G8B8A8_SRGB,
-  //     command.singularCommandBuffer, command.pool,
-  //     _mechanics.queues.graphics);
-  // textureImage.createView(VK_IMAGE_ASPECT_COLOR_BIT);
-  // textureImage.createSampler();
-
   createFramebuffers(_pipelines);
   createShaderStorageBuffers();
   createUniformBuffers();
   createVertexBuffers(vertexBuffers);
 
-  createDescriptorPool();  // moved
-  allocateDescriptorSets();
+  createDescriptorPool();    // moved
+  allocateDescriptorSets();  // moved
   createDescriptorSets();
 
   createCommandBuffers(command.graphics, MAX_FRAMES_IN_FLIGHT);
@@ -260,10 +252,6 @@ void Resources::createIndexBuffer(CE::Buffer& buffer, const auto& indices) {
                    _mechanics.queues.graphics);
 }
 
-void Resources::setPushConstants() {
-  pushConstants.data = {world.time.passedHours};
-}
-
 void Resources::createDescriptorSets() {
   Log::text("{ |=| }", "Descriptor Sets");
 
@@ -371,7 +359,7 @@ void Resources::recordComputeCommandBuffer(VkCommandBuffer commandBuffer,
       0, 1, &CE::Descriptor::sets[_mechanics.syncObjects.currentFrame], 0,
       nullptr);
 
-  setPushConstants();
+  pushConstants.setData(world.time.passedHours);
   vkCmdPushConstants(commandBuffer, _pipelines.compute.layout,
                      pushConstants.shaderStage, pushConstants.offset,
                      pushConstants.size, pushConstants.data.data());
@@ -495,7 +483,7 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
       0, 1, &CE::Descriptor::sets[_mechanics.syncObjects.currentFrame], 0,
       nullptr);
 
-  setPushConstants();
+  pushConstants.setData(world.time.passedHours);
   vkCmdPushConstants(commandBuffer, _pipelines.compute.layout,
                      pushConstants.shaderStage, pushConstants.offset,
                      pushConstants.size, pushConstants.data.data());

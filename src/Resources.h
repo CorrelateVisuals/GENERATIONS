@@ -181,5 +181,4 @@ class Resources {
   void createIndexBuffer(CE::Buffer& buffer, const auto& indices);
   void createShaderStorageBuffers();
   void createUniformBuffers();
-  void setPushConstants();
 };

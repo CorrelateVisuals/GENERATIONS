@@ -472,8 +472,7 @@ void CE::Image::createResources(const VkExtent2D& dimensions,
   this->destroyVulkanImages();
   this->create(dimensions.width, dimensions.height,
                Device::baseDevice->maxUsableSampleCount, format,
-               VK_IMAGE_TILING_OPTIMAL,
-               usage,
+               VK_IMAGE_TILING_OPTIMAL, usage,
                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
   this->createView(aspect);
 }
@@ -1331,4 +1330,8 @@ CE::PipelineLayout::~PipelineLayout() {
   if (Device::baseDevice) {
     vkDestroyPipelineLayout(Device::baseDevice->logical, this->layout, nullptr);
   }
+}
+
+void CE::PushConstants::setData(const uint64_t& data) {
+  this->data = {data};
 }
