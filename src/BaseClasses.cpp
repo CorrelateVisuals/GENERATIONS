@@ -518,7 +518,7 @@ void CE::Image::createSampler() {
 CE::Descriptor::Descriptor() {}
 
 CE::Descriptor::~Descriptor() {
-  /* if (baseDevice) {
+  if (Device::baseDevice) {
      if (this->pool != VK_NULL_HANDLE) {
        vkDestroyDescriptorPool(Device::baseDevice->logical, this->pool,
    nullptr);
@@ -527,7 +527,7 @@ CE::Descriptor::~Descriptor() {
        vkDestroyDescriptorSetLayout(Device::baseDevice->logical,
    this->setLayout, nullptr);
      };
-   }*/
+   }
 }
 
 void CE::Descriptor::allocateSets() {

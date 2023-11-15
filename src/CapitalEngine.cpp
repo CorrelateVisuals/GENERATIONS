@@ -7,7 +7,7 @@ CapitalEngine::CapitalEngine() : pipelines(mechanics), resources(mechanics) {
   Log::text("| CAPITAL Engine");
 
   resources.command.createCommandPool(mechanics.queues.familyIndices);
-  resources.createDescriptorSetLayout(resources.descriptorSetLayoutBindings);
+  resources.createDescriptorSetLayout(CE::Descriptor::setLayoutBindings);
   resources.msaaImage.createColorResources(mechanics.swapchain.extent,
                                            mechanics.swapchain.imageFormat);
   resources.depthImage.createDepthResources(mechanics.swapchain.extent,

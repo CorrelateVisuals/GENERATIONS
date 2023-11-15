@@ -29,8 +29,8 @@ class Resources {
   CE::Image msaaImage{};
   CE::Image textureImage{};
 
-  static std::vector<VkDescriptorSetLayoutBinding> descriptorSetLayoutBindings;
-  static std::vector<VkDescriptorPoolSize> newPoolSizes;
+  //static std::vector<VkDescriptorSetLayoutBinding> descriptorSetLayoutBindings;
+  //static std::vector<VkDescriptorPoolSize> newPoolSizes;
 
   struct Uniform : public CE::Descriptor {
     CE::Buffer buffer{};
@@ -41,11 +41,11 @@ class Resources {
       setLayoutBinding.descriptorCount = 1;
       setLayoutBinding.stageFlags =
           VK_SHADER_STAGE_COMPUTE_BIT | VK_SHADER_STAGE_VERTEX_BIT;
-      descriptorSetLayoutBindings.push_back(setLayoutBinding);
+      setLayoutBindings.push_back(setLayoutBinding);
 
       poolSize.type = type;
       poolSize.descriptorCount = static_cast<uint32_t>(2);
-      newPoolSizes.push_back(poolSize);
+      poolSizes.push_back(poolSize);
 
       for (uint_fast8_t i = 0; i < 2; i++) {
         bufferInfo.buffer = buffer.buffer;
@@ -70,13 +70,13 @@ class Resources {
       setLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
       setLayoutBinding.descriptorCount = 1;
       setLayoutBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-      descriptorSetLayoutBindings.push_back(setLayoutBinding);
+      setLayoutBindings.push_back(setLayoutBinding);
       setLayoutBinding.binding = 2;
-      descriptorSetLayoutBindings.push_back(setLayoutBinding);
+      setLayoutBindings.push_back(setLayoutBinding);
 
       poolSize.type = setLayoutBinding.descriptorType;
       poolSize.descriptorCount = static_cast<uint32_t>(2) * 2;
-      newPoolSizes.push_back(poolSize);
+      poolSizes.push_back(poolSize);
 
       bufferInfo.buffer = bufferIn.buffer;
       bufferInfo.offset = 0;
@@ -94,11 +94,11 @@ class Resources {
           VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
       setLayoutBinding.descriptorCount = 1;
       setLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-      descriptorSetLayoutBindings.push_back(setLayoutBinding);
+      setLayoutBindings.push_back(setLayoutBinding);
 
       poolSize.type = setLayoutBinding.descriptorType;
       poolSize.descriptorCount = static_cast<uint32_t>(2);
-      newPoolSizes.push_back(poolSize);
+      poolSizes.push_back(poolSize);
 
       imageInfo.sampler = image.sampler;
       imageInfo.imageView = image.view;
@@ -113,11 +113,11 @@ class Resources {
       setLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
       setLayoutBinding.descriptorCount = 1;
       setLayoutBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-      descriptorSetLayoutBindings.push_back(setLayoutBinding);
+      setLayoutBindings.push_back(setLayoutBinding);
 
       poolSize.type = setLayoutBinding.descriptorType;
       poolSize.descriptorCount = static_cast<uint32_t>(2);
-      newPoolSizes.push_back(poolSize);
+      poolSizes.push_back(poolSize);
 
       for (uint_fast8_t i = 0; i < images.size(); i++) {
         imageInfo.sampler = VK_NULL_HANDLE;
