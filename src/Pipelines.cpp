@@ -4,8 +4,11 @@
 #include "CapitalEngine.h"
 #include "Pipelines.h"
 
-Pipelines::Pipelines(VulkanMechanics& mechanics)
-    : compute{}, _mechanics(mechanics) {
+Pipelines::Pipelines(VulkanMechanics& mechanics, Resources& resources)
+    : compute{},
+      graphics{},
+      render{resources.msaaImage.info.samples, mechanics.swapchain.imageFormat},
+      _mechanics(mechanics) {
   Log::text("{ === }", "constructing Pipelines");
 }
 
@@ -17,8 +20,8 @@ void Pipelines::setupPipelines(Resources& _resources) {
   Log::text(Log::Style::headerGuard);
   Log::text("{ >>> }", "Setup Pipelines");
 
-  render.create(_resources.msaaImage.info.samples,
-                _mechanics.swapchain.imageFormat);
+  // render.create(_resources.msaaImage.info.samples,
+  //               _mechanics.swapchain.imageFormat);
   graphics.createGraphicsLayout(CE::Descriptor::setLayout);
   compute.createComputeLayout(CE::Descriptor::setLayout,
                               _resources.pushConstants);

@@ -2,14 +2,13 @@
 
 #include <iostream>
 
-CapitalEngine::CapitalEngine() : pipelines(mechanics), resources(mechanics) {
+CapitalEngine::CapitalEngine()
+    : pipelines(mechanics, resources), resources(mechanics) {
   Log::text(Log::Style::headerGuard);
   Log::text("| CAPITAL Engine");
 
   pipelines.setupPipelines(resources);
   resources.setupResources(pipelines);
-
-  mechanics.syncObjects.create();
 }
 
 CapitalEngine::~CapitalEngine() {

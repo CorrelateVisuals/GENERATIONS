@@ -6,13 +6,18 @@
 
 class Pipelines {
  public:
-  Pipelines(VulkanMechanics& mechanics);
+  Pipelines(VulkanMechanics& mechanics, Resources& resources);
   ~Pipelines();
   void setupPipelines(Resources& _resources);
 
   CE::PipelineLayout compute{};
   CE::PipelineLayout graphics{};
-  CE::RenderPass render{};
+
+  struct Render : public CE::RenderPass {
+    Render(const VkSampleCountFlagBits samples, const VkFormat format) {
+      create(samples, format);
+    }
+  } render;
 
   struct Configuration : public CE::PipelinesConfiguration {
     Configuration() {

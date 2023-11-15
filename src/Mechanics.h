@@ -35,6 +35,7 @@ class VulkanMechanics {
   } mainDevice;
 
   struct SynchronizationObjects : public CE::SynchronizationObjects {
+    SynchronizationObjects() { create(); }
   } syncObjects;
 
   struct Swapchain : public CE::Swapchain {
