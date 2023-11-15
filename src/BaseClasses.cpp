@@ -194,8 +194,8 @@ void CE::Buffer::create(const VkDeviceSize& size,
   Log::text(Log::Style::charLeader, Log::getMemoryPropertyString(properties));
   Log::text(Log::Style::charLeader, size, "bytes");
 
-  VULKAN_RESULT(vkCreateBuffer, Device::baseDevice->logical, &bufferInfo,
-                nullptr, &buffer.buffer);
+  CE::VULKAN_RESULT(vkCreateBuffer, Device::baseDevice->logical, &bufferInfo,
+                    nullptr, &buffer.buffer);
 
   VkMemoryRequirements memRequirements{};
   vkGetBufferMemoryRequirements(Device::baseDevice->logical, buffer.buffer,
@@ -207,8 +207,8 @@ void CE::Buffer::create(const VkDeviceSize& size,
       .memoryTypeIndex =
           CE::findMemoryType(memRequirements.memoryTypeBits, properties)};
 
-  VULKAN_RESULT(vkAllocateMemory, Device::baseDevice->logical, &allocateInfo,
-                nullptr, &buffer.memory);
+  CE::VULKAN_RESULT(vkAllocateMemory, Device::baseDevice->logical,
+                    &allocateInfo, nullptr, &buffer.memory);
   vkBindBufferMemory(Device::baseDevice->logical, buffer.buffer, buffer.memory,
                      0);
 }
@@ -291,8 +291,8 @@ void CE::Image::create(const uint32_t width,
   info.tiling = tiling;
   info.usage = usage;
 
-  VULKAN_RESULT(vkCreateImage, Device::baseDevice->logical, &this->info,
-                nullptr, &this->image);
+  CE::VULKAN_RESULT(vkCreateImage, Device::baseDevice->logical, &this->info,
+                    nullptr, &this->image);
 
   VkMemoryRequirements memRequirements{};
   vkGetImageMemoryRequirements(Device::baseDevice->logical, this->image,
@@ -304,8 +304,8 @@ void CE::Image::create(const uint32_t width,
       .memoryTypeIndex =
           findMemoryType(memRequirements.memoryTypeBits, properties)};
 
-  VULKAN_RESULT(vkAllocateMemory, Device::baseDevice->logical, &allocateInfo,
-                nullptr, &this->memory);
+  CE::VULKAN_RESULT(vkAllocateMemory, Device::baseDevice->logical,
+                    &allocateInfo, nullptr, &this->memory);
   vkBindImageMemory(Device::baseDevice->logical, this->image, this->memory, 0);
 }
 
@@ -323,8 +323,8 @@ void CE::Image::createView(const VkImageAspectFlags aspectFlags) {
                            .baseArrayLayer = 0,
                            .layerCount = 1}};
 
-  VULKAN_RESULT(vkCreateImageView, Device::baseDevice->logical, &viewInfo,
-                nullptr, &this->view);
+  CE::VULKAN_RESULT(vkCreateImageView, Device::baseDevice->logical, &viewInfo,
+                    nullptr, &this->view);
   return;
 }
 
@@ -1304,26 +1304,24 @@ const std::array<uint32_t, 3>& CE::PipelinesConfiguration::getWorkGroupsByName(
   return std::get<CE::PipelinesConfiguration::Compute>(variant).workGroups;
 };
 
-void CE::PipelineLayout::createGraphicsLayout(
-    const VkDescriptorSetLayout& setLayout) {
-  VkPipelineLayoutCreateInfo graphicsLayout{CE::layoutDefault};
-  graphicsLayout.pSetLayouts = &setLayout;
+void CE::PipelineLayout::createLayout(const VkDescriptorSetLayout& setLayout) {
+  VkPipelineLayoutCreateInfo layout{CE::layoutDefault};
+  layout.pSetLayouts = &setLayout;
   CE::VULKAN_RESULT(vkCreatePipelineLayout, Device::baseDevice->logical,
-                    &graphicsLayout, nullptr, &this->layout);
+                    &layout, nullptr, &this->layout);
 }
 
-void CE::PipelineLayout::createComputeLayout(
-    const VkDescriptorSetLayout& setLayout,
-    const PushConstants& _pushConstants) {
+void CE::PipelineLayout::createLayout(const VkDescriptorSetLayout& setLayout,
+                                      const PushConstants& _pushConstants) {
   VkPushConstantRange constants{.stageFlags = _pushConstants.shaderStage,
                                 .offset = _pushConstants.offset,
                                 .size = _pushConstants.size};
-  VkPipelineLayoutCreateInfo computeLayout{CE::layoutDefault};
-  computeLayout.pSetLayouts = &setLayout;
-  computeLayout.pushConstantRangeCount = _pushConstants.count;
-  computeLayout.pPushConstantRanges = &constants;
+  VkPipelineLayoutCreateInfo layout{CE::layoutDefault};
+  layout.pSetLayouts = &setLayout;
+  layout.pushConstantRangeCount = _pushConstants.count;
+  layout.pPushConstantRanges = &constants;
   CE::VULKAN_RESULT(vkCreatePipelineLayout, Device::baseDevice->logical,
-                    &computeLayout, nullptr, &this->layout);
+                    &layout, nullptr, &this->layout);
 }
 
 CE::PipelineLayout::~PipelineLayout() {

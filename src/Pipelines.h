@@ -11,12 +11,12 @@ class Pipelines {
 
   struct ComputeLayout : public CE::PipelineLayout {
     ComputeLayout(CE::PushConstants& pushConstants) {
-      createComputeLayout(CE::Descriptor::setLayout, pushConstants);
+      createLayout(CE::Descriptor::setLayout, pushConstants);
     }
   } compute;
 
   struct GraphicsLayout : public CE::PipelineLayout {
-    GraphicsLayout() { createGraphicsLayout(CE::Descriptor::setLayout); }
+    GraphicsLayout() { createLayout(CE::Descriptor::setLayout); }
   } graphics;
 
   struct Render : public CE::RenderPass {

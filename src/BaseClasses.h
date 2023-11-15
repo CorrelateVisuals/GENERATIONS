@@ -276,9 +276,9 @@ class PipelineLayout {
 
   PipelineLayout() = default;
   virtual ~PipelineLayout();
-  void createGraphicsLayout(const VkDescriptorSetLayout& setLayout);
-  void createComputeLayout(const VkDescriptorSetLayout& setLayout,
-                           const PushConstants& _pushConstants);
+  void createLayout(const VkDescriptorSetLayout& setLayout);
+  void createLayout(const VkDescriptorSetLayout& setLayout,
+                    const PushConstants& _pushConstants);
 };
 
 class RenderPass {
