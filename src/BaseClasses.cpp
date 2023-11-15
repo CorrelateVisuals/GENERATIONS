@@ -594,8 +594,7 @@ CE::Commands::~Commands() {
   }
 };
 
-void CE::Commands::createCommandPool(
-    const Queues::FamilyIndices& familyIndices) {
+void CE::Commands::createPool(const Queues::FamilyIndices& familyIndices) {
   Log::text("{ cmd }", "Command Pool");
 
   VkCommandPoolCreateInfo poolInfo{

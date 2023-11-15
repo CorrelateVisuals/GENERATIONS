@@ -135,6 +135,9 @@ class Resources {
   } pushConstants;
 
   struct CommandBuffers : public CE::Commands {
+    CommandBuffers(const CE::Queues::FamilyIndices& familyIndices) {
+      createPool(familyIndices);
+    };
     std::vector<VkCommandBuffer> graphics{};
     std::vector<VkCommandBuffer> compute{};
   } command;
@@ -146,8 +149,6 @@ class Resources {
 
   void updateUniformBuffer(uint32_t currentImage);
 
-  // void createDescriptorSetLayout(
-  //     const std::vector<VkDescriptorSetLayoutBinding>& layoutBindings);
   void createDescriptorSets();
 
   void recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,

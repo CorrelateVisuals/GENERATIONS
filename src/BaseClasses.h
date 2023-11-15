@@ -94,7 +94,7 @@ class Commands {
 
   Commands() = default;
   virtual ~Commands();
-  void createCommandPool(const Queues::FamilyIndices& familyIndices);
+  void createPool(const Queues::FamilyIndices& familyIndices);
   static void beginSingularCommands(const VkCommandPool& commandPool,
                                     const VkQueue& queue);
   static void endSingularCommands(const VkCommandPool& commandPool,

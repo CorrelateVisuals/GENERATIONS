@@ -7,7 +7,7 @@ Resources::Resources(VulkanMechanics& mechanics)
     : _mechanics(mechanics),
       pushConstants{},
       textureImage{},
-      command{},
+      command{mechanics.queues.familyIndices},
       msaaImage{},
       shaderStorage{sizeof(World::Cell) * world.grid.size.x *
                     world.grid.size.y},
@@ -16,7 +16,6 @@ Resources::Resources(VulkanMechanics& mechanics)
   Log::text("{ /// }", "constructing Resources");
 
   CE::Descriptor::createSetLayout(CE::Descriptor::setLayoutBindings);
-  command.createCommandPool(mechanics.queues.familyIndices);
   msaaImage.createColorResources(mechanics.swapchain.extent,
                                  mechanics.swapchain.imageFormat);
   depthImage.createDepthResources(mechanics.swapchain.extent,
