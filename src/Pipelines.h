@@ -12,11 +12,15 @@ class Pipelines {
 
   CE::PipelineLayout compute{};
   CE::PipelineLayout graphics{};
+
   CE::RenderPass render{};
 
   struct Configuration : public CE::PipelinesConfiguration {
     Configuration() {
       World world{};
+
+      compileShaders();
+
       pipelineMap["Engine"] =
           Compute{.shaders = {"Comp"},
                   .workGroups = {

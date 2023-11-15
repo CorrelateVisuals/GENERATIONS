@@ -266,12 +266,8 @@ class PipelineLayout {
  public:
   VkPipelineLayout layout{};
 
-  virtual ~PipelineLayout() {
-    if (Device::baseDevice) {
-      vkDestroyPipelineLayout(Device::baseDevice->logical, this->layout,
-                              nullptr);
-    }
-  }
+  PipelineLayout() = default;
+  virtual ~PipelineLayout();
   void createGraphicsLayout(const VkDescriptorSetLayout& setLayout);
   void createComputeLayout(const VkDescriptorSetLayout& setLayout,
                            const PushConstants& _pushConstants);
@@ -309,8 +305,7 @@ class PipelinesConfiguration {
   std::unordered_map<std::string, std::variant<Graphics, Compute>>
       pipelineMap{};
 
-  PipelinesConfiguration(){};
-
+  PipelinesConfiguration() = default;
   virtual ~PipelinesConfiguration();
   void createPipelines(VkRenderPass& renderPass,
                        const VkPipelineLayout& graphicsLayout,
@@ -319,6 +314,8 @@ class PipelinesConfiguration {
   std::vector<std::string>& getPipelineShadersByName(const std::string& name);
   VkPipeline& getPipelineObjectByName(const std::string& name);
   const std::array<uint32_t, 3>& getWorkGroupsByName(const std::string& name);
+
+ protected:
   void compileShaders();
 
  private:

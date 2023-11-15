@@ -17,8 +17,6 @@ void Pipelines::setupPipelines(Resources& _resources) {
   Log::text(Log::Style::headerGuard);
   Log::text("{ >>> }", "Setup Pipelines");
 
-  config.compileShaders();
-
   render.create(_resources.msaaImage.info.samples,
                 _mechanics.swapchain.imageFormat);
   graphics.createGraphicsLayout(CE::Descriptor::setLayout);

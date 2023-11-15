@@ -518,16 +518,17 @@ void CE::Image::createSampler() {
 CE::Descriptor::Descriptor() {}
 
 CE::Descriptor::~Descriptor() {
-  //if (Device::baseDevice) {
-  //   if (this->pool != VK_NULL_HANDLE) {
-  //     vkDestroyDescriptorPool(Device::baseDevice->logical, this->pool,
-  // nullptr);
-  //   };
-  //   if (this->setLayout != VK_NULL_HANDLE) {
-  //     vkDestroyDescriptorSetLayout(Device::baseDevice->logical,
-  // this->setLayout, nullptr);
-  //   };
-  // }
+  if (Device::baseDevice) {
+    if (this->pool != VK_NULL_HANDLE) {
+      vkDestroyDescriptorPool(Device::baseDevice->logical, this->pool, nullptr);
+      this->pool = VK_NULL_HANDLE;
+    };
+    if (this->setLayout != VK_NULL_HANDLE) {
+      vkDestroyDescriptorSetLayout(Device::baseDevice->logical, this->setLayout,
+                                   nullptr);
+      this->setLayout = VK_NULL_HANDLE;
+    };
+  }
 }
 
 void CE::Descriptor::allocateSets() {
@@ -1309,4 +1310,10 @@ void CE::PipelineLayout::createComputeLayout(
   computeLayout.pPushConstantRanges = &constants;
   CE::VULKAN_RESULT(vkCreatePipelineLayout, Device::baseDevice->logical,
                     &computeLayout, nullptr, &this->layout);
+}
+
+CE::PipelineLayout::~PipelineLayout() {
+  if (Device::baseDevice) {
+    vkDestroyPipelineLayout(Device::baseDevice->logical, this->layout, nullptr);
+  }
 }
