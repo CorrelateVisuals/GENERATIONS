@@ -142,22 +142,6 @@ void Resources::allocateDescriptorSets() {
                     &allocateInfo, CE::Descriptor::sets.data());
 }
 
-// void Resources::createCommandBuffers(
-//     std::vector<VkCommandBuffer>& commandBuffers,
-//     const int size) {
-//   Log::text("{ cmd }", "Command Buffers:", size);
-//
-//   commandBuffers.resize(size);
-//   VkCommandBufferAllocateInfo allocateInfo{
-//       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-//       .commandPool = commands.pool,
-//       .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-//       .commandBufferCount = static_cast<uint32_t>(commandBuffers.size())};
-//
-//   CE::VULKAN_RESULT(vkAllocateCommandBuffers, _mechanics.mainDevice.logical,
-//                     &allocateInfo, commandBuffers.data());
-// }
-
 void Resources::createVertexBuffers(
     const std::unordered_map<Geometry*, VkVertexInputRate>& buffers) {
   for (const auto& resource : buffers) {
