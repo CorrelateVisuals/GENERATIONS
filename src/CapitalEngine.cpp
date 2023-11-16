@@ -50,7 +50,7 @@ void CapitalEngine::drawFrame() {
            .computeInFlightFences[mechanics.syncObjects.currentFrame],
       VK_TRUE, UINT64_MAX);
 
-  resources.updateUniformBuffer(mechanics.syncObjects.currentFrame);
+  resources.updateUniformBuffer();
 
   vkResetFences(
       mechanics.mainDevice.logical, 1,
