@@ -95,8 +95,7 @@ class Commands {
   Commands() = default;
   virtual ~Commands();
   void createPool(const Queues::FamilyIndices& familyIndices);
-  void createBuffers(std::vector<VkCommandBuffer>& commandBuffers,
-                     const int size);
+  void createBuffers(std::vector<VkCommandBuffer>& commandBuffers);
   static void beginSingularCommands(const VkCommandPool& commandPool,
                                     const VkQueue& queue);
   static void endSingularCommands(const VkCommandPool& commandPool,

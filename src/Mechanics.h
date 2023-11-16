@@ -45,7 +45,7 @@ class VulkanMechanics {
     void recreate(const VkSurfaceKHR& surface,
                   const CE::Queues& queues,
                   SynchronizationObjects& syncObjects,
-                  Pipelines& _pipelines,
-                  Resources& _resources);
+                  Pipelines& pipelines,
+                  Resources& resources);
   } swapchain;
 };

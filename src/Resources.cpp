@@ -475,8 +475,8 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
 Resources::CommandBuffers::CommandBuffers(
     const CE::Queues::FamilyIndices& familyIndices) {
   createPool(familyIndices);
-  createBuffers(graphics, MAX_FRAMES_IN_FLIGHT);
-  createBuffers(compute, MAX_FRAMES_IN_FLIGHT);
+  createBuffers(graphics);
+  createBuffers(compute);
 }
 
 Resources::DepthImage::DepthImage(const VkExtent2D extent,

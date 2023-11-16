@@ -170,9 +170,6 @@ class Resources {
   void createDescriptorPool();
   void allocateDescriptorSets();
 
-  /*void createCommandBuffers(std::vector<VkCommandBuffer>& commandBuffers,
-                            const int size);*/
-
   void createVertexBuffers(
       const std::unordered_map<Geometry*, VkVertexInputRate>& buffers);
   void createVertexBuffer(CE::Buffer& buffer, const auto& vertices);
