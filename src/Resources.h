@@ -30,7 +30,7 @@ class Resources {
     void recordComputeCommandBuffer(Resources& resources,
                                     Pipelines& pipelines,
                                     const uint32_t imageIndex) override;
-    void recordGraphicsCommandBuffer(VulkanMechanics& mechanics,
+    void recordGraphicsCommandBuffer(CE::Swapchain& swapchain,
                                      Resources& resources,
                                      Pipelines& pipelines,
                                      const uint32_t imageIndex) override;
@@ -44,9 +44,9 @@ class Resources {
     MultisamplingImage(const VkExtent2D extent, const VkFormat format);
   } msaaImage;
 
-  struct Uniform : public CE::Descriptor {
+  struct UniformBuffer : public CE::Descriptor {
     CE::Buffer buffer{};
-    Uniform() {
+    UniformBuffer() {
       VkDescriptorType type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
       setLayoutBinding.binding = 0;
       setLayoutBinding.descriptorType = type;
@@ -72,6 +72,7 @@ class Resources {
         writeSet.pBufferInfo = &bufferInfo;
       }
     }
+    void update(World& world, const VkExtent2D extent);
   } uniform;
 
   struct ShaderStorage : public CE::Descriptor {
@@ -158,8 +159,6 @@ class Resources {
 
  public:
   void createFramebuffers(Pipelines& _pipelines);
-
-  void updateUniformBuffer(uint32_t currentImage);
 
   void createDescriptorSets();
 

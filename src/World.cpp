@@ -145,7 +145,8 @@ std::vector<float> World::generateLandscapeHeight() {
   return landscapeHeight;
 }
 
-World::UniformBufferObject World::updateUniforms(VkExtent2D& _swapchainExtent) {
+World::UniformBufferObject World::updateUniformBuferObject(
+    const VkExtent2D& swapchainExtent) {
   UniformBufferObject uniformObject{
       .light = light.position,
       .gridXY = {static_cast<uint32_t>(grid.size.x),
@@ -154,7 +155,7 @@ World::UniformBufferObject World::updateUniforms(VkExtent2D& _swapchainExtent) {
       .cellSize = cube.size,
       .model = setModel(),
       .view = setView(),
-      .projection = setProjection(_swapchainExtent)};
+      .projection = setProjection(swapchainExtent)};
   return uniformObject;
 }
 
@@ -211,7 +212,7 @@ glm::mat4 World::setView() {
   return view;
 }
 
-glm::mat4 World::setProjection(VkExtent2D& swapchainExtent) {
+glm::mat4 World::setProjection(const VkExtent2D& swapchainExtent) {
   glm::mat4 projection = glm::perspective(
       glm::radians(camera.fieldOfView),
       swapchainExtent.width / static_cast<float>(swapchainExtent.height),

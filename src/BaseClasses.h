@@ -107,13 +107,14 @@ class CommandBuffers {
   virtual void recordComputeCommandBuffer(Resources& resources,
                                           Pipelines& pipelines,
                                           const uint32_t imageIndex) = 0;
-  virtual void recordGraphicsCommandBuffer(VulkanMechanics& mechanics,
+  virtual void recordGraphicsCommandBuffer(Swapchain& swapchain,
                                            Resources& resources,
                                            Pipelines& pipelines,
                                            const uint32_t imageIndex) = 0;
-protected:
-    void createPool(const Queues::FamilyIndices& familyIndices);
-    void createBuffers(std::vector<VkCommandBuffer>& commandBuffers);
+
+ protected:
+  void createPool(const Queues::FamilyIndices& familyIndices);
+  void createBuffers(std::vector<VkCommandBuffer>& commandBuffers);
 };
 
 class Buffer {

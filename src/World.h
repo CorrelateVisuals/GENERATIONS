@@ -61,7 +61,8 @@ class World {
 
  public:
   std::vector<World::Cell> initializeGrid();
-  UniformBufferObject updateUniforms(VkExtent2D& _swapchain);
+  UniformBufferObject updateUniformBuferObject(
+      const VkExtent2D& swapchainExtent);
 
  private:
   struct Camera {
@@ -91,7 +92,7 @@ class World {
 
   glm::mat4 setModel();
   glm::mat4 setView();
-  glm::mat4 setProjection(VkExtent2D& swapchainExtent);
+  glm::mat4 setProjection(const VkExtent2D& swapchainExtent);
 };
 
 // float getForwardMovement(const glm::vec2& leftButtonDelta);

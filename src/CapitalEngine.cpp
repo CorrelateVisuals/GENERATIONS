@@ -50,7 +50,7 @@ void CapitalEngine::drawFrame() {
            .computeInFlightFences[mechanics.syncObjects.currentFrame],
       VK_TRUE, UINT64_MAX);
 
-  resources.updateUniformBuffer(mechanics.syncObjects.currentFrame);
+  resources.uniform.update(resources.world, mechanics.swapchain.extent);
 
   vkResetFences(
       mechanics.mainDevice.logical, 1,
@@ -108,7 +108,8 @@ void CapitalEngine::drawFrame() {
       resources.commands.graphics[mechanics.syncObjects.currentFrame], 0);
 
   resources.commands.recordGraphicsCommandBuffer(
-      mechanics, resources, pipelines, mechanics.syncObjects.currentFrame);
+      mechanics.swapchain, resources, pipelines,
+      mechanics.syncObjects.currentFrame);
 
   std::vector<VkSemaphore> waitSemaphores{
       mechanics.syncObjects

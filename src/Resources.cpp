@@ -301,10 +301,10 @@ void Resources::createDescriptorSets() {
   }
 }
 
-void Resources::updateUniformBuffer(uint32_t currentImage) {
+void Resources::UniformBuffer::update(World& world, const VkExtent2D extent) {
   World::UniformBufferObject uniformObject =
-      world.updateUniforms(_mechanics.swapchain.extent);
-  std::memcpy(uniform.buffer.mapped, &uniformObject, sizeof(uniformObject));
+      world.updateUniformBuferObject(extent);
+  std::memcpy(buffer.mapped, &uniformObject, sizeof(uniformObject));
 }
 
 void Resources::Commands::recordComputeCommandBuffer(
@@ -343,7 +343,7 @@ void Resources::Commands::recordComputeCommandBuffer(
 }
 
 void Resources::Commands::recordGraphicsCommandBuffer(
-    VulkanMechanics& mechanics,
+    CE::Swapchain& swapchain,
     Resources& resources,
     Pipelines& pipelines,
     const uint32_t imageIndex) {
@@ -361,23 +361,22 @@ void Resources::Commands::recordGraphicsCommandBuffer(
       .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
       .pNext = nullptr,
       .renderPass = pipelines.render.renderPass,
-      .framebuffer = mechanics.swapchain.framebuffers[imageIndex],
-      .renderArea = {.offset = {0, 0}, .extent = mechanics.swapchain.extent},
+      .framebuffer = swapchain.framebuffers[imageIndex],
+      .renderArea = {.offset = {0, 0}, .extent = swapchain.extent},
       .clearValueCount = static_cast<uint32_t>(clearValues.size()),
       .pClearValues = clearValues.data()};
 
   vkCmdBeginRenderPass(commandBuffer, &renderPassInfo,
                        VK_SUBPASS_CONTENTS_INLINE);
-  VkViewport viewport{
-      .x = 0.0f,
-      .y = 0.0f,
-      .width = static_cast<float>(mechanics.swapchain.extent.width),
-      .height = static_cast<float>(mechanics.swapchain.extent.height),
-      .minDepth = 0.0f,
-      .maxDepth = 1.0f};
+  VkViewport viewport{.x = 0.0f,
+                      .y = 0.0f,
+                      .width = static_cast<float>(swapchain.extent.width),
+                      .height = static_cast<float>(swapchain.extent.height),
+                      .minDepth = 0.0f,
+                      .maxDepth = 1.0f};
   vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 
-  VkRect2D scissor{.offset = {0, 0}, .extent = mechanics.swapchain.extent};
+  VkRect2D scissor{.offset = {0, 0}, .extent = swapchain.extent};
   vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
   vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -395,9 +394,8 @@ void Resources::Commands::recordGraphicsCommandBuffer(
       resources.shaderStorage.bufferIn.buffer,
       resources.shaderStorage.bufferOut.buffer};
 
-  VkBuffer vertexBuffers0[] = {
-      currentShaderStorageBuffer[mechanics.syncObjects.currentFrame],
-      resources.world.cube.vertexBuffer.buffer};
+  VkBuffer vertexBuffers0[] = {currentShaderStorageBuffer[imageIndex],
+                               resources.world.cube.vertexBuffer.buffer};
 
   vkCmdBindVertexBuffers(commandBuffer, 0, 2, vertexBuffers0, offsets0);
   vkCmdDraw(commandBuffer,
@@ -449,11 +447,11 @@ void Resources::Commands::recordGraphicsCommandBuffer(
   //       This is part of an image memory barrier (i.e., vkCmdPipelineBarrier
   //       with the VkImageMemoryBarrier parameter set)
 
-  mechanics.swapchain.images[imageIndex].transitionLayout(
+  swapchain.images[imageIndex].transitionLayout(
       commandBuffer, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
       /* -> */ VK_IMAGE_LAYOUT_GENERAL);
 
-  // vkDeviceWaitIdle(_mechanics.mainDevice.logical);
+  // vkDeviceWaitIdle(_mainDevice.logical);
 
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
                     pipelines.config.getPipelineObjectByName("PostFX"));
@@ -472,7 +470,7 @@ void Resources::Commands::recordGraphicsCommandBuffer(
       pipelines.config.getWorkGroupsByName("PostFX");
   vkCmdDispatch(commandBuffer, workGroups[0], workGroups[1], workGroups[2]);
 
-  mechanics.swapchain.images[imageIndex].transitionLayout(
+  swapchain.images[imageIndex].transitionLayout(
       commandBuffer, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_GENERAL,
       /* -> */ VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
