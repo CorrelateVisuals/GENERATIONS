@@ -60,8 +60,7 @@ void CapitalEngine::drawFrame() {
   vkResetCommandBuffer(
       resources.command.compute[mechanics.syncObjects.currentFrame], 0);
   resources.command.recordComputeCommandBuffer(
-      pipelines, mechanics.syncObjects.currentFrame, resources.pushConstants,
-      resources.world.time.passedHours);
+      resources, pipelines, mechanics.syncObjects.currentFrame);
 
   VkSubmitInfo computeSubmitInfo{
       .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
@@ -108,9 +107,8 @@ void CapitalEngine::drawFrame() {
   vkResetCommandBuffer(
       resources.command.graphics[mechanics.syncObjects.currentFrame], 0);
 
-  resources.recordGraphicsCommandBuffer(
-      resources.command.graphics[mechanics.syncObjects.currentFrame],
-      imageIndex, pipelines);
+  resources.command.recordGraphicsCommandBuffer(
+      mechanics, resources, pipelines, mechanics.syncObjects.currentFrame);
 
   std::vector<VkSemaphore> waitSemaphores{
       mechanics.syncObjects

@@ -27,10 +27,13 @@ class Resources {
 
   struct Commands : public CE::CommandBuffers {
     Commands(const CE::Queues::FamilyIndices& familyIndices);
-    void recordComputeCommandBuffer(Pipelines& pipelines,
-                                    const uint32_t imageIndex,
-                                    CE::PushConstants& pushConstants,
-                                    const uint64_t passedHours);
+    void recordComputeCommandBuffer(Resources& resources,
+                                    Pipelines& pipelines,
+                                    const uint32_t imageIndex);
+    void recordGraphicsCommandBuffer(VulkanMechanics& mechanics,
+                                     Resources& resources,
+                                     Pipelines& pipelines,
+                                     const uint32_t imageIndex);
   } command;
 
   struct DepthImage : public CE::Image {
@@ -159,10 +162,6 @@ class Resources {
   void updateUniformBuffer(uint32_t currentImage);
 
   void createDescriptorSets();
-
-  void recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
-                                   uint32_t imageIndex,
-                                   Pipelines& _pipelines);
 
  private:
   VulkanMechanics& _mechanics;

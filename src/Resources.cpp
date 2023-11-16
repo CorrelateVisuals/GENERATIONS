@@ -308,10 +308,9 @@ void Resources::updateUniformBuffer(uint32_t currentImage) {
 }
 
 void Resources::Commands::recordComputeCommandBuffer(
+    Resources& resources,
     Pipelines& pipelines,
-    const uint32_t imageIndex,
-    CE::PushConstants& pushConstants,
-    const uint64_t passedHours) {
+    const uint32_t imageIndex) {
   VkCommandBuffer commandBuffer = this->compute[imageIndex];
 
   VkCommandBufferBeginInfo beginInfo{
@@ -329,11 +328,12 @@ void Resources::Commands::recordComputeCommandBuffer(
                           pipelines.compute.layout, 0, 1,
                           &CE::Descriptor::sets[imageIndex], 0, nullptr);
 
-  pushConstants.setData(passedHours);
+  resources.pushConstants.setData(resources.world.time.passedHours);
 
-  vkCmdPushConstants(commandBuffer, pipelines.compute.layout,
-                     pushConstants.shaderStage, pushConstants.offset,
-                     pushConstants.size, pushConstants.data.data());
+  vkCmdPushConstants(
+      commandBuffer, pipelines.compute.layout,
+      resources.pushConstants.shaderStage, resources.pushConstants.offset,
+      resources.pushConstants.size, resources.pushConstants.data.data());
 
   const std::array<uint32_t, 3>& workGroups =
       pipelines.config.getWorkGroupsByName("Engine");
@@ -342,9 +342,13 @@ void Resources::Commands::recordComputeCommandBuffer(
   CE::VULKAN_RESULT(vkEndCommandBuffer, commandBuffer);
 }
 
-void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
-                                            uint32_t imageIndex,
-                                            Pipelines& _pipelines) {
+void Resources::Commands::recordGraphicsCommandBuffer(
+    VulkanMechanics& mechanics,
+    Resources& resources,
+    Pipelines& pipelines,
+    const uint32_t imageIndex) {
+  VkCommandBuffer commandBuffer = this->graphics[imageIndex];
+
   VkCommandBufferBeginInfo beginInfo{
       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO};
 
@@ -356,9 +360,9 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
   VkRenderPassBeginInfo renderPassInfo{
       .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
       .pNext = nullptr,
-      .renderPass = _pipelines.render.renderPass,
-      .framebuffer = _mechanics.swapchain.framebuffers[imageIndex],
-      .renderArea = {.offset = {0, 0}, .extent = _mechanics.swapchain.extent},
+      .renderPass = pipelines.render.renderPass,
+      .framebuffer = mechanics.swapchain.framebuffers[imageIndex],
+      .renderArea = {.offset = {0, 0}, .extent = mechanics.swapchain.extent},
       .clearValueCount = static_cast<uint32_t>(clearValues.size()),
       .pClearValues = clearValues.data()};
 
@@ -367,48 +371,51 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
   VkViewport viewport{
       .x = 0.0f,
       .y = 0.0f,
-      .width = static_cast<float>(_mechanics.swapchain.extent.width),
-      .height = static_cast<float>(_mechanics.swapchain.extent.height),
+      .width = static_cast<float>(mechanics.swapchain.extent.width),
+      .height = static_cast<float>(mechanics.swapchain.extent.height),
       .minDepth = 0.0f,
       .maxDepth = 1.0f};
   vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 
-  VkRect2D scissor{.offset = {0, 0}, .extent = _mechanics.swapchain.extent};
+  VkRect2D scissor{.offset = {0, 0}, .extent = mechanics.swapchain.extent};
   vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-  vkCmdBindDescriptorSets(
-      commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-      _pipelines.graphics.layout, 0, 1,
-      &CE::Descriptor::sets[_mechanics.syncObjects.currentFrame], 0, nullptr);
+  vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                          pipelines.graphics.layout, 0, 1,
+                          &CE::Descriptor::sets[imageIndex], 0, nullptr);
 
   // Pipeline 1
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                    _pipelines.config.getPipelineObjectByName("Cells"));
+                    pipelines.config.getPipelineObjectByName("Cells"));
   VkDeviceSize offsets[]{0};
 
   VkDeviceSize offsets0[]{0, 0};
 
-  VkBuffer currentShaderStorageBuffer[] = {shaderStorage.bufferIn.buffer,
-                                           shaderStorage.bufferOut.buffer};
+  VkBuffer currentShaderStorageBuffer[] = {
+      resources.shaderStorage.bufferIn.buffer,
+      resources.shaderStorage.bufferOut.buffer};
 
   VkBuffer vertexBuffers0[] = {
-      currentShaderStorageBuffer[_mechanics.syncObjects.currentFrame],
-      world.cube.vertexBuffer.buffer};
+      currentShaderStorageBuffer[mechanics.syncObjects.currentFrame],
+      resources.world.cube.vertexBuffer.buffer};
 
   vkCmdBindVertexBuffers(commandBuffer, 0, 2, vertexBuffers0, offsets0);
-  vkCmdDraw(commandBuffer, static_cast<uint32_t>(world.cube.allVertices.size()),
-            world.grid.size.x * world.grid.size.y, 0, 0);
+  vkCmdDraw(commandBuffer,
+            static_cast<uint32_t>(resources.world.cube.allVertices.size()),
+            resources.world.grid.size.x * resources.world.grid.size.y, 0, 0);
 
   // Landscape
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                    _pipelines.config.getPipelineObjectByName("Landscape"));
-  VkBuffer vertexBuffers1[] = {world.landscape.vertexBuffer.buffer};
+                    pipelines.config.getPipelineObjectByName("Landscape"));
+  VkBuffer vertexBuffers1[] = {resources.world.landscape.vertexBuffer.buffer};
   vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers1, offsets);
-  vkCmdBindIndexBuffer(commandBuffer, world.landscape.indexBuffer.buffer, 0,
+  vkCmdBindIndexBuffer(commandBuffer,
+                       resources.world.landscape.indexBuffer.buffer, 0,
                        VK_INDEX_TYPE_UINT32);
-  vkCmdDrawIndexed(commandBuffer,
-                   static_cast<uint32_t>(world.landscape.indices.size()), 1, 0,
-                   0, 0);
+  vkCmdDrawIndexed(
+      commandBuffer,
+      static_cast<uint32_t>(resources.world.landscape.indices.size()), 1, 0, 0,
+      0);
 
   // Landscape Wireframe
   // vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -419,54 +426,55 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
 
   // Pipeline 3
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                    _pipelines.config.getPipelineObjectByName("Water"));
-  VkBuffer vertexBuffers[] = {world.rectangle.vertexBuffer.buffer};
+                    pipelines.config.getPipelineObjectByName("Water"));
+  VkBuffer vertexBuffers[] = {resources.world.rectangle.vertexBuffer.buffer};
   vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
-  vkCmdBindIndexBuffer(commandBuffer, world.rectangle.indexBuffer.buffer, 0,
+  vkCmdBindIndexBuffer(commandBuffer,
+                       resources.world.rectangle.indexBuffer.buffer, 0,
                        VK_INDEX_TYPE_UINT32);
-  vkCmdDrawIndexed(commandBuffer,
-                   static_cast<uint32_t>(world.rectangle.indices.size()), 1, 0,
-                   0, 0);
+  vkCmdDrawIndexed(
+      commandBuffer,
+      static_cast<uint32_t>(resources.world.rectangle.indices.size()), 1, 0, 0,
+      0);
 
   // Pipeline 4
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                    _pipelines.config.getPipelineObjectByName("Texture"));
-  vkCmdDrawIndexed(commandBuffer,
-                   static_cast<uint32_t>(world.rectangle.indices.size()), 1, 0,
-                   0, 0);
+                    pipelines.config.getPipelineObjectByName("Texture"));
+  vkCmdDrawIndexed(
+      commandBuffer,
+      static_cast<uint32_t>(resources.world.rectangle.indices.size()), 1, 0, 0,
+      0);
   vkCmdEndRenderPass(commandBuffer);
 
   //       This is part of an image memory barrier (i.e., vkCmdPipelineBarrier
   //       with the VkImageMemoryBarrier parameter set)
 
-  _mechanics.swapchain.images[_mechanics.syncObjects.currentFrame]
-      .transitionLayout(commandBuffer, VK_FORMAT_R8G8B8A8_SRGB,
-                        VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
-                        /* -> */ VK_IMAGE_LAYOUT_GENERAL);
+  mechanics.swapchain.images[imageIndex].transitionLayout(
+      commandBuffer, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+      /* -> */ VK_IMAGE_LAYOUT_GENERAL);
 
   // vkDeviceWaitIdle(_mechanics.mainDevice.logical);
 
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
-                    _pipelines.config.getPipelineObjectByName("PostFX"));
+                    pipelines.config.getPipelineObjectByName("PostFX"));
 
-  vkCmdBindDescriptorSets(
-      commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, _pipelines.compute.layout,
-      0, 1, &CE::Descriptor::sets[_mechanics.syncObjects.currentFrame], 0,
-      nullptr);
+  vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
+                          pipelines.compute.layout, 0, 1,
+                          &CE::Descriptor::sets[imageIndex], 0, nullptr);
 
-  pushConstants.setData(world.time.passedHours);
-  vkCmdPushConstants(commandBuffer, _pipelines.compute.layout,
-                     pushConstants.shaderStage, pushConstants.offset,
-                     pushConstants.size, pushConstants.data.data());
+  resources.pushConstants.setData(resources.world.time.passedHours);
+  vkCmdPushConstants(
+      commandBuffer, pipelines.compute.layout,
+      resources.pushConstants.shaderStage, resources.pushConstants.offset,
+      resources.pushConstants.size, resources.pushConstants.data.data());
 
   const std::array<uint32_t, 3>& workGroups =
-      _pipelines.config.getWorkGroupsByName("PostFX");
+      pipelines.config.getWorkGroupsByName("PostFX");
   vkCmdDispatch(commandBuffer, workGroups[0], workGroups[1], workGroups[2]);
 
-  _mechanics.swapchain.images[_mechanics.syncObjects.currentFrame]
-      .transitionLayout(commandBuffer, VK_FORMAT_R8G8B8A8_SRGB,
-                        VK_IMAGE_LAYOUT_GENERAL,
-                        /* -> */ VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+  mechanics.swapchain.images[imageIndex].transitionLayout(
+      commandBuffer, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_GENERAL,
+      /* -> */ VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
   CE::VULKAN_RESULT(vkEndCommandBuffer, commandBuffer);
 }
