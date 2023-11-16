@@ -630,6 +630,21 @@ void CE::Commands::endSingularCommands(const VkCommandPool& commandPool,
                        &singularCommandBuffer);
 }
 
+void CE::Commands::createBuffers(std::vector<VkCommandBuffer>& commandBuffers,
+                                 const int size) {
+  Log::text("{ cmd }", "Command Buffers:", size);
+
+  commandBuffers.resize(size);
+  VkCommandBufferAllocateInfo allocateInfo{
+      .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+      .commandPool = this->pool,
+      .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+      .commandBufferCount = static_cast<uint32_t>(commandBuffers.size())};
+
+  CE::VULKAN_RESULT(vkAllocateCommandBuffers, CE::Device::baseDevice->logical,
+                    &allocateInfo, commandBuffers.data());
+}
+
 void CE::Device::destroyDevice() {
   static bool isDeviceDestroyed = false;
   for (const VkDevice& device : destroyedDevices) {

@@ -15,7 +15,6 @@ Resources::Resources(VulkanMechanics& mechanics, Pipelines& pipelines)
                     world.grid.size.y},
       sampler{textureImage},
       storageImage{mechanics.swapchain.images} {
-  
   Log::text(Log::Style::headerGuard);
   Log::text("{ /// }", "constructing Resources");
   CE::Descriptor::createSetLayout(CE::Descriptor::setLayoutBindings);
@@ -28,9 +27,6 @@ Resources::Resources(VulkanMechanics& mechanics, Pipelines& pipelines)
   createDescriptorPool();    // moved
   allocateDescriptorSets();  // moved
   createDescriptorSets();
-
-  createCommandBuffers(command.graphics, MAX_FRAMES_IN_FLIGHT);
-  createCommandBuffers(command.compute, MAX_FRAMES_IN_FLIGHT);
 }
 
 Resources::~Resources() {
@@ -146,21 +142,21 @@ void Resources::allocateDescriptorSets() {
                     &allocateInfo, CE::Descriptor::sets.data());
 }
 
-void Resources::createCommandBuffers(
-    std::vector<VkCommandBuffer>& commandBuffers,
-    const int size) {
-  Log::text("{ cmd }", "Command Buffers:", size);
-
-  commandBuffers.resize(size);
-  VkCommandBufferAllocateInfo allocateInfo{
-      .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-      .commandPool = command.pool,
-      .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-      .commandBufferCount = static_cast<uint32_t>(commandBuffers.size())};
-
-  CE::VULKAN_RESULT(vkAllocateCommandBuffers, _mechanics.mainDevice.logical,
-                    &allocateInfo, commandBuffers.data());
-}
+// void Resources::createCommandBuffers(
+//     std::vector<VkCommandBuffer>& commandBuffers,
+//     const int size) {
+//   Log::text("{ cmd }", "Command Buffers:", size);
+//
+//   commandBuffers.resize(size);
+//   VkCommandBufferAllocateInfo allocateInfo{
+//       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+//       .commandPool = command.pool,
+//       .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+//       .commandBufferCount = static_cast<uint32_t>(commandBuffers.size())};
+//
+//   CE::VULKAN_RESULT(vkAllocateCommandBuffers, _mechanics.mainDevice.logical,
+//                     &allocateInfo, commandBuffers.data());
+// }
 
 void Resources::createVertexBuffers(
     const std::unordered_map<Geometry*, VkVertexInputRate>& buffers) {
@@ -479,6 +475,8 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
 Resources::CommandBuffers::CommandBuffers(
     const CE::Queues::FamilyIndices& familyIndices) {
   createPool(familyIndices);
+  createBuffers(graphics, MAX_FRAMES_IN_FLIGHT);
+  createBuffers(compute, MAX_FRAMES_IN_FLIGHT);
 }
 
 Resources::DepthImage::DepthImage(const VkExtent2D extent,

@@ -95,11 +95,14 @@ class Commands {
   Commands() = default;
   virtual ~Commands();
   void createPool(const Queues::FamilyIndices& familyIndices);
+  void createBuffers(std::vector<VkCommandBuffer>& commandBuffers,
+                     const int size);
   static void beginSingularCommands(const VkCommandPool& commandPool,
                                     const VkQueue& queue);
   static void endSingularCommands(const VkCommandPool& commandPool,
                                   const VkQueue& queue);
 };
+
 class Buffer {
  public:
   VkBuffer buffer{};
@@ -193,6 +196,12 @@ class SynchronizationObjects {
   std::vector<VkFence> computeInFlightFences{};
   uint32_t currentFrame = 0;
 };
+
+// class FrameBuffers {
+// public:
+//     std::vector<CE::Image> images{};
+//     std::vector<VkFramebuffer> framebuffers{};
+// };
 
 class Swapchain {
  public:
