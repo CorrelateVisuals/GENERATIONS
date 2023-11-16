@@ -58,15 +58,15 @@ void CapitalEngine::drawFrame() {
            .computeInFlightFences[mechanics.syncObjects.currentFrame]);
 
   vkResetCommandBuffer(
-      resources.command.compute[mechanics.syncObjects.currentFrame], 0);
-  resources.command.recordComputeCommandBuffer(
+      resources.commands.compute[mechanics.syncObjects.currentFrame], 0);
+  resources.commands.recordComputeCommandBuffer(
       resources, pipelines, mechanics.syncObjects.currentFrame);
 
   VkSubmitInfo computeSubmitInfo{
       .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
       .commandBufferCount = 1,
       .pCommandBuffers =
-          &resources.command.compute[mechanics.syncObjects.currentFrame],
+          &resources.commands.compute[mechanics.syncObjects.currentFrame],
       .signalSemaphoreCount = 1,
       .pSignalSemaphores =
           &mechanics.syncObjects
@@ -105,9 +105,9 @@ void CapitalEngine::drawFrame() {
            .graphicsInFlightFences[mechanics.syncObjects.currentFrame]);
 
   vkResetCommandBuffer(
-      resources.command.graphics[mechanics.syncObjects.currentFrame], 0);
+      resources.commands.graphics[mechanics.syncObjects.currentFrame], 0);
 
-  resources.command.recordGraphicsCommandBuffer(
+  resources.commands.recordGraphicsCommandBuffer(
       mechanics, resources, pipelines, mechanics.syncObjects.currentFrame);
 
   std::vector<VkSemaphore> waitSemaphores{
@@ -126,7 +126,7 @@ void CapitalEngine::drawFrame() {
       .pWaitDstStageMask = waitStages.data(),
       .commandBufferCount = 1,
       .pCommandBuffers =
-          &resources.command.graphics[mechanics.syncObjects.currentFrame],
+          &resources.commands.graphics[mechanics.syncObjects.currentFrame],
       .signalSemaphoreCount = 1,
       .pSignalSemaphores =
           &mechanics.syncObjects

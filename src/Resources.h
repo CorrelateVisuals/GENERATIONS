@@ -34,7 +34,7 @@ class Resources {
                                      Resources& resources,
                                      Pipelines& pipelines,
                                      const uint32_t imageIndex) override;
-  } command;
+  } commands;
 
   struct DepthImage : public CE::Image {
     DepthImage(const VkExtent2D extent, const VkFormat format);

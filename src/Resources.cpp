@@ -5,9 +5,9 @@
 
 Resources::Resources(VulkanMechanics& mechanics, Pipelines& pipelines)
     : _mechanics(mechanics),
-      command{mechanics.queues.familyIndices},
+      commands{mechanics.queues.familyIndices},
       pushConstants{},
-      textureImage{command.singularCommandBuffer, command.pool,
+      textureImage{commands.singularCommandBuffer, commands.pool,
                    mechanics.queues.graphics},
       depthImage{mechanics.swapchain.extent, CE::Image::findDepthFormat()},
       msaaImage{mechanics.swapchain.extent, mechanics.swapchain.imageFormat},
@@ -86,7 +86,7 @@ void Resources::createShaderStorageBuffers() {
           VK_BUFFER_USAGE_TRANSFER_DST_BIT,
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, shaderStorage.bufferIn);
   CE::Buffer::copy(stagingResources.buffer, shaderStorage.bufferIn.buffer,
-                   bufferSize, command.singularCommandBuffer, command.pool,
+                   bufferSize, commands.singularCommandBuffer, commands.pool,
                    _mechanics.queues.graphics);
 
   CE::Buffer::create(
@@ -95,7 +95,7 @@ void Resources::createShaderStorageBuffers() {
           VK_BUFFER_USAGE_TRANSFER_DST_BIT,
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, shaderStorage.bufferOut);
   CE::Buffer::copy(stagingResources.buffer, shaderStorage.bufferOut.buffer,
-                   bufferSize, command.singularCommandBuffer, command.pool,
+                   bufferSize, commands.singularCommandBuffer, commands.pool,
                    _mechanics.queues.graphics);
 }
 
@@ -150,7 +150,7 @@ void Resources::allocateDescriptorSets() {
 //   commandBuffers.resize(size);
 //   VkCommandBufferAllocateInfo allocateInfo{
 //       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-//       .commandPool = command.pool,
+//       .commandPool = commands.pool,
 //       .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
 //       .commandBufferCount = static_cast<uint32_t>(commandBuffers.size())};
 //
@@ -195,7 +195,7 @@ void Resources::createVertexBuffer(CE::Buffer& buffer, const auto& vertices) {
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, buffer);
 
   CE::Buffer::copy(stagingResources.buffer, buffer.buffer, bufferSize,
-                   command.singularCommandBuffer, command.pool,
+                   commands.singularCommandBuffer, commands.pool,
                    _mechanics.queues.graphics);
 }
 
@@ -220,7 +220,7 @@ void Resources::createIndexBuffer(CE::Buffer& buffer, const auto& indices) {
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, buffer);
 
   CE::Buffer::copy(stagingResources.buffer, buffer.buffer, bufferSize,
-                   command.singularCommandBuffer, command.pool,
+                   commands.singularCommandBuffer, commands.pool,
                    _mechanics.queues.graphics);
 }
 
