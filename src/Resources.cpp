@@ -301,10 +301,10 @@ void Resources::createDescriptorSets() {
   }
 }
 
-void Resources::UniformBuffer::update() {
+void Resources::updateUniformBuffer(uint32_t currentImage) {
   World::UniformBufferObject uniformObject =
       world.updateUniforms(_mechanics.swapchain.extent);
-  std::memcpy(buffer.mapped, &uniformObject, sizeof(uniformObject));
+  std::memcpy(uniform.buffer.mapped, &uniformObject, sizeof(uniformObject));
 }
 
 void Resources::Commands::recordComputeCommandBuffer(

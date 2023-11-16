@@ -44,9 +44,9 @@ class Resources {
     MultisamplingImage(const VkExtent2D extent, const VkFormat format);
   } msaaImage;
 
-  struct UniformBuffer : public CE::Descriptor {
+  struct Uniform : public CE::Descriptor {
     CE::Buffer buffer{};
-    UniformBuffer() {
+    Uniform() {
       VkDescriptorType type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
       setLayoutBinding.binding = 0;
       setLayoutBinding.descriptorType = type;
@@ -72,7 +72,6 @@ class Resources {
         writeSet.pBufferInfo = &bufferInfo;
       }
     }
-    void update();
   } uniform;
 
   struct ShaderStorage : public CE::Descriptor {
@@ -159,6 +158,8 @@ class Resources {
 
  public:
   void createFramebuffers(Pipelines& _pipelines);
+
+  void updateUniformBuffer(uint32_t currentImage);
 
   void createDescriptorSets();
 
