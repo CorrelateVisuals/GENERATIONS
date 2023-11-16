@@ -29,11 +29,11 @@ class Resources {
     Commands(const CE::Queues::FamilyIndices& familyIndices);
     void recordComputeCommandBuffer(Resources& resources,
                                     Pipelines& pipelines,
-                                    const uint32_t imageIndex);
+                                    const uint32_t imageIndex) override;
     void recordGraphicsCommandBuffer(VulkanMechanics& mechanics,
                                      Resources& resources,
                                      Pipelines& pipelines,
-                                     const uint32_t imageIndex);
+                                     const uint32_t imageIndex) override;
   } command;
 
   struct DepthImage : public CE::Image {

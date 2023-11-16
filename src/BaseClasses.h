@@ -16,6 +16,10 @@
 
 constexpr uint8_t CE_MAX_FRAMES_IN_FLIGHT = 2;
 
+class VulkanMechanics;
+class Resources;
+class Pipelines;
+
 namespace CE {
 class Swapchain;
 
@@ -96,12 +100,20 @@ class CommandBuffers {
 
   CommandBuffers() = default;
   virtual ~CommandBuffers();
-  void createPool(const Queues::FamilyIndices& familyIndices);
-  void createBuffers(std::vector<VkCommandBuffer>& commandBuffers);
   static void beginSingularCommands(const VkCommandPool& commandPool,
                                     const VkQueue& queue);
   static void endSingularCommands(const VkCommandPool& commandPool,
                                   const VkQueue& queue);
+  virtual void recordComputeCommandBuffer(Resources& resources,
+                                          Pipelines& pipelines,
+                                          const uint32_t imageIndex) = 0;
+  virtual void recordGraphicsCommandBuffer(VulkanMechanics& mechanics,
+                                           Resources& resources,
+                                           Pipelines& pipelines,
+                                           const uint32_t imageIndex) = 0;
+protected:
+    void createPool(const Queues::FamilyIndices& familyIndices);
+    void createBuffers(std::vector<VkCommandBuffer>& commandBuffers);
 };
 
 class Buffer {
