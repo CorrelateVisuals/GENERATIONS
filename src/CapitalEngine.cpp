@@ -59,8 +59,9 @@ void CapitalEngine::drawFrame() {
 
   vkResetCommandBuffer(
       resources.command.compute[mechanics.syncObjects.currentFrame], 0);
-  resources.recordComputeCommandBuffer(
-      resources.command.compute[mechanics.syncObjects.currentFrame], pipelines);
+  resources.command.recordComputeCommandBuffer(
+      pipelines, mechanics.syncObjects.currentFrame, resources.pushConstants,
+      resources.world.time.passedHours);
 
   VkSubmitInfo computeSubmitInfo{
       .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,

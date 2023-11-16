@@ -307,8 +307,13 @@ void Resources::updateUniformBuffer(uint32_t currentImage) {
   std::memcpy(uniform.buffer.mapped, &uniformObject, sizeof(uniformObject));
 }
 
-void Resources::recordComputeCommandBuffer(VkCommandBuffer commandBuffer,
-                                           Pipelines& _pipelines) {
+void Resources::Commands::recordComputeCommandBuffer(
+    Pipelines& pipelines,
+    const uint32_t imageIndex,
+    CE::PushConstants& pushConstants,
+    const uint64_t passedHours) {
+  VkCommandBuffer commandBuffer = this->compute[imageIndex];
+
   VkCommandBufferBeginInfo beginInfo{
       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO};
 
@@ -317,27 +322,21 @@ void Resources::recordComputeCommandBuffer(VkCommandBuffer commandBuffer,
         "failed to begin recording compute command buffer!");
   }
 
-  // vkCmdPipelineBarrier(
-  //     command.compute[_mechanics.syncObjects.currentFrame],
-  //     VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-  //     VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, 0, 0, nullptr, 0, nullptr, 0,
-  //     nullptr);
-
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
-                    _pipelines.config.getPipelineObjectByName("Engine"));
+                    pipelines.config.getPipelineObjectByName("Engine"));
 
-  vkCmdBindDescriptorSets(
-      commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, _pipelines.compute.layout,
-      0, 1, &CE::Descriptor::sets[_mechanics.syncObjects.currentFrame], 0,
-      nullptr);
+  vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
+                          pipelines.compute.layout, 0, 1,
+                          &CE::Descriptor::sets[imageIndex], 0, nullptr);
 
-  pushConstants.setData(world.time.passedHours);
-  vkCmdPushConstants(commandBuffer, _pipelines.compute.layout,
+  pushConstants.setData(passedHours);
+
+  vkCmdPushConstants(commandBuffer, pipelines.compute.layout,
                      pushConstants.shaderStage, pushConstants.offset,
                      pushConstants.size, pushConstants.data.data());
 
   const std::array<uint32_t, 3>& workGroups =
-      _pipelines.config.getWorkGroupsByName("Engine");
+      pipelines.config.getWorkGroupsByName("Engine");
   vkCmdDispatch(commandBuffer, workGroups[0], workGroups[0], workGroups[2]);
 
   CE::VULKAN_RESULT(vkEndCommandBuffer, commandBuffer);

@@ -90,6 +90,8 @@ class Device {
 class CommandBuffers {
  public:
   VkCommandPool pool{};
+  std::vector<VkCommandBuffer> graphics{};
+  std::vector<VkCommandBuffer> compute{};
   static VkCommandBuffer singularCommandBuffer;
 
   CommandBuffers() = default;

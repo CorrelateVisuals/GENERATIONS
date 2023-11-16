@@ -27,8 +27,10 @@ class Resources {
 
   struct Commands : public CE::CommandBuffers {
     Commands(const CE::Queues::FamilyIndices& familyIndices);
-    std::vector<VkCommandBuffer> graphics{};
-    std::vector<VkCommandBuffer> compute{};
+    void recordComputeCommandBuffer(Pipelines& pipelines,
+                                    const uint32_t imageIndex,
+                                    CE::PushConstants& pushConstants,
+                                    const uint64_t passedHours);
   } command;
 
   struct DepthImage : public CE::Image {
@@ -161,8 +163,6 @@ class Resources {
   void recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
                                    uint32_t imageIndex,
                                    Pipelines& _pipelines);
-  void recordComputeCommandBuffer(VkCommandBuffer commandBuffer,
-                                  Pipelines& _pipelines);
 
  private:
   VulkanMechanics& _mechanics;
