@@ -71,7 +71,9 @@ class Resources {
         writeSet.descriptorType = type;
         writeSet.pBufferInfo = &bufferInfo;
       }
+      create();
     }
+    void create();
     void update(World& world, const VkExtent2D extent);
   } uniform;
 
@@ -173,5 +175,5 @@ class Resources {
   void createVertexBuffer(CE::Buffer& buffer, const auto& vertices);
   void createIndexBuffer(CE::Buffer& buffer, const auto& indices);
   void createShaderStorageBuffers();
-  void createUniformBuffers();
+  // void createUniformBuffers();
 };

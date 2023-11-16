@@ -21,7 +21,7 @@ Resources::Resources(VulkanMechanics& mechanics, Pipelines& pipelines)
 
   createFramebuffers(pipelines);
   createShaderStorageBuffers();
-  createUniformBuffers();
+
   createVertexBuffers(vertexBuffers);
 
   createDescriptorPool();    // moved
@@ -99,17 +99,17 @@ void Resources::createShaderStorageBuffers() {
                    _mechanics.queues.graphics);
 }
 
-void Resources::createUniformBuffers() {
+void Resources::UniformBuffer::create() {
   Log::text("{ 101 }", MAX_FRAMES_IN_FLIGHT, "Uniform Buffers");
   VkDeviceSize bufferSize = sizeof(World::UniformBufferObject);
 
   CE::Buffer::create(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
                      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                          VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                     uniform.buffer);
+                     buffer);
 
-  vkMapMemory(_mechanics.mainDevice.logical, uniform.buffer.memory, 0,
-              bufferSize, 0, &uniform.buffer.mapped);
+  vkMapMemory(CE::Device::baseDevice->logical, buffer.memory, 0, bufferSize, 0,
+              &buffer.mapped);
 }
 
 void Resources::createDescriptorPool() {
