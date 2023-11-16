@@ -87,13 +87,13 @@ class Device {
   static std::vector<VkDevice> destroyedDevices;
 };
 
-class Commands {
+class CommandBuffers {
  public:
   VkCommandPool pool{};
   static VkCommandBuffer singularCommandBuffer;
 
-  Commands() = default;
-  virtual ~Commands();
+  CommandBuffers() = default;
+  virtual ~CommandBuffers();
   void createPool(const Queues::FamilyIndices& familyIndices);
   void createBuffers(std::vector<VkCommandBuffer>& commandBuffers);
   static void beginSingularCommands(const VkCommandPool& commandPool,

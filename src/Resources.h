@@ -25,8 +25,8 @@ class Resources {
       {&world.rectangle, VK_VERTEX_INPUT_RATE_INSTANCE},
       {&world.cube, VK_VERTEX_INPUT_RATE_VERTEX}};
 
-  struct CommandBuffers : public CE::Commands {
-    CommandBuffers(const CE::Queues::FamilyIndices& familyIndices);
+  struct Commands : public CE::CommandBuffers {
+    Commands(const CE::Queues::FamilyIndices& familyIndices);
     std::vector<VkCommandBuffer> graphics{};
     std::vector<VkCommandBuffer> compute{};
   } command;

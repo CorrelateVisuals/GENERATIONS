@@ -472,8 +472,7 @@ void Resources::recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
   CE::VULKAN_RESULT(vkEndCommandBuffer, commandBuffer);
 }
 
-Resources::CommandBuffers::CommandBuffers(
-    const CE::Queues::FamilyIndices& familyIndices) {
+Resources::Commands::Commands(const CE::Queues::FamilyIndices& familyIndices) {
   createPool(familyIndices);
   createBuffers(graphics);
   createBuffers(compute);
