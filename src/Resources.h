@@ -15,7 +15,7 @@ class Pipelines;
 
 class Resources {
  public:
-  Resources(VulkanMechanics& mechanics);
+  Resources(VulkanMechanics& mechanics, Pipelines& pipelines);
   ~Resources();
 
   World world{};
@@ -152,8 +152,6 @@ class Resources {
   } pushConstants;
 
  public:
-  void setupResources(Pipelines& _pipelines);
-
   void createFramebuffers(Pipelines& _pipelines);
 
   void updateUniformBuffer(uint32_t currentImage);

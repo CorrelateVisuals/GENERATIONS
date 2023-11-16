@@ -3,11 +3,9 @@
 #include <iostream>
 
 CapitalEngine::CapitalEngine()
-    : pipelines(mechanics, resources), resources(mechanics) {
+    : pipelines(mechanics, resources), resources(mechanics, pipelines) {
   Log::text(Log::Style::headerGuard);
   Log::text("| CAPITAL Engine");
-
-  resources.setupResources(pipelines);
 }
 
 CapitalEngine::~CapitalEngine() {

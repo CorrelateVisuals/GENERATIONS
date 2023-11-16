@@ -3,7 +3,7 @@
 #include "CapitalEngine.h"
 #include "Resources.h"
 
-Resources::Resources(VulkanMechanics& mechanics)
+Resources::Resources(VulkanMechanics& mechanics, Pipelines& pipelines)
     : _mechanics(mechanics),
       command{mechanics.queues.familyIndices},
       pushConstants{},
@@ -15,19 +15,12 @@ Resources::Resources(VulkanMechanics& mechanics)
                     world.grid.size.y},
       sampler{textureImage},
       storageImage{mechanics.swapchain.images} {
+  
+  Log::text(Log::Style::headerGuard);
   Log::text("{ /// }", "constructing Resources");
   CE::Descriptor::createSetLayout(CE::Descriptor::setLayoutBindings);
-}
 
-Resources::~Resources() {
-  Log::text("{ /// }", "destructing Resources");
-}
-
-void Resources::setupResources(Pipelines& _pipelines) {
-  Log::text(Log::Style::headerGuard);
-  Log::text("{ /// }", "Setup Resources");
-
-  createFramebuffers(_pipelines);
+  createFramebuffers(pipelines);
   createShaderStorageBuffers();
   createUniformBuffers();
   createVertexBuffers(vertexBuffers);
@@ -38,6 +31,10 @@ void Resources::setupResources(Pipelines& _pipelines) {
 
   createCommandBuffers(command.graphics, MAX_FRAMES_IN_FLIGHT);
   createCommandBuffers(command.compute, MAX_FRAMES_IN_FLIGHT);
+}
+
+Resources::~Resources() {
+  Log::text("{ /// }", "destructing Resources");
 }
 
 void Resources::createFramebuffers(Pipelines& _pipelines) {
@@ -118,27 +115,6 @@ void Resources::createUniformBuffers() {
   vkMapMemory(_mechanics.mainDevice.logical, uniform.buffer.memory, 0,
               bufferSize, 0, &uniform.buffer.mapped);
 }
-
-// void Resources::createDescriptorSetLayout(
-//     const std::vector<VkDescriptorSetLayoutBinding>& layoutBindings) {
-//   Log::text("{ |=| }", "Descriptor Set Layout:", layoutBindings.size(),
-//             "bindings");
-//   for (const VkDescriptorSetLayoutBinding& item : layoutBindings) {
-//     Log::text("{ ", item.binding, " }",
-//               Log::getDescriptorTypeString(item.descriptorType));
-//     Log::text(Log::Style::charLeader,
-//               Log::getShaderStageString(item.stageFlags));
-//   }
-//
-//   VkDescriptorSetLayoutCreateInfo layoutInfo{
-//       .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-//       .bindingCount = static_cast<uint32_t>(layoutBindings.size()),
-//       .pBindings = layoutBindings.data()};
-//
-//   CE::VULKAN_RESULT(vkCreateDescriptorSetLayout,
-//   _mechanics.mainDevice.logical,
-//                     &layoutInfo, nullptr, &CE::Descriptor::setLayout);
-// }
 
 void Resources::createDescriptorPool() {
   Log::text("{ |=| }", "Descriptor Pool");
