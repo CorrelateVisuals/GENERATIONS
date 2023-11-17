@@ -48,10 +48,10 @@ void Resources::createShaderStorageBuffers() {
                      stagingResources);
 
   void* data;
-  vkMapMemory(_mechanics.mainDevice.logical, stagingResources.memory, 0,
+  vkMapMemory(CE::Device::baseDevice->logical, stagingResources.memory, 0,
               bufferSize, 0, &data);
   std::memcpy(data, cells.data(), static_cast<size_t>(bufferSize));
-  vkUnmapMemory(_mechanics.mainDevice.logical, stagingResources.memory);
+  vkUnmapMemory(CE::Device::baseDevice->logical, stagingResources.memory);
 
   CE::Buffer::create(
       static_cast<VkDeviceSize>(bufferSize),
@@ -93,25 +93,24 @@ void Resources::createDescriptorPool() {
   }
   VkDescriptorPoolCreateInfo poolInfo{
       .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-      .maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT),
+      .maxSets = MAX_FRAMES_IN_FLIGHT,
       .poolSizeCount = static_cast<uint32_t>(CE::Descriptor::poolSizes.size()),
       .pPoolSizes = CE::Descriptor::poolSizes.data()};
 
-  CE::VULKAN_RESULT(vkCreateDescriptorPool, _mechanics.mainDevice.logical,
+  CE::VULKAN_RESULT(vkCreateDescriptorPool, CE::Device::baseDevice->logical,
                     &poolInfo, nullptr, &CE::Descriptor::pool);
 }
 
 void Resources::allocateDescriptorSets() {
-  std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT,
-                                             CE::Descriptor::setLayout);
+  std::array<VkDescriptorSetLayout, MAX_FRAMES_IN_FLIGHT> layouts{
+      CE::Descriptor::setLayout, CE::Descriptor::setLayout};
   VkDescriptorSetAllocateInfo allocateInfo{
       .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
       .descriptorPool = CE::Descriptor::pool,
-      .descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT),
+      .descriptorSetCount = MAX_FRAMES_IN_FLIGHT,
       .pSetLayouts = layouts.data()};
 
-  CE::Descriptor::sets.resize(MAX_FRAMES_IN_FLIGHT);
-  CE::VULKAN_RESULT(vkAllocateDescriptorSets, _mechanics.mainDevice.logical,
+  CE::VULKAN_RESULT(vkAllocateDescriptorSets, CE::Device::baseDevice->logical,
                     &allocateInfo, CE::Descriptor::sets.data());
 }
 
@@ -141,10 +140,10 @@ void Resources::createVertexBuffer(CE::Buffer& buffer, const auto& vertices) {
                      stagingResources);
 
   void* data;
-  vkMapMemory(_mechanics.mainDevice.logical, stagingResources.memory, 0,
+  vkMapMemory(CE::Device::baseDevice->logical, stagingResources.memory, 0,
               bufferSize, 0, &data);
   memcpy(data, vertices.data(), (size_t)bufferSize);
-  vkUnmapMemory(_mechanics.mainDevice.logical, stagingResources.memory);
+  vkUnmapMemory(CE::Device::baseDevice->logical, stagingResources.memory);
 
   CE::Buffer::create(
       bufferSize,
@@ -166,10 +165,10 @@ void Resources::createIndexBuffer(CE::Buffer& buffer, const auto& indices) {
                      stagingResources);
 
   void* data;
-  vkMapMemory(_mechanics.mainDevice.logical, stagingResources.memory, 0,
+  vkMapMemory(CE::Device::baseDevice->logical, stagingResources.memory, 0,
               bufferSize, 0, &data);
   memcpy(data, indices.data(), (size_t)bufferSize);
-  vkUnmapMemory(_mechanics.mainDevice.logical, stagingResources.memory);
+  vkUnmapMemory(CE::Device::baseDevice->logical, stagingResources.memory);
 
   CE::Buffer::create(
       bufferSize,
@@ -252,7 +251,7 @@ void Resources::createDescriptorSets() {
          .pImageInfo = &swapchainImageInfo},
     };
 
-    vkUpdateDescriptorSets(_mechanics.mainDevice.logical,
+    vkUpdateDescriptorSets(CE::Device::baseDevice->logical,
                            static_cast<uint32_t>(descriptorWrites.size()),
                            descriptorWrites.data(), 0, nullptr);
   }
@@ -311,8 +310,9 @@ void Resources::Commands::recordGraphicsCommandBuffer(
 
   CE::VULKAN_RESULT(vkBeginCommandBuffer, commandBuffer, &beginInfo);
 
-  std::vector<VkClearValue> clearValues{{.color = {{0.0f, 0.0f, 0.0f, 1.0f}}},
-                                        {.depthStencil = {1.0f, 0}}};
+  std::array<VkClearValue, 2> clearValues{
+      VkClearValue{.color = {{0.0f, 0.0f, 0.0f, 1.0f}}},
+      VkClearValue{.depthStencil = {1.0f, 0}}};
 
   VkRenderPassBeginInfo renderPassInfo{
       .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,

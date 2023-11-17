@@ -48,19 +48,18 @@ World::Landscape::getAttributeDescription() {
 }
 
 std::vector<World::Cell> World::initializeGrid() {
-  const uint_fast32_t numGridPoints{grid.size.x * grid.size.y};
   const uint_fast32_t numAliveCells{grid.initialAliveCells};
 
-  if (numAliveCells > numGridPoints) {
+  if (numAliveCells > grid.numPoints) {
     throw std::runtime_error(
         "\n!ERROR! Number of alive cells exceeds number of grid "
         "points");
   }
 
-  std::vector<World::Cell> cells(numGridPoints);
-  std::vector<bool> isAliveIndices(numGridPoints, false);
+  std::vector<World::Cell> cells(grid.numPoints);
+  std::vector<bool> isAliveIndices(grid.numPoints, false);
   std::vector<float> landscapeHeight = generateLandscapeHeight();
-  std::vector<uint32_t> tempIndices(numGridPoints);
+  std::vector<uint32_t> tempIndices(grid.numPoints);
 
   std::vector<uint_fast32_t> aliveCellIndices =
       setCellsAliveRandomly(grid.initialAliveCells);
@@ -70,7 +69,7 @@ std::vector<World::Cell> World::initializeGrid() {
 
   float startX = (grid.size.x - 1) / -2.0f;
   float startY = (grid.size.y - 1) / -2.0f;
-  for (uint_fast32_t i = 0; i < numGridPoints; ++i) {
+  for (uint_fast32_t i = 0; i < grid.numPoints; ++i) {
     const float posX = startX + static_cast<uint_fast16_t>(i % grid.size.x);
     const float posY = startY + static_cast<uint_fast16_t>(i / grid.size.x);
     const bool isAlive = isAliveIndices[i];

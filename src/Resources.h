@@ -56,7 +56,7 @@ class Resources {
       setLayoutBindings.push_back(setLayoutBinding);
 
       poolSize.type = type;
-      poolSize.descriptorCount = static_cast<uint32_t>(2);
+      poolSize.descriptorCount = MAX_FRAMES_IN_FLIGHT;
       poolSizes.push_back(poolSize);
 
       for (uint_fast8_t i = 0; i < 2; i++) {
@@ -90,7 +90,7 @@ class Resources {
       setLayoutBindings.push_back(setLayoutBinding);
 
       poolSize.type = setLayoutBinding.descriptorType;
-      poolSize.descriptorCount = static_cast<uint32_t>(2) * 2;
+      poolSize.descriptorCount = MAX_FRAMES_IN_FLIGHT * 2;
       poolSizes.push_back(poolSize);
 
       bufferInfo.buffer = bufferIn.buffer;
@@ -112,7 +112,7 @@ class Resources {
       setLayoutBindings.push_back(setLayoutBinding);
 
       poolSize.type = setLayoutBinding.descriptorType;
-      poolSize.descriptorCount = static_cast<uint32_t>(2);
+      poolSize.descriptorCount = MAX_FRAMES_IN_FLIGHT;
       poolSizes.push_back(poolSize);
 
       imageInfo.sampler = image.sampler;
@@ -138,7 +138,7 @@ class Resources {
       setLayoutBindings.push_back(setLayoutBinding);
 
       poolSize.type = setLayoutBinding.descriptorType;
-      poolSize.descriptorCount = static_cast<uint32_t>(2);
+      poolSize.descriptorCount = MAX_FRAMES_IN_FLIGHT;
       poolSizes.push_back(poolSize);
 
       for (uint_fast8_t i = 0; i < images.size(); i++) {

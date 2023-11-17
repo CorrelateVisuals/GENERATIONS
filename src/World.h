@@ -19,8 +19,9 @@ class World {
   Timer time{speed};
 
   struct Grid {
-    const uint_fast32_t initialAliveCells = 5000;
     vec2_uint_fast16_t size = {100, 100};
+    const uint_fast32_t initialAliveCells = 5000;
+    const size_t numPoints = {size.x * size.y};
   } grid;
 
   struct Landscape : public Geometry {

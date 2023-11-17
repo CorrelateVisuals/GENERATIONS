@@ -13,7 +13,7 @@ VkCommandBuffer CE::CommandBuffers::singularCommandBuffer = VK_NULL_HANDLE;
 
 VkDescriptorPool CE::Descriptor::pool;
 VkDescriptorSetLayout CE::Descriptor::setLayout;
-std::vector<VkDescriptorSet> CE::Descriptor::sets;
+std::array<VkDescriptorSet, MAX_FRAMES_IN_FLIGHT> CE::Descriptor::sets;
 std::vector<VkDescriptorPoolSize> CE::Descriptor::poolSizes;
 std::vector<VkDescriptorSetLayoutBinding> CE::Descriptor::setLayoutBindings;
 
@@ -552,10 +552,9 @@ void CE::Descriptor::allocateSets() {
   VkDescriptorSetAllocateInfo allocateInfo{
       .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
       .descriptorPool = this->pool,
-      .descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT),
+      .descriptorSetCount = MAX_FRAMES_IN_FLIGHT,
       .pSetLayouts = layouts.data()};
 
-  this->sets.resize(MAX_FRAMES_IN_FLIGHT);
   CE::VULKAN_RESULT(vkAllocateDescriptorSets, Device::baseDevice->logical,
                     &allocateInfo, this->sets.data());
 }
@@ -568,7 +567,7 @@ void CE::Descriptor::createPool() {
   }
   VkDescriptorPoolCreateInfo poolInfo{
       .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-      .maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT),
+      .maxSets = MAX_FRAMES_IN_FLIGHT,
       .poolSizeCount = static_cast<uint32_t>(this->poolSizes.size()),
       .pPoolSizes = this->poolSizes.data()};
 
