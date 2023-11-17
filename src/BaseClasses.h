@@ -14,7 +14,7 @@
 #include <variant>
 #include <vector>
 
-constexpr uint32_t CE_MAX_FRAMES_IN_FLIGHT = 2;
+constexpr uint32_t MAX_FRAMES_IN_FLIGHT = 2;
 
 class VulkanMechanics;
 class Resources;
@@ -94,8 +94,8 @@ class Device {
 class CommandBuffers {
  public:
   VkCommandPool pool{};
-  std::array<VkCommandBuffer, CE_MAX_FRAMES_IN_FLIGHT> graphics{};
-  std::array<VkCommandBuffer, CE_MAX_FRAMES_IN_FLIGHT> compute{};
+  std::array<VkCommandBuffer, MAX_FRAMES_IN_FLIGHT> graphics{};
+  std::array<VkCommandBuffer, MAX_FRAMES_IN_FLIGHT> compute{};
   static VkCommandBuffer singularCommandBuffer;
 
   CommandBuffers() = default;
@@ -115,7 +115,7 @@ class CommandBuffers {
  protected:
   void createPool(const Queues::FamilyIndices& familyIndices);
   void createBuffers(
-      std::array<VkCommandBuffer, CE_MAX_FRAMES_IN_FLIGHT>& commandBuffers);
+      std::array<VkCommandBuffer, MAX_FRAMES_IN_FLIGHT>& commandBuffers);
 };
 
 class Buffer {
@@ -204,27 +204,21 @@ class SynchronizationObjects {
   ~SynchronizationObjects() { destroy(); };
   void create();
   void destroy();
-  std::array<VkSemaphore, CE_MAX_FRAMES_IN_FLIGHT> imageAvailableSemaphores{};
-  std::array<VkSemaphore, CE_MAX_FRAMES_IN_FLIGHT> renderFinishedSemaphores{};
-  std::array<VkSemaphore, CE_MAX_FRAMES_IN_FLIGHT> computeFinishedSemaphores{};
-  std::array<VkFence, CE_MAX_FRAMES_IN_FLIGHT> graphicsInFlightFences{};
-  std::array<VkFence, CE_MAX_FRAMES_IN_FLIGHT> computeInFlightFences{};
+  std::array<VkSemaphore, MAX_FRAMES_IN_FLIGHT> imageAvailableSemaphores{};
+  std::array<VkSemaphore, MAX_FRAMES_IN_FLIGHT> renderFinishedSemaphores{};
+  std::array<VkSemaphore, MAX_FRAMES_IN_FLIGHT> computeFinishedSemaphores{};
+  std::array<VkFence, MAX_FRAMES_IN_FLIGHT> graphicsInFlightFences{};
+  std::array<VkFence, MAX_FRAMES_IN_FLIGHT> computeInFlightFences{};
   uint32_t currentFrame = 0;
 };
-
-// class FrameBuffers {
-// public:
-//     std::vector<CE::Image> images{};
-//     std::vector<VkFramebuffer> framebuffers{};
-// };
 
 class Swapchain {
  public:
   VkSwapchainKHR swapchain{};
   VkExtent2D extent{};
   VkFormat imageFormat{};
-  std::vector<CE::Image> images{};
-  std::vector<VkFramebuffer> framebuffers{};
+  std::array<CE::Image, MAX_FRAMES_IN_FLIGHT> images{};
+  std::array<VkFramebuffer, MAX_FRAMES_IN_FLIGHT> framebuffers{};
 
   struct SupportDetails {
     VkSurfaceCapabilitiesKHR capabilities{};

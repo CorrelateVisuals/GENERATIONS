@@ -130,7 +130,7 @@ class Resources {
 
   struct StorageImage : public CE::Descriptor {
     CE::Buffer buffer{};
-    StorageImage(std::vector<CE::Image>& images) {
+    StorageImage(std::array<CE::Image, MAX_FRAMES_IN_FLIGHT>& images) {
       setLayoutBinding.binding = 4;
       setLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
       setLayoutBinding.descriptorCount = 1;

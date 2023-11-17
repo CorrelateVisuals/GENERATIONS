@@ -547,15 +547,15 @@ void CE::Descriptor::createSetLayout(
 }
 
 void CE::Descriptor::allocateSets() {
-  std::vector<VkDescriptorSetLayout> layouts(CE_MAX_FRAMES_IN_FLIGHT,
+  std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT,
                                              this->setLayout);
   VkDescriptorSetAllocateInfo allocateInfo{
       .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
       .descriptorPool = this->pool,
-      .descriptorSetCount = static_cast<uint32_t>(CE_MAX_FRAMES_IN_FLIGHT),
+      .descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT),
       .pSetLayouts = layouts.data()};
 
-  this->sets.resize(CE_MAX_FRAMES_IN_FLIGHT);
+  this->sets.resize(MAX_FRAMES_IN_FLIGHT);
   CE::VULKAN_RESULT(vkAllocateDescriptorSets, Device::baseDevice->logical,
                     &allocateInfo, this->sets.data());
 }
@@ -568,7 +568,7 @@ void CE::Descriptor::createPool() {
   }
   VkDescriptorPoolCreateInfo poolInfo{
       .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-      .maxSets = static_cast<uint32_t>(CE_MAX_FRAMES_IN_FLIGHT),
+      .maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT),
       .poolSizeCount = static_cast<uint32_t>(this->poolSizes.size()),
       .pPoolSizes = this->poolSizes.data()};
 
@@ -632,8 +632,8 @@ void CE::CommandBuffers::endSingularCommands(const VkCommandPool& commandPool,
 }
 
 void CE::CommandBuffers::createBuffers(
-    std::array<VkCommandBuffer, CE_MAX_FRAMES_IN_FLIGHT>& commandBuffers) {
-  Log::text("{ cmd }", "Command Buffers:", CE_MAX_FRAMES_IN_FLIGHT);
+    std::array<VkCommandBuffer, MAX_FRAMES_IN_FLIGHT>& commandBuffers) {
+  Log::text("{ cmd }", "Command Buffers:", MAX_FRAMES_IN_FLIGHT);
   VkCommandBufferAllocateInfo allocateInfo{
       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
       .commandPool = this->pool,
@@ -828,11 +828,10 @@ void CE::Swapchain::create(const VkSurfaceKHR& surface, const Queues& queues) {
   vkGetSwapchainImagesKHR(Device::baseDevice->logical, this->swapchain,
                           &imageCount, nullptr);
 
-  this->images.resize(imageCount);
   this->imageFormat = surfaceFormat.format;
   this->extent = extent;
 
-  std::vector<VkImage> swapchainImages(CE_MAX_FRAMES_IN_FLIGHT);
+  std::vector<VkImage> swapchainImages(MAX_FRAMES_IN_FLIGHT);
   vkGetSwapchainImagesKHR(Device::baseDevice->logical, this->swapchain,
                           &imageCount, swapchainImages.data());
 
@@ -885,7 +884,7 @@ void CE::SynchronizationObjects::create() {
   VkFenceCreateInfo fenceInfo{.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
                               .flags = VK_FENCE_CREATE_SIGNALED_BIT};
 
-  for (uint_fast8_t i = 0; i < CE_MAX_FRAMES_IN_FLIGHT; i++) {
+  for (uint_fast8_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
     CE::VULKAN_RESULT(vkCreateSemaphore, Device::baseDevice->logical,
                       &semaphoreInfo, nullptr,
                       &this->imageAvailableSemaphores[i]);
@@ -905,7 +904,7 @@ void CE::SynchronizationObjects::create() {
 void CE::SynchronizationObjects::destroy() {
   if (Device::baseDevice) {
     Log::text("{ ||| }", "Destroy Synchronization Objects");
-    for (uint_fast8_t i = 0; i < CE_MAX_FRAMES_IN_FLIGHT; i++) {
+    for (uint_fast8_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
       vkDestroySemaphore(Device::baseDevice->logical,
                          this->renderFinishedSemaphores[i], nullptr);
       vkDestroySemaphore(Device::baseDevice->logical,
@@ -1087,8 +1086,6 @@ void CE::RenderPass::createFramebuffers(CE::Swapchain& swapchain,
                                         const VkImageView& msaaView,
                                         const VkImageView& depthView) {
   Log::text("{ 101 }", "Frame Buffers:", swapchain.images.size());
-
-  swapchain.framebuffers.resize(swapchain.images.size());
 
   Log::text(Log::Style::charLeader,
             "attachments: msaaImage., depthImage, swapchain imageViews");
