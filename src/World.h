@@ -55,7 +55,6 @@ class World {
       createVertexBuffer(commandBuffer, commandPool, queue, allVertices);
     };
     const float size = 0.5f;
-
   } cube;
 
   struct alignas(16) Cell {

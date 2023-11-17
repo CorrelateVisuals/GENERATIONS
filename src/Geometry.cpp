@@ -80,7 +80,7 @@ std::vector<uint32_t> Geometry::createGridPolygons(
 void Geometry::createVertexBuffer(VkCommandBuffer& commandBuffer,
                                   const VkCommandPool& commandPool,
                                   const VkQueue& queue,
-                                  const auto& vertices) {
+                                  const std::vector<Vertex>& vertices) {
   CE::Buffer stagingResources;
   VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
 
@@ -107,7 +107,7 @@ void Geometry::createVertexBuffer(VkCommandBuffer& commandBuffer,
 void Geometry::createIndexBuffer(VkCommandBuffer& commandBuffer,
                                  const VkCommandPool& commandPool,
                                  const VkQueue& queue,
-                                 const auto& indices) {
+                                 const std::vector<uint32_t>& indices) {
   CE::Buffer stagingResources;
   VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
 

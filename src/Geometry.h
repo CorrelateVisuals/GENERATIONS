@@ -18,11 +18,11 @@ const enum ORIENTATION_ORDER { ROTATE_SCALE_TRANSLATE, ROTATE_TRANSLATE_SCALE };
 
 class Vertex {
  public:
-  glm::vec3 instancePosition{};
-  glm::vec3 vertexPosition{};
-  glm::vec3 normal{};
-  glm::vec3 color{};
-  glm::vec2 textureCoordinates{};
+  glm::vec3 instancePosition;
+  glm::vec3 vertexPosition;
+  glm::vec3 normal;
+  glm::vec3 color;
+  glm::vec2 textureCoordinates;
 
   static std::vector<VkVertexInputBindingDescription> getBindingDescription();
   static std::vector<VkVertexInputAttributeDescription>
@@ -55,12 +55,12 @@ class Geometry : public Vertex {
   void createVertexBuffer(VkCommandBuffer& commandBuffer,
                           const VkCommandPool& commandPool,
                           const VkQueue& queue,
-                          const auto& vertices);
+                          const std::vector<Vertex>& vertices);
 
   void createIndexBuffer(VkCommandBuffer& commandBuffer,
                          const VkCommandPool& commandPool,
                          const VkQueue& queue,
-                         const auto& indices);
+                         const std::vector<uint32_t>& indices);
 
  private:
   void loadModel(const std::string& modelName, Geometry& geometry);
