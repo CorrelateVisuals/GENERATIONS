@@ -1100,8 +1100,8 @@ void CE::RenderPass::createFramebuffers(CE::Swapchain& swapchain,
   Log::text(Log::Style::charLeader,
             "attachments: msaaImage., depthImage, swapchain imageViews");
   for (uint_fast8_t i = 0; i < swapchain.images.size(); i++) {
-    std::vector<VkImageView> attachments{msaaView, depthView,
-                                         swapchain.images[i].view};
+    std::array<VkImageView, 3> attachments{msaaView, depthView,
+                                           swapchain.images[i].view};
 
     VkFramebufferCreateInfo framebufferInfo{
         .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
