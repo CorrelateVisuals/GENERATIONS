@@ -23,8 +23,6 @@ Resources::Resources(VulkanMechanics& mechanics, Pipelines& pipelines)
 
   createShaderStorageBuffers();
 
-  // createVertexBuffers(vertexBuffers);
-
   createDescriptorPool();    // moved
   allocateDescriptorSets();  // moved
   createDescriptorSets();
@@ -115,74 +113,6 @@ void Resources::allocateDescriptorSets() {
   CE::VULKAN_RESULT(vkAllocateDescriptorSets, CE::Device::baseDevice->logical,
                     &allocateInfo, CE::Descriptor::sets.data());
 }
-
-// void Resources::createVertexBuffers(
-//     const std::unordered_map<Geometry*, std::string>& buffers) {
-//   for (const auto& resource : buffers) {
-//     Geometry* currentGeometry = resource.first;
-//
-//     if (resource.second == "indices") {
-//       createVertexBuffer(currentGeometry->vertexBuffer,
-//                          currentGeometry->uniqueVertices);
-//       createIndexBuffer(currentGeometry->indexBuffer,
-//       currentGeometry->indices);
-//     } else if (resource.second == "vertices") {
-//       createVertexBuffer(currentGeometry->vertexBuffer,
-//                          currentGeometry->allVertices);
-//     }
-//   }
-// };
-//
-// void Resources::createVertexBuffer(CE::Buffer& buffer, const auto& vertices)
-// {
-//   CE::Buffer stagingResources;
-//   VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
-//
-//   CE::Buffer::create(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-//                      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-//                          VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-//                      stagingResources);
-//
-//   void* data;
-//   vkMapMemory(CE::Device::baseDevice->logical, stagingResources.memory, 0,
-//               bufferSize, 0, &data);
-//   memcpy(data, vertices.data(), (size_t)bufferSize);
-//   vkUnmapMemory(CE::Device::baseDevice->logical, stagingResources.memory);
-//
-//   CE::Buffer::create(
-//       bufferSize,
-//       VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-//       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, buffer);
-//
-//   CE::Buffer::copy(stagingResources.buffer, buffer.buffer, bufferSize,
-//                    commands.singularCommandBuffer, commands.pool,
-//                    _mechanics.queues.graphics);
-// }
-//
-// void Resources::createIndexBuffer(CE::Buffer& buffer, const auto& indices) {
-//   CE::Buffer stagingResources;
-//   VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
-//
-//   CE::Buffer::create(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-//                      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-//                          VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-//                      stagingResources);
-//
-//   void* data;
-//   vkMapMemory(CE::Device::baseDevice->logical, stagingResources.memory, 0,
-//               bufferSize, 0, &data);
-//   memcpy(data, indices.data(), (size_t)bufferSize);
-//   vkUnmapMemory(CE::Device::baseDevice->logical, stagingResources.memory);
-//
-//   CE::Buffer::create(
-//       bufferSize,
-//       VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-//       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, buffer);
-//
-//   CE::Buffer::copy(stagingResources.buffer, buffer.buffer, bufferSize,
-//                    commands.singularCommandBuffer, commands.pool,
-//                    _mechanics.queues.graphics);
-// }
 
 void Resources::createDescriptorSets() {
   Log::text("{ |=| }", "Descriptor Sets");

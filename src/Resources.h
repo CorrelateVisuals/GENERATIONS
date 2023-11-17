@@ -28,12 +28,6 @@ class Resources {
 
   World world;
 
-  // const std::unordered_map<Geometry*, std::string> vertexBuffers = {
-  //     {&world.landscape, "indices"},
-  //     {&world.rectangle, "indices"},
-  //     //    {&world.cube, "vertices"}
-  // };
-
   struct DepthImage : public CE::Image {
     DepthImage(const VkExtent2D extent, const VkFormat format);
   } depthImage;
@@ -166,9 +160,5 @@ class Resources {
   void createDescriptorPool();
   void allocateDescriptorSets();
 
-  // void createVertexBuffers(
-  //     const std::unordered_map<Geometry*, std::string>& buffers);
-  // void createVertexBuffer(CE::Buffer& buffer, const auto& vertices);
-  // void createIndexBuffer(CE::Buffer& buffer, const auto& indices);
   void createShaderStorageBuffers();
 };
