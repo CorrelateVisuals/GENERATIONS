@@ -20,8 +20,13 @@ class Pipelines {
   } graphics;
 
   struct Render : public CE::RenderPass {
-    Render(const VkSampleCountFlagBits samples, const VkFormat format) {
+    Render(const VkSampleCountFlagBits samples,
+           const VkFormat format,
+           CE::Swapchain& swapchain,
+           const VkImageView& msaaView,
+           const VkImageView& depthView) {
       create(samples, format);
+      createFramebuffers(swapchain, msaaView, depthView);
     }
   } render;
 

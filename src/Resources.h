@@ -160,8 +160,6 @@ class Resources {
   } pushConstants;
 
  public:
-  void createFramebuffers(Pipelines& _pipelines);
-
   void createDescriptorSets();
 
  private:
@@ -175,5 +173,4 @@ class Resources {
   void createVertexBuffer(CE::Buffer& buffer, const auto& vertices);
   void createIndexBuffer(CE::Buffer& buffer, const auto& indices);
   void createShaderStorageBuffers();
-  // void createUniformBuffers();
 };

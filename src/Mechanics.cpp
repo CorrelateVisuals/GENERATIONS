@@ -30,6 +30,7 @@ void VulkanMechanics::Swapchain::recreate(const VkSurfaceKHR& surface,
   resources.depthImage.createResources(
       extent, CE::Image::findDepthFormat(),
       VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_IMAGE_ASPECT_DEPTH_BIT);
-  resources.createFramebuffers(pipelines);
+  pipelines.render.createFramebuffers(*this, resources.msaaImage.view,
+                                      resources.depthImage.view);
   resources.createDescriptorSets();
 }

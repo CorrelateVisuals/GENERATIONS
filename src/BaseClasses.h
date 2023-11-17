@@ -312,6 +312,9 @@ class RenderPass {
   virtual ~RenderPass();
   void create(VkSampleCountFlagBits msaaImageSamples,
               VkFormat swapchainImageFormat);
+  void createFramebuffers(CE::Swapchain& swapchain,
+                          const VkImageView& msaaView,
+                          const VkImageView& depthView);
 };
 
 class PipelinesConfiguration {

@@ -19,7 +19,6 @@ Resources::Resources(VulkanMechanics& mechanics, Pipelines& pipelines)
   Log::text("{ /// }", "constructing Resources");
   CE::Descriptor::createSetLayout(CE::Descriptor::setLayoutBindings);
 
-  createFramebuffers(pipelines);
   createShaderStorageBuffers();
 
   createVertexBuffers(vertexBuffers);
@@ -31,32 +30,6 @@ Resources::Resources(VulkanMechanics& mechanics, Pipelines& pipelines)
 
 Resources::~Resources() {
   Log::text("{ /// }", "destructing Resources");
-}
-
-void Resources::createFramebuffers(Pipelines& _pipelines) {
-  Log::text("{ 101 }", "Frame Buffers:", _mechanics.swapchain.images.size());
-
-  _mechanics.swapchain.framebuffers.resize(_mechanics.swapchain.images.size());
-
-  Log::text(Log::Style::charLeader,
-            "attachments: msaaImage., depthImage, swapchain imageViews");
-  for (uint_fast8_t i = 0; i < _mechanics.swapchain.images.size(); i++) {
-    std::vector<VkImageView> attachments{msaaImage.view, depthImage.view,
-                                         _mechanics.swapchain.images[i].view};
-
-    VkFramebufferCreateInfo framebufferInfo{
-        .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
-        .renderPass = _pipelines.render.renderPass,
-        .attachmentCount = static_cast<uint32_t>(attachments.size()),
-        .pAttachments = attachments.data(),
-        .width = _mechanics.swapchain.extent.width,
-        .height = _mechanics.swapchain.extent.height,
-        .layers = 1};
-
-    CE::VULKAN_RESULT(vkCreateFramebuffer, _mechanics.mainDevice.logical,
-                      &framebufferInfo, nullptr,
-                      &_mechanics.swapchain.framebuffers[i]);
-  }
 }
 
 void Resources::createShaderStorageBuffers() {

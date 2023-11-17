@@ -1091,6 +1091,33 @@ void CE::RenderPass::create(VkSampleCountFlagBits msaaImageSamples,
                     &renderPassInfo, nullptr, &this->renderPass);
 }
 
+void CE::RenderPass::createFramebuffers(CE::Swapchain& swapchain,
+                                        const VkImageView& msaaView,
+                                        const VkImageView& depthView) {
+  Log::text("{ 101 }", "Frame Buffers:", swapchain.images.size());
+
+  swapchain.framebuffers.resize(swapchain.images.size());
+
+  Log::text(Log::Style::charLeader,
+            "attachments: msaaImage., depthImage, swapchain imageViews");
+  for (uint_fast8_t i = 0; i < swapchain.images.size(); i++) {
+    std::vector<VkImageView> attachments{msaaView, depthView,
+                                         swapchain.images[i].view};
+
+    VkFramebufferCreateInfo framebufferInfo{
+        .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+        .renderPass = renderPass,
+        .attachmentCount = static_cast<uint32_t>(attachments.size()),
+        .pAttachments = attachments.data(),
+        .width = swapchain.extent.width,
+        .height = swapchain.extent.height,
+        .layers = 1};
+
+    CE::VULKAN_RESULT(vkCreateFramebuffer, CE::Device::baseDevice->logical,
+                      &framebufferInfo, nullptr, &swapchain.framebuffers[i]);
+  }
+}
+
 CE::PipelinesConfiguration::~PipelinesConfiguration() {
   if (Device::baseDevice) {
     Log::text("{ === }", "destructing", this->pipelineMap.size(),
