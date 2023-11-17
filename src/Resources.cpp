@@ -115,15 +115,15 @@ void Resources::allocateDescriptorSets() {
 }
 
 void Resources::createVertexBuffers(
-    const std::unordered_map<Geometry*, VkVertexInputRate>& buffers) {
+    const std::unordered_map<Geometry*, std::string>& buffers) {
   for (const auto& resource : buffers) {
     Geometry* currentGeometry = resource.first;
 
-    if (resource.second == VK_VERTEX_INPUT_RATE_INSTANCE) {
+    if (resource.second == "indices") {
       createVertexBuffer(currentGeometry->vertexBuffer,
                          currentGeometry->uniqueVertices);
       createIndexBuffer(currentGeometry->indexBuffer, currentGeometry->indices);
-    } else if (resource.second == VK_VERTEX_INPUT_RATE_VERTEX) {
+    } else if (resource.second == "vertices") {
       createVertexBuffer(currentGeometry->vertexBuffer,
                          currentGeometry->allVertices);
     }

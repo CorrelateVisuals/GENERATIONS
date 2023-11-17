@@ -20,10 +20,10 @@ class Resources {
 
   World world{};
 
-  const std::unordered_map<Geometry*, VkVertexInputRate> vertexBuffers = {
-      {&world.landscape, VK_VERTEX_INPUT_RATE_INSTANCE},
-      {&world.rectangle, VK_VERTEX_INPUT_RATE_INSTANCE},
-      {&world.cube, VK_VERTEX_INPUT_RATE_VERTEX}};
+  const std::unordered_map<Geometry*, std::string> vertexBuffers = {
+      {&world.landscape, "indices"},
+      {&world.rectangle, "indices"},
+      {&world.cube, "vertices"}};
 
   struct Commands : public CE::CommandBuffers {
     Commands(const CE::Queues::FamilyIndices& familyIndices);
@@ -169,7 +169,7 @@ class Resources {
   void allocateDescriptorSets();
 
   void createVertexBuffers(
-      const std::unordered_map<Geometry*, VkVertexInputRate>& buffers);
+      const std::unordered_map<Geometry*, std::string>& buffers);
   void createVertexBuffer(CE::Buffer& buffer, const auto& vertices);
   void createIndexBuffer(CE::Buffer& buffer, const auto& indices);
   void createShaderStorageBuffers();
