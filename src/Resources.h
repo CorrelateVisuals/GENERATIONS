@@ -10,9 +10,6 @@
 #include <string>
 #include <vector>
 
-class VulkanMechanics;
-class Pipelines;
-
 class Resources {
  public:
   Resources(VulkanMechanics& mechanics, Pipelines& pipelines);
