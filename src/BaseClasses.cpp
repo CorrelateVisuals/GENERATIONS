@@ -632,9 +632,8 @@ void CE::CommandBuffers::endSingularCommands(const VkCommandPool& commandPool,
 }
 
 void CE::CommandBuffers::createBuffers(
-    std::vector<VkCommandBuffer>& commandBuffers) {
+    std::array<VkCommandBuffer, CE_MAX_FRAMES_IN_FLIGHT>& commandBuffers) {
   Log::text("{ cmd }", "Command Buffers:", CE_MAX_FRAMES_IN_FLIGHT);
-  commandBuffers.resize(CE_MAX_FRAMES_IN_FLIGHT);
   VkCommandBufferAllocateInfo allocateInfo{
       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
       .commandPool = this->pool,

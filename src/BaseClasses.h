@@ -94,8 +94,8 @@ class Device {
 class CommandBuffers {
  public:
   VkCommandPool pool{};
-  std::vector<VkCommandBuffer> graphics{};
-  std::vector<VkCommandBuffer> compute{};
+  std::array<VkCommandBuffer, CE_MAX_FRAMES_IN_FLIGHT> graphics{};
+  std::array<VkCommandBuffer, CE_MAX_FRAMES_IN_FLIGHT> compute{};
   static VkCommandBuffer singularCommandBuffer;
 
   CommandBuffers() = default;
@@ -114,7 +114,8 @@ class CommandBuffers {
 
  protected:
   void createPool(const Queues::FamilyIndices& familyIndices);
-  void createBuffers(std::vector<VkCommandBuffer>& commandBuffers);
+  void createBuffers(
+      std::array<VkCommandBuffer, CE_MAX_FRAMES_IN_FLIGHT>& commandBuffers);
 };
 
 class Buffer {
