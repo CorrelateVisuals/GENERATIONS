@@ -204,11 +204,11 @@ class SynchronizationObjects {
   ~SynchronizationObjects() { destroy(); };
   void create();
   void destroy();
-  std::vector<VkSemaphore> imageAvailableSemaphores{};
-  std::vector<VkSemaphore> renderFinishedSemaphores{};
-  std::vector<VkSemaphore> computeFinishedSemaphores{};
-  std::vector<VkFence> graphicsInFlightFences{};
-  std::vector<VkFence> computeInFlightFences{};
+  std::array<VkSemaphore, CE_MAX_FRAMES_IN_FLIGHT> imageAvailableSemaphores{};
+  std::array<VkSemaphore, CE_MAX_FRAMES_IN_FLIGHT> renderFinishedSemaphores{};
+  std::array<VkSemaphore, CE_MAX_FRAMES_IN_FLIGHT> computeFinishedSemaphores{};
+  std::array<VkFence, CE_MAX_FRAMES_IN_FLIGHT> graphicsInFlightFences{};
+  std::array<VkFence, CE_MAX_FRAMES_IN_FLIGHT> computeInFlightFences{};
   uint32_t currentFrame = 0;
 };
 

@@ -879,12 +879,6 @@ CE::Queues::FamilyIndices CE::Queues::findQueueFamilies(
 void CE::SynchronizationObjects::create() {
   Log::text("{ ||| }", "Sync Objects");
 
-  this->imageAvailableSemaphores.resize(CE_MAX_FRAMES_IN_FLIGHT);
-  this->renderFinishedSemaphores.resize(CE_MAX_FRAMES_IN_FLIGHT);
-  this->computeFinishedSemaphores.resize(CE_MAX_FRAMES_IN_FLIGHT);
-  this->graphicsInFlightFences.resize(CE_MAX_FRAMES_IN_FLIGHT);
-  this->computeInFlightFences.resize(CE_MAX_FRAMES_IN_FLIGHT);
-
   VkSemaphoreCreateInfo semaphoreInfo{
       .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO};
 
