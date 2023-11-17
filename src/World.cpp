@@ -10,7 +10,9 @@
 World::World(VkCommandBuffer& commandBuffer,
              const VkCommandPool& commandPool,
              const VkQueue& queue)
-    : cube{commandBuffer, commandPool, queue} {
+    : landscape{commandBuffer, commandPool, queue},
+      rectangle{commandBuffer, commandPool, queue},
+      cube{commandBuffer, commandPool, queue} {
   Log::text("{ wWw }", "constructing World");
 }
 

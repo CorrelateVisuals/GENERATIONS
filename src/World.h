@@ -27,12 +27,24 @@ class World {
   } grid;
 
   struct Landscape : public Geometry {
+    Landscape(VkCommandBuffer& commandBuffer,
+              const VkCommandPool& commandPool,
+              const VkQueue& queue) {
+      createVertexBuffer(commandBuffer, commandPool, queue, uniqueVertices);
+      createIndexBuffer(commandBuffer, commandPool, queue, indices);
+    };
     static std::vector<VkVertexInputAttributeDescription>
     getAttributeDescription();
   } landscape;
 
   struct Rectangle : public Geometry {
-    Rectangle() : Geometry("Rectangle"){};
+    Rectangle(VkCommandBuffer& commandBuffer,
+              const VkCommandPool& commandPool,
+              const VkQueue& queue)
+        : Geometry("Rectangle") {
+      createVertexBuffer(commandBuffer, commandPool, queue, uniqueVertices);
+      createIndexBuffer(commandBuffer, commandPool, queue, indices);
+    };
   } rectangle;
 
   struct Cube : public Geometry {
