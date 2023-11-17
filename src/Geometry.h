@@ -51,7 +51,7 @@ class Geometry : public Vertex {
       const std::vector<uint32_t>& vertices,
       uint32_t gridWidth);
 
-  // protected:
+ protected:
   void createVertexBuffer(VkCommandBuffer& commandBuffer,
                           const VkCommandPool& commandPool,
                           const VkQueue& queue,

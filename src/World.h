@@ -29,10 +29,7 @@ class World {
   struct Landscape : public Geometry {
     Landscape(VkCommandBuffer& commandBuffer,
               const VkCommandPool& commandPool,
-              const VkQueue& queue) {
-      createVertexBuffer(commandBuffer, commandPool, queue, uniqueVertices);
-      createIndexBuffer(commandBuffer, commandPool, queue, indices);
-    };
+              const VkQueue& queue);
     static std::vector<VkVertexInputAttributeDescription>
     getAttributeDescription();
   } landscape;
@@ -40,20 +37,13 @@ class World {
   struct Rectangle : public Geometry {
     Rectangle(VkCommandBuffer& commandBuffer,
               const VkCommandPool& commandPool,
-              const VkQueue& queue)
-        : Geometry("Rectangle") {
-      createVertexBuffer(commandBuffer, commandPool, queue, uniqueVertices);
-      createIndexBuffer(commandBuffer, commandPool, queue, indices);
-    };
+              const VkQueue& queue);
   } rectangle;
 
   struct Cube : public Geometry {
     Cube(VkCommandBuffer& commandBuffer,
          const VkCommandPool& commandPool,
-         const VkQueue& queue)
-        : Geometry("Cube") {
-      createVertexBuffer(commandBuffer, commandPool, queue, allVertices);
-    };
+         const VkQueue& queue);
     const float size = 0.5f;
   } cube;
 

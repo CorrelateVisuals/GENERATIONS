@@ -44,6 +44,28 @@ World::Cell::getAttributeDescription() {
   return description;
 };
 
+World::Landscape::Landscape(VkCommandBuffer& commandBuffer,
+                            const VkCommandPool& commandPool,
+                            const VkQueue& queue) {
+  createVertexBuffer(commandBuffer, commandPool, queue, uniqueVertices);
+  createIndexBuffer(commandBuffer, commandPool, queue, indices);
+}
+
+World::Rectangle::Rectangle(VkCommandBuffer& commandBuffer,
+                            const VkCommandPool& commandPool,
+                            const VkQueue& queue)
+    : Geometry("Rectangle") {
+  createVertexBuffer(commandBuffer, commandPool, queue, uniqueVertices);
+  createIndexBuffer(commandBuffer, commandPool, queue, indices);
+}
+
+World::Cube::Cube(VkCommandBuffer& commandBuffer,
+                  const VkCommandPool& commandPool,
+                  const VkQueue& queue)
+    : Geometry("Cube") {
+  createVertexBuffer(commandBuffer, commandPool, queue, allVertices);
+}
+
 std::vector<VkVertexInputAttributeDescription>
 World::Landscape::getAttributeDescription() {
   std::vector<VkVertexInputAttributeDescription> attributes{
