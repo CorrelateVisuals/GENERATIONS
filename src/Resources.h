@@ -15,12 +15,6 @@ class Resources {
   Resources(VulkanMechanics& mechanics, Pipelines& pipelines);
   ~Resources();
 
-  World world{};
-
-  const std::unordered_map<Geometry*, std::string> vertexBuffers = {
-      {&world.landscape, "indices"},
-      {&world.rectangle, "indices"},
-      {&world.cube, "vertices"}};
 
   struct Commands : public CE::CommandBuffers {
     Commands(const CE::Queues::FamilyIndices& familyIndices);
@@ -32,6 +26,16 @@ class Resources {
                                      Pipelines& pipelines,
                                      const uint32_t imageIndex) override;
   } commands;
+
+  World world;
+
+  const std::unordered_map<Geometry*, std::string> vertexBuffers = {
+      {&world.landscape, "indices"},
+      {&world.rectangle, "indices"},
+      //    {&world.cube, "vertices"}
+  };
+
+
 
   struct DepthImage : public CE::Image {
     DepthImage(const VkExtent2D extent, const VkFormat format);

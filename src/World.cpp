@@ -7,7 +7,10 @@
 #include <ctime>
 #include <random>
 
-World::World() {
+World::World(VkCommandBuffer& commandBuffer,
+             const VkCommandPool& commandPool,
+             const VkQueue& queue)
+    : cube{commandBuffer, commandPool, queue} {
   Log::text("{ wWw }", "constructing World");
 }
 

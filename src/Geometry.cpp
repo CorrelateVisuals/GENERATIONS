@@ -77,6 +77,33 @@ std::vector<uint32_t> Geometry::createGridPolygons(
   return result;
 }
 
+void Geometry::createVertexBuffer(VkCommandBuffer& commandBuffer,
+                                  const VkCommandPool& commandPool,
+                                  const VkQueue& queue,
+                                  const auto& vertices) {
+  CE::Buffer stagingResources;
+  VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
+
+  CE::Buffer::create(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                     VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                         VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                     stagingResources);
+
+  void* data;
+  vkMapMemory(CE::Device::baseDevice->logical, stagingResources.memory, 0,
+              bufferSize, 0, &data);
+  memcpy(data, vertices.data(), (size_t)bufferSize);
+  vkUnmapMemory(CE::Device::baseDevice->logical, stagingResources.memory);
+
+  CE::Buffer::create(
+      bufferSize,
+      VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, this->vertexBuffer);
+
+  CE::Buffer::copy(stagingResources.buffer, this->vertexBuffer.buffer,
+                   bufferSize, commandBuffer, commandPool, queue);
+}
+
 void Geometry::loadModel(const std::string& modelName, Geometry& geometry) {
   std::string baseDir = Lib::path("assets/3D/");
   std::string modelPath = baseDir + modelName + ".obj";

@@ -14,7 +14,9 @@ Resources::Resources(VulkanMechanics& mechanics, Pipelines& pipelines)
       shaderStorage{sizeof(World::Cell) * world.grid.size.x *
                     world.grid.size.y},
       sampler{textureImage},
-      storageImage{mechanics.swapchain.images} {
+      storageImage{mechanics.swapchain.images},
+      world{commands.singularCommandBuffer, commands.pool,
+            mechanics.queues.graphics} {
   Log::text(Log::Style::headerGuard);
   Log::text("{ /// }", "constructing Resources");
   CE::Descriptor::createSetLayout(CE::Descriptor::setLayoutBindings);

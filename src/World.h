@@ -12,7 +12,9 @@ class Timer;
 
 class World {
  public:
-  World();
+  World(VkCommandBuffer& commandBuffer,
+        const VkCommandPool& commandPool,
+        const VkQueue& queue);
   ~World();
 
   float speed = 25.0f;
@@ -34,8 +36,14 @@ class World {
   } rectangle;
 
   struct Cube : public Geometry {
-    Cube() : Geometry("Cube"){};
+    Cube(VkCommandBuffer& commandBuffer,
+         const VkCommandPool& commandPool,
+         const VkQueue& queue)
+        : Geometry("Cube") {
+      createVertexBuffer(commandBuffer, commandPool, queue, allVertices);
+    };
     const float size = 0.5f;
+
   } cube;
 
   struct alignas(16) Cell {

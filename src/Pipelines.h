@@ -33,13 +33,14 @@ class Pipelines {
                   const VkPipelineLayout& graphicsLayout,
                   const VkPipelineLayout& computeLayout,
                   VkSampleCountFlagBits& msaaSamples) {
-      World world{};
+      // World world{};
 
-      pipelineMap["Engine"] =
-          Compute{.shaders = {"Comp"},
-                  .workGroups = {
-                      static_cast<uint32_t>(world.grid.size.x + 31) / 32,
-                      static_cast<uint32_t>(world.grid.size.y + 31) / 32, 1}};
+      uint32_t tempSizex = 100;
+
+      pipelineMap["Engine"] = Compute{
+          .shaders = {"Comp"},
+          .workGroups = {static_cast<uint32_t>(tempSizex + 31) / 32,
+                         static_cast<uint32_t>(tempSizex + 31) / 32, 1}};
       pipelineMap["Cells"] =
           Graphics{.shaders = {"Vert", "Frag"},
                    .vertexAttributes = World::Cell::getAttributeDescription(),
