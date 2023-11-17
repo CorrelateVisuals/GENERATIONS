@@ -37,7 +37,7 @@ class Resources {
   } msaaImage;
 
   struct UniformBuffer : public CE::Descriptor {
-    CE::Buffer buffer{};
+    CE::Buffer buffer;
     UniformBuffer() {
       VkDescriptorType type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
       setLayoutBinding.binding = 0;
@@ -70,8 +70,8 @@ class Resources {
   } uniform;
 
   struct ShaderStorage : public CE::Descriptor {
-    CE::Buffer bufferIn{};
-    CE::Buffer bufferOut{};
+    CE::Buffer bufferIn;
+    CE::Buffer bufferOut;
     ShaderStorage(uint32_t range) {
       setLayoutBinding.binding = 1;
       setLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
@@ -94,7 +94,7 @@ class Resources {
   } shaderStorage;
 
   struct ImageSampler : public CE::Descriptor {
-    CE::Buffer buffer{};
+    CE::Buffer buffer;
     ImageSampler(CE::Image image) {
       setLayoutBinding.binding = 3;
       setLayoutBinding.descriptorType =
@@ -121,7 +121,7 @@ class Resources {
   } textureImage;
 
   struct StorageImage : public CE::Descriptor {
-    CE::Buffer buffer{};
+    CE::Buffer buffer;
     StorageImage(std::array<CE::Image, MAX_FRAMES_IN_FLIGHT>& images) {
       setLayoutBinding.binding = 4;
       setLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;

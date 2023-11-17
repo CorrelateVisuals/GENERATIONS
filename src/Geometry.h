@@ -43,15 +43,15 @@ class Geometry : public Vertex {
   std::vector<Vertex> uniqueVertices{};
   std::vector<uint32_t> indices{};
 
-  CE::Buffer vertexBuffer{};
-  CE::Buffer indexBuffer{};
+  CE::Buffer vertexBuffer;
+  CE::Buffer indexBuffer;
 
   void addVertexPosition(const glm::vec3& position);
   static std::vector<uint32_t> createGridPolygons(
       const std::vector<uint32_t>& vertices,
       uint32_t gridWidth);
 
- protected:
+  // protected:
   void createVertexBuffer(VkCommandBuffer& commandBuffer,
                           const VkCommandPool& commandPool,
                           const VkQueue& queue,
