@@ -61,6 +61,3 @@ class Geometry : public Vertex {
                       const glm::vec3& translationDistance = glm::vec3(0.0f),
                       float scale = 1.0f);
 };
-
-struct NoVertexData : public Vertex {
-} inline NO_VERTEX_DATA;
