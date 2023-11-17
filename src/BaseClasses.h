@@ -5,7 +5,6 @@
 #include "ValidationLayers.h"
 #include "Window.h"
 
-#include <iostream>
 #include <memory>
 #include <optional>
 #include <stdexcept>

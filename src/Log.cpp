@@ -3,7 +3,6 @@
 
 #include <chrono>
 #include <filesystem>
-#include <iostream>
 #include <string>
 
 std::ofstream Log::logFile("log.txt");

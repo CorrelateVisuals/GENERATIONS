@@ -4,8 +4,6 @@
 #include "Geometry.h"
 #include "Library.h"
 
-#include <iostream>
-
 std::vector<VkVertexInputBindingDescription> Vertex::getBindingDescription() {
   std::vector<VkVertexInputBindingDescription> binding{
       {0, sizeof(Vertex), VK_VERTEX_INPUT_RATE_VERTEX}};

@@ -1,8 +1,6 @@
 #include "Timer.h"
 
 #include <chrono>
-#include <iostream>
-#include <thread>
 
 Timer::Timer(float initSpeed) : speed{initSpeed} {}
 

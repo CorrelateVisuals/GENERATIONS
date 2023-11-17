@@ -1,7 +1,5 @@
 #include "CapitalEngine.h"
 
-#include <iostream>
-
 CapitalEngine::CapitalEngine()
     : pipelines(mechanics, resources), resources(mechanics, pipelines) {
   Log::text(Log::Style::headerGuard);
