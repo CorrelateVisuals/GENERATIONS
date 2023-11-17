@@ -6,8 +6,7 @@
 Pipelines::Pipelines(VulkanMechanics& mechanics, Resources& resources)
     : compute{resources.pushConstants},
       graphics{},
-      render{resources.msaaImage.info.samples, mechanics.swapchain.imageFormat,
-             mechanics.swapchain, resources.msaaImage.view,
+      render{mechanics.swapchain, resources.msaaImage,
              resources.depthImage.view},
       config{render.renderPass, graphics.layout, compute.layout,
              resources.msaaImage.info.samples} {
