@@ -14,7 +14,7 @@
 #include <variant>
 #include <vector>
 
-constexpr uint8_t CE_MAX_FRAMES_IN_FLIGHT = 2;
+constexpr uint32_t CE_MAX_FRAMES_IN_FLIGHT = 2;
 
 class VulkanMechanics;
 class Resources;
