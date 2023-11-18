@@ -23,7 +23,10 @@ class World {
   struct Grid {
     vec2_uint_fast16_t size = {100, 100};
     const uint_fast32_t initialAliveCells = 5000;
-    const size_t numPoints = {size.x * size.y};
+    const size_t numPoints{size.x * size.y};
+
+    std::vector<uint_fast32_t> setCellsAliveRandomly(
+        uint_fast32_t numberOfCells) const;
   } grid;
 
   struct Landscape : public Geometry {
@@ -32,6 +35,7 @@ class World {
               const VkQueue& queue);
     static std::vector<VkVertexInputAttributeDescription>
     getAttributeDescription();
+    std::vector<float> setLandscapeHeight(vec2_uint_fast16_t& dimensions);
   } landscape;
 
   struct Rectangle : public Geometry {
@@ -44,7 +48,7 @@ class World {
     Cube(VkCommandBuffer& commandBuffer,
          const VkCommandPool& commandPool,
          const VkQueue& queue);
-    const float size = 0.5f;
+    const float initialSize = 0.5f;
   } cube;
 
   struct alignas(16) Cell {
@@ -97,8 +101,6 @@ class World {
 
  private:
   void updateCamera();
-  std::vector<uint_fast32_t> setCellsAliveRandomly(uint_fast32_t numberOfCells);
-  std::vector<float> generateLandscapeHeight();
 
   glm::mat4 setModel();
   glm::mat4 setView();

@@ -11,8 +11,8 @@ Resources::Resources(VulkanMechanics& mechanics, Pipelines& pipelines)
                    mechanics.queues.graphics},
       depthImage{mechanics.swapchain.extent, CE::Image::findDepthFormat()},
       msaaImage{mechanics.swapchain.extent, mechanics.swapchain.imageFormat},
-      shaderStorage{sizeof(World::Cell) * world.grid.size.x *
-                    world.grid.size.y},
+      shaderStorage{commands.singularCommandBuffer, commands.pool,
+                    mechanics.queues.graphics, world.grid, world.landscape},
       sampler{textureImage},
       storageImage{mechanics.swapchain.images},
       world{commands.singularCommandBuffer, commands.pool,
@@ -21,7 +21,7 @@ Resources::Resources(VulkanMechanics& mechanics, Pipelines& pipelines)
   Log::text("{ /// }", "constructing Resources");
   CE::Descriptor::createSetLayout(CE::Descriptor::setLayoutBindings);
 
-  createShaderStorageBuffers();
+  // createShaderStorageBuffers();
 
   createDescriptorPool();    // moved
   allocateDescriptorSets();  // moved
@@ -32,15 +32,19 @@ Resources::~Resources() {
   Log::text("{ /// }", "destructing Resources");
 }
 
-void Resources::createShaderStorageBuffers() {
+void Resources::ShaderStorage::createShaderStorageBuffers(
+    VkCommandBuffer& commandBuffer,
+    const VkCommandPool& commandPool,
+    const VkQueue& queue,
+    World::Grid& grid,
+    std::vector<World::Cell> cells) {
   Log::text("{ 101 }", "Shader Storage Buffers");
 
-  std::vector<World::Cell> cells = world.initializeGrid();
+  // std::vector<World::Cell> cells = world.initializeGrid();
 
   // Create a staging buffer used to upload data to the gpu
   CE::Buffer stagingResources;
-  VkDeviceSize bufferSize =
-      sizeof(World::Cell) * world.grid.size.x * world.grid.size.y;
+  VkDeviceSize bufferSize = sizeof(World::Cell) * grid.size.x * grid.size.y;
 
   CE::Buffer::create(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
@@ -53,23 +57,21 @@ void Resources::createShaderStorageBuffers() {
   std::memcpy(data, cells.data(), static_cast<size_t>(bufferSize));
   vkUnmapMemory(CE::Device::baseDevice->logical, stagingResources.memory);
 
-  CE::Buffer::create(
-      static_cast<VkDeviceSize>(bufferSize),
-      VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
-          VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, shaderStorage.bufferIn);
-  CE::Buffer::copy(stagingResources.buffer, shaderStorage.bufferIn.buffer,
-                   bufferSize, commands.singularCommandBuffer, commands.pool,
-                   _mechanics.queues.graphics);
+  CE::Buffer::create(static_cast<VkDeviceSize>(bufferSize),
+                     VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
+                         VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
+                         VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                     VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, bufferIn);
+  CE::Buffer::copy(stagingResources.buffer, bufferIn.buffer, bufferSize,
+                   commandBuffer, commandPool, queue);
 
-  CE::Buffer::create(
-      static_cast<VkDeviceSize>(bufferSize),
-      VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
-          VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, shaderStorage.bufferOut);
-  CE::Buffer::copy(stagingResources.buffer, shaderStorage.bufferOut.buffer,
-                   bufferSize, commands.singularCommandBuffer, commands.pool,
-                   _mechanics.queues.graphics);
+  CE::Buffer::create(static_cast<VkDeviceSize>(bufferSize),
+                     VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
+                         VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
+                         VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                     VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, bufferOut);
+  CE::Buffer::copy(stagingResources.buffer, bufferOut.buffer, bufferSize,
+                   commandBuffer, commandPool, queue);
 }
 
 void Resources::UniformBuffer::create() {
