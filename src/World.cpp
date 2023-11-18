@@ -74,56 +74,56 @@ World::Landscape::getAttributeDescription() {
   return attributes;
 }
 
-// std::vector<World::Cell> World::initializeGrid() {
-//   const uint_fast32_t numAliveCells{grid.initialAliveCells};
-//
-//   if (numAliveCells > grid.numPoints) {
-//     throw std::runtime_error(
-//         "\n!ERROR! Number of alive cells exceeds number of grid "
-//         "points");
-//   }
-//
-//   std::vector<World::Cell> cells(grid.numPoints);
-//   std::vector<bool> isAliveIndices(grid.numPoints, false);
-//   std::vector<float> landscapeHeight = Landscape::setLandscapeHeight();
-//   std::vector<uint32_t> tempIndices(grid.numPoints);
-//
-//   std::vector<uint_fast32_t> aliveCellIndices =
-//       Grid::setCellsAliveRandomly(grid.initialAliveCells);
-//   for (int aliveIndex : aliveCellIndices) {
-//     isAliveIndices[aliveIndex] = true;
-//   }
-//
-//   float startX = (grid.size.x - 1) / -2.0f;
-//   float startY = (grid.size.y - 1) / -2.0f;
-//   for (uint_fast32_t i = 0; i < grid.numPoints; ++i) {
-//     const float posX = startX + static_cast<uint_fast16_t>(i % grid.size.x);
-//     const float posY = startY + static_cast<uint_fast16_t>(i / grid.size.x);
-//     const bool isAlive = isAliveIndices[i];
-//
-//     cells[i].instancePosition = {posX, posY, landscapeHeight[i],
-//                                  isAlive ? cube.initialSize : 0.0f};
-//     cells[i].color = isAlive ? blue : red;
-//     cells[i].states = isAlive ? alive : dead;
-//
-//     tempIndices[i] = i;
-//     landscape.addVertexPosition(glm::vec3(posX, posY, landscapeHeight[i]));
-//   }
-//   landscape.indices =
-//       Geometry::createGridPolygons(tempIndices,
-//       static_cast<int>(grid.size.x));
-//
-//   return cells;
-// }
+std::vector<World::Cell> World::initializeGrid() {
+  const uint_fast32_t numAliveCells{grid.initialAliveCells};
 
-std::vector<uint_fast32_t> World::Grid::setCellsAliveRandomly(
-    uint_fast32_t numberOfCells) const {
+  if (numAliveCells > grid.numPoints) {
+    throw std::runtime_error(
+        "\n!ERROR! Number of alive cells exceeds number of grid "
+        "points");
+  }
+
+  std::vector<World::Cell> cells(grid.numPoints);
+  std::vector<bool> isAliveIndices(grid.numPoints, false);
+  std::vector<float> landscapeHeight = generateLandscapeHeight();
+  std::vector<uint32_t> tempIndices(grid.numPoints);
+
+  std::vector<uint_fast32_t> aliveCellIndices =
+      setCellsAliveRandomly(grid.initialAliveCells);
+  for (int aliveIndex : aliveCellIndices) {
+    isAliveIndices[aliveIndex] = true;
+  }
+
+  float startX = (grid.size.x - 1) / -2.0f;
+  float startY = (grid.size.y - 1) / -2.0f;
+  for (uint_fast32_t i = 0; i < grid.numPoints; ++i) {
+    const float posX = startX + static_cast<uint_fast16_t>(i % grid.size.x);
+    const float posY = startY + static_cast<uint_fast16_t>(i / grid.size.x);
+    const bool isAlive = isAliveIndices[i];
+
+    cells[i].instancePosition = {posX, posY, landscapeHeight[i],
+                                 isAlive ? cube.size : 0.0f};
+    cells[i].color = isAlive ? blue : red;
+    cells[i].states = isAlive ? alive : dead;
+
+    tempIndices[i] = i;
+    landscape.addVertexPosition(glm::vec3(posX, posY, landscapeHeight[i]));
+  }
+  landscape.indices =
+      Geometry::createGridPolygons(tempIndices, static_cast<int>(grid.size.x));
+
+  return cells;
+}
+
+std::vector<uint_fast32_t> World::setCellsAliveRandomly(
+    uint_fast32_t numberOfCells) {
   std::vector<uint_fast32_t> CellIDs;
   CellIDs.reserve(numberOfCells);
 
   std::random_device random;
   std::mt19937 generate(random());
-  std::uniform_int_distribution<int> distribution(0, size.x * size.y - 1);
+  std::uniform_int_distribution<int> distribution(
+      0, grid.size.x * grid.size.y - 1);
 
   while (CellIDs.size() < numberOfCells) {
     int CellID = distribution(generate);
@@ -136,10 +136,9 @@ std::vector<uint_fast32_t> World::Grid::setCellsAliveRandomly(
   return CellIDs;
 }
 
-std::vector<float> World::Landscape::setLandscapeHeight(
-    vec2_uint_fast16_t& dimensions) {
-  Terrain::Config terrainLayer1 = {.width = dimensions.x,
-                                   .height = dimensions.y,
+std::vector<float> World::generateLandscapeHeight() {
+  Terrain::Config terrainLayer1 = {.width = grid.size.x,
+                                   .height = grid.size.y,
                                    .roughness = 0.4f,
                                    .octaves = 10,
                                    .scale = 1.1f,
@@ -149,8 +148,8 @@ std::vector<float> World::Landscape::setLandscapeHeight(
                                    .heightOffset = 0.0f};
   Terrain terrain(terrainLayer1);
 
-  Terrain::Config terrainLayer2 = {.width = dimensions.x,
-                                   .height = dimensions.y,
+  Terrain::Config terrainLayer2 = {.width = grid.size.x,
+                                   .height = grid.size.y,
                                    .roughness = 1.0f,
                                    .octaves = 10,
                                    .scale = 1.1f,
@@ -179,7 +178,7 @@ World::UniformBufferObject World::updateUniformBuferObject(
       .gridXY = {static_cast<uint32_t>(grid.size.x),
                  static_cast<uint32_t>(grid.size.y)},
       .waterThreshold = 0.1f,
-      .cellSize = cube.initialSize,
+      .cellSize = cube.size,
       .model = setModel(),
       .view = setView(),
       .projection = setProjection(swapchainExtent)};

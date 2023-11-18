@@ -72,11 +72,7 @@ class Resources {
   struct ShaderStorage : public CE::Descriptor {
     CE::Buffer bufferIn;
     CE::Buffer bufferOut;
-    ShaderStorage(VkCommandBuffer& commandBuffer,
-                  const VkCommandPool& commandPool,
-                  const VkQueue& queue,
-                  World::Grid& grid,
-                  World::Landscape& landscape) {
+    ShaderStorage(uint32_t range) {
       setLayoutBinding.binding = 1;
       setLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
       setLayoutBinding.descriptorCount = 1;
@@ -91,70 +87,10 @@ class Resources {
 
       bufferInfo.buffer = bufferIn.buffer;
       bufferInfo.offset = 0;
-      bufferInfo.range = sizeof(World::Cell) * grid.size.x * grid.size.y;
+      bufferInfo.range = range;
 
       bufferInfo.buffer = bufferOut.buffer;
-
-      std::vector<World::Cell> cells = initializeGrid(grid, landscape, 0.5f);
-      createShaderStorageBuffers(commandBuffer, commandPool, queue, grid,
-                                 cells);
     }
-
-    const glm::vec4 red{1.0f, 0.0f, 0.0f, 1.0f};
-    const glm::vec4 blue{0.0f, 0.0f, 1.0f, 1.0f};
-    const glm::ivec4 alive{1, 0, 0, 0};
-    const glm::ivec4 dead{-1, 0, 0, 0};
-
-    std::vector<World::Cell> initializeGrid(World::Grid& grid,
-                                            World::Landscape& landscape,
-                                            const uint32_t initialCellSize) {
-      const uint_fast32_t numAliveCells{grid.initialAliveCells};
-
-      if (numAliveCells > grid.numPoints) {
-        throw std::runtime_error(
-            "\n!ERROR! Number of alive cells exceeds number of grid "
-            "points");
-      }
-
-      std::vector<World::Cell> cells(grid.numPoints);
-      std::vector<bool> isAliveIndices(grid.numPoints, false);
-      std::vector<float> landscapeHeight =
-          landscape.setLandscapeHeight(grid.size);
-      std::vector<uint32_t> tempIndices(grid.numPoints);
-
-      std::vector<uint_fast32_t> aliveCellIndices =
-          grid.setCellsAliveRandomly(grid.initialAliveCells);
-      for (int aliveIndex : aliveCellIndices) {
-        isAliveIndices[aliveIndex] = true;
-      }
-
-      float startX = (grid.size.x - 1) / -2.0f;
-      float startY = (grid.size.y - 1) / -2.0f;
-      for (uint_fast32_t i = 0; i < grid.numPoints; ++i) {
-        const float posX = startX + static_cast<uint_fast16_t>(i % grid.size.x);
-        const float posY = startY + static_cast<uint_fast16_t>(i / grid.size.x);
-        const bool isAlive = isAliveIndices[i];
-
-        cells[i].instancePosition = {posX, posY, landscapeHeight[i],
-                                     isAlive ? initialCellSize : 0.0f};
-        cells[i].color = isAlive ? blue : red;
-        cells[i].states = isAlive ? alive : dead;
-
-        tempIndices[i] = i;
-        landscape.addVertexPosition(glm::vec3(posX, posY, landscapeHeight[i]));
-      }
-      landscape.indices = Geometry::createGridPolygons(
-          tempIndices, static_cast<int>(grid.size.x));
-
-      return cells;
-    }
-
-    void createShaderStorageBuffers(VkCommandBuffer& commandBuffer,
-                                    const VkCommandPool& commandPool,
-                                    const VkQueue& queue,
-                                    World::Grid& grid,
-                                    std::vector<World::Cell> cells);
-
   } shaderStorage;
 
   struct ImageSampler : public CE::Descriptor {
@@ -223,4 +159,6 @@ class Resources {
 
   void createDescriptorPool();
   void allocateDescriptorSets();
+
+  void createShaderStorageBuffers();
 };
