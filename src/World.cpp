@@ -137,7 +137,8 @@ std::vector<uint_fast32_t> World::Grid::setCellsAliveRandomly(
 
   std::random_device random;
   std::mt19937 generate(random());
-  std::uniform_int_distribution<int> distribution(0, size.x * size.y - 1);
+  std::uniform_int_distribution<int> distribution(
+      0, static_cast<int>(numPoints) - 1);
 
   while (CellIDs.size() < numberOfCells) {
     int CellID = distribution(generate);
