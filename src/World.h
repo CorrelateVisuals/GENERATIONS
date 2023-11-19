@@ -21,34 +21,6 @@ class World {
   float speed = 25.0f;
   Timer time{speed};
 
-  struct Grid : public Geometry {
-    vec2_uint_fast16_t size = {100, 100};
-    const uint_fast32_t initialAliveCells = 5000;
-    const size_t numPoints{size.x * size.y};
-
-    std::vector<uint32_t> pointIDs = std::vector<uint32_t>(numPoints);
-    std::vector<glm::vec3> coorindates = std::vector<glm::vec3>(numPoints);
-
-    Grid(VkCommandBuffer& commandBuffer,
-         const VkCommandPool& commandPool,
-         const VkQueue& queue);
-    static std::vector<VkVertexInputAttributeDescription>
-    getAttributeDescription();
-  } grid;
-
-  struct Rectangle : public Geometry {
-    Rectangle(VkCommandBuffer& commandBuffer,
-              const VkCommandPool& commandPool,
-              const VkQueue& queue);
-  } rectangle;
-
-  struct Cube : public Geometry {
-    Cube(VkCommandBuffer& commandBuffer,
-         const VkCommandPool& commandPool,
-         const VkQueue& queue);
-    const float size = 0.5f;
-  } cube;
-
   struct alignas(16) Cell {
     glm::vec4 instancePosition;
     glm::vec4 vertexPosition;
@@ -61,6 +33,40 @@ class World {
     getAttributeDescription();
   };
 
+  struct Grid : public Geometry {
+    vec2_uint_fast16_t size = {100, 100};
+    const uint_fast32_t initialAliveCells = 5000;
+    const size_t numPoints{size.x * size.y};
+
+    std::vector<uint32_t> pointIDs = std::vector<uint32_t>(numPoints);
+    std::vector<glm::vec3> coorindates = std::vector<glm::vec3>(numPoints);
+
+    const float initialCellSize = 0.5f;
+    std::vector<World::Cell> cells = std::vector<World::Cell>(numPoints);
+
+    Grid(VkCommandBuffer& commandBuffer,
+         const VkCommandPool& commandPool,
+         const VkQueue& queue);
+    static std::vector<VkVertexInputAttributeDescription>
+    getAttributeDescription();
+
+   private:
+    std::vector<uint_fast32_t> setCellsAliveRandomly(
+        uint_fast32_t numberOfCells);
+  } grid;
+
+  struct Rectangle : public Geometry {
+    Rectangle(VkCommandBuffer& commandBuffer,
+              const VkCommandPool& commandPool,
+              const VkQueue& queue);
+  } rectangle;
+
+  struct Cube : public Geometry {
+    Cube(VkCommandBuffer& commandBuffer,
+         const VkCommandPool& commandPool,
+         const VkQueue& queue);
+  } cube;
+
   struct UniformBufferObject {
     glm::vec4 light;
     glm::ivec2 gridXY;
@@ -72,7 +78,6 @@ class World {
   };
 
  public:
-  std::vector<World::Cell> initializeGrid();
   UniformBufferObject updateUniformBuferObject(
       const VkExtent2D& swapchainExtent);
 
@@ -92,15 +97,8 @@ class World {
     glm::vec4 position{0.0f, 20.0f, 20.0f, 0.0f};
   } light;
 
-  const glm::vec4 red{1.0f, 0.0f, 0.0f, 1.0f};
-  const glm::vec4 blue{0.0f, 0.0f, 1.0f, 1.0f};
-  const glm::ivec4 alive{1, 0, 0, 0};
-  const glm::ivec4 dead{-1, 0, 0, 0};
-
  private:
   void updateCamera();
-  std::vector<uint_fast32_t> setCellsAliveRandomly(uint_fast32_t numberOfCells);
-  // std::vector<float> generateLandscapeHeight();
 
   glm::mat4 setModel();
   glm::mat4 setView();

@@ -21,7 +21,7 @@ Resources::Resources(VulkanMechanics& mechanics, Pipelines& pipelines)
   Log::text("{ /// }", "constructing Resources");
   CE::Descriptor::createSetLayout(CE::Descriptor::setLayoutBindings);
 
-  createShaderStorageBuffers();
+  createShaderStorageBuffers(world.grid.cells);
 
   createDescriptorPool();    // moved
   allocateDescriptorSets();  // moved
@@ -32,10 +32,9 @@ Resources::~Resources() {
   Log::text("{ /// }", "destructing Resources");
 }
 
-void Resources::createShaderStorageBuffers() {
+void Resources::createShaderStorageBuffers(
+    const std::vector<World::Cell>& toShader) {
   Log::text("{ 101 }", "Shader Storage Buffers");
-
-  std::vector<World::Cell> cells = world.initializeGrid();
 
   // Create a staging buffer used to upload data to the gpu
   CE::Buffer stagingResources;
@@ -50,7 +49,7 @@ void Resources::createShaderStorageBuffers() {
   void* data;
   vkMapMemory(CE::Device::baseDevice->logical, stagingResources.memory, 0,
               bufferSize, 0, &data);
-  std::memcpy(data, cells.data(), static_cast<size_t>(bufferSize));
+  std::memcpy(data, toShader.data(), static_cast<size_t>(bufferSize));
   vkUnmapMemory(CE::Device::baseDevice->logical, stagingResources.memory);
 
   CE::Buffer::create(

@@ -73,6 +73,18 @@ World::Grid::Grid(VkCommandBuffer& commandBuffer,
   std::vector<float> terrainPerlinGrid2 = terrainSurface.generatePerlinGrid();
   const float blendFactor = 0.5f;
 
+  std::vector<bool> isAliveIndices(numPoints, false);
+  std::vector<uint_fast32_t> aliveCellIndices =
+      setCellsAliveRandomly(initialAliveCells);
+  for (int aliveIndex : aliveCellIndices) {
+    isAliveIndices[aliveIndex] = true;
+  }
+
+  const glm::vec4 red{1.0f, 0.0f, 0.0f, 1.0f};
+  const glm::vec4 blue{0.0f, 0.0f, 1.0f, 1.0f};
+  const glm::ivec4 alive{1, 0, 0, 0};
+  const glm::ivec4 dead{-1, 0, 0, 0};
+
   const float startX = (size.x - 1) / -2.0f;
   const float startY = (size.y - 1) / -2.0f;
   for (uint_fast32_t i = 0; i < numPoints; ++i) {
@@ -80,9 +92,15 @@ World::Grid::Grid(VkCommandBuffer& commandBuffer,
 
     float height = terrain.linearInterpolationFunction(
         terrainPerlinGrid1[i], terrainPerlinGrid2[i], blendFactor);
-
     coorindates[i] = {(startX + i % size.x), (startY + i / size.x), height};
     addVertexPosition(coorindates[i]);
+
+    const bool isAlive = isAliveIndices[i];
+
+    cells[i].instancePosition = {coorindates[i],
+                                 isAlive ? initialCellSize : 0.0f};
+    cells[i].color = isAlive ? blue : red;
+    cells[i].states = isAlive ? alive : dead;
   }
   indices = createGridPolygons(pointIDs, static_cast<int>(size.x));
   createVertexBuffer(commandBuffer, commandPool, queue, uniqueVertices);
@@ -112,49 +130,14 @@ World::Grid::getAttributeDescription() {
   return attributes;
 }
 
-std::vector<World::Cell> World::initializeGrid() {
-  const uint_fast32_t numAliveCells{grid.initialAliveCells};
-
-  if (numAliveCells > grid.numPoints) {
-    throw std::runtime_error(
-        "\n!ERROR! Number of alive cells exceeds number of grid "
-        "points");
-  }
-
-  std::vector<World::Cell> cells(grid.numPoints);
-  std::vector<bool> isAliveIndices(grid.numPoints, false);
-
-  std::vector<uint_fast32_t> aliveCellIndices =
-      setCellsAliveRandomly(grid.initialAliveCells);
-
-  for (int aliveIndex : aliveCellIndices) {
-    isAliveIndices[aliveIndex] = true;
-  }
-
-  float startX = (grid.size.x - 1) / -2.0f;
-  float startY = (grid.size.y - 1) / -2.0f;
-  for (uint_fast32_t i = 0; i < grid.numPoints; ++i) {
-    const float posX = startX + static_cast<uint_fast16_t>(i % grid.size.x);
-    const float posY = startY + static_cast<uint_fast16_t>(i / grid.size.x);
-    const bool isAlive = isAliveIndices[i];
-
-    cells[i].instancePosition = {posX, posY, grid.coorindates[i].z,
-                                 isAlive ? cube.size : 0.0f};
-    cells[i].color = isAlive ? blue : red;
-    cells[i].states = isAlive ? alive : dead;
-  }
-  return cells;
-}
-
-std::vector<uint_fast32_t> World::setCellsAliveRandomly(
+std::vector<uint_fast32_t> World::Grid::setCellsAliveRandomly(
     uint_fast32_t numberOfCells) {
   std::vector<uint_fast32_t> CellIDs;
   CellIDs.reserve(numberOfCells);
 
   std::random_device random;
   std::mt19937 generate(random());
-  std::uniform_int_distribution<int> distribution(
-      0, grid.size.x * grid.size.y - 1);
+  std::uniform_int_distribution<int> distribution(0, size.x * size.y - 1);
 
   while (CellIDs.size() < numberOfCells) {
     int CellID = distribution(generate);
@@ -174,7 +157,7 @@ World::UniformBufferObject World::updateUniformBuferObject(
       .gridXY = {static_cast<uint32_t>(grid.size.x),
                  static_cast<uint32_t>(grid.size.y)},
       .waterThreshold = 0.1f,
-      .cellSize = cube.size,
+      .cellSize = grid.initialCellSize,
       .model = setModel(),
       .view = setView(),
       .projection = setProjection(swapchainExtent)};

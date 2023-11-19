@@ -160,5 +160,5 @@ class Resources {
   void createDescriptorPool();
   void allocateDescriptorSets();
 
-  void createShaderStorageBuffers();
+  void createShaderStorageBuffers(const std::vector<World::Cell>& toShader);
 };
