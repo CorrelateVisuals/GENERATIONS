@@ -28,16 +28,12 @@ class World {
 
     std::vector<uint32_t> pointIDs = std::vector<uint32_t>(numPoints);
     std::vector<glm::vec3> coorindates = std::vector<glm::vec3>(numPoints);
-    std::vector<float> heights{};
 
     Grid(VkCommandBuffer& commandBuffer,
          const VkCommandPool& commandPool,
          const VkQueue& queue);
-
-    std::vector<float> setLandscapeHeight(const vec2_uint_fast16_t& dimensions);
     static std::vector<VkVertexInputAttributeDescription>
     getAttributeDescription();
-
   } grid;
 
   struct Rectangle : public Geometry {

@@ -47,16 +47,42 @@ World::Cell::getAttributeDescription() {
 World::Grid::Grid(VkCommandBuffer& commandBuffer,
                   const VkCommandPool& commandPool,
                   const VkQueue& queue) {
-  heights = setLandscapeHeight(size);
+  Terrain::Config terrainLayer1 = {.width = size.x,
+                                   .height = size.y,
+                                   .roughness = 0.4f,
+                                   .octaves = 10,
+                                   .scale = 1.1f,
+                                   .amplitude = 5.0f,
+                                   .exponent = 2.0f,
+                                   .frequency = 2.0f,
+                                   .heightOffset = 0.0f};
+  Terrain terrain(terrainLayer1);
+
+  Terrain::Config terrainLayer2 = {.width = size.x,
+                                   .height = size.y,
+                                   .roughness = 1.0f,
+                                   .octaves = 10,
+                                   .scale = 1.1f,
+                                   .amplitude = 0.3f,
+                                   .exponent = 1.0f,
+                                   .frequency = 2.0f,
+                                   .heightOffset = 0.0f};
+  Terrain terrainSurface(terrainLayer2);
+
+  std::vector<float> terrainPerlinGrid1 = terrain.generatePerlinGrid();
+  std::vector<float> terrainPerlinGrid2 = terrainSurface.generatePerlinGrid();
+  const float blendFactor = 0.5f;
 
   const float startX = (size.x - 1) / -2.0f;
   const float startY = (size.y - 1) / -2.0f;
   for (uint_fast32_t i = 0; i < numPoints; ++i) {
     pointIDs[i] = i;
-    coorindates[i] = {(startX + i % size.x), (startY + i / size.x), 0.1f};
 
-    addVertexPosition(
-        glm::vec3(coorindates[i].x, coorindates[i].y, heights[i]));
+    float height = terrain.linearInterpolationFunction(
+        terrainPerlinGrid1[i], terrainPerlinGrid2[i], blendFactor);
+
+    coorindates[i] = {(startX + i % size.x), (startY + i / size.x), height};
+    addVertexPosition(coorindates[i]);
   }
   indices = createGridPolygons(pointIDs, static_cast<int>(size.x));
   createVertexBuffer(commandBuffer, commandPool, queue, uniqueVertices);
@@ -98,9 +124,6 @@ std::vector<World::Cell> World::initializeGrid() {
   std::vector<World::Cell> cells(grid.numPoints);
   std::vector<bool> isAliveIndices(grid.numPoints, false);
 
-  // std::vector<float> height = generateLandscapeHeight();
-  // std::vector<uint32_t> tempIndices(grid.numPoints);
-
   std::vector<uint_fast32_t> aliveCellIndices =
       setCellsAliveRandomly(grid.initialAliveCells);
 
@@ -115,18 +138,11 @@ std::vector<World::Cell> World::initializeGrid() {
     const float posY = startY + static_cast<uint_fast16_t>(i / grid.size.x);
     const bool isAlive = isAliveIndices[i];
 
-    cells[i].instancePosition = {posX, posY, grid.heights[i],
+    cells[i].instancePosition = {posX, posY, grid.coorindates[i].z,
                                  isAlive ? cube.size : 0.0f};
     cells[i].color = isAlive ? blue : red;
     cells[i].states = isAlive ? alive : dead;
-
-    /* tempIndices[i] = i;
-     landscape.addVertexPosition(glm::vec3(posX, posY, height[i]));*/
   }
-  /* landscape.indices =
-       Geometry::createGridPolygons(tempIndices,
-     static_cast<int>(grid.size.x));*/
-
   return cells;
 }
 
@@ -149,42 +165,6 @@ std::vector<uint_fast32_t> World::setCellsAliveRandomly(
   }
   std::sort(CellIDs.begin(), CellIDs.end());
   return CellIDs;
-}
-
-std::vector<float> World::Grid::setLandscapeHeight(
-    const vec2_uint_fast16_t& dimensions) {
-  Terrain::Config terrainLayer1 = {.width = dimensions.x,
-                                   .height = dimensions.y,
-                                   .roughness = 0.4f,
-                                   .octaves = 10,
-                                   .scale = 1.1f,
-                                   .amplitude = 5.0f,
-                                   .exponent = 2.0f,
-                                   .frequency = 2.0f,
-                                   .heightOffset = 0.0f};
-  Terrain terrain(terrainLayer1);
-
-  Terrain::Config terrainLayer2 = {.width = dimensions.x,
-                                   .height = dimensions.y,
-                                   .roughness = 1.0f,
-                                   .octaves = 10,
-                                   .scale = 1.1f,
-                                   .amplitude = 0.3f,
-                                   .exponent = 1.0f,
-                                   .frequency = 2.0f,
-                                   .heightOffset = 0.0f};
-  Terrain terrainSurface(terrainLayer2);
-
-  std::vector<float> terrainPerlinGrid1 = terrain.generatePerlinGrid();
-  std::vector<float> terrainPerlinGrid2 = terrainSurface.generatePerlinGrid();
-
-  std::vector<float> height(terrainPerlinGrid1.size());
-  for (size_t i = 0; i < height.size(); i++) {
-    float blendFactor = 0.5f;
-    height[i] = terrain.linearInterpolationFunction(
-        terrainPerlinGrid1[i], terrainPerlinGrid2[i], blendFactor);
-  }
-  return height;
 }
 
 World::UniformBufferObject World::updateUniformBuferObject(
