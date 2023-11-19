@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <array>
+#include <numeric>
 #include <utility>
 #include <vector>
 
@@ -20,19 +21,24 @@ class World {
   float speed = 25.0f;
   Timer time{speed};
 
-  struct Grid {
+  struct Grid : public Geometry {
     vec2_uint_fast16_t size = {100, 100};
     const uint_fast32_t initialAliveCells = 5000;
-    const size_t numPoints = {size.x * size.y};
-  } grid;
+    const size_t numPoints{size.x * size.y};
 
-  struct Landscape : public Geometry {
-    Landscape(VkCommandBuffer& commandBuffer,
-              const VkCommandPool& commandPool,
-              const VkQueue& queue);
+    std::vector<uint32_t> pointIDs = std::vector<uint32_t>(numPoints);
+    std::vector<glm::vec3> coorindates = std::vector<glm::vec3>(numPoints);
+    std::vector<float> heights{};
+
+    Grid(VkCommandBuffer& commandBuffer,
+         const VkCommandPool& commandPool,
+         const VkQueue& queue);
+
+    std::vector<float> setLandscapeHeight(const vec2_uint_fast16_t& dimensions);
     static std::vector<VkVertexInputAttributeDescription>
     getAttributeDescription();
-  } landscape;
+
+  } grid;
 
   struct Rectangle : public Geometry {
     Rectangle(VkCommandBuffer& commandBuffer,
@@ -98,7 +104,7 @@ class World {
  private:
   void updateCamera();
   std::vector<uint_fast32_t> setCellsAliveRandomly(uint_fast32_t numberOfCells);
-  std::vector<float> generateLandscapeHeight();
+  // std::vector<float> generateLandscapeHeight();
 
   glm::mat4 setModel();
   glm::mat4 setView();

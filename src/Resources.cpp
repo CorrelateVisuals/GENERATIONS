@@ -296,15 +296,13 @@ void Resources::Commands::recordGraphicsCommandBuffer(
   // Landscape
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                     pipelines.config.getPipelineObjectByName("Landscape"));
-  VkBuffer vertexBuffers1[] = {resources.world.landscape.vertexBuffer.buffer};
+  VkBuffer vertexBuffers1[] = {resources.world.grid.vertexBuffer.buffer};
   vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers1, offsets);
-  vkCmdBindIndexBuffer(commandBuffer,
-                       resources.world.landscape.indexBuffer.buffer, 0,
-                       VK_INDEX_TYPE_UINT32);
-  vkCmdDrawIndexed(
-      commandBuffer,
-      static_cast<uint32_t>(resources.world.landscape.indices.size()), 1, 0, 0,
-      0);
+  vkCmdBindIndexBuffer(commandBuffer, resources.world.grid.indexBuffer.buffer,
+                       0, VK_INDEX_TYPE_UINT32);
+  vkCmdDrawIndexed(commandBuffer,
+                   static_cast<uint32_t>(resources.world.grid.indices.size()),
+                   1, 0, 0, 0);
 
   // Landscape Wireframe
   // vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
