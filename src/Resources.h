@@ -75,7 +75,8 @@ class Resources {
     ShaderStorage(VkCommandBuffer& commandBuffer,
                   const VkCommandPool& commandPool,
                   const VkQueue& queue,
-                  const World::Grid& object) {
+                  const auto& object,
+                  const size_t quantity) {
       setLayoutBinding.binding = 1;
       setLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
       setLayoutBinding.descriptorCount = 1;
@@ -90,15 +91,16 @@ class Resources {
 
       bufferInfo.buffer = bufferIn.buffer;
       bufferInfo.offset = 0;
-      bufferInfo.range = sizeof(object.cells[0]) * object.numPoints;
+      bufferInfo.range = sizeof(World::Cell) * quantity;
 
       bufferInfo.buffer = bufferOut.buffer;
-      create(commandBuffer, commandPool, queue, object);
+      create(commandBuffer, commandPool, queue, object, quantity);
     }
     void create(VkCommandBuffer& commandBuffer,
                 const VkCommandPool& commandPool,
                 const VkQueue& queue,
-                const World::Grid& object);
+                const auto& object,
+                const size_t quantity);
   } shaderStorage;
 
   struct ImageSampler : public CE::Descriptor {

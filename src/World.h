@@ -36,13 +36,13 @@ class World {
   struct Grid : public Geometry {
     vec2_uint_fast16_t size = {100, 100};
     const uint_fast32_t initialAliveCells = 5000;
-    const size_t numPoints{size.x * size.y};
+    const size_t pointCount{size.x * size.y};
 
-    std::vector<uint32_t> pointIDs = std::vector<uint32_t>(numPoints);
-    std::vector<glm::vec3> coorindates = std::vector<glm::vec3>(numPoints);
+    std::vector<uint32_t> pointIDs = std::vector<uint32_t>(pointCount);
+    std::vector<glm::vec3> coorindates = std::vector<glm::vec3>(pointCount);
 
     const float initialCellSize = 0.5f;
-    std::vector<World::Cell> cells = std::vector<World::Cell>(numPoints);
+    std::vector<World::Cell> cells = std::vector<World::Cell>(pointCount);
 
     Grid(VkCommandBuffer& commandBuffer,
          const VkCommandPool& commandPool,

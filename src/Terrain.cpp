@@ -12,10 +12,10 @@ Terrain::Terrain(const Config& _config) : config(_config) {}
 Terrain::~Terrain() {}
 
 std::vector<float> Terrain::generatePerlinGrid() {
-  uint_fast16_t numPoints = config.width * config.height;
-  std::vector<float> randomValues(numPoints);
+  uint_fast16_t pointCount = config.width * config.height;
+  std::vector<float> randomValues(pointCount);
 
-  for (uint_fast16_t i = 0; i < numPoints; i++) {
+  for (uint_fast16_t i = 0; i < pointCount; i++) {
     glm::vec2 position(i % config.width, i / config.width);
     glm::vec2 scaledPosition =
         position / glm::vec2(config.width, config.height);

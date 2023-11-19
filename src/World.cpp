@@ -73,7 +73,7 @@ World::Grid::Grid(VkCommandBuffer& commandBuffer,
   std::vector<float> terrainPerlinGrid2 = terrainSurface.generatePerlinGrid();
   const float blendFactor = 0.5f;
 
-  std::vector<bool> isAliveIndices(numPoints, false);
+  std::vector<bool> isAliveIndices(pointCount, false);
   std::vector<uint_fast32_t> aliveCellIndices =
       setCellsAliveRandomly(initialAliveCells);
   for (int aliveIndex : aliveCellIndices) {
@@ -87,7 +87,7 @@ World::Grid::Grid(VkCommandBuffer& commandBuffer,
 
   const float startX = (size.x - 1) / -2.0f;
   const float startY = (size.y - 1) / -2.0f;
-  for (uint_fast32_t i = 0; i < numPoints; ++i) {
+  for (uint_fast32_t i = 0; i < pointCount; ++i) {
     pointIDs[i] = i;
 
     float height = terrain.linearInterpolationFunction(
@@ -138,7 +138,7 @@ std::vector<uint_fast32_t> World::Grid::setCellsAliveRandomly(
   std::random_device random;
   std::mt19937 generate(random());
   std::uniform_int_distribution<int> distribution(
-      0, static_cast<int>(numPoints) - 1);
+      0, static_cast<int>(pointCount) - 1);
 
   while (CellIDs.size() < numberOfCells) {
     int CellID = distribution(generate);
