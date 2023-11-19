@@ -149,21 +149,7 @@ std::vector<uint_fast32_t> World::Grid::setCellsAliveRandomly(
   return CellIDs;
 }
 
-World::UniformBufferObject World::updateUniformBuferObject(
-    const VkExtent2D& swapchainExtent) {
-  UniformBufferObject uniformObject{
-      .light = light.position,
-      .gridXY = {static_cast<uint32_t>(grid.size.x),
-                 static_cast<uint32_t>(grid.size.y)},
-      .waterThreshold = 0.1f,
-      .cellSize = grid.initialCellSize,
-      .model = setModel(),
-      .view = setView(),
-      .projection = setProjection(swapchainExtent)};
-  return uniformObject;
-}
-
-void World::updateCamera() {
+void World::Camera::update() {
   glm::vec2 buttonType[3]{};
   constexpr uint_fast8_t left = 0;
   constexpr uint_fast8_t right = 1;
@@ -190,37 +176,36 @@ void World::updateCamera() {
     glm::vec2 leftButtonDelta = buttonType[left];
     glm::vec2 rightButtonDelta = buttonType[right];
     glm::vec2 middleButtonDelta = buttonType[middle];
-    glm::vec3 cameraRight = glm::cross(camera.front, camera.up);
+    glm::vec3 cameraRight = glm::cross(front, up);
 
-    glm::vec3 cameraUp = glm::cross(cameraRight, camera.front);
-    camera.position -= camera.panningSpeed * leftButtonDelta.x * cameraRight;
-    camera.position -= camera.panningSpeed * leftButtonDelta.y * cameraUp;
+    glm::vec3 cameraUp = glm::cross(cameraRight, front);
+    position -= panningSpeed * leftButtonDelta.x * cameraRight;
+    position -= panningSpeed * leftButtonDelta.y * cameraUp;
 
-    camera.position += camera.zoomSpeed * rightButtonDelta.x * camera.front;
-    camera.position.z = std::max(camera.position.z, 0.0f);
+    position += zoomSpeed * rightButtonDelta.x * front;
+    position.z = std::max(position.z, 0.0f);
   }
   run = mousePositionChanged;
 }
 
-glm::mat4 World::setModel() {
+glm::mat4 World::Camera::setModel() {
   glm::mat4 model = glm::rotate(glm::mat4(1.0f), glm::radians(0.0f),
                                 glm::vec3(0.0f, 0.0f, 1.0f));
   return model;
 }
 
-glm::mat4 World::setView() {
-  updateCamera();
+glm::mat4 World::Camera::setView() {
+  update();
   glm::mat4 view;
-  view =
-      glm::lookAt(camera.position, camera.position + camera.front, camera.up);
+  view = glm::lookAt(position, position + front, up);
   return view;
 }
 
-glm::mat4 World::setProjection(const VkExtent2D& swapchainExtent) {
+glm::mat4 World::Camera::setProjection(const VkExtent2D& swapchainExtent) {
   glm::mat4 projection = glm::perspective(
-      glm::radians(camera.fieldOfView),
+      glm::radians(fieldOfView),
       swapchainExtent.width / static_cast<float>(swapchainExtent.height),
-      camera.nearClipping, camera.farClipping);
+      nearClipping, farClipping);
 
   projection[1][1] *= -1;  // flip y axis
   projection[0][0] *= -1;  // flip x axis

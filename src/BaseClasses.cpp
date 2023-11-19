@@ -546,6 +546,8 @@ void CE::Descriptor::createSetLayout(
                     &CE::Descriptor::setLayout);
 }
 
+void CE::Descriptor::createSets() {}
+
 void CE::Descriptor::allocateSets() {
   std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT,
                                              this->setLayout);

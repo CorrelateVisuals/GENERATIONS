@@ -38,6 +38,8 @@ class Resources {
 
   struct UniformBuffer : public CE::Descriptor {
     CE::Buffer buffer;
+    World::UniformBufferObject object;
+
     UniformBuffer() {
       VkDescriptorType type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
       setLayoutBinding.binding = 0;

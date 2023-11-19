@@ -22,8 +22,6 @@ Resources::Resources(VulkanMechanics& mechanics, Pipelines& pipelines)
   Log::text("{ /// }", "constructing Resources");
   CE::Descriptor::createSetLayout(CE::Descriptor::setLayoutBindings);
 
-  // createShaderStorageBuffers(world.grid.cells);
-
   createDescriptorPool();    // moved
   allocateDescriptorSets();  // moved
   createDescriptorSets();
@@ -193,9 +191,16 @@ void Resources::createDescriptorSets() {
 }
 
 void Resources::UniformBuffer::update(World& world, const VkExtent2D extent) {
-  World::UniformBufferObject uniformObject =
-      world.updateUniformBuferObject(extent);
-  std::memcpy(buffer.mapped, &uniformObject, sizeof(uniformObject));
+  object.light = world.light.position;
+  object.gridXY = glm::vec2(static_cast<uint32_t>(world.grid.size.x),
+                            static_cast<uint32_t>(world.grid.size.y));
+  object.waterThreshold = 0.1f;
+  object.cellSize = world.grid.initialCellSize;
+  object.model = world.camera.setModel();
+  object.view = world.camera.setView();
+  object.projection = world.camera.setProjection(extent);
+
+  std::memcpy(buffer.mapped, &object, sizeof(object));
 }
 
 void Resources::Commands::recordComputeCommandBuffer(

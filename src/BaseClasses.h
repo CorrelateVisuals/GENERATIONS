@@ -271,6 +271,7 @@ class Descriptor {
 
   void createPool();
   void allocateSets();
+  void createSets();
 };
 
 struct PushConstants {

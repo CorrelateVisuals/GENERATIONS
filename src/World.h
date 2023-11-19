@@ -22,11 +22,11 @@ class World {
   Timer time{speed};
 
   struct alignas(16) Cell {
-    glm::vec4 instancePosition;
-    glm::vec4 vertexPosition;
-    glm::vec4 normal;
-    glm::vec4 color;
-    glm::ivec4 states;
+    glm::vec4 instancePosition{};
+    glm::vec4 vertexPosition{};
+    glm::vec4 normal{};
+    glm::vec4 color{};
+    glm::ivec4 states{};
 
     static std::vector<VkVertexInputBindingDescription> getBindingDescription();
     static std::vector<VkVertexInputAttributeDescription>
@@ -41,7 +41,7 @@ class World {
     std::vector<uint32_t> pointIDs = std::vector<uint32_t>(pointCount);
     std::vector<glm::vec3> coorindates = std::vector<glm::vec3>(pointCount);
     std::vector<World::Cell> cells = std::vector<World::Cell>(pointCount);
-    const float initialCellSize = 0.5f;
+    const float initialCellSize{0.5f};
 
     Grid(VkCommandBuffer& commandBuffer,
          const VkCommandPool& commandPool,
@@ -67,21 +67,21 @@ class World {
   } cube;
 
   struct UniformBufferObject {
-    glm::vec4 light;
-    glm::ivec2 gridXY;
-    float waterThreshold;
-    float cellSize;
-    alignas(16) glm::mat4 model;
-    alignas(16) glm::mat4 view;
-    alignas(16) glm::mat4 projection;
+    glm::vec4 light{};
+    glm::ivec2 gridXY{};
+    float waterThreshold{};
+    float cellSize{};
+    alignas(16) glm::mat4 model{};
+    alignas(16) glm::mat4 view{};
+    alignas(16) glm::mat4 projection{};
   };
 
- public:
-  UniformBufferObject updateUniformBuferObject(
-      const VkExtent2D& swapchainExtent);
+  struct Light {
+    glm::vec4 position{0.0f, 20.0f, 20.0f, 0.0f};
+  } light;
 
- private:
-  struct Camera {
+  class Camera {
+   public:
     float zoomSpeed = 0.5f;
     float panningSpeed = 1.2f;
     const float fieldOfView = 40.0f;
@@ -90,18 +90,14 @@ class World {
     glm::vec3 position{0.0f, 0.0f, 30.0f};
     glm::vec3 front{0.0f, 0.0f, -1.0f};
     glm::vec3 up{0.0f, -1.0f, 0.0f};
+
+    glm::mat4 setModel();
+    glm::mat4 setView();
+    glm::mat4 setProjection(const VkExtent2D& swapchainExtent);
+
+   private:
+    void update();
   } camera;
-
-  struct Light {
-    glm::vec4 position{0.0f, 20.0f, 20.0f, 0.0f};
-  } light;
-
- private:
-  void updateCamera();
-
-  glm::mat4 setModel();
-  glm::mat4 setView();
-  glm::mat4 setProjection(const VkExtent2D& swapchainExtent);
 };
 
 // float getForwardMovement(const glm::vec2& leftButtonDelta);
