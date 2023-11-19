@@ -40,9 +40,8 @@ class World {
 
     std::vector<uint32_t> pointIDs = std::vector<uint32_t>(pointCount);
     std::vector<glm::vec3> coorindates = std::vector<glm::vec3>(pointCount);
-
-    const float initialCellSize = 0.5f;
     std::vector<World::Cell> cells = std::vector<World::Cell>(pointCount);
+    const float initialCellSize = 0.5f;
 
     Grid(VkCommandBuffer& commandBuffer,
          const VkCommandPool& commandPool,

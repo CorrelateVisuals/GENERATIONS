@@ -4,8 +4,6 @@
 
 Timer::Timer(float initSpeed) : speed{initSpeed} {}
 
-Timer::~Timer() {}
-
 void Timer::run() {
   static auto lastTime = std::chrono::steady_clock::now();
   static std::chrono::time_point<std::chrono::steady_clock> dayStart =

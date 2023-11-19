@@ -47,8 +47,7 @@ World::Cell::getAttributeDescription() {
 World::Grid::Grid(VkCommandBuffer& commandBuffer,
                   const VkCommandPool& commandPool,
                   const VkQueue& queue) {
-  Terrain::Config terrainLayer1 = {.width = size.x,
-                                   .height = size.y,
+  Terrain::Config terrainLayer1 = {.dimensions = size,
                                    .roughness = 0.4f,
                                    .octaves = 10,
                                    .scale = 1.1f,
@@ -58,8 +57,7 @@ World::Grid::Grid(VkCommandBuffer& commandBuffer,
                                    .heightOffset = 0.0f};
   Terrain terrain(terrainLayer1);
 
-  Terrain::Config terrainLayer2 = {.width = size.x,
-                                   .height = size.y,
+  Terrain::Config terrainLayer2 = {.dimensions = size,
                                    .roughness = 1.0f,
                                    .octaves = 10,
                                    .scale = 1.1f,
