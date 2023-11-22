@@ -256,6 +256,14 @@ class Descriptor {
   static std::vector<VkDescriptorPoolSize> poolSizes;
   static std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings;
 
+  union DescriptorInfo {
+      VkDescriptorBufferInfo bufferInfo;
+      VkDescriptorImageInfo imageInfo;
+      DescriptorInfo(VkDescriptorBufferInfo buffer) : bufferInfo{ buffer } {}
+      DescriptorInfo(VkDescriptorImageInfo image) : imageInfo{ image } {}
+  };
+  static std::vector<DescriptorInfo> descriptorInfos;
+
   VkDescriptorPoolSize poolSize{};
   VkDescriptorSetLayoutBinding setLayoutBinding{};
   VkWriteDescriptorSet writeSet{};

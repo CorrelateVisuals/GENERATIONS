@@ -16,6 +16,8 @@ VkDescriptorSetLayout CE::Descriptor::setLayout;
 std::array<VkDescriptorSet, MAX_FRAMES_IN_FLIGHT> CE::Descriptor::sets;
 std::vector<VkDescriptorPoolSize> CE::Descriptor::poolSizes;
 std::vector<VkDescriptorSetLayoutBinding> CE::Descriptor::setLayoutBindings;
+std::vector<CE::Descriptor::DescriptorInfo> CE::Descriptor::descriptorInfos;
+
 
 void CE::Device::createLogicalDevice(const InitializeVulkan& initVulkan,
                                      Queues& queues) {

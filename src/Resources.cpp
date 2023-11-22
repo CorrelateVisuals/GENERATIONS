@@ -116,7 +116,7 @@ void Resources::allocateDescriptorSets() {
 void Resources::createDescriptorSets() {
   Log::text("{ |=| }", "Descriptor Sets");
 
-  for (uint_fast8_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+  for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
     VkDescriptorBufferInfo uniformBufferInfo{
         .buffer = uniform.buffer.buffer,
         .offset = 0,
@@ -149,7 +149,7 @@ void Resources::createDescriptorSets() {
          .dstArrayElement = 0,
          .descriptorCount = 1,
          .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-         .pBufferInfo = &uniformBufferInfo},
+         .pBufferInfo = &CE::Descriptor::descriptorInfos[0].bufferInfo},
 
         {.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
          .dstSet = CE::Descriptor::sets[i],

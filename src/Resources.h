@@ -53,19 +53,12 @@ class Resources {
       poolSize.descriptorCount = MAX_FRAMES_IN_FLIGHT;
       poolSizes.push_back(poolSize);
 
-      for (uint_fast8_t i = 0; i < 2; i++) {
-        bufferInfo.buffer = buffer.buffer;
-        bufferInfo.offset = 0;
-        bufferInfo.range = sizeof(World::UniformBufferObject);
-        writeSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        // writeSet.dstSet = sets[i];
-        writeSet.dstBinding = 0;
-        writeSet.dstArrayElement = 0;
-        writeSet.descriptorCount = 1;
-        writeSet.descriptorType = type;
-        writeSet.pBufferInfo = &bufferInfo;
-      }
       create();
+
+      bufferInfo.buffer = buffer.buffer;
+      bufferInfo.offset = 0;
+      bufferInfo.range = sizeof(World::UniformBufferObject);
+      descriptorInfos.push_back(bufferInfo);
     }
     void create();
     void update(World& world, const VkExtent2D extent);
@@ -94,8 +87,10 @@ class Resources {
       bufferInfo.buffer = bufferIn.buffer;
       bufferInfo.offset = 0;
       bufferInfo.range = sizeof(World::Cell) * quantity;
-
+      descriptorInfos.push_back(bufferInfo);
       bufferInfo.buffer = bufferOut.buffer;
+      descriptorInfos.push_back(bufferInfo);
+
       create(commandBuffer, commandPool, queue, object, quantity);
     }
     void create(VkCommandBuffer& commandBuffer,
@@ -122,6 +117,7 @@ class Resources {
       imageInfo.sampler = image.sampler;
       imageInfo.imageView = image.view;
       imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+      descriptorInfos.push_back(imageInfo);
     }
   } sampler;
 
@@ -149,6 +145,7 @@ class Resources {
         imageInfo.sampler = VK_NULL_HANDLE;
         imageInfo.imageView = images[i].view;  // TODO ERROR FOR VECTOR SIZE
         imageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+        descriptorInfos.push_back(imageInfo);
       }
     }
   } storageImage;
