@@ -84,14 +84,14 @@ class Resources {
       poolSize.descriptorCount = MAX_FRAMES_IN_FLIGHT * 2;
       poolSizes.push_back(poolSize);
 
+      create(commandBuffer, commandPool, queue, object, quantity);
+
       bufferInfo.buffer = bufferIn.buffer;
       bufferInfo.offset = 0;
       bufferInfo.range = sizeof(World::Cell) * quantity;
       descriptorInfos.push_back(bufferInfo);
       bufferInfo.buffer = bufferOut.buffer;
       descriptorInfos.push_back(bufferInfo);
-
-      create(commandBuffer, commandPool, queue, object, quantity);
     }
     void create(VkCommandBuffer& commandBuffer,
                 const VkCommandPool& commandPool,

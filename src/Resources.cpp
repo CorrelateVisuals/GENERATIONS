@@ -21,9 +21,8 @@ Resources::Resources(VulkanMechanics& mechanics, Pipelines& pipelines)
   Log::text(Log::Style::headerGuard);
   Log::text("{ /// }", "constructing Resources");
   CE::Descriptor::createSetLayout(CE::Descriptor::setLayoutBindings);
-
-  createDescriptorPool();    // moved
-  allocateDescriptorSets();  // moved
+  CE::Descriptor::createPool();
+  CE::Descriptor::allocateSets();
   createDescriptorSets();
 }
 
@@ -157,7 +156,7 @@ void Resources::createDescriptorSets() {
          .dstArrayElement = 0,
          .descriptorCount = 1,
          .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-         .pBufferInfo = &storageBufferInfoLastFrame},
+         .pBufferInfo = &CE::Descriptor::descriptorInfos[1].bufferInfo},
 
         {.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
          .dstSet = CE::Descriptor::sets[i],
@@ -165,7 +164,7 @@ void Resources::createDescriptorSets() {
          .dstArrayElement = 0,
          .descriptorCount = 1,
          .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-         .pBufferInfo = &storageBufferInfoCurrentFrame},
+         .pBufferInfo = &CE::Descriptor::descriptorInfos[2].bufferInfo},
 
         {.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
          .dstSet = CE::Descriptor::sets[i],

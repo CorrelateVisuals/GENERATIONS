@@ -18,7 +18,6 @@ std::vector<VkDescriptorPoolSize> CE::Descriptor::poolSizes;
 std::vector<VkDescriptorSetLayoutBinding> CE::Descriptor::setLayoutBindings;
 std::vector<CE::Descriptor::DescriptorInfo> CE::Descriptor::descriptorInfos;
 
-
 void CE::Device::createLogicalDevice(const InitializeVulkan& initVulkan,
                                      Queues& queues) {
   Log::text("{ +++ }", "Logical Device");
@@ -505,14 +504,6 @@ void CE::Image::createSampler() {
   }
 }
 
-CE::Descriptor::Descriptor() {
-  // static bool setLayoutCreated = false;
-  // if (!setLayoutCreated) {
-  //   createSetLayout(CE::Descriptor::setLayoutBindings);
-  //   setLayoutCreated = true;
-  // }
-}
-
 CE::Descriptor::~Descriptor() {
   if (Device::baseDevice) {
     if (this->pool != VK_NULL_HANDLE) {
@@ -551,30 +542,27 @@ void CE::Descriptor::createSetLayout(
 void CE::Descriptor::createSets() {}
 
 void CE::Descriptor::allocateSets() {
-  std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT,
-                                             this->setLayout);
+  std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, setLayout);
   VkDescriptorSetAllocateInfo allocateInfo{
       .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-      .descriptorPool = this->pool,
+      .descriptorPool = pool,
       .descriptorSetCount = MAX_FRAMES_IN_FLIGHT,
       .pSetLayouts = layouts.data()};
-
   CE::VULKAN_RESULT(vkAllocateDescriptorSets, Device::baseDevice->logical,
-                    &allocateInfo, this->sets.data());
+                    &allocateInfo, sets.data());
 }
 
 void CE::Descriptor::createPool() {
   Log::text("{ |=| }", "Descriptor Pool");
-  for (size_t i = 0; i < this->poolSizes.size(); i++) {
+  for (size_t i = 0; i < poolSizes.size(); i++) {
     Log::text(Log::Style::charLeader,
-              Log::getDescriptorTypeString(this->poolSizes[i].type));
+              Log::getDescriptorTypeString(poolSizes[i].type));
   }
   VkDescriptorPoolCreateInfo poolInfo{
       .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
       .maxSets = MAX_FRAMES_IN_FLIGHT,
-      .poolSizeCount = static_cast<uint32_t>(this->poolSizes.size()),
-      .pPoolSizes = this->poolSizes.data()};
-
+      .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
+      .pPoolSizes = poolSizes.data()};
   CE::VULKAN_RESULT(vkCreateDescriptorPool, Device::baseDevice->logical,
                     &poolInfo, nullptr, &CE::Descriptor::pool);
 }

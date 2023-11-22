@@ -257,10 +257,10 @@ class Descriptor {
   static std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings;
 
   union DescriptorInfo {
-      VkDescriptorBufferInfo bufferInfo;
-      VkDescriptorImageInfo imageInfo;
-      DescriptorInfo(VkDescriptorBufferInfo buffer) : bufferInfo{ buffer } {}
-      DescriptorInfo(VkDescriptorImageInfo image) : imageInfo{ image } {}
+    VkDescriptorBufferInfo bufferInfo;
+    VkDescriptorImageInfo imageInfo;
+    DescriptorInfo(VkDescriptorBufferInfo buffer) : bufferInfo{buffer} {}
+    DescriptorInfo(VkDescriptorImageInfo image) : imageInfo{image} {}
   };
   static std::vector<DescriptorInfo> descriptorInfos;
 
@@ -271,15 +271,15 @@ class Descriptor {
   VkDescriptorBufferInfo bufferInfo{};
   VkDescriptorImageInfo imageInfo{};
 
-  Descriptor();
+  Descriptor() = default;
   virtual ~Descriptor();
 
   static void createSetLayout(
       const std::vector<VkDescriptorSetLayoutBinding>& layoutBindings);
 
-  void createPool();
-  void allocateSets();
-  void createSets();
+  static void createPool();
+  static void allocateSets();
+  static void createSets();
 };
 
 struct PushConstants {
