@@ -7,14 +7,13 @@ Resources::Resources(VulkanMechanics& mechanics, Pipelines& pipelines)
     : _mechanics(mechanics),
       commands{mechanics.queues.familyIndices},
       pushConstants{},
-      textureImage{commands.singularCommandBuffer, commands.pool,
-                   mechanics.queues.graphics},
       depthImage{mechanics.swapchain.extent, CE::Image::findDepthFormat()},
       msaaImage{mechanics.swapchain.extent, mechanics.swapchain.imageFormat},
       shaderStorage{commands.singularCommandBuffer, commands.pool,
                     mechanics.queues.graphics, world.grid.cells,
                     world.grid.pointCount},
-      sampler{textureImage},
+      sampler{commands.singularCommandBuffer, commands.pool,
+              mechanics.queues.graphics},
       storageImage{mechanics.swapchain.images},
       world{commands.singularCommandBuffer, commands.pool,
             mechanics.queues.graphics} {
@@ -132,8 +131,8 @@ void Resources::createDescriptorSets() {
         .range = sizeof(World::Cell) * world.grid.size.x * world.grid.size.y};
 
     VkDescriptorImageInfo imageInfo{
-        .sampler = textureImage.sampler,
-        .imageView = textureImage.view,
+        .sampler = sampler.textureImage.sampler,
+        .imageView = sampler.textureImage.view,
         .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL};
 
     VkDescriptorImageInfo swapchainImageInfo{
@@ -148,7 +147,8 @@ void Resources::createDescriptorSets() {
          .dstArrayElement = 0,
          .descriptorCount = 1,
          .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-         .pBufferInfo = &CE::Descriptor::descriptorInfos[0].bufferInfo},
+         .pBufferInfo = &std::get<VkDescriptorBufferInfo>(
+             CE::Descriptor::descriptorInfos[0])},
 
         {.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
          .dstSet = CE::Descriptor::sets[i],
@@ -156,7 +156,8 @@ void Resources::createDescriptorSets() {
          .dstArrayElement = 0,
          .descriptorCount = 1,
          .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-         .pBufferInfo = &CE::Descriptor::descriptorInfos[1].bufferInfo},
+         .pBufferInfo = &std::get<VkDescriptorBufferInfo>(
+             CE::Descriptor::descriptorInfos[1])},
 
         {.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
          .dstSet = CE::Descriptor::sets[i],
@@ -164,7 +165,8 @@ void Resources::createDescriptorSets() {
          .dstArrayElement = 0,
          .descriptorCount = 1,
          .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-         .pBufferInfo = &CE::Descriptor::descriptorInfos[2].bufferInfo},
+         .pBufferInfo = &std::get<VkDescriptorBufferInfo>(
+             CE::Descriptor::descriptorInfos[2])},
 
         {.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
          .dstSet = CE::Descriptor::sets[i],
@@ -172,7 +174,8 @@ void Resources::createDescriptorSets() {
          .dstArrayElement = 0,
          .descriptorCount = 1,
          .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-         .pImageInfo = &imageInfo},
+         .pImageInfo = &std::get<VkDescriptorImageInfo>(
+             CE::Descriptor::descriptorInfos[3])},
 
         {.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
          .dstSet = CE::Descriptor::sets[i],
@@ -389,12 +392,4 @@ Resources::MultisamplingImage::MultisamplingImage(const VkExtent2D extent,
                   VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT |
                       VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
                   VK_IMAGE_ASPECT_COLOR_BIT);
-}
-
-Resources::TextureImage::TextureImage(VkCommandBuffer& commandBuffer,
-                                      VkCommandPool& commandPool,
-                                      const VkQueue& queue) {
-  loadTexture(path, VK_FORMAT_R8G8B8A8_SRGB, commandBuffer, commandPool, queue);
-  createView(VK_IMAGE_ASPECT_COLOR_BIT);
-  createSampler();
 }

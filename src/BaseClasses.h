@@ -149,6 +149,7 @@ class Image {
   VkDeviceMemory memory{};
   VkImageView view{};
   VkSampler sampler{};
+  std::string path{};
   VkImageCreateInfo info{.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
                          .pNext = nullptr,
                          .flags = 0,
@@ -256,13 +257,10 @@ class Descriptor {
   static std::vector<VkDescriptorPoolSize> poolSizes;
   static std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings;
 
-  union DescriptorInfo {
-    VkDescriptorBufferInfo bufferInfo;
-    VkDescriptorImageInfo imageInfo;
-    DescriptorInfo(VkDescriptorBufferInfo buffer) : bufferInfo{buffer} {}
-    DescriptorInfo(VkDescriptorImageInfo image) : imageInfo{image} {}
-  };
-  static std::vector<DescriptorInfo> descriptorInfos;
+  static std::vector<
+      std::variant<VkDescriptorBufferInfo, VkDescriptorImageInfo>>
+      descriptorInfos;
+  std::variant<VkDescriptorBufferInfo, VkDescriptorImageInfo> info{};
 
   VkDescriptorPoolSize poolSize{};
   VkDescriptorSetLayoutBinding setLayoutBinding{};

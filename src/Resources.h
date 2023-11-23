@@ -102,7 +102,14 @@ class Resources {
 
   struct ImageSampler : public CE::Descriptor {
     CE::Buffer buffer;
-    ImageSampler(CE::Image image) {
+
+    struct TextureImage : public CE::Image {
+      TextureImage() { path = Lib::path("assets/Avatar.PNG"); }
+    } textureImage;
+
+    ImageSampler(VkCommandBuffer& commandBuffer,
+                 VkCommandPool& commandPool,
+                 const VkQueue& queue) {
       setLayoutBinding.binding = 3;
       setLayoutBinding.descriptorType =
           VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -114,19 +121,17 @@ class Resources {
       poolSize.descriptorCount = MAX_FRAMES_IN_FLIGHT;
       poolSizes.push_back(poolSize);
 
-      imageInfo.sampler = image.sampler;
-      imageInfo.imageView = image.view;
+      textureImage.loadTexture(textureImage.path, VK_FORMAT_R8G8B8A8_SRGB,
+                               commandBuffer, commandPool, queue);
+      textureImage.createView(VK_IMAGE_ASPECT_COLOR_BIT);
+      textureImage.createSampler();
+
+      imageInfo.sampler = textureImage.sampler;
+      imageInfo.imageView = textureImage.view;
       imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
       descriptorInfos.push_back(imageInfo);
     }
   } sampler;
-
-  struct TextureImage : public CE::Image {
-    const std::string& path = Lib::path("assets/Avatar.PNG");
-    TextureImage(VkCommandBuffer& commandBuffer,
-                 VkCommandPool& commandPool,
-                 const VkQueue& queue);
-  } textureImage;
 
   struct StorageImage : public CE::Descriptor {
     CE::Buffer buffer;
