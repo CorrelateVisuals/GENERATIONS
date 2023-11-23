@@ -18,6 +18,7 @@ Resources::Resources(VulkanMechanics& mechanics, Pipelines& pipelines)
             mechanics.queues.graphics} {
   Log::text(Log::Style::headerGuard);
   Log::text("{ /// }", "constructing Resources");
+
   CE::Descriptor::createSetLayout(CE::Descriptor::setLayoutBindings);
   CE::Descriptor::createPool();
   CE::Descriptor::allocateSets();
@@ -47,9 +48,9 @@ Resources::ShaderStorage::ShaderStorage(VkCommandBuffer& commandBuffer,
 
   create(commandBuffer, commandPool, queue, object, quantity);
 
-  bufferInfo.buffer = bufferIn.buffer;
-  bufferInfo.offset = 0;
-  bufferInfo.range = sizeof(World::Cell) * quantity;
+  VkDescriptorBufferInfo bufferInfo{.buffer = bufferIn.buffer,
+                                    .offset = 0,
+                                    .range = sizeof(World::Cell) * quantity};
   descriptorInfos.push_back(bufferInfo);
   bufferInfo.buffer = bufferOut.buffer;
   descriptorInfos.push_back(bufferInfo);
@@ -110,9 +111,10 @@ Resources::UniformBuffer::UniformBuffer() {
 
   create();
 
-  bufferInfo.buffer = buffer.buffer;
-  bufferInfo.offset = 0;
-  bufferInfo.range = sizeof(World::UniformBufferObject);
+  VkDescriptorBufferInfo bufferInfo{
+      .buffer = buffer.buffer,
+      .offset = 0,
+      .range = sizeof(World::UniformBufferObject)};
   descriptorInfos.push_back(bufferInfo);
 }
 
@@ -344,9 +346,9 @@ Resources::StorageImage::StorageImage(
   poolSizes.push_back(poolSize);
 
   for (uint_fast8_t i = 0; i < images.size(); i++) {
-    imageInfo.sampler = VK_NULL_HANDLE;
-    imageInfo.imageView = images[i].view;
-    imageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+    VkDescriptorImageInfo imageInfo{.sampler = VK_NULL_HANDLE,
+                                    .imageView = images[i].view,
+                                    .imageLayout = VK_IMAGE_LAYOUT_GENERAL};
     descriptorInfos.push_back(imageInfo);
   }
 }
@@ -369,8 +371,9 @@ Resources::ImageSampler::ImageSampler(VkCommandBuffer& commandBuffer,
   textureImage.createView(VK_IMAGE_ASPECT_COLOR_BIT);
   textureImage.createSampler();
 
-  imageInfo.sampler = textureImage.sampler;
-  imageInfo.imageView = textureImage.view;
-  imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+  VkDescriptorImageInfo imageInfo{
+      .sampler = textureImage.sampler,
+      .imageView = textureImage.view,
+      .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL};
   descriptorInfos.push_back(imageInfo);
 }

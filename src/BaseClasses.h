@@ -266,9 +266,6 @@ class Descriptor {
   VkDescriptorSetLayoutBinding setLayoutBinding{};
   VkWriteDescriptorSet writeSet{};
 
-  VkDescriptorBufferInfo bufferInfo{};
-  VkDescriptorImageInfo imageInfo{};
-
   Descriptor() = default;
   virtual ~Descriptor();
 
