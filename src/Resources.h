@@ -101,8 +101,6 @@ class Resources {
   } shaderStorage;
 
   struct ImageSampler : public CE::Descriptor {
-    CE::Buffer buffer;
-
     struct TextureImage : public CE::Image {
       TextureImage() { path = Lib::path("assets/Avatar.PNG"); }
     } textureImage;
@@ -134,7 +132,6 @@ class Resources {
   } sampler;
 
   struct StorageImage : public CE::Descriptor {
-    CE::Buffer buffer;
     StorageImage(std::array<CE::Image, MAX_FRAMES_IN_FLIGHT>& images) {
       setLayoutBinding.binding = 4;
       setLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
