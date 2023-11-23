@@ -32,15 +32,11 @@ class Pipelines {
     Configuration(VkRenderPass& renderPass,
                   const VkPipelineLayout& graphicsLayout,
                   const VkPipelineLayout& computeLayout,
-                  VkSampleCountFlagBits& msaaSamples) {
-      // World world{};
-
-      uint32_t tempSizex = 100;
-
+                  VkSampleCountFlagBits& msaaSamples, const vec2_uint_fast16_t gridSize) {
       pipelineMap["Engine"] = Compute{
           .shaders = {"Comp"},
-          .workGroups = {static_cast<uint32_t>(tempSizex + 31) / 32,
-                         static_cast<uint32_t>(tempSizex + 31) / 32, 1}};
+          .workGroups = {static_cast<uint32_t>(gridSize.x + 31) / 32,
+                         static_cast<uint32_t>(gridSize.y + 31) / 32, 1}};
       pipelineMap["Cells"] =
           Graphics{.shaders = {"Vert", "Frag"},
                    .vertexAttributes = World::Cell::getAttributeDescription(),

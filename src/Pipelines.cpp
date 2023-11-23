@@ -9,7 +9,7 @@ Pipelines::Pipelines(VulkanMechanics& mechanics, Resources& resources)
       render{mechanics.swapchain, resources.msaaImage,
              resources.depthImage.view},
       config{render.renderPass, graphics.layout, compute.layout,
-             resources.msaaImage.info.samples} {
+             resources.msaaImage.info.samples, resources.world.grid.size} {
   Log::text("{ === }", "constructing Pipelines");
 }
 
