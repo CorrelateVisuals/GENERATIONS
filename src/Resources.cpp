@@ -28,6 +28,33 @@ Resources::~Resources() {
   Log::text("{ /// }", "destructing Resources");
 }
 
+Resources::ShaderStorage::ShaderStorage(VkCommandBuffer& commandBuffer,
+                                        const VkCommandPool& commandPool,
+                                        const VkQueue& queue,
+                                        const auto& object,
+                                        const size_t quantity) {
+  setLayoutBinding.binding = 1;
+  setLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+  setLayoutBinding.descriptorCount = 1;
+  setLayoutBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+  setLayoutBindings.push_back(setLayoutBinding);
+  setLayoutBinding.binding = 2;
+  setLayoutBindings.push_back(setLayoutBinding);
+
+  poolSize.type = setLayoutBinding.descriptorType;
+  poolSize.descriptorCount = MAX_FRAMES_IN_FLIGHT * 2;
+  poolSizes.push_back(poolSize);
+
+  create(commandBuffer, commandPool, queue, object, quantity);
+
+  bufferInfo.buffer = bufferIn.buffer;
+  bufferInfo.offset = 0;
+  bufferInfo.range = sizeof(World::Cell) * quantity;
+  descriptorInfos.push_back(bufferInfo);
+  bufferInfo.buffer = bufferOut.buffer;
+  descriptorInfos.push_back(bufferInfo);
+}
+
 void Resources::ShaderStorage::create(VkCommandBuffer& commandBuffer,
                                       const VkCommandPool& commandPool,
                                       const VkQueue& queue,
@@ -66,6 +93,27 @@ void Resources::ShaderStorage::create(VkCommandBuffer& commandBuffer,
                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, bufferOut);
   CE::Buffer::copy(stagingResources.buffer, bufferOut.buffer, bufferSize,
                    commandBuffer, commandPool, queue);
+}
+
+Resources::UniformBuffer::UniformBuffer() {
+  VkDescriptorType type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+  setLayoutBinding.binding = 0;
+  setLayoutBinding.descriptorType = type;
+  setLayoutBinding.descriptorCount = 1;
+  setLayoutBinding.stageFlags =
+      VK_SHADER_STAGE_COMPUTE_BIT | VK_SHADER_STAGE_VERTEX_BIT;
+  setLayoutBindings.push_back(setLayoutBinding);
+
+  poolSize.type = type;
+  poolSize.descriptorCount = MAX_FRAMES_IN_FLIGHT;
+  poolSizes.push_back(poolSize);
+
+  create();
+
+  bufferInfo.buffer = buffer.buffer;
+  bufferInfo.offset = 0;
+  bufferInfo.range = sizeof(World::UniformBufferObject);
+  descriptorInfos.push_back(bufferInfo);
 }
 
 void Resources::UniformBuffer::create() {
@@ -281,4 +329,48 @@ Resources::MultisamplingImage::MultisamplingImage(const VkExtent2D extent,
                   VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT |
                       VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
                   VK_IMAGE_ASPECT_COLOR_BIT);
+}
+
+Resources::StorageImage::StorageImage(
+    std::array<CE::Image, MAX_FRAMES_IN_FLIGHT>& images) {
+  setLayoutBinding.binding = 4;
+  setLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+  setLayoutBinding.descriptorCount = 1;
+  setLayoutBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+  setLayoutBindings.push_back(setLayoutBinding);
+
+  poolSize.type = setLayoutBinding.descriptorType;
+  poolSize.descriptorCount = MAX_FRAMES_IN_FLIGHT;
+  poolSizes.push_back(poolSize);
+
+  for (uint_fast8_t i = 0; i < images.size(); i++) {
+    imageInfo.sampler = VK_NULL_HANDLE;
+    imageInfo.imageView = images[i].view;
+    imageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+    descriptorInfos.push_back(imageInfo);
+  }
+}
+
+Resources::ImageSampler::ImageSampler(VkCommandBuffer& commandBuffer,
+                                      VkCommandPool& commandPool,
+                                      const VkQueue& queue) {
+  setLayoutBinding.binding = 3;
+  setLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+  setLayoutBinding.descriptorCount = 1;
+  setLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+  setLayoutBindings.push_back(setLayoutBinding);
+
+  poolSize.type = setLayoutBinding.descriptorType;
+  poolSize.descriptorCount = MAX_FRAMES_IN_FLIGHT;
+  poolSizes.push_back(poolSize);
+
+  textureImage.loadTexture(textureImage.path, VK_FORMAT_R8G8B8A8_SRGB,
+                           commandBuffer, commandPool, queue);
+  textureImage.createView(VK_IMAGE_ASPECT_COLOR_BIT);
+  textureImage.createSampler();
+
+  imageInfo.sampler = textureImage.sampler;
+  imageInfo.imageView = textureImage.view;
+  imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+  descriptorInfos.push_back(imageInfo);
 }
