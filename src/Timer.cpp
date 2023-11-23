@@ -1,12 +1,8 @@
 #include "Timer.h"
 
 #include <chrono>
-#include <iostream>
-#include <thread>
 
 Timer::Timer(float initSpeed) : speed{initSpeed} {}
-
-Timer::~Timer() {}
 
 void Timer::run() {
   static auto lastTime = std::chrono::steady_clock::now();

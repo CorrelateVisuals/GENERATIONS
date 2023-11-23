@@ -10,67 +10,148 @@
 #include <string>
 #include <vector>
 
-class VulkanMechanics;
-class Pipelines;
-
 class Resources {
  public:
-  Resources(VulkanMechanics& mechanics);
+  Resources(VulkanMechanics& mechanics, Pipelines& pipelines);
   ~Resources();
 
-  World world{};
+  struct Commands : public CE::CommandBuffers {
+    Commands(const CE::Queues::FamilyIndices& familyIndices);
+    void recordComputeCommandBuffer(Resources& resources,
+                                    Pipelines& pipelines,
+                                    const uint32_t imageIndex) override;
+    void recordGraphicsCommandBuffer(CE::Swapchain& swapchain,
+                                     Resources& resources,
+                                     Pipelines& pipelines,
+                                     const uint32_t imageIndex) override;
+  } commands;
 
-  const std::unordered_map<Geometry*, VkVertexInputRate> vertexBuffers = {
-      {&world.landscape, VK_VERTEX_INPUT_RATE_INSTANCE},
-      {&world.rectangle, VK_VERTEX_INPUT_RATE_INSTANCE},
-      {&world.cube, VK_VERTEX_INPUT_RATE_VERTEX}};
+  World world;
 
-  CE::Image depthImage{};
-  CE::Image msaaImage{};
-  CE::Image textureImage{};
+  struct DepthImage : public CE::Image {
+    DepthImage(const VkExtent2D extent, const VkFormat format);
+  } depthImage;
 
-  static std::vector<VkDescriptorSetLayoutBinding> descriptorSetLayoutBindings;
-  struct Uniform : public CE::Descriptor::SetLayout {
-    CE::Buffer buffer{};
-    Uniform() {
-      layoutBinding.binding = 0;
-      layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-      layoutBinding.stageFlags =
+  struct MultisamplingImage : public CE::Image {
+    MultisamplingImage(const VkExtent2D extent, const VkFormat format);
+  } msaaImage;
+
+  struct UniformBuffer : public CE::Descriptor {
+    CE::Buffer buffer;
+    World::UniformBufferObject object;
+
+    UniformBuffer() {
+      VkDescriptorType type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+      setLayoutBinding.binding = 0;
+      setLayoutBinding.descriptorType = type;
+      setLayoutBinding.descriptorCount = 1;
+      setLayoutBinding.stageFlags =
           VK_SHADER_STAGE_COMPUTE_BIT | VK_SHADER_STAGE_VERTEX_BIT;
-      descriptorSetLayoutBindings.push_back(layoutBinding);
+      setLayoutBindings.push_back(setLayoutBinding);
+
+      poolSize.type = type;
+      poolSize.descriptorCount = MAX_FRAMES_IN_FLIGHT;
+      poolSizes.push_back(poolSize);
+
+      create();
+
+      bufferInfo.buffer = buffer.buffer;
+      bufferInfo.offset = 0;
+      bufferInfo.range = sizeof(World::UniformBufferObject);
+      descriptorInfos.push_back(bufferInfo);
     }
+    void create();
+    void update(World& world, const VkExtent2D extent);
   } uniform;
 
-  struct ShaderStorage : public CE::Descriptor::SetLayout {
-    CE::Buffer bufferIn{};
-    CE::Buffer bufferOut{};
-    ShaderStorage() {
-      layoutBinding.binding = 1;
-      layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-      layoutBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-      descriptorSetLayoutBindings.push_back(layoutBinding);
-      layoutBinding.binding = 2;
-      descriptorSetLayoutBindings.push_back(layoutBinding);
+  struct ShaderStorage : public CE::Descriptor {
+    CE::Buffer bufferIn;
+    CE::Buffer bufferOut;
+    ShaderStorage(VkCommandBuffer& commandBuffer,
+                  const VkCommandPool& commandPool,
+                  const VkQueue& queue,
+                  const auto& object,
+                  const size_t quantity) {
+      setLayoutBinding.binding = 1;
+      setLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+      setLayoutBinding.descriptorCount = 1;
+      setLayoutBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+      setLayoutBindings.push_back(setLayoutBinding);
+      setLayoutBinding.binding = 2;
+      setLayoutBindings.push_back(setLayoutBinding);
+
+      poolSize.type = setLayoutBinding.descriptorType;
+      poolSize.descriptorCount = MAX_FRAMES_IN_FLIGHT * 2;
+      poolSizes.push_back(poolSize);
+
+      create(commandBuffer, commandPool, queue, object, quantity);
+
+      bufferInfo.buffer = bufferIn.buffer;
+      bufferInfo.offset = 0;
+      bufferInfo.range = sizeof(World::Cell) * quantity;
+      descriptorInfos.push_back(bufferInfo);
+      bufferInfo.buffer = bufferOut.buffer;
+      descriptorInfos.push_back(bufferInfo);
     }
+    void create(VkCommandBuffer& commandBuffer,
+                const VkCommandPool& commandPool,
+                const VkQueue& queue,
+                const auto& object,
+                const size_t quantity);
   } shaderStorage;
 
-  struct ImageSampler : public CE::Descriptor::SetLayout {
-    CE::Buffer buffer{};
-    ImageSampler() {
-      layoutBinding.binding = 3;
-      layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-      layoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-      descriptorSetLayoutBindings.push_back(layoutBinding);
+  struct ImageSampler : public CE::Descriptor {
+    CE::Buffer buffer;
+
+    struct TextureImage : public CE::Image {
+      TextureImage() { path = Lib::path("assets/Avatar.PNG"); }
+    } textureImage;
+
+    ImageSampler(VkCommandBuffer& commandBuffer,
+                 VkCommandPool& commandPool,
+                 const VkQueue& queue) {
+      setLayoutBinding.binding = 3;
+      setLayoutBinding.descriptorType =
+          VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+      setLayoutBinding.descriptorCount = 1;
+      setLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+      setLayoutBindings.push_back(setLayoutBinding);
+
+      poolSize.type = setLayoutBinding.descriptorType;
+      poolSize.descriptorCount = MAX_FRAMES_IN_FLIGHT;
+      poolSizes.push_back(poolSize);
+
+      textureImage.loadTexture(textureImage.path, VK_FORMAT_R8G8B8A8_SRGB,
+                               commandBuffer, commandPool, queue);
+      textureImage.createView(VK_IMAGE_ASPECT_COLOR_BIT);
+      textureImage.createSampler();
+
+      imageInfo.sampler = textureImage.sampler;
+      imageInfo.imageView = textureImage.view;
+      imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+      descriptorInfos.push_back(imageInfo);
     }
   } sampler;
 
-  struct StorageImage : public CE::Descriptor::SetLayout {
-    CE::Buffer buffer{};
-    StorageImage() {
-      layoutBinding.binding = 4;
-      layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-      layoutBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-      descriptorSetLayoutBindings.push_back(layoutBinding);
+  struct StorageImage : public CE::Descriptor {
+    CE::Buffer buffer;
+    StorageImage(std::array<CE::Image, MAX_FRAMES_IN_FLIGHT>& images) {
+      setLayoutBinding.binding = 4;
+      setLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+      setLayoutBinding.descriptorCount = 1;
+      setLayoutBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+      setLayoutBindings.push_back(setLayoutBinding);
+
+      poolSize.type = setLayoutBinding.descriptorType;
+      poolSize.descriptorCount = MAX_FRAMES_IN_FLIGHT;
+      poolSizes.push_back(poolSize);
+
+      for (uint_fast8_t i = 0; i < images.size(); i++) {
+        imageInfo.sampler = VK_NULL_HANDLE;
+        imageInfo.imageView = images[i].view;  // TODO ERROR FOR VECTOR SIZE
+        imageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+        descriptorInfos.push_back(imageInfo);
+      }
     }
   } storageImage;
 
@@ -83,46 +164,4 @@ class Resources {
       data.fill(0);
     }
   } pushConstants;
-
-  struct CommandBuffers : public CE::Commands {
-    std::vector<VkCommandBuffer> graphics{};
-    std::vector<VkCommandBuffer> compute{};
-  } command;
-
-  struct DescriptorSets : CE::Descriptor {
-  } descriptor;
-
- public:
-  void setupResources(Pipelines& _pipelines);
-
-  void createFramebuffers(Pipelines& _pipelines);
-
-  void updateUniformBuffer(uint32_t currentImage);
-
-  void createDescriptorSetLayout(
-      const std::vector<VkDescriptorSetLayoutBinding>& layoutBindings);
-  void createDescriptorSets();
-
-  void recordGraphicsCommandBuffer(VkCommandBuffer commandBuffer,
-                                   uint32_t imageIndex,
-                                   Pipelines& _pipelines);
-  void recordComputeCommandBuffer(VkCommandBuffer commandBuffer,
-                                  Pipelines& _pipelines);
-
- private:
-  VulkanMechanics& _mechanics;
-
-  void createDescriptorPool();
-  void allocateDescriptorSets();
-
-  void createCommandBuffers(std::vector<VkCommandBuffer>& commandBuffers,
-                            const int size);
-
-  void createVertexBuffers(
-      const std::unordered_map<Geometry*, VkVertexInputRate>& buffers);
-  void createVertexBuffer(CE::Buffer& buffer, const auto& vertices);
-  void createIndexBuffer(CE::Buffer& buffer, const auto& indices);
-  void createShaderStorageBuffers();
-  void createUniformBuffers();
-  void setPushConstants();
 };

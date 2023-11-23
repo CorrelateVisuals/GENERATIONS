@@ -4,8 +4,6 @@
 #include "Geometry.h"
 #include "Library.h"
 
-#include <iostream>
-
 std::vector<VkVertexInputBindingDescription> Vertex::getBindingDescription() {
   std::vector<VkVertexInputBindingDescription> binding{
       {0, sizeof(Vertex), VK_VERTEX_INPUT_RATE_VERTEX}};
@@ -77,6 +75,60 @@ std::vector<uint32_t> Geometry::createGridPolygons(
   }
 
   return result;
+}
+
+void Geometry::createVertexBuffer(VkCommandBuffer& commandBuffer,
+                                  const VkCommandPool& commandPool,
+                                  const VkQueue& queue,
+                                  const std::vector<Vertex>& vertices) {
+  CE::Buffer stagingResources;
+  VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
+
+  CE::Buffer::create(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                     VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                         VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                     stagingResources);
+
+  void* data;
+  vkMapMemory(CE::Device::baseDevice->logical, stagingResources.memory, 0,
+              bufferSize, 0, &data);
+  memcpy(data, vertices.data(), (size_t)bufferSize);
+  vkUnmapMemory(CE::Device::baseDevice->logical, stagingResources.memory);
+
+  CE::Buffer::create(
+      bufferSize,
+      VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, this->vertexBuffer);
+
+  CE::Buffer::copy(stagingResources.buffer, this->vertexBuffer.buffer,
+                   bufferSize, commandBuffer, commandPool, queue);
+}
+
+void Geometry::createIndexBuffer(VkCommandBuffer& commandBuffer,
+                                 const VkCommandPool& commandPool,
+                                 const VkQueue& queue,
+                                 const std::vector<uint32_t>& indices) {
+  CE::Buffer stagingResources;
+  VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
+
+  CE::Buffer::create(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                     VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                         VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                     stagingResources);
+
+  void* data;
+  vkMapMemory(CE::Device::baseDevice->logical, stagingResources.memory, 0,
+              bufferSize, 0, &data);
+  memcpy(data, indices.data(), (size_t)bufferSize);
+  vkUnmapMemory(CE::Device::baseDevice->logical, stagingResources.memory);
+
+  CE::Buffer::create(
+      bufferSize,
+      VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, this->indexBuffer);
+
+  CE::Buffer::copy(stagingResources.buffer, this->indexBuffer.buffer,
+                   bufferSize, commandBuffer, commandPool, queue);
 }
 
 void Geometry::loadModel(const std::string& modelName, Geometry& geometry) {

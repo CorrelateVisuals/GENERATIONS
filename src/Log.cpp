@@ -1,8 +1,8 @@
 #include "Log.h"
+#include "BaseClasses.h"
 
 #include <chrono>
 #include <filesystem>
-#include <iostream>
 #include <string>
 
 std::ofstream Log::logFile("log.txt");
@@ -44,11 +44,7 @@ void Log::logTitle() {
             " } > > - .");
   Log::text(Log::Style::headerGuard);
   Log::measureElapsedTime();
-#ifdef _DEBUG
-  Log::text("{ DEBUG ON }", "compiling shaders");
-#else
-  Log::text("{ DEBUG OFF }", "not compiling shaders");
-#endif
+
   Log::text("{ dir }", std::filesystem::current_path().string());
 }
 

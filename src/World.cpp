@@ -7,7 +7,12 @@
 #include <ctime>
 #include <random>
 
-World::World() {
+World::World(VkCommandBuffer& commandBuffer,
+             const VkCommandPool& commandPool,
+             const VkQueue& queue)
+    : grid{commandBuffer, commandPool, queue},
+      rectangle{commandBuffer, commandPool, queue},
+      cube{commandBuffer, commandPool, queue} {
   Log::text("{ wWw }", "constructing World");
 }
 
@@ -39,59 +44,91 @@ World::Cell::getAttributeDescription() {
   return description;
 };
 
-std::vector<VkVertexInputAttributeDescription>
-World::Landscape::getAttributeDescription() {
-  std::vector<VkVertexInputAttributeDescription> attributes{
-      {0, 0, VK_FORMAT_R32G32B32_SFLOAT,
-       static_cast<uint32_t>(offsetof(Landscape::Vertex, vertexPosition))}};
-  return attributes;
-}
+World::Grid::Grid(VkCommandBuffer& commandBuffer,
+                  const VkCommandPool& commandPool,
+                  const VkQueue& queue) {
+  Terrain::Config terrainLayer1 = {.dimensions = size,
+                                   .roughness = 0.4f,
+                                   .octaves = 10,
+                                   .scale = 1.1f,
+                                   .amplitude = 5.0f,
+                                   .exponent = 2.0f,
+                                   .frequency = 2.0f,
+                                   .heightOffset = 0.0f};
+  Terrain terrain(terrainLayer1);
 
-std::vector<World::Cell> World::initializeGrid() {
-  const uint_fast32_t numGridPoints{grid.size.x * grid.size.y};
-  const uint_fast32_t numAliveCells{grid.initialAliveCells};
+  Terrain::Config terrainLayer2 = {.dimensions = size,
+                                   .roughness = 1.0f,
+                                   .octaves = 10,
+                                   .scale = 1.1f,
+                                   .amplitude = 0.3f,
+                                   .exponent = 1.0f,
+                                   .frequency = 2.0f,
+                                   .heightOffset = 0.0f};
+  Terrain terrainSurface(terrainLayer2);
 
-  if (numAliveCells > numGridPoints) {
-    throw std::runtime_error(
-        "\n!ERROR! Number of alive cells exceeds number of grid "
-        "points");
-  }
+  std::vector<float> terrainPerlinGrid1 = terrain.generatePerlinGrid();
+  std::vector<float> terrainPerlinGrid2 = terrainSurface.generatePerlinGrid();
+  const float blendFactor = 0.5f;
 
-  std::vector<World::Cell> cells(numGridPoints);
-  std::vector<bool> isAliveIndices(numGridPoints, false);
-  std::vector<float> landscapeHeight = generateLandscapeHeight();
-  std::vector<uint32_t> tempIndices(numGridPoints);
-
+  std::vector<bool> isAliveIndices(pointCount, false);
   std::vector<uint_fast32_t> aliveCellIndices =
-      setCellsAliveRandomly(grid.initialAliveCells);
+      setCellsAliveRandomly(initialAliveCells);
   for (int aliveIndex : aliveCellIndices) {
     isAliveIndices[aliveIndex] = true;
   }
 
-  float startX = (grid.size.x - 1) / -2.0f;
-  float startY = (grid.size.y - 1) / -2.0f;
-  for (uint_fast32_t i = 0; i < numGridPoints; ++i) {
-    const uint_fast16_t x = static_cast<uint_fast16_t>(i % grid.size.x);
-    const uint_fast16_t y = static_cast<uint_fast16_t>(i / grid.size.x);
-    const float posX = startX + x;
-    const float posY = startY + y;
+  const glm::vec4 red{1.0f, 0.0f, 0.0f, 1.0f};
+  const glm::vec4 blue{0.0f, 0.0f, 1.0f, 1.0f};
+  const glm::ivec4 alive{1, 0, 0, 0};
+  const glm::ivec4 dead{-1, 0, 0, 0};
+
+  const float startX = (size.x - 1) / -2.0f;
+  const float startY = (size.y - 1) / -2.0f;
+  for (uint_fast32_t i = 0; i < pointCount; ++i) {
+    pointIDs[i] = i;
+
+    float height = terrain.linearInterpolationFunction(
+        terrainPerlinGrid1[i], terrainPerlinGrid2[i], blendFactor);
+    coorindates[i] = {(startX + i % size.x), (startY + i / size.x), height};
+    addVertexPosition(coorindates[i]);
+
     const bool isAlive = isAliveIndices[i];
 
-    cells[i].instancePosition = {posX, posY, landscapeHeight[i],
-                                 isAlive ? cube.size : 0.0f};
+    cells[i].instancePosition = {coorindates[i],
+                                 isAlive ? initialCellSize : 0.0f};
     cells[i].color = isAlive ? blue : red;
     cells[i].states = isAlive ? alive : dead;
-
-    tempIndices[i] = i;
-    landscape.addVertexPosition(glm::vec3(posX, posY, landscapeHeight[i]));
   }
-  landscape.indices =
-      Geometry::createGridPolygons(tempIndices, static_cast<int>(grid.size.x));
-
-  return cells;
+  indices = createGridPolygons(pointIDs, static_cast<int>(size.x));
+  createVertexBuffer(commandBuffer, commandPool, queue, uniqueVertices);
+  createIndexBuffer(commandBuffer, commandPool, queue, indices);
 }
 
-std::vector<uint_fast32_t> World::setCellsAliveRandomly(
+World::Rectangle::Rectangle(VkCommandBuffer& commandBuffer,
+                            const VkCommandPool& commandPool,
+                            const VkQueue& queue)
+    : Geometry("Rectangle") {
+  createVertexBuffer(commandBuffer, commandPool, queue, uniqueVertices);
+  createIndexBuffer(commandBuffer, commandPool, queue, indices);
+}
+
+World::Cube::Cube(VkCommandBuffer& commandBuffer,
+                  const VkCommandPool& commandPool,
+                  const VkQueue& queue)
+    : Geometry("Cube") {
+  createVertexBuffer(commandBuffer, commandPool, queue, allVertices);
+}
+
+std::vector<VkVertexInputAttributeDescription>
+World::Grid::getAttributeDescription() {
+  std::vector<VkVertexInputAttributeDescription> attributes{
+      {0, 0, VK_FORMAT_R32G32B32_SFLOAT,
+       static_cast<uint32_t>(offsetof(Grid::Vertex, vertexPosition))}};
+  return attributes;
+}
+
+std::vector<uint_fast32_t> World::Grid::setCellsAliveRandomly(
     uint_fast32_t numberOfCells) {
   std::vector<uint_fast32_t> CellIDs;
   CellIDs.reserve(numberOfCells);
@@ -99,7 +136,7 @@ std::vector<uint_fast32_t> World::setCellsAliveRandomly(
   std::random_device random;
   std::mt19937 generate(random());
   std::uniform_int_distribution<int> distribution(
-      0, grid.size.x * grid.size.y - 1);
+      0, static_cast<int>(pointCount) - 1);
 
   while (CellIDs.size() < numberOfCells) {
     int CellID = distribution(generate);
@@ -112,55 +149,7 @@ std::vector<uint_fast32_t> World::setCellsAliveRandomly(
   return CellIDs;
 }
 
-std::vector<float> World::generateLandscapeHeight() {
-  Terrain::Config terrainLayer1 = {.width = grid.size.x,
-                                   .height = grid.size.y,
-                                   .roughness = 0.4f,
-                                   .octaves = 10,
-                                   .scale = 1.1f,
-                                   .amplitude = 5.0f,
-                                   .exponent = 2.0f,
-                                   .frequency = 2.0f,
-                                   .heightOffset = 0.0f};
-  Terrain terrain(terrainLayer1);
-
-  Terrain::Config terrainLayer2 = {.width = grid.size.x,
-                                   .height = grid.size.y,
-                                   .roughness = 1.0f,
-                                   .octaves = 10,
-                                   .scale = 1.1f,
-                                   .amplitude = 0.3f,
-                                   .exponent = 1.0f,
-                                   .frequency = 2.0f,
-                                   .heightOffset = 0.0f};
-  Terrain terrainSurface(terrainLayer2);
-
-  std::vector<float> terrainPerlinGrid1 = terrain.generatePerlinGrid();
-  std::vector<float> terrainPerlinGrid2 = terrainSurface.generatePerlinGrid();
-
-  std::vector<float> landscapeHeight(terrainPerlinGrid1.size());
-  for (size_t i = 0; i < landscapeHeight.size(); i++) {
-    float blendFactor = 0.5f;
-    landscapeHeight[i] = terrain.linearInterpolationFunction(
-        terrainPerlinGrid1[i], terrainPerlinGrid2[i], blendFactor);
-  }
-  return landscapeHeight;
-}
-
-World::UniformBufferObject World::updateUniforms(VkExtent2D& _swapchainExtent) {
-  UniformBufferObject uniformObject{
-      .light = light.position,
-      .gridXY = {static_cast<uint32_t>(grid.size.x),
-                 static_cast<uint32_t>(grid.size.y)},
-      .waterThreshold = 0.1f,
-      .cellSize = cube.size,
-      .model = setModel(),
-      .view = setView(),
-      .projection = setProjection(_swapchainExtent)};
-  return uniformObject;
-}
-
-void World::updateCamera() {
+void World::Camera::update() {
   glm::vec2 buttonType[3]{};
   constexpr uint_fast8_t left = 0;
   constexpr uint_fast8_t right = 1;
@@ -187,37 +176,36 @@ void World::updateCamera() {
     glm::vec2 leftButtonDelta = buttonType[left];
     glm::vec2 rightButtonDelta = buttonType[right];
     glm::vec2 middleButtonDelta = buttonType[middle];
-    glm::vec3 cameraRight = glm::cross(camera.front, camera.up);
+    glm::vec3 cameraRight = glm::cross(front, up);
 
-    glm::vec3 cameraUp = glm::cross(cameraRight, camera.front);
-    camera.position -= camera.panningSpeed * leftButtonDelta.x * cameraRight;
-    camera.position -= camera.panningSpeed * leftButtonDelta.y * cameraUp;
+    glm::vec3 cameraUp = glm::cross(cameraRight, front);
+    position -= panningSpeed * leftButtonDelta.x * cameraRight;
+    position -= panningSpeed * leftButtonDelta.y * cameraUp;
 
-    camera.position += camera.zoomSpeed * rightButtonDelta.x * camera.front;
-    camera.position.z = std::max(camera.position.z, 0.0f);
+    position += zoomSpeed * rightButtonDelta.x * front;
+    position.z = std::max(position.z, 0.0f);
   }
   run = mousePositionChanged;
 }
 
-glm::mat4 World::setModel() {
+glm::mat4 World::Camera::setModel() {
   glm::mat4 model = glm::rotate(glm::mat4(1.0f), glm::radians(0.0f),
                                 glm::vec3(0.0f, 0.0f, 1.0f));
   return model;
 }
 
-glm::mat4 World::setView() {
-  updateCamera();
+glm::mat4 World::Camera::setView() {
+  update();
   glm::mat4 view;
-  view =
-      glm::lookAt(camera.position, camera.position + camera.front, camera.up);
+  view = glm::lookAt(position, position + front, up);
   return view;
 }
 
-glm::mat4 World::setProjection(VkExtent2D& swapchainExtent) {
+glm::mat4 World::Camera::setProjection(const VkExtent2D& swapchainExtent) {
   glm::mat4 projection = glm::perspective(
-      glm::radians(camera.fieldOfView),
+      glm::radians(fieldOfView),
       swapchainExtent.width / static_cast<float>(swapchainExtent.height),
-      camera.nearClipping, camera.farClipping);
+      nearClipping, farClipping);
 
   projection[1][1] *= -1;  // flip y axis
   projection[0][0] *= -1;  // flip x axis

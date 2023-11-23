@@ -1,7 +1,6 @@
 #include "Window.h"
 #include "CapitalEngine.h"
 
-#include <iostream>
 #include <unordered_map>
 
 Window Window::mainWindow;

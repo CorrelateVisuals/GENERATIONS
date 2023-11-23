@@ -5,7 +5,6 @@
 #include "ValidationLayers.h"
 #include "Window.h"
 
-#include <iostream>
 #include <memory>
 #include <optional>
 #include <stdexcept>
@@ -14,18 +13,21 @@
 #include <variant>
 #include <vector>
 
+constexpr uint32_t MAX_FRAMES_IN_FLIGHT = 2;
+
+class VulkanMechanics;
+class Resources;
+class Pipelines;
+
 namespace CE {
 class Swapchain;
 
 // Mechanics
 class Queues {
  public:
-  Queues() = default;
-  virtual ~Queues() = default;
   VkQueue graphics{};
   VkQueue compute{};
   VkQueue present{};
-
   struct FamilyIndices {
     std::optional<uint32_t> graphicsAndComputeFamily{};
     std::optional<uint32_t> presentFamily{};
@@ -34,36 +36,45 @@ class Queues {
     }
   };
   FamilyIndices familyIndices{};
+
+  Queues() = default;
+  virtual ~Queues() = default;
   FamilyIndices findQueueFamilies(const VkPhysicalDevice& physicalDevice,
                                   const VkSurfaceKHR& surface);
 };
+
 class InitializeVulkan {
  public:
-  InitializeVulkan();
-  virtual ~InitializeVulkan();
   VkSurfaceKHR surface{};
   VkInstance instance{};
   ValidationLayers validation{};
+
+  InitializeVulkan();
+  virtual ~InitializeVulkan();
 
  private:
   void createInstance();
   void createSurface(GLFWwindow* window);
   std::vector<const char*> getRequiredExtensions();
 };
+
 class Device {
  public:
-  Device() = default;
-  virtual ~Device() { destroyDevice(); }
   VkPhysicalDevice physical{VK_NULL_HANDLE};
   VkPhysicalDeviceFeatures features{};
   VkSampleCountFlagBits maxUsableSampleCount{VK_SAMPLE_COUNT_1_BIT};
   VkDevice logical{VK_NULL_HANDLE};
 
+  static Device* baseDevice;
+
+  Device() = default;
+  virtual ~Device() { destroyDevice(); }
+
+ protected:
   void pickPhysicalDevice(const InitializeVulkan& initVulkan,
                           Queues& queues,
                           Swapchain& swapchain);
   void createLogicalDevice(const InitializeVulkan& initVulkan, Queues& queues);
-  void setBaseDevice(const CE::Device& device);
   void destroyDevice();
 
  private:
@@ -78,30 +89,42 @@ class Device {
   bool checkDeviceExtensionSupport(const VkPhysicalDevice& physical);
   static std::vector<VkDevice> destroyedDevices;
 };
-static std::unique_ptr<Device> baseDevice{};
 
-class Commands {
+class CommandBuffers {
  public:
-  Commands() = default;
-  virtual ~Commands();
   VkCommandPool pool{};
+  std::array<VkCommandBuffer, MAX_FRAMES_IN_FLIGHT> graphics{};
+  std::array<VkCommandBuffer, MAX_FRAMES_IN_FLIGHT> compute{};
   static VkCommandBuffer singularCommandBuffer;
 
-  void createCommandPool(const Queues::FamilyIndices& familyIndices);
+  CommandBuffers() = default;
+  virtual ~CommandBuffers();
   static void beginSingularCommands(const VkCommandPool& commandPool,
                                     const VkQueue& queue);
   static void endSingularCommands(const VkCommandPool& commandPool,
                                   const VkQueue& queue);
+  virtual void recordComputeCommandBuffer(Resources& resources,
+                                          Pipelines& pipelines,
+                                          const uint32_t imageIndex) = 0;
+  virtual void recordGraphicsCommandBuffer(Swapchain& swapchain,
+                                           Resources& resources,
+                                           Pipelines& pipelines,
+                                           const uint32_t imageIndex) = 0;
+
+ protected:
+  void createPool(const Queues::FamilyIndices& familyIndices);
+  void createBuffers(
+      std::array<VkCommandBuffer, MAX_FRAMES_IN_FLIGHT>& commandBuffers);
 };
+
 class Buffer {
  public:
-  Buffer();
-  virtual ~Buffer();
-
   VkBuffer buffer{};
   VkDeviceMemory memory{};
   void* mapped{};
 
+  Buffer();
+  virtual ~Buffer();
   static void create(const VkDeviceSize& size,
                      const VkBufferUsageFlags& usage,
                      const VkMemoryPropertyFlags& properties,
@@ -122,12 +145,11 @@ class Buffer {
 };
 class Image {
  public:
-  Image();
-  virtual ~Image() { destroyVulkanImages(); };
   VkImage image{};
   VkDeviceMemory memory{};
   VkImageView view{};
   VkSampler sampler{};
+  std::string path{};
   VkImageCreateInfo info{.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
                          .pNext = nullptr,
                          .flags = 0,
@@ -144,6 +166,8 @@ class Image {
                          .pQueueFamilyIndices = nullptr,
                          .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED};
 
+  Image();
+  virtual ~Image() { destroyVulkanImages(); };
   void create(const uint32_t width,
               const uint32_t height,
               const VkSampleCountFlagBits numSamples,
@@ -168,31 +192,33 @@ class Image {
   static VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates,
                                       const VkImageTiling tiling,
                                       const VkFormatFeatureFlags& features);
-  void createColorResources(const VkExtent2D& dimensions,
-                            const VkFormat format);
-  void createDepthResources(const VkExtent2D& dimensions,
-                            const VkFormat format);
+  void createResources(const VkExtent2D& dimensions,
+                       const VkFormat format,
+                       const VkImageUsageFlags usage,
+                       const VkImageAspectFlagBits aspect);
 };
+
 class SynchronizationObjects {
  public:
-  void create(const int maxFramesInFlight);
-  void destroy(const int maxFramesInFlight);
-  std::vector<VkSemaphore> imageAvailableSemaphores{};
-  std::vector<VkSemaphore> renderFinishedSemaphores{};
-  std::vector<VkSemaphore> computeFinishedSemaphores{};
-  std::vector<VkFence> graphicsInFlightFences{};
-  std::vector<VkFence> computeInFlightFences{};
+  SynchronizationObjects() = default;
+  ~SynchronizationObjects() { destroy(); };
+  void create();
+  void destroy();
+  std::array<VkSemaphore, MAX_FRAMES_IN_FLIGHT> imageAvailableSemaphores{};
+  std::array<VkSemaphore, MAX_FRAMES_IN_FLIGHT> renderFinishedSemaphores{};
+  std::array<VkSemaphore, MAX_FRAMES_IN_FLIGHT> computeFinishedSemaphores{};
+  std::array<VkFence, MAX_FRAMES_IN_FLIGHT> graphicsInFlightFences{};
+  std::array<VkFence, MAX_FRAMES_IN_FLIGHT> computeInFlightFences{};
   uint32_t currentFrame = 0;
 };
+
 class Swapchain {
  public:
-  Swapchain() = default;
-  virtual ~Swapchain() = default;
   VkSwapchainKHR swapchain{};
   VkExtent2D extent{};
   VkFormat imageFormat{};
-  std::vector<CE::Image> images{};
-  std::vector<VkFramebuffer> framebuffers{};
+  std::array<CE::Image, MAX_FRAMES_IN_FLIGHT> images{};
+  std::array<VkFramebuffer, MAX_FRAMES_IN_FLIGHT> framebuffers{};
 
   struct SupportDetails {
     VkSurfaceCapabilitiesKHR capabilities{};
@@ -200,16 +226,19 @@ class Swapchain {
     std::vector<VkPresentModeKHR> presentModes{};
   } supportDetails{};
 
-  void create(const VkSurfaceKHR& surface,
-              const Queues& queues,
-              const uint32_t maxFramesInFlight);
-  void recreate(const VkSurfaceKHR& surface,
-                const Queues& queues,
-                SynchronizationObjects& syncObjects,
-                const uint32_t maxFramesInFlight);
-  void destroy();
+  Swapchain() = default;
+  virtual ~Swapchain() { destroy(); };
   SupportDetails checkSupport(const VkPhysicalDevice& physicalDevice,
                               const VkSurfaceKHR& surface);
+
+ protected:
+  void create(const VkSurfaceKHR& surface, const Queues& queues);
+  void recreate(const VkSurfaceKHR& surface,
+                const Queues& queues,
+                SynchronizationObjects& syncObjects);
+
+ private:
+  void destroy();
   VkSurfaceFormatKHR pickSurfaceFormat(
       const std::vector<VkSurfaceFormatKHR>& availableFormats);
   VkPresentModeKHR pickPresentMode(
@@ -221,51 +250,76 @@ class Swapchain {
 // Resources
 class Descriptor {
  public:
-  Descriptor();
-  virtual ~Descriptor();
-  VkDescriptorPool pool{};
-  VkDescriptorSetLayout setLayout{};
-  std::vector<VkDescriptorSet> sets{};
+  static VkDescriptorPool pool;
+  static VkDescriptorSetLayout setLayout;
+  static std::array<VkDescriptorSet, MAX_FRAMES_IN_FLIGHT> sets;
 
-  struct SetLayout {
-    VkDescriptorSetLayoutBinding layoutBinding{
-        .binding = 0,
-        .descriptorType = VK_DESCRIPTOR_TYPE_MAX_ENUM,
-        .descriptorCount = 1,
-        .stageFlags = NULL};
-  };
+  static std::vector<VkDescriptorPoolSize> poolSizes;
+  static std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings;
+
+  static std::vector<
+      std::variant<VkDescriptorBufferInfo, VkDescriptorImageInfo>>
+      descriptorInfos;
+  std::variant<VkDescriptorBufferInfo, VkDescriptorImageInfo> info{};
+
+  VkDescriptorPoolSize poolSize{};
+  VkDescriptorSetLayoutBinding setLayoutBinding{};
+  VkWriteDescriptorSet writeSet{};
+
+  VkDescriptorBufferInfo bufferInfo{};
+  VkDescriptorImageInfo imageInfo{};
+
+  Descriptor() = default;
+  virtual ~Descriptor();
+
+  static void createSetLayout(
+      const std::vector<VkDescriptorSetLayoutBinding>& layoutBindings);
+
+  static void createPool();
+  static void allocateSets();
+  static void createSets();
 };
+
 struct PushConstants {
   VkShaderStageFlags shaderStage{};
   uint32_t count{};
   uint32_t offset{};
   uint32_t size{};
   std::array<uint64_t, 32> data{};
+
+  PushConstants() = default;
+  virtual ~PushConstants() = default;
+
+  void setData(const uint64_t& data);
 };
 
 // Pipelines
 class PipelineLayout {
  public:
   VkPipelineLayout layout{};
-  void createGraphicsLayout(const Descriptor& _descriptorSets);
-  void createComputeLayout(const Descriptor& _descriptorSets,
-                           const PushConstants& _pushConstants);
+
+  PipelineLayout() = default;
+  virtual ~PipelineLayout();
+  void createLayout(const VkDescriptorSetLayout& setLayout);
+  void createLayout(const VkDescriptorSetLayout& setLayout,
+                    const PushConstants& _pushConstants);
 };
+
 class RenderPass {
  public:
-  RenderPass() = default;
-  virtual ~RenderPass(){
-      // vkDestroyRenderPass(baseDevice->logical, renderPass, nullptr);
-  };
   VkRenderPass renderPass{};
+
+  RenderPass() = default;
+  virtual ~RenderPass();
   void create(VkSampleCountFlagBits msaaImageSamples,
               VkFormat swapchainImageFormat);
+  void createFramebuffers(CE::Swapchain& swapchain,
+                          const VkImageView& msaaView,
+                          const VkImageView& depthView);
 };
+
 class PipelinesConfiguration {
  public:
-  PipelinesConfiguration() = default;
-  virtual ~PipelinesConfiguration() = default;
-
 #define PIPELINE_OBJECTS \
   VkPipeline pipeline{}; \
   std::vector<std::string> shaders{};
@@ -286,20 +340,25 @@ class PipelinesConfiguration {
   std::unordered_map<std::string, std::variant<Graphics, Compute>>
       pipelineMap{};
 
+  PipelinesConfiguration() = default;
+  virtual ~PipelinesConfiguration();
   void createPipelines(VkRenderPass& renderPass,
                        const VkPipelineLayout& graphicsLayout,
                        const VkPipelineLayout& computeLayout,
                        VkSampleCountFlagBits& msaaSamples);
+  std::vector<std::string>& getPipelineShadersByName(const std::string& name);
+  VkPipeline& getPipelineObjectByName(const std::string& name);
+  const std::array<uint32_t, 3>& getWorkGroupsByName(const std::string& name);
 
-  std::vector<char> readShaderFile(const std::string& filename);
+ protected:
   void compileShaders();
+
+ private:
+  std::vector<char> readShaderFile(const std::string& filename);
   VkPipelineShaderStageCreateInfo createShaderModules(
       VkShaderStageFlagBits shaderStage,
       std::string shaderName);
   void destroyShaderModules();
-  std::vector<std::string>& getPipelineShadersByName(const std::string& name);
-  VkPipeline& getPipelineObjectByName(const std::string& name);
-  const std::array<uint32_t, 3>& getWorkGroupsByName(const std::string& name);
 };
 
 template <typename Checkresult, typename... Args>

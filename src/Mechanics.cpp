@@ -4,34 +4,33 @@
 #include "Mechanics.h"
 
 VulkanMechanics::VulkanMechanics()
-    : initVulkan{}, mainDevice{}, queues{}, swapchain{}, syncObjects{} {
+    : initVulkan{},
+      mainDevice{initVulkan, queues, swapchain},
+      queues{},
+      swapchain{initVulkan.surface, queues},
+      syncObjects{} {
   Log::text("{ Vk. }", "constructing Vulkan Mechanics");
   Log::text(Log::Style::headerGuard);
-  Log::text("{ Vk. }", "Setup Vulkan");
-
-  mainDevice.pickPhysicalDevice(initVulkan, queues, swapchain);
-  mainDevice.createLogicalDevice(initVulkan, queues);
-  CE::baseDevice->setBaseDevice(mainDevice);
-
-  swapchain.create(initVulkan.surface, queues, MAX_FRAMES_IN_FLIGHT);
 }
 
 VulkanMechanics::~VulkanMechanics() {
   Log::text("{ Vk. }", "destructing Vulkan Mechanics");
-  swapchain.destroy();
-  syncObjects.destroy(MAX_FRAMES_IN_FLIGHT);
-  mainDevice.destroyDevice();
 }
 
 void VulkanMechanics::Swapchain::recreate(const VkSurfaceKHR& surface,
                                           const CE::Queues& queues,
                                           SynchronizationObjects& syncObjects,
-                                          Pipelines& _pipelines,
-                                          Resources& _resources) {
-  CE::Swapchain::recreate(surface, queues, syncObjects, MAX_FRAMES_IN_FLIGHT);
-  _resources.msaaImage.createColorResources(extent, imageFormat);
-  _resources.depthImage.createDepthResources(extent,
-                                             CE::Image::findDepthFormat());
-  _resources.createFramebuffers(_pipelines);
-  _resources.createDescriptorSets();
+                                          Pipelines& pipelines,
+                                          Resources& resources) {
+  CE::Swapchain::recreate(surface, queues, syncObjects);
+  resources.msaaImage.createResources(extent, imageFormat,
+                                      VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT |
+                                          VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+                                      VK_IMAGE_ASPECT_COLOR_BIT);
+  resources.depthImage.createResources(
+      extent, CE::Image::findDepthFormat(),
+      VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_IMAGE_ASPECT_DEPTH_BIT);
+  pipelines.render.createFramebuffers(*this, resources.msaaImage.view,
+                                      resources.depthImage.view);
+  CE::Descriptor::createSets();
 }

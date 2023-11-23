@@ -6,30 +6,49 @@
 
 class Pipelines {
  public:
-  Pipelines(VulkanMechanics& mechanics);
+  Pipelines(VulkanMechanics& mechanics, Resources& resources);
   ~Pipelines();
-  void setupPipelines(Resources& _resources);
 
-  CE::PipelineLayout compute{};
-  CE::PipelineLayout graphics{};
-  CE::RenderPass render{};
+  struct ComputeLayout : public CE::PipelineLayout {
+    ComputeLayout(CE::PushConstants& pushConstants) {
+      createLayout(CE::Descriptor::setLayout, pushConstants);
+    }
+  } compute;
+
+  struct GraphicsLayout : public CE::PipelineLayout {
+    GraphicsLayout() { createLayout(CE::Descriptor::setLayout); }
+  } graphics;
+
+  struct Render : public CE::RenderPass {
+    Render(CE::Swapchain& swapchain,
+           const CE::Image& msaaImage,
+           const VkImageView& depthView) {
+      create(msaaImage.info.samples, swapchain.imageFormat);
+      createFramebuffers(swapchain, msaaImage.view, depthView);
+    }
+  } render;
 
   struct Configuration : public CE::PipelinesConfiguration {
-    Configuration() {
-      World world{};
-      pipelineMap["Engine"] =
-          Compute{.shaders = {"Comp"},
-                  .workGroups = {
-                      static_cast<uint32_t>(world.grid.size.x + 31) / 32,
-                      static_cast<uint32_t>(world.grid.size.y + 31) / 32, 1}};
+    Configuration(VkRenderPass& renderPass,
+                  const VkPipelineLayout& graphicsLayout,
+                  const VkPipelineLayout& computeLayout,
+                  VkSampleCountFlagBits& msaaSamples) {
+      // World world{};
+
+      uint32_t tempSizex = 100;
+
+      pipelineMap["Engine"] = Compute{
+          .shaders = {"Comp"},
+          .workGroups = {static_cast<uint32_t>(tempSizex + 31) / 32,
+                         static_cast<uint32_t>(tempSizex + 31) / 32, 1}};
       pipelineMap["Cells"] =
           Graphics{.shaders = {"Vert", "Frag"},
                    .vertexAttributes = World::Cell::getAttributeDescription(),
                    .vertexBindings = World::Cell::getBindingDescription()};
-      pipelineMap["Landscape"] = Graphics{
-          .shaders = {"Vert", "Frag"},
-          .vertexAttributes = World::Landscape::getAttributeDescription(),
-          .vertexBindings = World::Landscape::getBindingDescription()};
+      pipelineMap["Landscape"] =
+          Graphics{.shaders = {"Vert", "Frag"},
+                   .vertexAttributes = World::Grid::getAttributeDescription(),
+                   .vertexBindings = World::Grid::getBindingDescription()};
       pipelineMap["Texture"] = Graphics{
           .shaders = {"Vert", "Frag"},
           .vertexAttributes = World::Rectangle::getAttributeDescription(),
@@ -43,9 +62,9 @@ class Pipelines {
           .workGroups = {
               static_cast<uint32_t>(Window::get().display.width + 7) / 8,
               static_cast<uint32_t>(Window::get().display.height + 7) / 8, 1}};
+
+      compileShaders();
+      createPipelines(renderPass, graphicsLayout, computeLayout, msaaSamples);
     }
   } config;
-
- private:
-  VulkanMechanics& _mechanics;
 };

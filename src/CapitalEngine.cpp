@@ -1,22 +1,9 @@
 #include "CapitalEngine.h"
 
-#include <iostream>
-
-CapitalEngine::CapitalEngine() : pipelines(mechanics), resources(mechanics) {
+CapitalEngine::CapitalEngine()
+    : pipelines(mechanics, resources), resources(mechanics, pipelines) {
   Log::text(Log::Style::headerGuard);
   Log::text("| CAPITAL Engine");
-
-  resources.command.createCommandPool(mechanics.queues.familyIndices);
-  resources.createDescriptorSetLayout(resources.descriptorSetLayoutBindings);
-  resources.msaaImage.createColorResources(mechanics.swapchain.extent,
-                                           mechanics.swapchain.imageFormat);
-  resources.depthImage.createDepthResources(mechanics.swapchain.extent,
-                                            CE::Image::findDepthFormat());
-
-  pipelines.setupPipelines(resources);
-  resources.setupResources(pipelines);
-
-  mechanics.syncObjects.create(MAX_FRAMES_IN_FLIGHT);
 }
 
 CapitalEngine::~CapitalEngine() {
@@ -61,7 +48,7 @@ void CapitalEngine::drawFrame() {
            .computeInFlightFences[mechanics.syncObjects.currentFrame],
       VK_TRUE, UINT64_MAX);
 
-  resources.updateUniformBuffer(mechanics.syncObjects.currentFrame);
+  resources.uniform.update(resources.world, mechanics.swapchain.extent);
 
   vkResetFences(
       mechanics.mainDevice.logical, 1,
@@ -69,15 +56,15 @@ void CapitalEngine::drawFrame() {
            .computeInFlightFences[mechanics.syncObjects.currentFrame]);
 
   vkResetCommandBuffer(
-      resources.command.compute[mechanics.syncObjects.currentFrame], 0);
-  resources.recordComputeCommandBuffer(
-      resources.command.compute[mechanics.syncObjects.currentFrame], pipelines);
+      resources.commands.compute[mechanics.syncObjects.currentFrame], 0);
+  resources.commands.recordComputeCommandBuffer(
+      resources, pipelines, mechanics.syncObjects.currentFrame);
 
   VkSubmitInfo computeSubmitInfo{
       .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
       .commandBufferCount = 1,
       .pCommandBuffers =
-          &resources.command.compute[mechanics.syncObjects.currentFrame],
+          &resources.commands.compute[mechanics.syncObjects.currentFrame],
       .signalSemaphoreCount = 1,
       .pSignalSemaphores =
           &mechanics.syncObjects
@@ -116,11 +103,11 @@ void CapitalEngine::drawFrame() {
            .graphicsInFlightFences[mechanics.syncObjects.currentFrame]);
 
   vkResetCommandBuffer(
-      resources.command.graphics[mechanics.syncObjects.currentFrame], 0);
+      resources.commands.graphics[mechanics.syncObjects.currentFrame], 0);
 
-  resources.recordGraphicsCommandBuffer(
-      resources.command.graphics[mechanics.syncObjects.currentFrame],
-      imageIndex, pipelines);
+  resources.commands.recordGraphicsCommandBuffer(
+      mechanics.swapchain, resources, pipelines,
+      mechanics.syncObjects.currentFrame);
 
   std::vector<VkSemaphore> waitSemaphores{
       mechanics.syncObjects
@@ -138,7 +125,7 @@ void CapitalEngine::drawFrame() {
       .pWaitDstStageMask = waitStages.data(),
       .commandBufferCount = 1,
       .pCommandBuffers =
-          &resources.command.graphics[mechanics.syncObjects.currentFrame],
+          &resources.commands.graphics[mechanics.syncObjects.currentFrame],
       .signalSemaphoreCount = 1,
       .pSignalSemaphores =
           &mechanics.syncObjects
