@@ -21,8 +21,8 @@ class CapitalEngine {
 
  private:
   VulkanMechanics mechanics;
-  Pipelines pipelines;
   Resources resources;
+  Pipelines pipelines;
 
   void drawFrame();
 };

@@ -18,20 +18,20 @@ const enum ORIENTATION_ORDER { ROTATE_SCALE_TRANSLATE, ROTATE_TRANSLATE_SCALE };
 
 class Vertex {
  public:
-    glm::vec3 instancePosition;
-    glm::vec3 vertexPosition;
-    glm::vec3 normal;
-    glm::vec3 color;
-    glm::vec2 textureCoordinates;
+  glm::vec3 instancePosition{};
+  glm::vec3 vertexPosition{};
+  glm::vec3 normal{};
+  glm::vec3 color{};
+  glm::vec2 textureCoordinates{};
 
-    static std::vector<VkVertexInputBindingDescription> getBindingDescription();
-    static std::vector<VkVertexInputAttributeDescription>
-    getAttributeDescription();
+  static std::vector<VkVertexInputBindingDescription> getBindingDescription();
+  static std::vector<VkVertexInputAttributeDescription>
+  getAttributeDescription();
 
-    bool operator==(const Vertex& other) const {
-      return vertexPosition == other.vertexPosition && color == other.color &&
-             textureCoordinates == other.textureCoordinates &&
-             normal == other.normal;
+  bool operator==(const Vertex& other) const {
+    return vertexPosition == other.vertexPosition && color == other.color &&
+           textureCoordinates == other.textureCoordinates &&
+           normal == other.normal;
   }
 };
 
@@ -39,19 +39,28 @@ class Geometry : public Vertex {
  public:
   Geometry(const std::string& modelName = "");
   virtual ~Geometry() = default;
-  std::vector<Vertex> allVertices;
-  std::vector<Vertex> uniqueVertices;
-  std::vector<uint32_t> indices;
+  std::vector<Vertex> allVertices{};
+  std::vector<Vertex> uniqueVertices{};
+  std::vector<uint32_t> indices{};
 
-  struct VertexBuffer : public CE::Buffer {
-  } vertexBuffer;
-  struct IndexBuffer : public CE::Buffer {
-  } indexBuffer;
+  CE::Buffer vertexBuffer;
+  CE::Buffer indexBuffer;
 
   void addVertexPosition(const glm::vec3& position);
   static std::vector<uint32_t> createGridPolygons(
       const std::vector<uint32_t>& vertices,
       uint32_t gridWidth);
+
+ protected:
+  void createVertexBuffer(VkCommandBuffer& commandBuffer,
+                          const VkCommandPool& commandPool,
+                          const VkQueue& queue,
+                          const std::vector<Vertex>& vertices);
+
+  void createIndexBuffer(VkCommandBuffer& commandBuffer,
+                         const VkCommandPool& commandPool,
+                         const VkQueue& queue,
+                         const std::vector<uint32_t>& indices);
 
  private:
   void loadModel(const std::string& modelName, Geometry& geometry);
@@ -61,6 +70,3 @@ class Geometry : public Vertex {
                       const glm::vec3& translationDistance = glm::vec3(0.0f),
                       float scale = 1.0f);
 };
-
-struct NoVertexData : public Vertex {
-} inline NO_VERTEX_DATA;

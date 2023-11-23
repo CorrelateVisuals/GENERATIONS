@@ -1,8 +1,8 @@
 #include "Log.h"
+#include "BaseClasses.h"
 
 #include <chrono>
 #include <filesystem>
-#include <iostream>
 #include <string>
 
 std::ofstream Log::logFile("log.txt");
@@ -17,30 +17,52 @@ int Log::Style::columnCountOffset = 4;
 
 std::string Log::previousTime;
 
+void Log::measureElapsedTime() {
+  static std::chrono::high_resolution_clock::time_point lastCall;
+  static bool firstCall = true;
+
+  std::chrono::high_resolution_clock::time_point now =
+      std::chrono::high_resolution_clock::now();
+
+  if (firstCall) {
+    firstCall = false;
+    lastCall = now;
+    Log::text("{ TIME START }", "0.0", "seconds");
+  } else {
+    double elapsedTime =
+        std::chrono::duration_cast<std::chrono::duration<double>>(now -
+                                                                  lastCall)
+            .count();
+    Log::text("{ TIME INTERVAL }", elapsedTime, "seconds");
+    lastCall = now;
+  }
+}
+
 void Log::logTitle() {
   Log::text(Log::Style::headerGuard);
   Log::text("                 . - < < { ", "G E N E R A T I O N S",
             " } > > - .");
   Log::text(Log::Style::headerGuard);
+  Log::measureElapsedTime();
+
   Log::text("{ dir }", std::filesystem::current_path().string());
 }
 
 void Log::logFooter() {
+  Log::measureElapsedTime();
   Log::text(Log::Style::headerGuard);
   Log::text("© Jakob Povel | Correlate Visuals ©");
 }
 
 bool Log::skipLogging(uint8_t logLevel, std::string icon) {
   if (!logFile.is_open()) {
-    std::cerr << "\n!ERROR! Could not open logFile for writing" << std::endl;
+    std::cerr << "\n!ERROR! Could not open logFile for writing" << '\n';
     return false;
   }
-  if (logLevel == LOG_LEVEL_OFF ||
-      (logLevel == LOG_LEVEL_MINIMAL &&
-       (icon == std::string("{ ... }") ||
-        icon == std::string(Style::charLeader))) ||
-      (logLevel == LOG_LEVEL_MODERATE &&
-       icon == std::string(Style::charLeader))) {
+  if (logLevel == LOG_OFF ||
+      (logLevel == LOG_MINIMIAL && (icon == std::string("{ ... }") ||
+                                    icon == std::string(Style::charLeader))) ||
+      (logLevel == LOG_MODERATE && icon == std::string(Style::charLeader))) {
     return true;
   }
   return false;

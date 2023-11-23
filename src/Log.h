@@ -9,13 +9,9 @@
 
 #define STRINGIFICATION(x) #x
 
-constexpr uint8_t LOG_LEVEL_OFF = 0;
-constexpr uint8_t LOG_LEVEL_MINIMAL = 1;
-constexpr uint8_t LOG_LEVEL_MODERATE = 2;
-constexpr uint8_t LOG_LEVEL_DETAILED = 3;
-
 namespace Log {
-static uint8_t logLevel = LOG_LEVEL_MODERATE;
+const enum LogLevel { LOG_OFF, LOG_MINIMIAL, LOG_MODERATE, LOG_DETAILED };
+static uint8_t logLevel = LOG_DETAILED;
 
 struct Style {
   static std::string charLeader;
@@ -33,6 +29,7 @@ extern std::string previousTime;
 template <class T, class... Ts>
 void text(const T& first, const Ts&... inputs);
 bool skipLogging(uint8_t logLevel, std::string icon);
+void measureElapsedTime();
 
 std::string getBufferUsageString(const VkBufferUsageFlags& usage);
 std::string getMemoryPropertyString(const VkMemoryPropertyFlags& properties);

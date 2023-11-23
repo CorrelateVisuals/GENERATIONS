@@ -3,7 +3,6 @@
 #include <glm/glm.hpp>
 
 #include <array>
-#include <iostream>
 
 class Window {
  public:

@@ -3,7 +3,7 @@
 class Timer {
  public:
   Timer(float initSpeed);
-  ~Timer();
+  virtual ~Timer() = default;
 
   float speed{1.0f};
   uint64_t passedHours{0};

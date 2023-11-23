@@ -1,10 +1,11 @@
+#include "Library.h"
+
 #include <vector>
 
 class Terrain {
  public:
   struct Config {
-    uint_fast16_t width;
-    uint_fast16_t height;
+    vec2_uint_fast16_t dimensions;
     float roughness;
     int octaves;
     float scale;
@@ -14,8 +15,8 @@ class Terrain {
     float heightOffset;
   } config;
 
-  Terrain(const Config& _config);
-  ~Terrain();
+  Terrain(const Config& config);
+  virtual ~Terrain() = default;
 
   std::vector<float> generatePerlinGrid();
   float linearInterpolationFunction(float a, float b, float t);
