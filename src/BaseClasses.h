@@ -254,17 +254,16 @@ class Descriptor {
   static VkDescriptorSetLayout setLayout;
   static std::array<VkDescriptorSet, MAX_FRAMES_IN_FLIGHT> sets;
 
+  VkDescriptorPoolSize poolSize{};
   static std::vector<VkDescriptorPoolSize> poolSizes;
+
+  VkDescriptorSetLayoutBinding setLayoutBinding{};
   static std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings;
 
+  std::variant<VkDescriptorBufferInfo, VkDescriptorImageInfo> info{};
   static std::vector<
       std::variant<VkDescriptorBufferInfo, VkDescriptorImageInfo>>
       descriptorInfos;
-  std::variant<VkDescriptorBufferInfo, VkDescriptorImageInfo> info{};
-
-  VkDescriptorPoolSize poolSize{};
-  VkDescriptorSetLayoutBinding setLayoutBinding{};
-  VkWriteDescriptorSet writeSet{};
 
   Descriptor() = default;
   virtual ~Descriptor();
