@@ -164,13 +164,4 @@ class Resources {
       data.fill(0);
     }
   } pushConstants;
-
- public:
-  void createDescriptorSets();
-
- private:
-  VulkanMechanics& _mechanics;
-
-  void createDescriptorPool();
-  void allocateDescriptorSets();
 };

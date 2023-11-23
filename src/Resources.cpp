@@ -4,8 +4,7 @@
 #include "Resources.h"
 
 Resources::Resources(VulkanMechanics& mechanics, Pipelines& pipelines)
-    : _mechanics(mechanics),
-      commands{mechanics.queues.familyIndices},
+    : commands{mechanics.queues.familyIndices},
       pushConstants{},
       depthImage{mechanics.swapchain.extent, CE::Image::findDepthFormat()},
       msaaImage{mechanics.swapchain.extent, mechanics.swapchain.imageFormat},
@@ -22,7 +21,7 @@ Resources::Resources(VulkanMechanics& mechanics, Pipelines& pipelines)
   CE::Descriptor::createSetLayout(CE::Descriptor::setLayoutBindings);
   CE::Descriptor::createPool();
   CE::Descriptor::allocateSets();
-  createDescriptorSets();
+  CE::Descriptor::createSets();
 }
 
 Resources::~Resources() {
@@ -80,116 +79,6 @@ void Resources::UniformBuffer::create() {
 
   vkMapMemory(CE::Device::baseDevice->logical, buffer.memory, 0, bufferSize, 0,
               &buffer.mapped);
-}
-
-void Resources::createDescriptorPool() {
-  Log::text("{ |=| }", "Descriptor Pool");
-  for (size_t i = 0; i < CE::Descriptor::poolSizes.size(); i++) {
-    Log::text(Log::Style::charLeader,
-              Log::getDescriptorTypeString(CE::Descriptor::poolSizes[i].type));
-  }
-  VkDescriptorPoolCreateInfo poolInfo{
-      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-      .maxSets = MAX_FRAMES_IN_FLIGHT,
-      .poolSizeCount = static_cast<uint32_t>(CE::Descriptor::poolSizes.size()),
-      .pPoolSizes = CE::Descriptor::poolSizes.data()};
-
-  CE::VULKAN_RESULT(vkCreateDescriptorPool, CE::Device::baseDevice->logical,
-                    &poolInfo, nullptr, &CE::Descriptor::pool);
-}
-
-void Resources::allocateDescriptorSets() {
-  std::array<VkDescriptorSetLayout, MAX_FRAMES_IN_FLIGHT> layouts{
-      CE::Descriptor::setLayout, CE::Descriptor::setLayout};
-  VkDescriptorSetAllocateInfo allocateInfo{
-      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-      .descriptorPool = CE::Descriptor::pool,
-      .descriptorSetCount = MAX_FRAMES_IN_FLIGHT,
-      .pSetLayouts = layouts.data()};
-
-  CE::VULKAN_RESULT(vkAllocateDescriptorSets, CE::Device::baseDevice->logical,
-                    &allocateInfo, CE::Descriptor::sets.data());
-}
-
-void Resources::createDescriptorSets() {
-  Log::text("{ |=| }", "Descriptor Sets");
-
-  for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-    VkDescriptorBufferInfo uniformBufferInfo{
-        .buffer = uniform.buffer.buffer,
-        .offset = 0,
-        .range = sizeof(World::UniformBufferObject)};
-
-    VkDescriptorBufferInfo storageBufferInfoLastFrame{
-        .buffer = shaderStorage.bufferIn.buffer,
-        .offset = 0,
-        .range = sizeof(World::Cell) * world.grid.pointCount};
-
-    VkDescriptorBufferInfo storageBufferInfoCurrentFrame{
-        .buffer = shaderStorage.bufferOut.buffer,
-        .offset = 0,
-        .range = sizeof(World::Cell) * world.grid.size.x * world.grid.size.y};
-
-    VkDescriptorImageInfo imageInfo{
-        .sampler = sampler.textureImage.sampler,
-        .imageView = sampler.textureImage.view,
-        .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL};
-
-    VkDescriptorImageInfo swapchainImageInfo{
-        .sampler = VK_NULL_HANDLE,
-        .imageView = _mechanics.swapchain.images[i].view,
-        .imageLayout = VK_IMAGE_LAYOUT_GENERAL};
-
-    std::vector<VkWriteDescriptorSet> descriptorWrites{
-        {.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-         .dstSet = CE::Descriptor::sets[i],
-         .dstBinding = 0,
-         .dstArrayElement = 0,
-         .descriptorCount = 1,
-         .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-         .pBufferInfo = &std::get<VkDescriptorBufferInfo>(
-             CE::Descriptor::descriptorInfos[0])},
-
-        {.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-         .dstSet = CE::Descriptor::sets[i],
-         .dstBinding = static_cast<uint32_t>(i ? 2 : 1),
-         .dstArrayElement = 0,
-         .descriptorCount = 1,
-         .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-         .pBufferInfo = &std::get<VkDescriptorBufferInfo>(
-             CE::Descriptor::descriptorInfos[1])},
-
-        {.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-         .dstSet = CE::Descriptor::sets[i],
-         .dstBinding = static_cast<uint32_t>(i ? 1 : 2),
-         .dstArrayElement = 0,
-         .descriptorCount = 1,
-         .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-         .pBufferInfo = &std::get<VkDescriptorBufferInfo>(
-             CE::Descriptor::descriptorInfos[2])},
-
-        {.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-         .dstSet = CE::Descriptor::sets[i],
-         .dstBinding = 3,
-         .dstArrayElement = 0,
-         .descriptorCount = 1,
-         .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-         .pImageInfo = &std::get<VkDescriptorImageInfo>(
-             CE::Descriptor::descriptorInfos[3])},
-
-        {.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-         .dstSet = CE::Descriptor::sets[i],
-         .dstBinding = 4,
-         .dstArrayElement = 0,
-         .descriptorCount = 1,
-         .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
-         .pImageInfo = &swapchainImageInfo},
-    };
-
-    vkUpdateDescriptorSets(CE::Device::baseDevice->logical,
-                           static_cast<uint32_t>(descriptorWrites.size()),
-                           descriptorWrites.data(), 0, nullptr);
-  }
 }
 
 void Resources::UniformBuffer::update(World& world, const VkExtent2D extent) {

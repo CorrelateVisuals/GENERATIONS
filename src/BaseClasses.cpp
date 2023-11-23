@@ -540,7 +540,63 @@ void CE::Descriptor::createSetLayout(
                     &CE::Descriptor::setLayout);
 }
 
-void CE::Descriptor::createSets() {}
+void CE::Descriptor::createSets() {
+  Log::text("{ |=| }", "Descriptor Sets");
+
+  for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+    std::vector<VkWriteDescriptorSet> descriptorWrites{
+        {.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+         .dstSet = CE::Descriptor::sets[i],
+         .dstBinding = 0,
+         .dstArrayElement = 0,
+         .descriptorCount = 1,
+         .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+         .pBufferInfo = &std::get<VkDescriptorBufferInfo>(
+             CE::Descriptor::descriptorInfos[0])},
+
+        {.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+         .dstSet = CE::Descriptor::sets[i],
+         .dstBinding = static_cast<uint32_t>(i ? 2 : 1),
+         .dstArrayElement = 0,
+         .descriptorCount = 1,
+         .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+         .pBufferInfo = &std::get<VkDescriptorBufferInfo>(
+             CE::Descriptor::descriptorInfos[1])},
+
+        {.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+         .dstSet = CE::Descriptor::sets[i],
+         .dstBinding = static_cast<uint32_t>(i ? 1 : 2),
+         .dstArrayElement = 0,
+         .descriptorCount = 1,
+         .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+         .pBufferInfo = &std::get<VkDescriptorBufferInfo>(
+             CE::Descriptor::descriptorInfos[2])},
+
+        {.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+         .dstSet = CE::Descriptor::sets[i],
+         .dstBinding = 3,
+         .dstArrayElement = 0,
+         .descriptorCount = 1,
+         .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+         .pImageInfo = &std::get<VkDescriptorImageInfo>(
+             CE::Descriptor::descriptorInfos[3])},
+
+        {.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+         .dstSet = CE::Descriptor::sets[i],
+         .dstBinding = 4,
+         .dstArrayElement = 0,
+         .descriptorCount = 1,
+         .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
+         .pImageInfo = &std::get<VkDescriptorImageInfo>(
+             CE::Descriptor::descriptorInfos[static_cast<uint32_t>(i ? 5
+                                                                     : 4)])},
+    };
+
+    vkUpdateDescriptorSets(CE::Device::baseDevice->logical,
+                           static_cast<uint32_t>(descriptorWrites.size()),
+                           descriptorWrites.data(), 0, nullptr);
+  }
+}
 
 void CE::Descriptor::allocateSets() {
   std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, setLayout);
