@@ -16,8 +16,12 @@ VkDescriptorSetLayout CE::Descriptor::setLayout;
 std::array<VkDescriptorSet, MAX_FRAMES_IN_FLIGHT> CE::Descriptor::sets;
 std::vector<VkDescriptorPoolSize> CE::Descriptor::poolSizes;
 std::vector<VkDescriptorSetLayoutBinding> CE::Descriptor::setLayoutBindings;
-std::vector<std::variant<VkDescriptorBufferInfo, VkDescriptorImageInfo>>
+std::array<
+    std::pair<std::variant<VkDescriptorBufferInfo, VkDescriptorImageInfo>,
+              VkWriteDescriptorSet>,
+    MAX_DESCRIPTOR_COUNT>
     CE::Descriptor::descriptorInfos;
+size_t CE::Descriptor::currentDescriptorInfosCount{0};
 
 void CE::Device::createLogicalDevice(const InitializeVulkan& initVulkan,
                                      Queues& queues) {
@@ -553,7 +557,7 @@ void CE::Descriptor::createSets(
          .descriptorCount = 1,
          .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
          .pBufferInfo = &std::get<VkDescriptorBufferInfo>(
-             CE::Descriptor::descriptorInfos[0])},
+             CE::Descriptor::descriptorInfos[0].first)},
 
         {.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
          .dstSet = CE::Descriptor::sets[i],
@@ -562,7 +566,7 @@ void CE::Descriptor::createSets(
          .descriptorCount = 1,
          .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
          .pBufferInfo = &std::get<VkDescriptorBufferInfo>(
-             CE::Descriptor::descriptorInfos[1])},
+             CE::Descriptor::descriptorInfos[1].first)},
 
         {.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
          .dstSet = CE::Descriptor::sets[i],
@@ -571,7 +575,7 @@ void CE::Descriptor::createSets(
          .descriptorCount = 1,
          .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
          .pBufferInfo = &std::get<VkDescriptorBufferInfo>(
-             CE::Descriptor::descriptorInfos[2])},
+             CE::Descriptor::descriptorInfos[2].first)},
 
         {.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
          .dstSet = CE::Descriptor::sets[i],
@@ -580,7 +584,7 @@ void CE::Descriptor::createSets(
          .descriptorCount = 1,
          .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
          .pImageInfo = &std::get<VkDescriptorImageInfo>(
-             CE::Descriptor::descriptorInfos[3])},
+             CE::Descriptor::descriptorInfos[3].first)},
 
         {.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
          .dstSet = CE::Descriptor::sets[i],
@@ -589,8 +593,8 @@ void CE::Descriptor::createSets(
          .descriptorCount = 1,
          .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
          .pImageInfo = &std::get<VkDescriptorImageInfo>(
-             CE::Descriptor::descriptorInfos[static_cast<uint32_t>(i ? 5
-                                                                     : 4)])},
+             CE::Descriptor::descriptorInfos[static_cast<uint32_t>(i ? 5 : 4)]
+                 .first)},
     };
 
     vkUpdateDescriptorSets(CE::Device::baseDevice->logical,

@@ -8,6 +8,8 @@
 #include <array>
 #include <cstring>
 #include <string>
+#include <utility>
+#include <variant>
 #include <vector>
 
 class Resources {
@@ -42,14 +44,14 @@ class Resources {
     UniformBuffer();
     void update(World& world, const VkExtent2D extent);
     void createDescriptorInfo() {
-      static size_t descriptorInfosIndex = descriptorInfos.size();
-      descriptorInfos.resize(descriptorInfosIndex + 1);
+      static size_t descriptorInfosIndex = currentDescriptorInfosCount;
+      currentDescriptorInfosCount++;
 
       VkDescriptorBufferInfo bufferInfo{
           .buffer = buffer.buffer,
           .offset = 0,
           .range = sizeof(World::UniformBufferObject)};
-      descriptorInfos[descriptorInfosIndex] = bufferInfo;
+      descriptorInfos[descriptorInfosIndex].first = bufferInfo;
     };
 
    private:
@@ -67,16 +69,16 @@ class Resources {
                   const auto& object,
                   const size_t quantity);
     void createDescriptorInfo(const size_t quantity) {
-      static size_t descriptorInfosIndex = descriptorInfos.size();
-      descriptorInfos.resize(descriptorInfosIndex + 2);
+      static size_t descriptorInfosIndex = currentDescriptorInfosCount;
+      currentDescriptorInfosCount += 2;
 
       VkDescriptorBufferInfo bufferInfo{
           .buffer = bufferIn.buffer,
           .offset = 0,
           .range = sizeof(World::Cell) * quantity};
-      descriptorInfos[descriptorInfosIndex] = bufferInfo;
+      descriptorInfos[descriptorInfosIndex].first = bufferInfo;
       bufferInfo.buffer = bufferOut.buffer;
-      descriptorInfos[descriptorInfosIndex + 1] = bufferInfo;
+      descriptorInfos[descriptorInfosIndex + 1].first = bufferInfo;
     };
 
    private:
@@ -93,14 +95,13 @@ class Resources {
                  VkCommandPool& commandPool,
                  const VkQueue& queue);
     void createDescriptorInfo() {
-      static size_t descriptorInfosIndex = descriptorInfos.size();
-      descriptorInfos.resize(descriptorInfosIndex + 1);
-
+      static size_t descriptorInfosIndex = currentDescriptorInfosCount;
+      currentDescriptorInfosCount++;
       VkDescriptorImageInfo imageInfo{
           .sampler = textureImage.sampler,
           .imageView = textureImage.view,
           .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL};
-      descriptorInfos[descriptorInfosIndex] = imageInfo;
+      descriptorInfos[descriptorInfosIndex].first = imageInfo;
     }
 
    private:
@@ -114,14 +115,14 @@ class Resources {
     StorageImage(std::array<CE::Image, MAX_FRAMES_IN_FLIGHT>& images);
     void createDescriptorInfo(
         std::array<CE::Image, MAX_FRAMES_IN_FLIGHT>& images) {
-      static size_t descriptorInfosIndex = descriptorInfos.size();
-      descriptorInfos.resize(descriptorInfosIndex + 2);
+      static size_t descriptorInfosIndex = currentDescriptorInfosCount;
+      currentDescriptorInfosCount += 2;
 
       for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         VkDescriptorImageInfo imageInfo{.sampler = VK_NULL_HANDLE,
                                         .imageView = images[i].view,
                                         .imageLayout = VK_IMAGE_LAYOUT_GENERAL};
-        descriptorInfos[descriptorInfosIndex + i] = imageInfo;
+        descriptorInfos[descriptorInfosIndex + i].first = imageInfo;
       }
     }
   } storageImage;

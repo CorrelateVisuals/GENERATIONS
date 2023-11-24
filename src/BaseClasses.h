@@ -10,10 +10,12 @@
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
+#include <utility>
 #include <variant>
 #include <vector>
 
 constexpr uint32_t MAX_FRAMES_IN_FLIGHT = 2;
+constexpr size_t MAX_DESCRIPTOR_COUNT = 100;
 
 class VulkanMechanics;
 class Resources;
@@ -261,17 +263,18 @@ class Descriptor {
   static std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings;
 
   std::variant<VkDescriptorBufferInfo, VkDescriptorImageInfo> info{};
-  static std::vector<
-      std::variant<VkDescriptorBufferInfo, VkDescriptorImageInfo>>
+  static std::array<
+      std::pair<std::variant<VkDescriptorBufferInfo, VkDescriptorImageInfo>,
+                VkWriteDescriptorSet>,
+      MAX_DESCRIPTOR_COUNT>
       descriptorInfos;
+  static size_t currentDescriptorInfosCount;
 
   Descriptor() = default;
   virtual ~Descriptor();
 
   static void createSetLayout(
       const std::vector<VkDescriptorSetLayoutBinding>& layoutBindings);
-
-  // virtual void createDescriptorInfo() = 0;
 
   static void createPool();
   static void allocateSets();
