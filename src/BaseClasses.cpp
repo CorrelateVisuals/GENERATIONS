@@ -540,7 +540,8 @@ void CE::Descriptor::createSetLayout(
                     &CE::Descriptor::setLayout);
 }
 
-void CE::Descriptor::createSets() {
+void CE::Descriptor::createSets(
+    std::array<CE::Image, MAX_FRAMES_IN_FLIGHT>& images) {
   Log::text("{ |=| }", "Descriptor Sets");
 
   for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {

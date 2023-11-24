@@ -22,11 +22,74 @@ Resources::Resources(VulkanMechanics& mechanics, Pipelines& pipelines)
   CE::Descriptor::createSetLayout(CE::Descriptor::setLayoutBindings);
   CE::Descriptor::createPool();
   CE::Descriptor::allocateSets();
-  CE::Descriptor::createSets();
+  CE::Descriptor::createSets(mechanics.swapchain.images);
 }
 
 Resources::~Resources() {
   Log::text("{ /// }", "destructing Resources");
+}
+
+Resources::Commands::Commands(const CE::Queues::FamilyIndices& familyIndices) {
+  createPool(familyIndices);
+  createBuffers(graphics);
+  createBuffers(compute);
+}
+
+Resources::DepthImage::DepthImage(const VkExtent2D extent,
+                                  const VkFormat format) {
+  createResources(extent, format, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+                  VK_IMAGE_ASPECT_DEPTH_BIT);
+}
+
+Resources::MultisamplingImage::MultisamplingImage(const VkExtent2D extent,
+                                                  const VkFormat format) {
+  createResources(extent, format,
+                  VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT |
+                      VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+                  VK_IMAGE_ASPECT_COLOR_BIT);
+}
+
+Resources::UniformBuffer::UniformBuffer() {
+  VkDescriptorType type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+  setLayoutBinding.binding = 0;
+  setLayoutBinding.descriptorType = type;
+  setLayoutBinding.descriptorCount = 1;
+  setLayoutBinding.stageFlags =
+      VK_SHADER_STAGE_COMPUTE_BIT | VK_SHADER_STAGE_VERTEX_BIT;
+  setLayoutBindings.push_back(setLayoutBinding);
+
+  poolSize.type = type;
+  poolSize.descriptorCount = MAX_FRAMES_IN_FLIGHT;
+  poolSizes.push_back(poolSize);
+
+  create();
+  createDescriptorInfo();
+}
+
+void Resources::UniformBuffer::create() {
+  Log::text("{ 101 }", MAX_FRAMES_IN_FLIGHT, "Uniform Buffers");
+  VkDeviceSize bufferSize = sizeof(World::UniformBufferObject);
+
+  CE::Buffer::create(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+                     VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                         VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                     buffer);
+
+  vkMapMemory(CE::Device::baseDevice->logical, buffer.memory, 0, bufferSize, 0,
+              &buffer.mapped);
+}
+
+void Resources::UniformBuffer::update(World& world, const VkExtent2D extent) {
+  object.light = world.light.position;
+  object.gridXY = glm::vec2(static_cast<uint32_t>(world.grid.size.x),
+                            static_cast<uint32_t>(world.grid.size.y));
+  object.waterThreshold = 0.1f;
+  object.cellSize = world.grid.initialCellSize;
+  object.model = world.camera.setModel();
+  object.view = world.camera.setView();
+  object.projection = world.camera.setProjection(extent);
+
+  std::memcpy(buffer.mapped, &object, sizeof(object));
 }
 
 Resources::ShaderStorage::ShaderStorage(VkCommandBuffer& commandBuffer,
@@ -47,13 +110,7 @@ Resources::ShaderStorage::ShaderStorage(VkCommandBuffer& commandBuffer,
   poolSizes.push_back(poolSize);
 
   create(commandBuffer, commandPool, queue, object, quantity);
-
-  VkDescriptorBufferInfo bufferInfo{.buffer = bufferIn.buffer,
-                                    .offset = 0,
-                                    .range = sizeof(World::Cell) * quantity};
-  descriptorInfos.push_back(bufferInfo);
-  bufferInfo.buffer = bufferOut.buffer;
-  descriptorInfos.push_back(bufferInfo);
+  createDescriptorInfo(quantity);
 }
 
 void Resources::ShaderStorage::create(VkCommandBuffer& commandBuffer,
@@ -96,52 +153,40 @@ void Resources::ShaderStorage::create(VkCommandBuffer& commandBuffer,
                    commandBuffer, commandPool, queue);
 }
 
-Resources::UniformBuffer::UniformBuffer() {
-  VkDescriptorType type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-  setLayoutBinding.binding = 0;
-  setLayoutBinding.descriptorType = type;
+Resources::ImageSampler::ImageSampler(VkCommandBuffer& commandBuffer,
+                                      VkCommandPool& commandPool,
+                                      const VkQueue& queue) {
+  setLayoutBinding.binding = 3;
+  setLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
   setLayoutBinding.descriptorCount = 1;
-  setLayoutBinding.stageFlags =
-      VK_SHADER_STAGE_COMPUTE_BIT | VK_SHADER_STAGE_VERTEX_BIT;
+  setLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
   setLayoutBindings.push_back(setLayoutBinding);
 
-  poolSize.type = type;
+  poolSize.type = setLayoutBinding.descriptorType;
   poolSize.descriptorCount = MAX_FRAMES_IN_FLIGHT;
   poolSizes.push_back(poolSize);
 
-  create();
+  textureImage.loadTexture(textureImage.path, VK_FORMAT_R8G8B8A8_SRGB,
+                           commandBuffer, commandPool, queue);
+  textureImage.createView(VK_IMAGE_ASPECT_COLOR_BIT);
+  textureImage.createSampler();
 
-  VkDescriptorBufferInfo bufferInfo{
-      .buffer = buffer.buffer,
-      .offset = 0,
-      .range = sizeof(World::UniformBufferObject)};
-  descriptorInfos.push_back(bufferInfo);
+  createDescriptorInfo();
 }
 
-void Resources::UniformBuffer::create() {
-  Log::text("{ 101 }", MAX_FRAMES_IN_FLIGHT, "Uniform Buffers");
-  VkDeviceSize bufferSize = sizeof(World::UniformBufferObject);
+Resources::StorageImage::StorageImage(
+    std::array<CE::Image, MAX_FRAMES_IN_FLIGHT>& images) {
+  setLayoutBinding.binding = 4;
+  setLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+  setLayoutBinding.descriptorCount = 1;
+  setLayoutBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+  setLayoutBindings.push_back(setLayoutBinding);
 
-  CE::Buffer::create(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-                     VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                         VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                     buffer);
+  poolSize.type = setLayoutBinding.descriptorType;
+  poolSize.descriptorCount = MAX_FRAMES_IN_FLIGHT;
+  poolSizes.push_back(poolSize);
 
-  vkMapMemory(CE::Device::baseDevice->logical, buffer.memory, 0, bufferSize, 0,
-              &buffer.mapped);
-}
-
-void Resources::UniformBuffer::update(World& world, const VkExtent2D extent) {
-  object.light = world.light.position;
-  object.gridXY = glm::vec2(static_cast<uint32_t>(world.grid.size.x),
-                            static_cast<uint32_t>(world.grid.size.y));
-  object.waterThreshold = 0.1f;
-  object.cellSize = world.grid.initialCellSize;
-  object.model = world.camera.setModel();
-  object.view = world.camera.setView();
-  object.projection = world.camera.setProjection(extent);
-
-  std::memcpy(buffer.mapped, &object, sizeof(object));
+  createDescriptorInfo(images);
 }
 
 void Resources::Commands::recordComputeCommandBuffer(
@@ -311,69 +356,4 @@ void Resources::Commands::recordGraphicsCommandBuffer(
       /* -> */ VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
   CE::VULKAN_RESULT(vkEndCommandBuffer, commandBuffer);
-}
-
-Resources::Commands::Commands(const CE::Queues::FamilyIndices& familyIndices) {
-  createPool(familyIndices);
-  createBuffers(graphics);
-  createBuffers(compute);
-}
-
-Resources::DepthImage::DepthImage(const VkExtent2D extent,
-                                  const VkFormat format) {
-  createResources(extent, format, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
-                  VK_IMAGE_ASPECT_DEPTH_BIT);
-}
-
-Resources::MultisamplingImage::MultisamplingImage(const VkExtent2D extent,
-                                                  const VkFormat format) {
-  createResources(extent, format,
-                  VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT |
-                      VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-                  VK_IMAGE_ASPECT_COLOR_BIT);
-}
-
-Resources::StorageImage::StorageImage(
-    std::array<CE::Image, MAX_FRAMES_IN_FLIGHT>& images) {
-  setLayoutBinding.binding = 4;
-  setLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-  setLayoutBinding.descriptorCount = 1;
-  setLayoutBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-  setLayoutBindings.push_back(setLayoutBinding);
-
-  poolSize.type = setLayoutBinding.descriptorType;
-  poolSize.descriptorCount = MAX_FRAMES_IN_FLIGHT;
-  poolSizes.push_back(poolSize);
-
-  for (uint_fast8_t i = 0; i < images.size(); i++) {
-    VkDescriptorImageInfo imageInfo{.sampler = VK_NULL_HANDLE,
-                                    .imageView = images[i].view,
-                                    .imageLayout = VK_IMAGE_LAYOUT_GENERAL};
-    descriptorInfos.push_back(imageInfo);
-  }
-}
-
-Resources::ImageSampler::ImageSampler(VkCommandBuffer& commandBuffer,
-                                      VkCommandPool& commandPool,
-                                      const VkQueue& queue) {
-  setLayoutBinding.binding = 3;
-  setLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-  setLayoutBinding.descriptorCount = 1;
-  setLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-  setLayoutBindings.push_back(setLayoutBinding);
-
-  poolSize.type = setLayoutBinding.descriptorType;
-  poolSize.descriptorCount = MAX_FRAMES_IN_FLIGHT;
-  poolSizes.push_back(poolSize);
-
-  textureImage.loadTexture(textureImage.path, VK_FORMAT_R8G8B8A8_SRGB,
-                           commandBuffer, commandPool, queue);
-  textureImage.createView(VK_IMAGE_ASPECT_COLOR_BIT);
-  textureImage.createSampler();
-
-  VkDescriptorImageInfo imageInfo{
-      .sampler = textureImage.sampler,
-      .imageView = textureImage.view,
-      .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL};
-  descriptorInfos.push_back(imageInfo);
 }

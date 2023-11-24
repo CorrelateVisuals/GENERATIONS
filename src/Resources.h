@@ -15,6 +15,8 @@ class Resources {
   Resources(VulkanMechanics& mechanics, Pipelines& pipelines);
   ~Resources();
 
+  std::vector<CE::Descriptor> descriptors{};
+
   struct Commands : public CE::CommandBuffers {
     Commands(const CE::Queues::FamilyIndices& familyIndices);
     void recordComputeCommandBuffer(Resources& resources,
@@ -36,10 +38,18 @@ class Resources {
     MultisamplingImage(const VkExtent2D extent, const VkFormat format);
   } msaaImage;
 
-  struct UniformBuffer : public CE::Descriptor {
+  class UniformBuffer : public CE::Descriptor {
+   public:
     CE::Buffer buffer;
     UniformBuffer();
     void update(World& world, const VkExtent2D extent);
+    void createDescriptorInfo() {
+      VkDescriptorBufferInfo bufferInfo{
+          .buffer = buffer.buffer,
+          .offset = 0,
+          .range = sizeof(World::UniformBufferObject)};
+      descriptorInfos.push_back(bufferInfo);
+    };
 
    private:
     World::UniformBufferObject object;
@@ -55,6 +65,15 @@ class Resources {
                   const VkQueue& queue,
                   const auto& object,
                   const size_t quantity);
+    void createDescriptorInfo(const size_t quantity) {
+      VkDescriptorBufferInfo bufferInfo{
+          .buffer = bufferIn.buffer,
+          .offset = 0,
+          .range = sizeof(World::Cell) * quantity};
+      descriptorInfos.push_back(bufferInfo);
+      bufferInfo.buffer = bufferOut.buffer;
+      descriptorInfos.push_back(bufferInfo);
+    };
 
    private:
     void create(VkCommandBuffer& commandBuffer,
@@ -64,10 +83,18 @@ class Resources {
                 const size_t quantity);
   } shaderStorage;
 
-  struct ImageSampler : public CE::Descriptor {
+  class ImageSampler : public CE::Descriptor {
+   public:
     ImageSampler(VkCommandBuffer& commandBuffer,
                  VkCommandPool& commandPool,
                  const VkQueue& queue);
+    void createDescriptorInfo() {
+      VkDescriptorImageInfo imageInfo{
+          .sampler = textureImage.sampler,
+          .imageView = textureImage.view,
+          .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL};
+      descriptorInfos.push_back(imageInfo);
+    }
 
    private:
     struct TextureImage : public CE::Image {
@@ -75,8 +102,19 @@ class Resources {
     } textureImage;
   } sampler;
 
-  struct StorageImage : public CE::Descriptor {
+  class StorageImage : public CE::Descriptor {
+   public:
     StorageImage(std::array<CE::Image, MAX_FRAMES_IN_FLIGHT>& images);
+
+    void createDescriptorInfo(
+        std::array<CE::Image, MAX_FRAMES_IN_FLIGHT>& images) {
+      for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+        VkDescriptorImageInfo imageInfo{.sampler = VK_NULL_HANDLE,
+                                        .imageView = images[i].view,
+                                        .imageLayout = VK_IMAGE_LAYOUT_GENERAL};
+        descriptorInfos.push_back(imageInfo);
+      }
+    }
   } storageImage;
 
   struct PushConstants : public CE::PushConstants {

@@ -271,9 +271,11 @@ class Descriptor {
   static void createSetLayout(
       const std::vector<VkDescriptorSetLayoutBinding>& layoutBindings);
 
+  // virtual void createDescriptorInfo() = 0;
+
   static void createPool();
   static void allocateSets();
-  static void createSets();
+  static void createSets(std::array<CE::Image, MAX_FRAMES_IN_FLIGHT>& images);
 };
 
 struct PushConstants {
