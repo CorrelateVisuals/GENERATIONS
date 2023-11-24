@@ -3,6 +3,12 @@
 #include "CapitalEngine.h"
 #include "Resources.h"
 
+std::vector<std::variant<Resources::UniformBuffer,
+                         Resources::ShaderStorage,
+                         Resources::ImageSampler,
+                         Resources::StorageImage>>
+    Resources::descriptors;
+
 Resources::Resources(VulkanMechanics& mechanics, Pipelines& pipelines)
     : commands{mechanics.queues.familyIndices},
       pushConstants{},
@@ -63,6 +69,7 @@ Resources::UniformBuffer::UniformBuffer() {
   poolSizes.push_back(poolSize);
 
   create();
+
   createDescriptorInfo();
 }
 
@@ -110,6 +117,7 @@ Resources::ShaderStorage::ShaderStorage(VkCommandBuffer& commandBuffer,
   poolSizes.push_back(poolSize);
 
   create(commandBuffer, commandPool, queue, object, quantity);
+
   createDescriptorInfo(quantity);
 }
 

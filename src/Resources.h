@@ -15,8 +15,6 @@ class Resources {
   Resources(VulkanMechanics& mechanics, Pipelines& pipelines);
   ~Resources();
 
-  std::vector<CE::Descriptor> descriptors{};
-
   struct Commands : public CE::CommandBuffers {
     Commands(const CE::Queues::FamilyIndices& familyIndices);
     void recordComputeCommandBuffer(Resources& resources,
@@ -44,11 +42,14 @@ class Resources {
     UniformBuffer();
     void update(World& world, const VkExtent2D extent);
     void createDescriptorInfo() {
+      static size_t descriptorInfosIndex = descriptorInfos.size();
+      descriptorInfos.resize(descriptorInfosIndex + 1);
+
       VkDescriptorBufferInfo bufferInfo{
           .buffer = buffer.buffer,
           .offset = 0,
           .range = sizeof(World::UniformBufferObject)};
-      descriptorInfos.push_back(bufferInfo);
+      descriptorInfos[descriptorInfosIndex] = bufferInfo;
     };
 
    private:
@@ -66,13 +67,16 @@ class Resources {
                   const auto& object,
                   const size_t quantity);
     void createDescriptorInfo(const size_t quantity) {
+      static size_t descriptorInfosIndex = descriptorInfos.size();
+      descriptorInfos.resize(descriptorInfosIndex + 2);
+
       VkDescriptorBufferInfo bufferInfo{
           .buffer = bufferIn.buffer,
           .offset = 0,
           .range = sizeof(World::Cell) * quantity};
-      descriptorInfos.push_back(bufferInfo);
+      descriptorInfos[descriptorInfosIndex] = bufferInfo;
       bufferInfo.buffer = bufferOut.buffer;
-      descriptorInfos.push_back(bufferInfo);
+      descriptorInfos[descriptorInfosIndex + 1] = bufferInfo;
     };
 
    private:
@@ -89,11 +93,14 @@ class Resources {
                  VkCommandPool& commandPool,
                  const VkQueue& queue);
     void createDescriptorInfo() {
+      static size_t descriptorInfosIndex = descriptorInfos.size();
+      descriptorInfos.resize(descriptorInfosIndex + 1);
+
       VkDescriptorImageInfo imageInfo{
           .sampler = textureImage.sampler,
           .imageView = textureImage.view,
           .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL};
-      descriptorInfos.push_back(imageInfo);
+      descriptorInfos[descriptorInfosIndex] = imageInfo;
     }
 
    private:
@@ -105,14 +112,16 @@ class Resources {
   class StorageImage : public CE::Descriptor {
    public:
     StorageImage(std::array<CE::Image, MAX_FRAMES_IN_FLIGHT>& images);
-
     void createDescriptorInfo(
         std::array<CE::Image, MAX_FRAMES_IN_FLIGHT>& images) {
+      static size_t descriptorInfosIndex = descriptorInfos.size();
+      descriptorInfos.resize(descriptorInfosIndex + 2);
+
       for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         VkDescriptorImageInfo imageInfo{.sampler = VK_NULL_HANDLE,
                                         .imageView = images[i].view,
                                         .imageLayout = VK_IMAGE_LAYOUT_GENERAL};
-        descriptorInfos.push_back(imageInfo);
+        descriptorInfos[descriptorInfosIndex + i] = imageInfo;
       }
     }
   } storageImage;
@@ -126,4 +135,9 @@ class Resources {
       data.fill(0);
     }
   } pushConstants;
+
+ private:
+  static std::vector<
+      std::variant<UniformBuffer, ShaderStorage, ImageSampler, StorageImage>>
+      descriptors;
 };

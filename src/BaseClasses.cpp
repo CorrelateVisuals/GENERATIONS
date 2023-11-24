@@ -544,6 +544,8 @@ void CE::Descriptor::createSets(
     std::array<CE::Image, MAX_FRAMES_IN_FLIGHT>& images) {
   Log::text("{ |=| }", "Descriptor Sets");
 
+  Log::text("DESC SIZE:", descriptorInfos.size());
+
   for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
     std::vector<VkWriteDescriptorSet> descriptorWrites{
         {.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
