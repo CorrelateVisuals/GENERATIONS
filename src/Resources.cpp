@@ -64,7 +64,7 @@ Resources::UniformBuffer::UniformBuffer() {
 
   create();
 
-  createDescriptorInfo();
+  createDescriptorWrite();
 }
 
 void Resources::UniformBuffer::create() {

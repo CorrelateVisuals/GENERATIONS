@@ -43,7 +43,7 @@ class Resources {
     CE::Buffer buffer;
     UniformBuffer();
     void update(World& world, const VkExtent2D extent);
-    void createDescriptorInfo() {
+    void createDescriptorWrite() {
       static size_t index = descriptorWriteIndex;
       descriptorWriteIndex++;
 
@@ -53,19 +53,15 @@ class Resources {
 
       VkWriteDescriptorSet descriptorWrite{
           .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-          .dstSet = nullptr,
-          .dstBinding = 0,
-          .dstArrayElement = 0,
-          .descriptorCount = 1,
-          .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+          .dstBinding = setLayoutBinding.binding,
+          .descriptorCount = setLayoutBinding.descriptorCount,
+          .descriptorType = setLayoutBinding.descriptorType,
           .pBufferInfo = &std::get<VkDescriptorBufferInfo>(info)};
 
       for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         descriptorWrites[i][index] = descriptorWrite;
       }
-
-      std::cout << "INDEX: " << index << std::endl;
-    }
+    };
 
    private:
     World::UniformBufferObject object;
