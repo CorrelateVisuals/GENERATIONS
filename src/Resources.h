@@ -75,19 +75,14 @@ class Resources {
                   const auto& object,
                   const size_t quantity);
     void createDescriptorWrite(const size_t quantity) {
-      VkDescriptorBufferInfo bufferInfo{
-          .buffer = bufferIn.buffer,
-          .offset = 0,
-          .range = sizeof(World::Cell) * quantity};
-      descriptorInfos[index].first = bufferInfo;
-      bufferInfo.buffer = bufferOut.buffer;
-      descriptorInfos[index + 1].first = bufferInfo;
-
-      /*info.currentFrame = bufferInfo;
-      bufferInfo.buffer = bufferOut.buffer;
-      info.previousFrame = bufferInfo;
-
       for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+        VkDescriptorBufferInfo bufferInfo{
+            .buffer = !i ? bufferIn.buffer : bufferOut.buffer,
+            .offset = 0,
+            .range = sizeof(World::Cell) * quantity};
+
+        !i ? info.currentFrame = bufferInfo : info.previousFrame = bufferInfo;
+
         VkWriteDescriptorSet descriptorWrite{
             .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
             .dstBinding = static_cast<uint32_t>(i ? setLayoutBinding.binding + 1
@@ -103,7 +98,7 @@ class Resources {
         descriptorWrite.pBufferInfo =
             &std::get<VkDescriptorBufferInfo>(info.previousFrame);
         descriptorWrites[i][index + 1] = descriptorWrite;
-      }*/
+      }
     };
 
    private:

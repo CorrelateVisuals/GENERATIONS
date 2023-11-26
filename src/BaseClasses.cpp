@@ -561,29 +561,8 @@ void CE::Descriptor::createSets(
     descriptorWrites[i][4].dstSet = CE::Descriptor::sets[i];
 
     std::vector<VkWriteDescriptorSet> writes{
-        {descriptorWrites[i][0]},
-        //{descriptorWrites[i][1]},
-        //{descriptorWrites[i][2]},
-
-        {.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-         .dstSet = CE::Descriptor::sets[i],
-         .dstBinding = static_cast<uint32_t>(i ? 2 : 1),
-         .dstArrayElement = 0,
-         .descriptorCount = 1,
-         .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-         .pBufferInfo = &std::get<VkDescriptorBufferInfo>(
-             CE::Descriptor::descriptorInfos[1].first)},
-
-        {.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-         .dstSet = CE::Descriptor::sets[i],
-         .dstBinding = static_cast<uint32_t>(i ? 1 : 2),
-         .dstArrayElement = 0,
-         .descriptorCount = 1,
-         .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-         .pBufferInfo = &std::get<VkDescriptorBufferInfo>(
-             CE::Descriptor::descriptorInfos[2].first)},
-
-        {descriptorWrites[i][3]},
+        {descriptorWrites[i][0]}, {descriptorWrites[i][1]},
+        {descriptorWrites[i][2]}, {descriptorWrites[i][3]},
         {descriptorWrites[i][4]},
     };
 
