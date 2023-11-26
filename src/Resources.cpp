@@ -63,7 +63,7 @@ Resources::UniformBuffer::UniformBuffer() {
 
   poolSize.type = type;
   poolSize.descriptorCount = MAX_FRAMES_IN_FLIGHT;
-  poolSizes[index] = poolSize;
+  poolSizes.push_back(poolSize);
 
   create();
 
@@ -114,7 +114,7 @@ Resources::ShaderStorage::ShaderStorage(VkCommandBuffer& commandBuffer,
 
   poolSize.type = setLayoutBinding.descriptorType;
   poolSize.descriptorCount = MAX_FRAMES_IN_FLIGHT * 2;
-  poolSizes[index] = poolSize;
+  poolSizes.push_back(poolSize);
 
   create(commandBuffer, commandPool, queue, object, quantity);
 
@@ -175,7 +175,7 @@ Resources::ImageSampler::ImageSampler(VkCommandBuffer& commandBuffer,
 
   poolSize.type = setLayoutBinding.descriptorType;
   poolSize.descriptorCount = MAX_FRAMES_IN_FLIGHT;
-  poolSizes[index] = poolSize;
+  poolSizes.push_back(poolSize);
 
   textureImage.loadTexture(textureImage.path, VK_FORMAT_R8G8B8A8_SRGB,
                            commandBuffer, commandPool, queue);
@@ -198,7 +198,7 @@ Resources::StorageImage::StorageImage(
 
   poolSize.type = setLayoutBinding.descriptorType;
   poolSize.descriptorCount = MAX_FRAMES_IN_FLIGHT;
-  poolSizes[index] = poolSize;
+  poolSizes.push_back(poolSize);
 
   createDescriptorInfo(images);
 }

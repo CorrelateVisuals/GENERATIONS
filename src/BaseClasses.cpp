@@ -14,7 +14,7 @@ VkCommandBuffer CE::CommandBuffers::singularCommandBuffer = VK_NULL_HANDLE;
 VkDescriptorPool CE::Descriptor::pool;
 VkDescriptorSetLayout CE::Descriptor::setLayout;
 std::array<VkDescriptorSet, MAX_FRAMES_IN_FLIGHT> CE::Descriptor::sets;
-std::array<VkDescriptorPoolSize, NUM_DESCRIPTORS> CE::Descriptor::poolSizes;
+std::vector<VkDescriptorPoolSize> CE::Descriptor::poolSizes;
 std::array<VkDescriptorSetLayoutBinding, NUM_DESCRIPTORS>
     CE::Descriptor::setLayoutBindings;
 std::array<

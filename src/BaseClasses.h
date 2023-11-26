@@ -260,7 +260,7 @@ class Descriptor {
   static std::array<VkDescriptorSet, MAX_FRAMES_IN_FLIGHT> sets;
 
   VkDescriptorPoolSize poolSize{};
-  static std::array<VkDescriptorPoolSize, NUM_DESCRIPTORS> poolSizes;
+  static std::vector<VkDescriptorPoolSize> poolSizes;
 
   VkDescriptorSetLayoutBinding setLayoutBinding{};
   static std::array<VkDescriptorSetLayoutBinding, NUM_DESCRIPTORS>
