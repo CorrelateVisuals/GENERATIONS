@@ -44,15 +44,28 @@ class Resources {
     UniformBuffer();
     void update(World& world, const VkExtent2D extent);
     void createDescriptorInfo() {
-      static size_t descriptorInfosIndex = currentDescriptorInfosCount;
-      currentDescriptorInfosCount++;
+      static size_t index = descriptorWriteIndex;
+      descriptorWriteIndex++;
 
       VkDescriptorBufferInfo bufferInfo{
-          .buffer = buffer.buffer,
-          .offset = 0,
-          .range = sizeof(World::UniformBufferObject)};
-      descriptorInfos[descriptorInfosIndex].first = bufferInfo;
-    };
+          .buffer = buffer.buffer, .range = sizeof(World::UniformBufferObject)};
+      info = bufferInfo;
+
+      VkWriteDescriptorSet descriptorWrite{
+          .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+          .dstSet = nullptr,
+          .dstBinding = 0,
+          .dstArrayElement = 0,
+          .descriptorCount = 1,
+          .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+          .pBufferInfo = &std::get<VkDescriptorBufferInfo>(info)};
+
+      for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+        descriptorWrites[i][index] = descriptorWrite;
+      }
+
+      std::cout << "INDEX: " << index << std::endl;
+    }
 
    private:
     World::UniformBufferObject object;
@@ -69,16 +82,29 @@ class Resources {
                   const auto& object,
                   const size_t quantity);
     void createDescriptorInfo(const size_t quantity) {
-      static size_t descriptorInfosIndex = currentDescriptorInfosCount;
-      currentDescriptorInfosCount += 2;
+      static size_t index = descriptorWriteIndex;
+      descriptorWriteIndex += 2;
 
       VkDescriptorBufferInfo bufferInfo{
           .buffer = bufferIn.buffer,
           .offset = 0,
           .range = sizeof(World::Cell) * quantity};
-      descriptorInfos[descriptorInfosIndex].first = bufferInfo;
+      descriptorInfos[index].first = bufferInfo;
       bufferInfo.buffer = bufferOut.buffer;
-      descriptorInfos[descriptorInfosIndex + 1].first = bufferInfo;
+      descriptorInfos[index + 1].first = bufferInfo;
+
+      VkWriteDescriptorSet descriptorWrite{
+          .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+          .dstSet = nullptr,
+          .dstBinding = 0,
+          .dstArrayElement = 0,
+          .descriptorCount = 1,
+          .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+          .pBufferInfo = &std::get<VkDescriptorBufferInfo>(info)};
+
+      for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+        descriptorWrites[i][index] = descriptorWrite;
+      }
     };
 
    private:
@@ -95,13 +121,13 @@ class Resources {
                  VkCommandPool& commandPool,
                  const VkQueue& queue);
     void createDescriptorInfo() {
-      static size_t descriptorInfosIndex = currentDescriptorInfosCount;
-      currentDescriptorInfosCount++;
+      static size_t index = descriptorWriteIndex;
+      descriptorWriteIndex++;
       VkDescriptorImageInfo imageInfo{
           .sampler = textureImage.sampler,
           .imageView = textureImage.view,
           .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL};
-      descriptorInfos[descriptorInfosIndex].first = imageInfo;
+      descriptorInfos[index].first = imageInfo;
     }
 
    private:
@@ -115,14 +141,14 @@ class Resources {
     StorageImage(std::array<CE::Image, MAX_FRAMES_IN_FLIGHT>& images);
     void createDescriptorInfo(
         std::array<CE::Image, MAX_FRAMES_IN_FLIGHT>& images) {
-      static size_t descriptorInfosIndex = currentDescriptorInfosCount;
-      currentDescriptorInfosCount += 2;
+      static size_t index = descriptorWriteIndex;
+      descriptorWriteIndex += 2;
 
       for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         VkDescriptorImageInfo imageInfo{.sampler = VK_NULL_HANDLE,
                                         .imageView = images[i].view,
                                         .imageLayout = VK_IMAGE_LAYOUT_GENERAL};
-        descriptorInfos[descriptorInfosIndex + i].first = imageInfo;
+        descriptorInfos[index + i].first = imageInfo;
       }
     }
   } storageImage;

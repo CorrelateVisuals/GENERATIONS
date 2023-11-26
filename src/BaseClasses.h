@@ -262,13 +262,17 @@ class Descriptor {
   VkDescriptorSetLayoutBinding setLayoutBinding{};
   static std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings;
 
-  std::variant<VkDescriptorBufferInfo, VkDescriptorImageInfo> info{};
   static std::array<
       std::pair<std::variant<VkDescriptorBufferInfo, VkDescriptorImageInfo>,
                 VkWriteDescriptorSet>,
       MAX_DESCRIPTOR_COUNT>
       descriptorInfos;
-  static size_t currentDescriptorInfosCount;
+
+  static size_t descriptorWriteIndex;
+  static std::array<std::array<VkWriteDescriptorSet, 5>, MAX_FRAMES_IN_FLIGHT>
+      descriptorWrites;
+  std::variant<VkDescriptorBufferInfo, VkDescriptorImageInfo> info{};
+  VkWriteDescriptorSet write{};
 
   Descriptor() = default;
   virtual ~Descriptor();

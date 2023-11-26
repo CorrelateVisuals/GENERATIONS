@@ -21,7 +21,10 @@ std::array<
               VkWriteDescriptorSet>,
     MAX_DESCRIPTOR_COUNT>
     CE::Descriptor::descriptorInfos;
-size_t CE::Descriptor::currentDescriptorInfosCount{0};
+size_t CE::Descriptor::descriptorWriteIndex{0};
+
+std::array<std::array<VkWriteDescriptorSet, 5>, MAX_FRAMES_IN_FLIGHT>
+    CE::Descriptor::descriptorWrites;
 
 void CE::Device::createLogicalDevice(const InitializeVulkan& initVulkan,
                                      Queues& queues) {
@@ -549,15 +552,10 @@ void CE::Descriptor::createSets(
   Log::text("{ |=| }", "Descriptor Sets");
 
   for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-    std::vector<VkWriteDescriptorSet> descriptorWrites{
-        {.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-         .dstSet = CE::Descriptor::sets[i],
-         .dstBinding = 0,
-         .dstArrayElement = 0,
-         .descriptorCount = 1,
-         .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-         .pBufferInfo = &std::get<VkDescriptorBufferInfo>(
-             CE::Descriptor::descriptorInfos[0].first)},
+    descriptorWrites[i][0].dstSet = CE::Descriptor::sets[i];
+
+    std::vector<VkWriteDescriptorSet> writes{
+        {descriptorWrites[i][0]},
 
         {.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
          .dstSet = CE::Descriptor::sets[i],
@@ -598,8 +596,8 @@ void CE::Descriptor::createSets(
     };
 
     vkUpdateDescriptorSets(CE::Device::baseDevice->logical,
-                           static_cast<uint32_t>(descriptorWrites.size()),
-                           descriptorWrites.data(), 0, nullptr);
+                           static_cast<uint32_t>(writes.size()), writes.data(),
+                           0, nullptr);
   }
 }
 
