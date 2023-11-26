@@ -15,7 +15,8 @@ VkDescriptorPool CE::Descriptor::pool;
 VkDescriptorSetLayout CE::Descriptor::setLayout;
 std::array<VkDescriptorSet, MAX_FRAMES_IN_FLIGHT> CE::Descriptor::sets;
 std::vector<VkDescriptorPoolSize> CE::Descriptor::poolSizes;
-std::vector<VkDescriptorSetLayoutBinding> CE::Descriptor::setLayoutBindings;
+std::array<VkDescriptorSetLayoutBinding, NUM_DESCRIPTORS>
+    CE::Descriptor::setLayoutBindings;
 std::array<
     std::pair<std::variant<VkDescriptorBufferInfo, VkDescriptorImageInfo>,
               VkWriteDescriptorSet>,
@@ -527,7 +528,8 @@ CE::Descriptor::~Descriptor() {
 }
 
 void CE::Descriptor::createSetLayout(
-    const std::vector<VkDescriptorSetLayoutBinding>& layoutBindings) {
+    const std::array<VkDescriptorSetLayoutBinding, NUM_DESCRIPTORS>&
+        layoutBindings) {
   Log::text("{ |=| }", "Descriptor Set Layout:", layoutBindings.size(),
             "bindings");
   for (const VkDescriptorSetLayoutBinding& item : layoutBindings) {

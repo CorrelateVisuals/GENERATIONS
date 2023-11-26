@@ -44,9 +44,6 @@ class Resources {
     UniformBuffer();
     void update(World& world, const VkExtent2D extent);
     void createDescriptorWrite() {
-      static size_t index = descriptorWriteIndex;
-      descriptorWriteIndex++;
-
       VkDescriptorBufferInfo bufferInfo{
           .buffer = buffer.buffer, .range = sizeof(World::UniformBufferObject)};
       info = bufferInfo;
@@ -78,9 +75,6 @@ class Resources {
                   const auto& object,
                   const size_t quantity);
     void createDescriptorInfo(const size_t quantity) {
-      static size_t index = descriptorWriteIndex;
-      descriptorWriteIndex += 2;
-
       VkDescriptorBufferInfo bufferInfo{
           .buffer = bufferIn.buffer,
           .offset = 0,
@@ -117,8 +111,6 @@ class Resources {
                  VkCommandPool& commandPool,
                  const VkQueue& queue);
     void createDescriptorInfo() {
-      static size_t index = descriptorWriteIndex;
-      descriptorWriteIndex++;
       VkDescriptorImageInfo imageInfo{
           .sampler = textureImage.sampler,
           .imageView = textureImage.view,
@@ -137,9 +129,6 @@ class Resources {
     StorageImage(std::array<CE::Image, MAX_FRAMES_IN_FLIGHT>& images);
     void createDescriptorInfo(
         std::array<CE::Image, MAX_FRAMES_IN_FLIGHT>& images) {
-      static size_t index = descriptorWriteIndex;
-      descriptorWriteIndex += 2;
-
       for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         VkDescriptorImageInfo imageInfo{.sampler = VK_NULL_HANDLE,
                                         .imageView = images[i].view,

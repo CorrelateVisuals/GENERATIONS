@@ -16,6 +16,7 @@
 
 constexpr uint32_t MAX_FRAMES_IN_FLIGHT = 2;
 constexpr size_t MAX_DESCRIPTOR_COUNT = 100;
+constexpr size_t NUM_DESCRIPTORS = 5;
 
 class VulkanMechanics;
 class Resources;
@@ -252,6 +253,8 @@ class Swapchain {
 // Resources
 class Descriptor {
  public:
+  size_t index{0};
+
   static VkDescriptorPool pool;
   static VkDescriptorSetLayout setLayout;
   static std::array<VkDescriptorSet, MAX_FRAMES_IN_FLIGHT> sets;
@@ -260,7 +263,8 @@ class Descriptor {
   static std::vector<VkDescriptorPoolSize> poolSizes;
 
   VkDescriptorSetLayoutBinding setLayoutBinding{};
-  static std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings;
+  static std::array<VkDescriptorSetLayoutBinding, NUM_DESCRIPTORS>
+      setLayoutBindings;
 
   static std::array<
       std::pair<std::variant<VkDescriptorBufferInfo, VkDescriptorImageInfo>,
@@ -269,7 +273,8 @@ class Descriptor {
       descriptorInfos;
 
   static size_t descriptorWriteIndex;
-  static std::array<std::array<VkWriteDescriptorSet, 5>, MAX_FRAMES_IN_FLIGHT>
+  static std::array<std::array<VkWriteDescriptorSet, NUM_DESCRIPTORS>,
+                    MAX_FRAMES_IN_FLIGHT>
       descriptorWrites;
   std::variant<VkDescriptorBufferInfo, VkDescriptorImageInfo> info{};
   VkWriteDescriptorSet write{};
@@ -278,7 +283,8 @@ class Descriptor {
   virtual ~Descriptor();
 
   static void createSetLayout(
-      const std::vector<VkDescriptorSetLayoutBinding>& layoutBindings);
+      const std::array<VkDescriptorSetLayoutBinding, NUM_DESCRIPTORS>&
+          layoutBindings);
 
   static void createPool();
   static void allocateSets();

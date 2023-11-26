@@ -50,13 +50,16 @@ Resources::MultisamplingImage::MultisamplingImage(const VkExtent2D extent,
 }
 
 Resources::UniformBuffer::UniformBuffer() {
+  index = descriptorWriteIndex;
+  descriptorWriteIndex++;
+
   VkDescriptorType type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
   setLayoutBinding.binding = 0;
   setLayoutBinding.descriptorType = type;
   setLayoutBinding.descriptorCount = 1;
   setLayoutBinding.stageFlags =
       VK_SHADER_STAGE_COMPUTE_BIT | VK_SHADER_STAGE_VERTEX_BIT;
-  setLayoutBindings.push_back(setLayoutBinding);
+  setLayoutBindings[index] = setLayoutBinding;
 
   poolSize.type = type;
   poolSize.descriptorCount = MAX_FRAMES_IN_FLIGHT;
@@ -98,13 +101,16 @@ Resources::ShaderStorage::ShaderStorage(VkCommandBuffer& commandBuffer,
                                         const VkQueue& queue,
                                         const auto& object,
                                         const size_t quantity) {
+  index = descriptorWriteIndex;
+  descriptorWriteIndex += 2;
+
   setLayoutBinding.binding = 1;
   setLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
   setLayoutBinding.descriptorCount = 1;
   setLayoutBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-  setLayoutBindings.push_back(setLayoutBinding);
+  setLayoutBindings[index] = setLayoutBinding;
   setLayoutBinding.binding = 2;
-  setLayoutBindings.push_back(setLayoutBinding);
+  setLayoutBindings[index + 1] = setLayoutBinding;
 
   poolSize.type = setLayoutBinding.descriptorType;
   poolSize.descriptorCount = MAX_FRAMES_IN_FLIGHT * 2;
@@ -158,11 +164,14 @@ void Resources::ShaderStorage::create(VkCommandBuffer& commandBuffer,
 Resources::ImageSampler::ImageSampler(VkCommandBuffer& commandBuffer,
                                       VkCommandPool& commandPool,
                                       const VkQueue& queue) {
+  index = descriptorWriteIndex;
+  descriptorWriteIndex++;
+
   setLayoutBinding.binding = 3;
   setLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
   setLayoutBinding.descriptorCount = 1;
   setLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-  setLayoutBindings.push_back(setLayoutBinding);
+  setLayoutBindings[index] = setLayoutBinding;
 
   poolSize.type = setLayoutBinding.descriptorType;
   poolSize.descriptorCount = MAX_FRAMES_IN_FLIGHT;
@@ -178,11 +187,14 @@ Resources::ImageSampler::ImageSampler(VkCommandBuffer& commandBuffer,
 
 Resources::StorageImage::StorageImage(
     std::array<CE::Image, MAX_FRAMES_IN_FLIGHT>& images) {
+  index = descriptorWriteIndex;
+  descriptorWriteIndex++;
+
   setLayoutBinding.binding = 4;
   setLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
   setLayoutBinding.descriptorCount = 1;
   setLayoutBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-  setLayoutBindings.push_back(setLayoutBinding);
+  setLayoutBindings[index] = setLayoutBinding;
 
   poolSize.type = setLayoutBinding.descriptorType;
   poolSize.descriptorCount = MAX_FRAMES_IN_FLIGHT;
