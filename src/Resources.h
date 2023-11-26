@@ -65,11 +65,11 @@ class Resources {
     void create();
   } uniform;
 
-  class ShaderStorage : public CE::Descriptor {
+  class StorageBuffer : public CE::Descriptor {
    public:
     CE::Buffer bufferIn;
     CE::Buffer bufferOut;
-    ShaderStorage(VkCommandBuffer& commandBuffer,
+    StorageBuffer(VkCommandBuffer& commandBuffer,
                   const VkCommandPool& commandPool,
                   const VkQueue& queue,
                   const auto& object,
@@ -85,16 +85,14 @@ class Resources {
 
         VkWriteDescriptorSet descriptorWrite{
             .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-            .dstBinding = static_cast<uint32_t>(i ? setLayoutBinding.binding + 1
-                                                  : setLayoutBinding.binding),
+            .dstBinding = static_cast<uint32_t>(i ? 2 : 1),
             .descriptorCount = setLayoutBinding.descriptorCount,
             .descriptorType = setLayoutBinding.descriptorType,
             .pBufferInfo =
                 &std::get<VkDescriptorBufferInfo>(info.currentFrame)};
 
         descriptorWrites[i][index] = descriptorWrite;
-        descriptorWrite.dstBinding = static_cast<uint32_t>(
-            i ? setLayoutBinding.binding : setLayoutBinding.binding + 1);
+        descriptorWrite.dstBinding = static_cast<uint32_t>(i ? 1 : 2);
         descriptorWrite.pBufferInfo =
             &std::get<VkDescriptorBufferInfo>(info.previousFrame);
         descriptorWrites[i][index + 1] = descriptorWrite;
@@ -176,6 +174,6 @@ class Resources {
 
  private:
   static std::vector<
-      std::variant<UniformBuffer, ShaderStorage, ImageSampler, StorageImage>>
+      std::variant<UniformBuffer, StorageBuffer, ImageSampler, StorageImage>>
       descriptors;
 };

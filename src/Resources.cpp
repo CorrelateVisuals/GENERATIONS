@@ -96,7 +96,7 @@ void Resources::UniformBuffer::update(World& world, const VkExtent2D extent) {
   std::memcpy(buffer.mapped, &object, sizeof(object));
 }
 
-Resources::ShaderStorage::ShaderStorage(VkCommandBuffer& commandBuffer,
+Resources::StorageBuffer::StorageBuffer(VkCommandBuffer& commandBuffer,
                                         const VkCommandPool& commandPool,
                                         const VkQueue& queue,
                                         const auto& object,
@@ -121,7 +121,7 @@ Resources::ShaderStorage::ShaderStorage(VkCommandBuffer& commandBuffer,
   createDescriptorWrite(quantity);
 }
 
-void Resources::ShaderStorage::create(VkCommandBuffer& commandBuffer,
+void Resources::StorageBuffer::create(VkCommandBuffer& commandBuffer,
                                       const VkCommandPool& commandPool,
                                       const VkQueue& queue,
                                       const auto& object,
