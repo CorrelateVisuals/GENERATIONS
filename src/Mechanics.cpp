@@ -33,6 +33,6 @@ void VulkanMechanics::Swapchain::recreate(const VkSurfaceKHR& surface,
   pipelines.render.createFramebuffers(*this, resources.msaaImage.view,
                                       resources.depthImage.view);
 
-  resources.storageImage.createDescriptorInfo(images);
+  resources.storageImage.createDescriptorWrite(images);
   CE::Descriptor::createSets(images);
 }

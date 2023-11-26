@@ -558,6 +558,7 @@ void CE::Descriptor::createSets(
     descriptorWrites[i][1].dstSet = CE::Descriptor::sets[i];
     descriptorWrites[i][2].dstSet = CE::Descriptor::sets[i];
     descriptorWrites[i][3].dstSet = CE::Descriptor::sets[i];
+    descriptorWrites[i][4].dstSet = CE::Descriptor::sets[i];
 
     std::vector<VkWriteDescriptorSet> writes{
         {descriptorWrites[i][0]},
@@ -583,24 +584,7 @@ void CE::Descriptor::createSets(
              CE::Descriptor::descriptorInfos[2].first)},
 
         {descriptorWrites[i][3]},
-        //{.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-        // .dstSet = CE::Descriptor::sets[i],
-        // .dstBinding = 3,
-        // .dstArrayElement = 0,
-        // .descriptorCount = 1,
-        // .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-        // .pImageInfo = &std::get<VkDescriptorImageInfo>(
-        //     CE::Descriptor::descriptorInfos[3].first)},
-
-        {.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-         .dstSet = CE::Descriptor::sets[i],
-         .dstBinding = 4,
-         .dstArrayElement = 0,
-         .descriptorCount = 1,
-         .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
-         .pImageInfo = &std::get<VkDescriptorImageInfo>(
-             CE::Descriptor::descriptorInfos[static_cast<uint32_t>(i ? 5 : 4)]
-                 .first)},
+        {descriptorWrites[i][4]},
     };
 
     vkUpdateDescriptorSets(CE::Device::baseDevice->logical,

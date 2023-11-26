@@ -118,7 +118,7 @@ Resources::ShaderStorage::ShaderStorage(VkCommandBuffer& commandBuffer,
 
   create(commandBuffer, commandPool, queue, object, quantity);
 
-  createDescriptorInfo(quantity);
+  createDescriptorWrite(quantity);
 }
 
 void Resources::ShaderStorage::create(VkCommandBuffer& commandBuffer,
@@ -182,7 +182,7 @@ Resources::ImageSampler::ImageSampler(VkCommandBuffer& commandBuffer,
   textureImage.createView(VK_IMAGE_ASPECT_COLOR_BIT);
   textureImage.createSampler();
 
-  createDescriptorInfo();
+  createDescriptorWrite();
 }
 
 Resources::StorageImage::StorageImage(
@@ -200,7 +200,7 @@ Resources::StorageImage::StorageImage(
   poolSize.descriptorCount = MAX_FRAMES_IN_FLIGHT;
   poolSizes.push_back(poolSize);
 
-  createDescriptorInfo(images);
+  createDescriptorWrite(images);
 }
 
 void Resources::Commands::recordComputeCommandBuffer(

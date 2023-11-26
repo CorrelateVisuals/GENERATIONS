@@ -74,7 +74,7 @@ class Resources {
                   const VkQueue& queue,
                   const auto& object,
                   const size_t quantity);
-    void createDescriptorInfo(const size_t quantity) {
+    void createDescriptorWrite(const size_t quantity) {
       VkDescriptorBufferInfo bufferInfo{
           .buffer = bufferIn.buffer,
           .offset = 0,
@@ -115,7 +115,7 @@ class Resources {
     ImageSampler(VkCommandBuffer& commandBuffer,
                  VkCommandPool& commandPool,
                  const VkQueue& queue);
-    void createDescriptorInfo() {
+    void createDescriptorWrite() {
       VkDescriptorImageInfo imageInfo{
           .sampler = textureImage.sampler,
           .imageView = textureImage.view,
@@ -143,13 +143,31 @@ class Resources {
   class StorageImage : public CE::Descriptor {
    public:
     StorageImage(std::array<CE::Image, MAX_FRAMES_IN_FLIGHT>& images);
-    void createDescriptorInfo(
+    void createDescriptorWrite(
         std::array<CE::Image, MAX_FRAMES_IN_FLIGHT>& images) {
       for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         VkDescriptorImageInfo imageInfo{.sampler = VK_NULL_HANDLE,
                                         .imageView = images[i].view,
                                         .imageLayout = VK_IMAGE_LAYOUT_GENERAL};
-        descriptorInfos[index + i].first = imageInfo;
+
+        if (!i) {
+          info.currentFrame = imageInfo;
+        } else {
+          info.previousFrame = imageInfo;
+        }
+
+        VkWriteDescriptorSet descriptorWrite{
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            .dstBinding = setLayoutBinding.binding,
+            .descriptorCount = setLayoutBinding.descriptorCount,
+            .descriptorType = setLayoutBinding.descriptorType,
+            .pImageInfo = &std::get<VkDescriptorImageInfo>(info.currentFrame)};
+
+        if (i) {
+          descriptorWrite.pImageInfo =
+              &std::get<VkDescriptorImageInfo>(info.previousFrame);
+        }
+        descriptorWrites[i][index] = descriptorWrite;
       }
     }
   } storageImage;
