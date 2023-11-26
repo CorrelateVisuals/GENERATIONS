@@ -555,9 +555,13 @@ void CE::Descriptor::createSets(
 
   for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
     descriptorWrites[i][0].dstSet = CE::Descriptor::sets[i];
+    descriptorWrites[i][1].dstSet = CE::Descriptor::sets[i];
+    descriptorWrites[i][2].dstSet = CE::Descriptor::sets[i];
 
     std::vector<VkWriteDescriptorSet> writes{
         {descriptorWrites[i][0]},
+        //{descriptorWrites[i][1]},
+        //{descriptorWrites[i][2]},
 
         {.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
          .dstSet = CE::Descriptor::sets[i],

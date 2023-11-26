@@ -46,14 +46,14 @@ class Resources {
     void createDescriptorWrite() {
       VkDescriptorBufferInfo bufferInfo{
           .buffer = buffer.buffer, .range = sizeof(World::UniformBufferObject)};
-      info = bufferInfo;
+      info.currentFrame = bufferInfo;
 
       VkWriteDescriptorSet descriptorWrite{
           .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
           .dstBinding = setLayoutBinding.binding,
           .descriptorCount = setLayoutBinding.descriptorCount,
           .descriptorType = setLayoutBinding.descriptorType,
-          .pBufferInfo = &std::get<VkDescriptorBufferInfo>(info)};
+          .pBufferInfo = &std::get<VkDescriptorBufferInfo>(info.currentFrame)};
 
       for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         descriptorWrites[i][index] = descriptorWrite;
@@ -83,18 +83,23 @@ class Resources {
       bufferInfo.buffer = bufferOut.buffer;
       descriptorInfos[index + 1].first = bufferInfo;
 
-      VkWriteDescriptorSet descriptorWrite{
-          .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-          .dstSet = nullptr,
-          .dstBinding = 0,
-          .dstArrayElement = 0,
-          .descriptorCount = 1,
-          .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-          .pBufferInfo = &std::get<VkDescriptorBufferInfo>(info)};
+      /*for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+        VkWriteDescriptorSet descriptorWrite{
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            .dstBinding = static_cast<uint32_t>(i ? setLayoutBinding.binding + 1
+                                                  : setLayoutBinding.binding),
+            .descriptorCount = setLayoutBinding.descriptorCount,
+            .descriptorType = setLayoutBinding.descriptorType,
+            .pBufferInfo =
+                &std::get<VkDescriptorBufferInfo>(info.currentFrame)};
 
-      for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         descriptorWrites[i][index] = descriptorWrite;
-      }
+        descriptorWrite.dstBinding = static_cast<uint32_t>(
+            i ? setLayoutBinding.binding : setLayoutBinding.binding + 1);
+        descriptorWrite.pBufferInfo =
+            &std::get<VkDescriptorBufferInfo>(info.previousFrame);
+        descriptorWrites[i][index + 1] = descriptorWrite;
+      }*/
     };
 
    private:

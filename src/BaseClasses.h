@@ -276,7 +276,13 @@ class Descriptor {
   static std::array<std::array<VkWriteDescriptorSet, NUM_DESCRIPTORS>,
                     MAX_FRAMES_IN_FLIGHT>
       descriptorWrites;
-  std::variant<VkDescriptorBufferInfo, VkDescriptorImageInfo> info{};
+
+  struct DescriptorInformation {
+    std::variant<VkDescriptorBufferInfo, VkDescriptorImageInfo> previousFrame{};
+    std::variant<VkDescriptorBufferInfo, VkDescriptorImageInfo> currentFrame{};
+  } info;
+  //  std::variant<VkDescriptorBufferInfo, VkDescriptorImageInfo> info{};
+
   VkWriteDescriptorSet write{};
 
   Descriptor() = default;
