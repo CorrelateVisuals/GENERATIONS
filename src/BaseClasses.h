@@ -294,7 +294,10 @@ class Descriptor {
 
   static void createPool();
   static void allocateSets();
-  static void createSets(std::array<CE::Image, MAX_FRAMES_IN_FLIGHT>& images);
+  static void createSets(
+      const std::array<VkDescriptorSet, MAX_FRAMES_IN_FLIGHT>& sets,
+      std::array<std::array<VkWriteDescriptorSet, NUM_DESCRIPTORS>,
+                 MAX_FRAMES_IN_FLIGHT>& descriptorWrites);
 };
 
 struct PushConstants {

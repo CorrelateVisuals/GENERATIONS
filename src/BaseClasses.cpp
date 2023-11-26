@@ -550,25 +550,19 @@ void CE::Descriptor::createSetLayout(
 }
 
 void CE::Descriptor::createSets(
-    std::array<CE::Image, MAX_FRAMES_IN_FLIGHT>& images) {
+    const std::array<VkDescriptorSet, MAX_FRAMES_IN_FLIGHT>& sets,
+    std::array<std::array<VkWriteDescriptorSet, NUM_DESCRIPTORS>,
+               MAX_FRAMES_IN_FLIGHT>& descriptorWrites) {
   Log::text("{ |=| }", "Descriptor Sets");
 
   for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-    descriptorWrites[i][0].dstSet = CE::Descriptor::sets[i];
-    descriptorWrites[i][1].dstSet = CE::Descriptor::sets[i];
-    descriptorWrites[i][2].dstSet = CE::Descriptor::sets[i];
-    descriptorWrites[i][3].dstSet = CE::Descriptor::sets[i];
-    descriptorWrites[i][4].dstSet = CE::Descriptor::sets[i];
-
-    std::vector<VkWriteDescriptorSet> writes{
-        {descriptorWrites[i][0]}, {descriptorWrites[i][1]},
-        {descriptorWrites[i][2]}, {descriptorWrites[i][3]},
-        {descriptorWrites[i][4]},
-    };
+    for (auto& descriptor : descriptorWrites[i]) {
+      descriptor.dstSet = CE::Descriptor::sets[i];
+    }
 
     vkUpdateDescriptorSets(CE::Device::baseDevice->logical,
-                           static_cast<uint32_t>(writes.size()), writes.data(),
-                           0, nullptr);
+                           static_cast<uint32_t>(descriptorWrites[i].size()),
+                           descriptorWrites[i].data(), 0, nullptr);
   }
 }
 
