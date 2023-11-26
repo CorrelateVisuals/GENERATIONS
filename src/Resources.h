@@ -40,29 +40,14 @@ class Resources {
 
   class UniformBuffer : public CE::Descriptor {
    public:
-    CE::Buffer buffer;
     UniformBuffer();
     void update(World& world, const VkExtent2D extent);
-    void createDescriptorWrite() {
-      VkDescriptorBufferInfo bufferInfo{
-          .buffer = buffer.buffer, .range = sizeof(World::UniformBufferObject)};
-      info.currentFrame = bufferInfo;
-
-      VkWriteDescriptorSet descriptorWrite{
-          .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-          .dstBinding = setLayoutBinding.binding,
-          .descriptorCount = setLayoutBinding.descriptorCount,
-          .descriptorType = setLayoutBinding.descriptorType,
-          .pBufferInfo = &std::get<VkDescriptorBufferInfo>(info.currentFrame)};
-
-      for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        descriptorWrites[i][index] = descriptorWrite;
-      }
-    };
 
    private:
+    CE::Buffer buffer;
     World::UniformBufferObject object;
-    void create();
+    void createBuffer();
+    void createDescriptorWrite();
   } uniform;
 
   class StorageBuffer : public CE::Descriptor {
@@ -74,30 +59,6 @@ class Resources {
                   const VkQueue& queue,
                   const auto& object,
                   const size_t quantity);
-    void createDescriptorWrite(const size_t quantity) {
-      for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        VkDescriptorBufferInfo bufferInfo{
-            .buffer = !i ? bufferIn.buffer : bufferOut.buffer,
-            .offset = 0,
-            .range = sizeof(World::Cell) * quantity};
-
-        !i ? info.currentFrame = bufferInfo : info.previousFrame = bufferInfo;
-
-        VkWriteDescriptorSet descriptorWrite{
-            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-            .dstBinding = static_cast<uint32_t>(i ? 2 : 1),
-            .descriptorCount = setLayoutBinding.descriptorCount,
-            .descriptorType = setLayoutBinding.descriptorType,
-            .pBufferInfo =
-                &std::get<VkDescriptorBufferInfo>(info.currentFrame)};
-
-        descriptorWrites[i][index] = descriptorWrite;
-        descriptorWrite.dstBinding = static_cast<uint32_t>(i ? 1 : 2);
-        descriptorWrite.pBufferInfo =
-            &std::get<VkDescriptorBufferInfo>(info.previousFrame);
-        descriptorWrites[i][index + 1] = descriptorWrite;
-      }
-    };
 
    private:
     void create(VkCommandBuffer& commandBuffer,
@@ -105,6 +66,7 @@ class Resources {
                 const VkQueue& queue,
                 const auto& object,
                 const size_t quantity);
+    void createDescriptorWrite(const size_t quantity);
   } shaderStorage;
 
   class ImageSampler : public CE::Descriptor {
@@ -112,26 +74,9 @@ class Resources {
     ImageSampler(VkCommandBuffer& commandBuffer,
                  VkCommandPool& commandPool,
                  const VkQueue& queue);
-    void createDescriptorWrite() {
-      VkDescriptorImageInfo imageInfo{
-          .sampler = textureImage.sampler,
-          .imageView = textureImage.view,
-          .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL};
-      info.currentFrame = imageInfo;
-
-      VkWriteDescriptorSet descriptorWrite{
-          .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-          .dstBinding = setLayoutBinding.binding,
-          .descriptorCount = setLayoutBinding.descriptorCount,
-          .descriptorType = setLayoutBinding.descriptorType,
-          .pImageInfo = &std::get<VkDescriptorImageInfo>(info.currentFrame)};
-
-      for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        descriptorWrites[i][index] = descriptorWrite;
-      }
-    }
 
    private:
+    void createDescriptorWrite();
     struct TextureImage : public CE::Image {
       TextureImage() { path = Lib::path("assets/Avatar.PNG"); }
     } textureImage;
@@ -141,25 +86,7 @@ class Resources {
    public:
     StorageImage(std::array<CE::Image, MAX_FRAMES_IN_FLIGHT>& images);
     void createDescriptorWrite(
-        std::array<CE::Image, MAX_FRAMES_IN_FLIGHT>& images) {
-      for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        VkDescriptorImageInfo imageInfo{.sampler = VK_NULL_HANDLE,
-                                        .imageView = images[i].view,
-                                        .imageLayout = VK_IMAGE_LAYOUT_GENERAL};
-
-        !i ? info.currentFrame = imageInfo : info.previousFrame = imageInfo;
-
-        VkWriteDescriptorSet descriptorWrite{
-            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-            .dstBinding = setLayoutBinding.binding,
-            .descriptorCount = setLayoutBinding.descriptorCount,
-            .descriptorType = setLayoutBinding.descriptorType,
-            .pImageInfo = &std::get<VkDescriptorImageInfo>(
-                !i ? info.currentFrame : info.previousFrame)};
-
-        descriptorWrites[i][index] = descriptorWrite;
-      }
-    }
+        std::array<CE::Image, MAX_FRAMES_IN_FLIGHT>& images);
   } storageImage;
 
   struct PushConstants : public CE::PushConstants {

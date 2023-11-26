@@ -66,12 +66,12 @@ Resources::UniformBuffer::UniformBuffer() {
   poolSize.descriptorCount = MAX_FRAMES_IN_FLIGHT;
   poolSizes.push_back(poolSize);
 
-  create();
+  createBuffer();
 
   createDescriptorWrite();
 }
 
-void Resources::UniformBuffer::create() {
+void Resources::UniformBuffer::createBuffer() {
   Log::text("{ 101 }", MAX_FRAMES_IN_FLIGHT, "Uniform Buffers");
   VkDeviceSize bufferSize = sizeof(World::UniformBufferObject);
 
@@ -83,6 +83,23 @@ void Resources::UniformBuffer::create() {
   vkMapMemory(CE::Device::baseDevice->logical, buffer.memory, 0, bufferSize, 0,
               &buffer.mapped);
 }
+
+void Resources::UniformBuffer::createDescriptorWrite() {
+  VkDescriptorBufferInfo bufferInfo{
+      .buffer = buffer.buffer, .range = sizeof(World::UniformBufferObject)};
+  info.currentFrame = bufferInfo;
+
+  VkWriteDescriptorSet descriptorWrite{
+      .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+      .dstBinding = setLayoutBinding.binding,
+      .descriptorCount = setLayoutBinding.descriptorCount,
+      .descriptorType = setLayoutBinding.descriptorType,
+      .pBufferInfo = &std::get<VkDescriptorBufferInfo>(info.currentFrame)};
+
+  for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+    descriptorWrites[i][index] = descriptorWrite;
+  }
+};
 
 void Resources::UniformBuffer::update(World& world, const VkExtent2D extent) {
   object.light = world.light.position;
@@ -162,6 +179,30 @@ void Resources::StorageBuffer::create(VkCommandBuffer& commandBuffer,
                    commandBuffer, commandPool, queue);
 }
 
+void Resources::StorageBuffer::createDescriptorWrite(const size_t quantity) {
+  for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+    VkDescriptorBufferInfo bufferInfo{
+        .buffer = !i ? bufferIn.buffer : bufferOut.buffer,
+        .offset = 0,
+        .range = sizeof(World::Cell) * quantity};
+
+    !i ? info.currentFrame = bufferInfo : info.previousFrame = bufferInfo;
+
+    VkWriteDescriptorSet descriptorWrite{
+        .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+        .dstBinding = static_cast<uint32_t>(i ? 2 : 1),
+        .descriptorCount = setLayoutBinding.descriptorCount,
+        .descriptorType = setLayoutBinding.descriptorType,
+        .pBufferInfo = &std::get<VkDescriptorBufferInfo>(info.currentFrame)};
+
+    descriptorWrites[i][index] = descriptorWrite;
+    descriptorWrite.dstBinding = static_cast<uint32_t>(i ? 1 : 2);
+    descriptorWrite.pBufferInfo =
+        &std::get<VkDescriptorBufferInfo>(info.previousFrame);
+    descriptorWrites[i][index + 1] = descriptorWrite;
+  }
+};
+
 Resources::ImageSampler::ImageSampler(VkCommandBuffer& commandBuffer,
                                       VkCommandPool& commandPool,
                                       const VkQueue& queue) {
@@ -186,6 +227,25 @@ Resources::ImageSampler::ImageSampler(VkCommandBuffer& commandBuffer,
   createDescriptorWrite();
 }
 
+void Resources::ImageSampler::createDescriptorWrite() {
+  VkDescriptorImageInfo imageInfo{
+      .sampler = textureImage.sampler,
+      .imageView = textureImage.view,
+      .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL};
+  info.currentFrame = imageInfo;
+
+  VkWriteDescriptorSet descriptorWrite{
+      .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+      .dstBinding = setLayoutBinding.binding,
+      .descriptorCount = setLayoutBinding.descriptorCount,
+      .descriptorType = setLayoutBinding.descriptorType,
+      .pImageInfo = &std::get<VkDescriptorImageInfo>(info.currentFrame)};
+
+  for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+    descriptorWrites[i][index] = descriptorWrite;
+  }
+}
+
 Resources::StorageImage::StorageImage(
     std::array<CE::Image, MAX_FRAMES_IN_FLIGHT>& images) {
   index = descriptorWriteIndex;
@@ -202,6 +262,27 @@ Resources::StorageImage::StorageImage(
   poolSizes.push_back(poolSize);
 
   createDescriptorWrite(images);
+}
+
+void Resources::StorageImage::createDescriptorWrite(
+    std::array<CE::Image, MAX_FRAMES_IN_FLIGHT>& images) {
+    for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+        VkDescriptorImageInfo imageInfo{ .sampler = VK_NULL_HANDLE,
+                                        .imageView = images[i].view,
+                                        .imageLayout = VK_IMAGE_LAYOUT_GENERAL };
+
+        !i ? info.currentFrame = imageInfo : info.previousFrame = imageInfo;
+
+        VkWriteDescriptorSet descriptorWrite{
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            .dstBinding = setLayoutBinding.binding,
+            .descriptorCount = setLayoutBinding.descriptorCount,
+            .descriptorType = setLayoutBinding.descriptorType,
+            .pImageInfo = &std::get<VkDescriptorImageInfo>(
+                !i ? info.currentFrame : info.previousFrame) };
+
+        descriptorWrites[i][index] = descriptorWrite;
+    }
 }
 
 void Resources::Commands::recordComputeCommandBuffer(

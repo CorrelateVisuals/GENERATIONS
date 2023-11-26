@@ -15,7 +15,6 @@
 #include <vector>
 
 constexpr uint32_t MAX_FRAMES_IN_FLIGHT = 2;
-constexpr size_t MAX_DESCRIPTOR_COUNT = 100;
 constexpr size_t NUM_DESCRIPTORS = 5;
 
 class VulkanMechanics;
@@ -266,24 +265,14 @@ class Descriptor {
   static std::array<VkDescriptorSetLayoutBinding, NUM_DESCRIPTORS>
       setLayoutBindings;
 
-  static std::array<
-      std::pair<std::variant<VkDescriptorBufferInfo, VkDescriptorImageInfo>,
-                VkWriteDescriptorSet>,
-      MAX_DESCRIPTOR_COUNT>
-      descriptorInfos;
-
-  static size_t descriptorWriteIndex;
-  static std::array<std::array<VkWriteDescriptorSet, NUM_DESCRIPTORS>,
-                    MAX_FRAMES_IN_FLIGHT>
-      descriptorWrites;
-
   struct DescriptorInformation {
     std::variant<VkDescriptorBufferInfo, VkDescriptorImageInfo> previousFrame{};
     std::variant<VkDescriptorBufferInfo, VkDescriptorImageInfo> currentFrame{};
   } info;
-  //  std::variant<VkDescriptorBufferInfo, VkDescriptorImageInfo> info{};
-
-  VkWriteDescriptorSet write{};
+  static size_t descriptorWriteIndex;
+  static std::array<std::array<VkWriteDescriptorSet, NUM_DESCRIPTORS>,
+                    MAX_FRAMES_IN_FLIGHT>
+      descriptorWrites;
 
   Descriptor() = default;
   virtual ~Descriptor();

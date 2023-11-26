@@ -17,14 +17,10 @@ std::array<VkDescriptorSet, MAX_FRAMES_IN_FLIGHT> CE::Descriptor::sets;
 std::vector<VkDescriptorPoolSize> CE::Descriptor::poolSizes;
 std::array<VkDescriptorSetLayoutBinding, NUM_DESCRIPTORS>
     CE::Descriptor::setLayoutBindings;
-std::array<
-    std::pair<std::variant<VkDescriptorBufferInfo, VkDescriptorImageInfo>,
-              VkWriteDescriptorSet>,
-    MAX_DESCRIPTOR_COUNT>
-    CE::Descriptor::descriptorInfos;
-size_t CE::Descriptor::descriptorWriteIndex{0};
 
-std::array<std::array<VkWriteDescriptorSet, 5>, MAX_FRAMES_IN_FLIGHT>
+size_t CE::Descriptor::descriptorWriteIndex{0};
+std::array<std::array<VkWriteDescriptorSet, NUM_DESCRIPTORS>,
+           MAX_FRAMES_IN_FLIGHT>
     CE::Descriptor::descriptorWrites;
 
 void CE::Device::createLogicalDevice(const InitializeVulkan& initVulkan,
@@ -549,21 +545,19 @@ void CE::Descriptor::createSetLayout(
                     &CE::Descriptor::setLayout);
 }
 
-void CE::Descriptor::createSets(
-    const std::array<VkDescriptorSet, MAX_FRAMES_IN_FLIGHT>& sets,
-    std::array<std::array<VkWriteDescriptorSet, NUM_DESCRIPTORS>,
-               MAX_FRAMES_IN_FLIGHT>& descriptorWrites) {
-  Log::text("{ |=| }", "Descriptor Sets");
-
-  for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-    for (auto& descriptor : descriptorWrites[i]) {
-      descriptor.dstSet = CE::Descriptor::sets[i];
+void CE::Descriptor::createPool() {
+    Log::text("{ |=| }", "Descriptor Pool");
+    for (size_t i = 0; i < poolSizes.size(); i++) {
+        Log::text(Log::Style::charLeader,
+            Log::getDescriptorTypeString(poolSizes[i].type));
     }
-
-    vkUpdateDescriptorSets(CE::Device::baseDevice->logical,
-                           static_cast<uint32_t>(descriptorWrites[i].size()),
-                           descriptorWrites[i].data(), 0, nullptr);
-  }
+    VkDescriptorPoolCreateInfo poolInfo{
+        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
+        .maxSets = MAX_FRAMES_IN_FLIGHT,
+        .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
+        .pPoolSizes = poolSizes.data() };
+    CE::VULKAN_RESULT(vkCreateDescriptorPool, Device::baseDevice->logical,
+        &poolInfo, nullptr, &CE::Descriptor::pool);
 }
 
 void CE::Descriptor::allocateSets() {
@@ -577,19 +571,21 @@ void CE::Descriptor::allocateSets() {
                     &allocateInfo, sets.data());
 }
 
-void CE::Descriptor::createPool() {
-  Log::text("{ |=| }", "Descriptor Pool");
-  for (size_t i = 0; i < poolSizes.size(); i++) {
-    Log::text(Log::Style::charLeader,
-              Log::getDescriptorTypeString(poolSizes[i].type));
-  }
-  VkDescriptorPoolCreateInfo poolInfo{
-      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-      .maxSets = MAX_FRAMES_IN_FLIGHT,
-      .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
-      .pPoolSizes = poolSizes.data()};
-  CE::VULKAN_RESULT(vkCreateDescriptorPool, Device::baseDevice->logical,
-                    &poolInfo, nullptr, &CE::Descriptor::pool);
+void CE::Descriptor::createSets(
+    const std::array<VkDescriptorSet, MAX_FRAMES_IN_FLIGHT>& sets,
+    std::array<std::array<VkWriteDescriptorSet, NUM_DESCRIPTORS>,
+    MAX_FRAMES_IN_FLIGHT>& descriptorWrites) {
+    Log::text("{ |=| }", "Descriptor Sets");
+
+    for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+        for (auto& descriptor : descriptorWrites[i]) {
+            descriptor.dstSet = CE::Descriptor::sets[i];
+        }
+
+        vkUpdateDescriptorSets(CE::Device::baseDevice->logical,
+            static_cast<uint32_t>(descriptorWrites[i].size()),
+            descriptorWrites[i].data(), 0, nullptr);
+    }
 }
 
 CE::CommandBuffers::~CommandBuffers() {
