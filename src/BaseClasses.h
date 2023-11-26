@@ -252,41 +252,37 @@ class Swapchain {
 // Resources
 class Descriptor {
  public:
-  size_t index{0};
-
-  static VkDescriptorPool pool;
-  static VkDescriptorSetLayout setLayout;
   static std::array<VkDescriptorSet, MAX_FRAMES_IN_FLIGHT> sets;
-
-  VkDescriptorPoolSize poolSize{};
-  static std::vector<VkDescriptorPoolSize> poolSizes;
-
-  VkDescriptorSetLayoutBinding setLayoutBinding{};
+  static VkDescriptorSetLayout setLayout;
   static std::array<VkDescriptorSetLayoutBinding, NUM_DESCRIPTORS>
       setLayoutBindings;
-
-  struct DescriptorInformation {
-    std::variant<VkDescriptorBufferInfo, VkDescriptorImageInfo> previousFrame{};
-    std::variant<VkDescriptorBufferInfo, VkDescriptorImageInfo> currentFrame{};
-  } info;
-  static size_t descriptorWriteIndex;
   static std::array<std::array<VkWriteDescriptorSet, NUM_DESCRIPTORS>,
                     MAX_FRAMES_IN_FLIGHT>
       descriptorWrites;
 
   Descriptor() = default;
   virtual ~Descriptor();
-
   static void createSetLayout(
       const std::array<VkDescriptorSetLayoutBinding, NUM_DESCRIPTORS>&
           layoutBindings);
-
   static void createPool();
   static void allocateSets();
   static void createSets(
       const std::array<VkDescriptorSet, MAX_FRAMES_IN_FLIGHT>& sets,
       std::array<std::array<VkWriteDescriptorSet, NUM_DESCRIPTORS>,
                  MAX_FRAMES_IN_FLIGHT>& descriptorWrites);
+
+ protected:
+  size_t index{0};
+  static size_t descriptorWriteIndex;
+  static VkDescriptorPool pool;
+  VkDescriptorPoolSize poolSize{};
+  static std::vector<VkDescriptorPoolSize> poolSizes;
+  VkDescriptorSetLayoutBinding setLayoutBinding{};
+  struct DescriptorInformation {
+    std::variant<VkDescriptorBufferInfo, VkDescriptorImageInfo> previousFrame{};
+    std::variant<VkDescriptorBufferInfo, VkDescriptorImageInfo> currentFrame{};
+  } info;
 };
 
 struct PushConstants {
@@ -298,7 +294,6 @@ struct PushConstants {
 
   PushConstants() = default;
   virtual ~PushConstants() = default;
-
   void setData(const uint64_t& data);
 };
 
