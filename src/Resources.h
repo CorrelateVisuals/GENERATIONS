@@ -83,7 +83,11 @@ class Resources {
       bufferInfo.buffer = bufferOut.buffer;
       descriptorInfos[index + 1].first = bufferInfo;
 
-      /*for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+      /*info.currentFrame = bufferInfo;
+      bufferInfo.buffer = bufferOut.buffer;
+      info.previousFrame = bufferInfo;
+
+      for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         VkWriteDescriptorSet descriptorWrite{
             .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
             .dstBinding = static_cast<uint32_t>(i ? setLayoutBinding.binding + 1
@@ -150,23 +154,16 @@ class Resources {
                                         .imageView = images[i].view,
                                         .imageLayout = VK_IMAGE_LAYOUT_GENERAL};
 
-        if (!i) {
-          info.currentFrame = imageInfo;
-        } else {
-          info.previousFrame = imageInfo;
-        }
+        !i ? info.currentFrame = imageInfo : info.previousFrame = imageInfo;
 
         VkWriteDescriptorSet descriptorWrite{
             .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
             .dstBinding = setLayoutBinding.binding,
             .descriptorCount = setLayoutBinding.descriptorCount,
             .descriptorType = setLayoutBinding.descriptorType,
-            .pImageInfo = &std::get<VkDescriptorImageInfo>(info.currentFrame)};
+            .pImageInfo = &std::get<VkDescriptorImageInfo>(
+                !i ? info.currentFrame : info.previousFrame)};
 
-        if (i) {
-          descriptorWrite.pImageInfo =
-              &std::get<VkDescriptorImageInfo>(info.previousFrame);
-        }
         descriptorWrites[i][index] = descriptorWrite;
       }
     }
