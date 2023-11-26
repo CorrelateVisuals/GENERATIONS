@@ -120,7 +120,18 @@ class Resources {
           .sampler = textureImage.sampler,
           .imageView = textureImage.view,
           .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL};
-      descriptorInfos[index].first = imageInfo;
+      info.currentFrame = imageInfo;
+
+      VkWriteDescriptorSet descriptorWrite{
+          .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+          .dstBinding = setLayoutBinding.binding,
+          .descriptorCount = setLayoutBinding.descriptorCount,
+          .descriptorType = setLayoutBinding.descriptorType,
+          .pImageInfo = &std::get<VkDescriptorImageInfo>(info.currentFrame)};
+
+      for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+        descriptorWrites[i][index] = descriptorWrite;
+      }
     }
 
    private:

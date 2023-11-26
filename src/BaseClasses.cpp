@@ -557,6 +557,7 @@ void CE::Descriptor::createSets(
     descriptorWrites[i][0].dstSet = CE::Descriptor::sets[i];
     descriptorWrites[i][1].dstSet = CE::Descriptor::sets[i];
     descriptorWrites[i][2].dstSet = CE::Descriptor::sets[i];
+    descriptorWrites[i][3].dstSet = CE::Descriptor::sets[i];
 
     std::vector<VkWriteDescriptorSet> writes{
         {descriptorWrites[i][0]},
@@ -581,14 +582,15 @@ void CE::Descriptor::createSets(
          .pBufferInfo = &std::get<VkDescriptorBufferInfo>(
              CE::Descriptor::descriptorInfos[2].first)},
 
-        {.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-         .dstSet = CE::Descriptor::sets[i],
-         .dstBinding = 3,
-         .dstArrayElement = 0,
-         .descriptorCount = 1,
-         .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-         .pImageInfo = &std::get<VkDescriptorImageInfo>(
-             CE::Descriptor::descriptorInfos[3].first)},
+        {descriptorWrites[i][3]},
+        //{.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+        // .dstSet = CE::Descriptor::sets[i],
+        // .dstBinding = 3,
+        // .dstArrayElement = 0,
+        // .descriptorCount = 1,
+        // .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+        // .pImageInfo = &std::get<VkDescriptorImageInfo>(
+        //     CE::Descriptor::descriptorInfos[3].first)},
 
         {.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
          .dstSet = CE::Descriptor::sets[i],
