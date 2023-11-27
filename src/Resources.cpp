@@ -51,8 +51,8 @@ Resources::MultisamplingImage::MultisamplingImage(const VkExtent2D extent,
 }
 
 Resources::UniformBuffer::UniformBuffer() {
-  index = descriptorWriteIndex;
-  descriptorWriteIndex++;
+  myIndex = writeIndex;
+  writeIndex++;
 
   VkDescriptorType type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
   setLayoutBinding.binding = 0;
@@ -60,7 +60,7 @@ Resources::UniformBuffer::UniformBuffer() {
   setLayoutBinding.descriptorCount = 1;
   setLayoutBinding.stageFlags =
       VK_SHADER_STAGE_COMPUTE_BIT | VK_SHADER_STAGE_VERTEX_BIT;
-  setLayoutBindings[index] = setLayoutBinding;
+  setLayoutBindings[myIndex] = setLayoutBinding;
 
   poolSize.type = type;
   poolSize.descriptorCount = MAX_FRAMES_IN_FLIGHT;
@@ -97,7 +97,7 @@ void Resources::UniformBuffer::createDescriptorWrite() {
       .pBufferInfo = &std::get<VkDescriptorBufferInfo>(info.currentFrame)};
 
   for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-    descriptorWrites[i][index] = descriptorWrite;
+    descriptorWrites[i][myIndex] = descriptorWrite;
   }
 };
 
@@ -119,16 +119,16 @@ Resources::StorageBuffer::StorageBuffer(VkCommandBuffer& commandBuffer,
                                         const VkQueue& queue,
                                         const auto& object,
                                         const size_t quantity) {
-  index = descriptorWriteIndex;
-  descriptorWriteIndex += 2;
+  myIndex = writeIndex;
+  writeIndex += 2;
 
   setLayoutBinding.binding = 1;
   setLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
   setLayoutBinding.descriptorCount = 1;
   setLayoutBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-  setLayoutBindings[index] = setLayoutBinding;
+  setLayoutBindings[myIndex] = setLayoutBinding;
   setLayoutBinding.binding = 2;
-  setLayoutBindings[index + 1] = setLayoutBinding;
+  setLayoutBindings[myIndex + 1] = setLayoutBinding;
 
   poolSize.type = setLayoutBinding.descriptorType;
   poolSize.descriptorCount = MAX_FRAMES_IN_FLIGHT * 2;
@@ -195,25 +195,25 @@ void Resources::StorageBuffer::createDescriptorWrite(const size_t quantity) {
         .descriptorType = setLayoutBinding.descriptorType,
         .pBufferInfo = &std::get<VkDescriptorBufferInfo>(info.currentFrame)};
 
-    descriptorWrites[i][index] = descriptorWrite;
+    descriptorWrites[i][myIndex] = descriptorWrite;
     descriptorWrite.dstBinding = static_cast<uint32_t>(i ? 1 : 2);
     descriptorWrite.pBufferInfo =
         &std::get<VkDescriptorBufferInfo>(info.previousFrame);
-    descriptorWrites[i][index + 1] = descriptorWrite;
+    descriptorWrites[i][myIndex + 1] = descriptorWrite;
   }
 };
 
 Resources::ImageSampler::ImageSampler(VkCommandBuffer& commandBuffer,
                                       VkCommandPool& commandPool,
                                       const VkQueue& queue) {
-  index = descriptorWriteIndex;
-  descriptorWriteIndex++;
+  myIndex = writeIndex;
+  writeIndex++;
 
   setLayoutBinding.binding = 3;
   setLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
   setLayoutBinding.descriptorCount = 1;
   setLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-  setLayoutBindings[index] = setLayoutBinding;
+  setLayoutBindings[myIndex] = setLayoutBinding;
 
   poolSize.type = setLayoutBinding.descriptorType;
   poolSize.descriptorCount = MAX_FRAMES_IN_FLIGHT;
@@ -242,20 +242,20 @@ void Resources::ImageSampler::createDescriptorWrite() {
       .pImageInfo = &std::get<VkDescriptorImageInfo>(info.currentFrame)};
 
   for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-    descriptorWrites[i][index] = descriptorWrite;
+    descriptorWrites[i][myIndex] = descriptorWrite;
   }
 }
 
 Resources::StorageImage::StorageImage(
     std::array<CE::Image, MAX_FRAMES_IN_FLIGHT>& images) {
-  index = descriptorWriteIndex;
-  descriptorWriteIndex++;
+  myIndex = writeIndex;
+  writeIndex++;
 
   setLayoutBinding.binding = 4;
   setLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
   setLayoutBinding.descriptorCount = 1;
   setLayoutBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-  setLayoutBindings[index] = setLayoutBinding;
+  setLayoutBindings[myIndex] = setLayoutBinding;
 
   poolSize.type = setLayoutBinding.descriptorType;
   poolSize.descriptorCount = MAX_FRAMES_IN_FLIGHT;
@@ -266,23 +266,23 @@ Resources::StorageImage::StorageImage(
 
 void Resources::StorageImage::createDescriptorWrite(
     std::array<CE::Image, MAX_FRAMES_IN_FLIGHT>& images) {
-    for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        VkDescriptorImageInfo imageInfo{ .sampler = VK_NULL_HANDLE,
-                                        .imageView = images[i].view,
-                                        .imageLayout = VK_IMAGE_LAYOUT_GENERAL };
+  for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+    VkDescriptorImageInfo imageInfo{.sampler = VK_NULL_HANDLE,
+                                    .imageView = images[i].view,
+                                    .imageLayout = VK_IMAGE_LAYOUT_GENERAL};
 
-        !i ? info.currentFrame = imageInfo : info.previousFrame = imageInfo;
+    !i ? info.currentFrame = imageInfo : info.previousFrame = imageInfo;
 
-        VkWriteDescriptorSet descriptorWrite{
-            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-            .dstBinding = setLayoutBinding.binding,
-            .descriptorCount = setLayoutBinding.descriptorCount,
-            .descriptorType = setLayoutBinding.descriptorType,
-            .pImageInfo = &std::get<VkDescriptorImageInfo>(
-                !i ? info.currentFrame : info.previousFrame) };
+    VkWriteDescriptorSet descriptorWrite{
+        .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+        .dstBinding = setLayoutBinding.binding,
+        .descriptorCount = setLayoutBinding.descriptorCount,
+        .descriptorType = setLayoutBinding.descriptorType,
+        .pImageInfo = &std::get<VkDescriptorImageInfo>(
+            !i ? info.currentFrame : info.previousFrame)};
 
-        descriptorWrites[i][index] = descriptorWrite;
-    }
+    descriptorWrites[i][myIndex] = descriptorWrite;
+  }
 }
 
 void Resources::Commands::recordComputeCommandBuffer(

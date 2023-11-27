@@ -18,7 +18,7 @@ std::vector<VkDescriptorPoolSize> CE::Descriptor::poolSizes;
 std::array<VkDescriptorSetLayoutBinding, NUM_DESCRIPTORS>
     CE::Descriptor::setLayoutBindings;
 
-size_t CE::Descriptor::descriptorWriteIndex{0};
+size_t CE::Descriptor::writeIndex{0};
 std::array<std::array<VkWriteDescriptorSet, NUM_DESCRIPTORS>,
            MAX_FRAMES_IN_FLIGHT>
     CE::Descriptor::descriptorWrites;

@@ -273,8 +273,8 @@ class Descriptor {
                  MAX_FRAMES_IN_FLIGHT>& descriptorWrites);
 
  protected:
-  size_t index{0};
-  static size_t descriptorWriteIndex;
+  size_t myIndex{0};
+  static size_t writeIndex;
   static VkDescriptorPool pool;
   VkDescriptorPoolSize poolSize{};
   static std::vector<VkDescriptorPoolSize> poolSizes;
