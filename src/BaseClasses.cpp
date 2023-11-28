@@ -1172,12 +1172,11 @@ void CE::PipelinesConfiguration::createPipelines(
           for (const std::string& stage : possibleStages) {
             size_t foundPosition = shaderName.find(stage);
             if (foundPosition != std::string::npos) {
-              shaderStage = getShaderStage(stage);
+              shaderStage = shaderType.at(stage);
               break;
             }
           }
         }
-
         shaderStages.push_back(
             createShaderModules(shaderStage, shaderName + ".spv"));
       }
@@ -1363,20 +1362,6 @@ void CE::PipelinesConfiguration::destroyShaderModules() {
   }
   this->shaderModules.resize(0);
 }
-VkShaderStageFlagBits CE::PipelinesConfiguration::getShaderStage(
-    const std::string& shaderExtension) {
-  VkShaderStageFlagBits result{};
-  if (shaderExtension == "Vert") {
-    result = VK_SHADER_STAGE_VERTEX_BIT;
-  } else if (shaderExtension == "Frag") {
-    result = VK_SHADER_STAGE_FRAGMENT_BIT;
-  } else if (shaderExtension == "Tesc") {
-    result = VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
-  } else if (shaderExtension == "Tese") {
-    result = VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
-  }
-  return result;
-};
 
 std::vector<std::string>& CE::PipelinesConfiguration::getPipelineShadersByName(
     const std::string& name) {
