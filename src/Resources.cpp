@@ -393,12 +393,12 @@ void Resources::Commands::recordGraphicsCommandBuffer(
                    1, 0, 0, 0);
 
   //   Landscape Wireframe
-  //vkCmdBindPipeline(
-  //    commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-  //    pipelines.config.getPipelineObjectByName("LandscapeWireFrame"));
-  //vkCmdDrawIndexed(commandBuffer,
-  //                 static_cast<uint32_t>(resources.world.grid.indices.size()), 1, 0,
-  //                 0, 0);
+  vkCmdBindPipeline(
+      commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+      pipelines.config.getPipelineObjectByName("LandscapeWireFrame"));
+  vkCmdDrawIndexed(commandBuffer,
+                   static_cast<uint32_t>(resources.world.grid.indices.size()), 1, 0,
+                   0, 0);
 
   // Pipeline 3
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,

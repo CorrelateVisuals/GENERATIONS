@@ -45,10 +45,10 @@ class Pipelines {
           Graphics{.shaders = {"Vert", "Frag"},
                    .vertexAttributes = World::Grid::getAttributeDescription(),
                    .vertexBindings = World::Grid::getBindingDescription()};
-      /*pipelineMap["LandscapeWireFrame"] =
+      pipelineMap["LandscapeWireFrame"] =
           Graphics{ .shaders = {"LandscapeVert", "Tesc", "Tese", "LandscapeFrag"},
                    .vertexAttributes = World::Grid::getAttributeDescription(),
-                   .vertexBindings = World::Grid::getBindingDescription() };*/
+                   .vertexBindings = World::Grid::getBindingDescription() };
       pipelineMap["Texture"] = Graphics{
           .shaders = {"Vert", "Frag"},
           .vertexAttributes = World::Rectangle::getAttributeDescription(),

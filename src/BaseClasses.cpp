@@ -1149,7 +1149,6 @@ void CE::PipelinesConfiguration::createPipelines(
 
       std::vector<VkPipelineShaderStageCreateInfo> shaderStages{};
       std::string shaderName{};
-      VkShaderStageFlagBits shaderStage{};
 
       const std::array<std::string, 5> possibleStages = {"Vert", "Tesc",
                                                           "Tese", "Frag"};
@@ -1161,21 +1160,22 @@ void CE::PipelinesConfiguration::createPipelines(
               {"Frag", VK_SHADER_STAGE_FRAGMENT_BIT}};
 
       for (uint32_t i = 0; i < shaders.size(); i++) {
-        shaderName = entry.first + shaders[i];
+          VkShaderStageFlagBits shaderStage{};
 
-        shaderStage = shaderType.at(shaders[i]);
-        Log::text("shaderstage!!!!!!!", shaderStage);
+        if (shaderType.find(shaders[i]) != shaderType.end()) {
+            shaderName = entry.first + shaders[i];
+            shaderStage = shaderType.at(shaders[i]);
+        } else {
 
-        if (shaderStage == 0) {
-          shaderName = shaders[i];
+         shaderName = shaders[i];
 
           for (const std::string& stage : possibleStages) {
             size_t foundPosition = shaderName.find(stage);
             if (foundPosition != std::string::npos) {
               shaderStage = getShaderStage(stage);
+              break;
             }
           }
-          Log::text("shaderstage!!!!!!!", shaderStage);
         }
 
         shaderStages.push_back(
