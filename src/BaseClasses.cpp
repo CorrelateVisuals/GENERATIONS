@@ -1239,6 +1239,19 @@ void CE::PipelinesConfiguration::createPipelines(
           .subpass = 0,
           .basePipelineHandle = VK_NULL_HANDLE};
 
+      bool tesselationEnabled =
+          entry.first == "LandscapeWireFrame";
+
+      if (tesselationEnabled) {
+        VkPipelineTessellationStateCreateInfo tessellationStateInfo{
+            CE::tessellationStateDefault};
+        inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_PATCH_LIST;
+        rasterization.polygonMode = VK_POLYGON_MODE_LINE;
+        rasterization.lineWidth = 5.0f;
+        colorBlendAttachment = CE::colorBlendAttachmentStateMultiply;
+        pipelineInfo.pTessellationState = &tessellationStateInfo;
+      }
+
       CE::VULKAN_RESULT(vkCreateGraphicsPipelines, Device::baseDevice->logical,
                         VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
                         &getPipelineObjectByName(pipelineName));
