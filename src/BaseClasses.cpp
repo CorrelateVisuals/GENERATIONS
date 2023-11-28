@@ -1150,9 +1150,9 @@ void CE::PipelinesConfiguration::createPipelines(
       std::vector<VkPipelineShaderStageCreateInfo> shaderStages{};
       std::string shaderName{};
 
-      const std::array<std::string, 5> possibleStages = {"Vert", "Tesc",
+      const std::array<std::string_view, 5> possibleStages = {"Vert", "Tesc",
                                                           "Tese", "Frag"};
-      const std::unordered_map<std::string, VkShaderStageFlagBits>
+      const std::unordered_map<std::string_view, VkShaderStageFlagBits>
           shaderType = {
               {"Vert", VK_SHADER_STAGE_VERTEX_BIT},
               {"Tesc", VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT},
@@ -1169,9 +1169,9 @@ void CE::PipelinesConfiguration::createPipelines(
 
          shaderName = shaders[i];
 
-          for (const std::string& stage : possibleStages) {
+          for (const std::string_view& stage : possibleStages) {
             size_t foundPosition = shaderName.find(stage);
-            if (foundPosition != std::string::npos) {
+            if (foundPosition != std::string_view::npos) {
               shaderStage = shaderType.at(stage);
               break;
             }
