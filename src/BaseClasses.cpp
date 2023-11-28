@@ -1151,23 +1151,21 @@ void CE::PipelinesConfiguration::createPipelines(
       std::string shaderName{};
 
       const std::array<std::string_view, 5> possibleStages = {"Vert", "Tesc",
-                                                          "Tese", "Frag"};
+                                                              "Tese", "Frag"};
       const std::unordered_map<std::string_view, VkShaderStageFlagBits>
-          shaderType = {
-              {"Vert", VK_SHADER_STAGE_VERTEX_BIT},
-              {"Tesc", VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT},
-              {"Tese", VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT},
-              {"Frag", VK_SHADER_STAGE_FRAGMENT_BIT}};
+          shaderType = {{"Vert", VK_SHADER_STAGE_VERTEX_BIT},
+                        {"Tesc", VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT},
+                        {"Tese", VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT},
+                        {"Frag", VK_SHADER_STAGE_FRAGMENT_BIT}};
 
       for (uint32_t i = 0; i < shaders.size(); i++) {
-          VkShaderStageFlagBits shaderStage{};
+        VkShaderStageFlagBits shaderStage{};
 
         if (shaderType.find(shaders[i]) != shaderType.end()) {
-            shaderName = entry.first + shaders[i];
-            shaderStage = shaderType.at(shaders[i]);
+          shaderName = entry.first + shaders[i];
+          shaderStage = shaderType.at(shaders[i]);
         } else {
-
-         shaderName = shaders[i];
+          shaderName = shaders[i];
 
           for (const std::string_view& stage : possibleStages) {
             size_t foundPosition = shaderName.find(stage);

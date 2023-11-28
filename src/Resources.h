@@ -98,9 +98,4 @@ class Resources {
       data.fill(0);
     }
   } pushConstants;
-
- private:
-  static std::vector<
-      std::variant<UniformBuffer, StorageBuffer, ImageSampler, StorageImage>>
-      descriptors;
 };
