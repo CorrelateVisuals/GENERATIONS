@@ -1147,24 +1147,27 @@ void CE::PipelinesConfiguration::createPipelines(
       std::variant<Graphics, Compute>& variant =
           this->pipelineMap[pipelineName];
 
-      std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
-      std::string shaderName = "";
-      VkShaderStageFlagBits shaderStage = VK_SHADER_STAGE_VERTEX_BIT;
-      for (uint_fast8_t i = 0; i < shaders.size(); i++) {
+      std::vector<VkPipelineShaderStageCreateInfo> shaderStages{};
+      std::string shaderName{};
+      VkShaderStageFlagBits shaderStage{};
+
+      const std::array<std::string, 5> possibleStages = {"Vert", "Tesc",
+                                                          "Tese", "Frag"};
+      const std::unordered_map<std::string, VkShaderStageFlagBits>
+          shaderType = {
+              {"Vert", VK_SHADER_STAGE_VERTEX_BIT},
+              {"Tesc", VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT},
+              {"Tese", VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT},
+              {"Frag", VK_SHADER_STAGE_FRAGMENT_BIT}};
+
+      for (uint32_t i = 0; i < shaders.size(); i++) {
         shaderName = entry.first + shaders[i];
 
-        if (shaders[i] == "Vert") {
-          shaderStage = VK_SHADER_STAGE_VERTEX_BIT;
-        } else if (shaders[i] == "Frag") {
-          shaderStage = VK_SHADER_STAGE_FRAGMENT_BIT;
-        } else if (shaders[i] == "Tesc") {
-          shaderStage = VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
-        } else if (shaders[i] == "Tese") {
-          shaderStage = VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
-        } else {
+        shaderStage = shaderType.at(shaders[i]);
+        Log::text("shaderstage!!!!!!!", shaderStage);
+
+        if (shaderStage == 0) {
           shaderName = shaders[i];
-          const std::array<std::string, 5> possibleStages = {
-              "Comp", "Vert", "Tesc", "Tese", "Frag"};
 
           for (const std::string& stage : possibleStages) {
             size_t foundPosition = shaderName.find(stage);
@@ -1172,6 +1175,7 @@ void CE::PipelinesConfiguration::createPipelines(
               shaderStage = getShaderStage(stage);
             }
           }
+          Log::text("shaderstage!!!!!!!", shaderStage);
         }
 
         shaderStages.push_back(
@@ -1239,8 +1243,7 @@ void CE::PipelinesConfiguration::createPipelines(
           .subpass = 0,
           .basePipelineHandle = VK_NULL_HANDLE};
 
-      bool tesselationEnabled =
-          entry.first == "LandscapeWireFrame";
+      bool tesselationEnabled = entry.first == "LandscapeWireFrame";
 
       if (tesselationEnabled) {
         VkPipelineTessellationStateCreateInfo tessellationStateInfo{
