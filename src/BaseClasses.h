@@ -363,6 +363,7 @@ class PipelinesConfiguration {
       VkShaderStageFlagBits shaderStage,
       std::string shaderName);
   void destroyShaderModules();
+  VkShaderStageFlagBits getShaderStage(const std::string& shaderExtension);
 };
 
 template <typename Checkresult, typename... Args>

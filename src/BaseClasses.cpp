@@ -546,18 +546,18 @@ void CE::Descriptor::createSetLayout(
 }
 
 void CE::Descriptor::createPool() {
-    Log::text("{ |=| }", "Descriptor Pool");
-    for (size_t i = 0; i < poolSizes.size(); i++) {
-        Log::text(Log::Style::charLeader,
-            Log::getDescriptorTypeString(poolSizes[i].type));
-    }
-    VkDescriptorPoolCreateInfo poolInfo{
-        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-        .maxSets = MAX_FRAMES_IN_FLIGHT,
-        .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
-        .pPoolSizes = poolSizes.data() };
-    CE::VULKAN_RESULT(vkCreateDescriptorPool, Device::baseDevice->logical,
-        &poolInfo, nullptr, &CE::Descriptor::pool);
+  Log::text("{ |=| }", "Descriptor Pool");
+  for (size_t i = 0; i < poolSizes.size(); i++) {
+    Log::text(Log::Style::charLeader,
+              Log::getDescriptorTypeString(poolSizes[i].type));
+  }
+  VkDescriptorPoolCreateInfo poolInfo{
+      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
+      .maxSets = MAX_FRAMES_IN_FLIGHT,
+      .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
+      .pPoolSizes = poolSizes.data()};
+  CE::VULKAN_RESULT(vkCreateDescriptorPool, Device::baseDevice->logical,
+                    &poolInfo, nullptr, &CE::Descriptor::pool);
 }
 
 void CE::Descriptor::allocateSets() {
@@ -574,18 +574,18 @@ void CE::Descriptor::allocateSets() {
 void CE::Descriptor::createSets(
     const std::array<VkDescriptorSet, MAX_FRAMES_IN_FLIGHT>& sets,
     std::array<std::array<VkWriteDescriptorSet, NUM_DESCRIPTORS>,
-    MAX_FRAMES_IN_FLIGHT>& descriptorWrites) {
-    Log::text("{ |=| }", "Descriptor Sets");
+               MAX_FRAMES_IN_FLIGHT>& descriptorWrites) {
+  Log::text("{ |=| }", "Descriptor Sets");
 
-    for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        for (auto& descriptor : descriptorWrites[i]) {
-            descriptor.dstSet = CE::Descriptor::sets[i];
-        }
-
-        vkUpdateDescriptorSets(CE::Device::baseDevice->logical,
-            static_cast<uint32_t>(descriptorWrites[i].size()),
-            descriptorWrites[i].data(), 0, nullptr);
+  for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+    for (auto& descriptor : descriptorWrites[i]) {
+      descriptor.dstSet = CE::Descriptor::sets[i];
     }
+
+    vkUpdateDescriptorSets(CE::Device::baseDevice->logical,
+                           static_cast<uint32_t>(descriptorWrites[i].size()),
+                           descriptorWrites[i].data(), 0, nullptr);
+  }
 }
 
 CE::CommandBuffers::~CommandBuffers() {
@@ -1148,9 +1148,11 @@ void CE::PipelinesConfiguration::createPipelines(
           this->pipelineMap[pipelineName];
 
       std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
-
+      std::string shaderName = "";
       VkShaderStageFlagBits shaderStage = VK_SHADER_STAGE_VERTEX_BIT;
       for (uint_fast8_t i = 0; i < shaders.size(); i++) {
+        shaderName = entry.first + shaders[i];
+
         if (shaders[i] == "Vert") {
           shaderStage = VK_SHADER_STAGE_VERTEX_BIT;
         } else if (shaders[i] == "Frag") {
@@ -1159,9 +1161,21 @@ void CE::PipelinesConfiguration::createPipelines(
           shaderStage = VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
         } else if (shaders[i] == "Tese") {
           shaderStage = VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
+        } else {
+          shaderName = shaders[i];
+          const std::array<std::string, 5> possibleStages = {
+              "Comp", "Vert", "Tesc", "Tese", "Frag"};
+
+          for (const std::string& stage : possibleStages) {
+            size_t foundPosition = shaderName.find(stage);
+            if (foundPosition != std::string::npos) {
+              shaderStage = getShaderStage(stage);
+            }
+          }
         }
-        shaderStages.push_back(createShaderModules(
-            shaderStage, entry.first + shaders[i] + ".spv"));
+
+        shaderStages.push_back(
+            createShaderModules(shaderStage, shaderName + ".spv"));
       }
 
       const auto& bindingDescription =
@@ -1304,11 +1318,14 @@ void CE::PipelinesConfiguration::compileShaders() {
     pipelineName = entry.first;
     std::vector<std::string> shaders = getPipelineShadersByName(pipelineName);
     for (const auto& shader : shaders) {
-      shaderExtension = Lib::upperToLowerCase(shader);
-      systemCommand =
-          Lib::path(this->shaderDir + pipelineName + "." + shaderExtension +
-                    " -o " + this->shaderDir + pipelineName + shader + ".spv");
-      system(systemCommand.c_str());
+      if (shader == "Comp" || shader == "Vert" || shader == "Tesc" ||
+          shader == "Tese" || shader == "Frag") {
+        shaderExtension = Lib::upperToLowerCase(shader);
+        systemCommand = Lib::path(this->shaderDir + pipelineName + "." +
+                                  shaderExtension + " -o " + this->shaderDir +
+                                  pipelineName + shader + ".spv");
+        system(systemCommand.c_str());
+      }
     }
   }
 }
@@ -1329,6 +1346,20 @@ void CE::PipelinesConfiguration::destroyShaderModules() {
                           nullptr);
   }
   this->shaderModules.resize(0);
+}
+VkShaderStageFlagBits CE::PipelinesConfiguration::getShaderStage(
+    const std::string& shaderExtension) {
+  VkShaderStageFlagBits result{};
+  if (shaderExtension == "Vert") {
+    result = VK_SHADER_STAGE_VERTEX_BIT;
+  } else if (shaderExtension == "Frag") {
+    result = VK_SHADER_STAGE_FRAGMENT_BIT;
+  } else if (shaderExtension == "Tesc") {
+    result = VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
+  } else if (shaderExtension == "Tese") {
+    result = VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
+  }
+  return result;
 };
 
 std::vector<std::string>& CE::PipelinesConfiguration::getPipelineShadersByName(
