@@ -32,7 +32,8 @@ class Pipelines {
     Configuration(VkRenderPass& renderPass,
                   const VkPipelineLayout& graphicsLayout,
                   const VkPipelineLayout& computeLayout,
-                  VkSampleCountFlagBits& msaaSamples, const vec2_uint_fast16_t gridSize) {
+                  VkSampleCountFlagBits& msaaSamples,
+                  const vec2_uint_fast16_t gridSize) {
       pipelineMap["Engine"] = Compute{
           .shaders = {"Comp"},
           .workGroups = {static_cast<uint32_t>(gridSize.x + 31) / 32,
@@ -45,6 +46,10 @@ class Pipelines {
           Graphics{.shaders = {"Vert", "Frag"},
                    .vertexAttributes = World::Grid::getAttributeDescription(),
                    .vertexBindings = World::Grid::getBindingDescription()};
+      pipelineMap["LandscapeWireFrame"] = Graphics{
+          .shaders = {"LandscapeVert", "Tesc", "Tese", "LandscapeFrag"},
+          .vertexAttributes = World::Grid::getAttributeDescription(),
+          .vertexBindings = World::Grid::getBindingDescription()};
       pipelineMap["Texture"] = Graphics{
           .shaders = {"Vert", "Frag"},
           .vertexAttributes = World::Rectangle::getAttributeDescription(),

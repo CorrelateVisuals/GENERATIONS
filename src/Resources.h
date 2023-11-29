@@ -8,6 +8,8 @@
 #include <array>
 #include <cstring>
 #include <string>
+#include <utility>
+#include <variant>
 #include <vector>
 
 class Resources {
@@ -36,21 +38,23 @@ class Resources {
     MultisamplingImage(const VkExtent2D extent, const VkFormat format);
   } msaaImage;
 
-  struct UniformBuffer : public CE::Descriptor {
-    CE::Buffer buffer;
+  class UniformBuffer : public CE::Descriptor {
+   public:
     UniformBuffer();
     void update(World& world, const VkExtent2D extent);
 
    private:
+    CE::Buffer buffer;
     World::UniformBufferObject object;
-    void create();
+    void createBuffer();
+    void createDescriptorWrite();
   } uniform;
 
-  class ShaderStorage : public CE::Descriptor {
+  class StorageBuffer : public CE::Descriptor {
    public:
     CE::Buffer bufferIn;
     CE::Buffer bufferOut;
-    ShaderStorage(VkCommandBuffer& commandBuffer,
+    StorageBuffer(VkCommandBuffer& commandBuffer,
                   const VkCommandPool& commandPool,
                   const VkQueue& queue,
                   const auto& object,
@@ -62,21 +66,27 @@ class Resources {
                 const VkQueue& queue,
                 const auto& object,
                 const size_t quantity);
+    void createDescriptorWrite(const size_t quantity);
   } shaderStorage;
 
-  struct ImageSampler : public CE::Descriptor {
+  class ImageSampler : public CE::Descriptor {
+   public:
     ImageSampler(VkCommandBuffer& commandBuffer,
                  VkCommandPool& commandPool,
                  const VkQueue& queue);
 
    private:
+    void createDescriptorWrite();
     struct TextureImage : public CE::Image {
       TextureImage() { path = Lib::path("assets/Avatar.PNG"); }
     } textureImage;
   } sampler;
 
-  struct StorageImage : public CE::Descriptor {
+  class StorageImage : public CE::Descriptor {
+   public:
     StorageImage(std::array<CE::Image, MAX_FRAMES_IN_FLIGHT>& images);
+    void createDescriptorWrite(
+        std::array<CE::Image, MAX_FRAMES_IN_FLIGHT>& images);
   } storageImage;
 
   struct PushConstants : public CE::PushConstants {

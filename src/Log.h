@@ -11,7 +11,7 @@
 
 namespace Log {
 const enum LogLevel { LOG_OFF, LOG_MINIMIAL, LOG_MODERATE, LOG_DETAILED };
-static uint8_t logLevel = LOG_DETAILED;
+static uint8_t logLevel = LOG_MINIMIAL;
 
 struct Style {
   static std::string charLeader;

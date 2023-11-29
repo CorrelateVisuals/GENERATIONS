@@ -10,10 +10,12 @@
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
+#include <utility>
 #include <variant>
 #include <vector>
 
 constexpr uint32_t MAX_FRAMES_IN_FLIGHT = 2;
+constexpr size_t NUM_DESCRIPTORS = 5;
 
 class VulkanMechanics;
 class Resources;
@@ -250,30 +252,37 @@ class Swapchain {
 // Resources
 class Descriptor {
  public:
-  static VkDescriptorPool pool;
-  static VkDescriptorSetLayout setLayout;
   static std::array<VkDescriptorSet, MAX_FRAMES_IN_FLIGHT> sets;
-
-  VkDescriptorPoolSize poolSize{};
-  static std::vector<VkDescriptorPoolSize> poolSizes;
-
-  VkDescriptorSetLayoutBinding setLayoutBinding{};
-  static std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings;
-
-  std::variant<VkDescriptorBufferInfo, VkDescriptorImageInfo> info{};
-  static std::vector<
-      std::variant<VkDescriptorBufferInfo, VkDescriptorImageInfo>>
-      descriptorInfos;
+  static VkDescriptorSetLayout setLayout;
+  static std::array<VkDescriptorSetLayoutBinding, NUM_DESCRIPTORS>
+      setLayoutBindings;
+  static std::array<std::array<VkWriteDescriptorSet, NUM_DESCRIPTORS>,
+                    MAX_FRAMES_IN_FLIGHT>
+      descriptorWrites;
 
   Descriptor() = default;
   virtual ~Descriptor();
-
   static void createSetLayout(
-      const std::vector<VkDescriptorSetLayoutBinding>& layoutBindings);
-
+      const std::array<VkDescriptorSetLayoutBinding, NUM_DESCRIPTORS>&
+          layoutBindings);
   static void createPool();
   static void allocateSets();
-  static void createSets();
+  static void createSets(
+      const std::array<VkDescriptorSet, MAX_FRAMES_IN_FLIGHT>& sets,
+      std::array<std::array<VkWriteDescriptorSet, NUM_DESCRIPTORS>,
+                 MAX_FRAMES_IN_FLIGHT>& descriptorWrites);
+
+ protected:
+  size_t myIndex{0};
+  static size_t writeIndex;
+  static VkDescriptorPool pool;
+  VkDescriptorPoolSize poolSize{};
+  static std::vector<VkDescriptorPoolSize> poolSizes;
+  VkDescriptorSetLayoutBinding setLayoutBinding{};
+  struct DescriptorInformation {
+    std::variant<VkDescriptorBufferInfo, VkDescriptorImageInfo> previousFrame{};
+    std::variant<VkDescriptorBufferInfo, VkDescriptorImageInfo> currentFrame{};
+  } info;
 };
 
 struct PushConstants {
@@ -285,7 +294,6 @@ struct PushConstants {
 
   PushConstants() = default;
   virtual ~PushConstants() = default;
-
   void setData(const uint64_t& data);
 };
 
@@ -350,6 +358,7 @@ class PipelinesConfiguration {
   void compileShaders();
 
  private:
+  bool setShaderStages(const std::string& pipelineName, std::vector<VkPipelineShaderStageCreateInfo>& shaderStages);
   std::vector<char> readShaderFile(const std::string& filename);
   VkPipelineShaderStageCreateInfo createShaderModules(
       VkShaderStageFlagBits shaderStage,

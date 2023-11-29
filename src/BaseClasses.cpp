@@ -15,9 +15,13 @@ VkDescriptorPool CE::Descriptor::pool;
 VkDescriptorSetLayout CE::Descriptor::setLayout;
 std::array<VkDescriptorSet, MAX_FRAMES_IN_FLIGHT> CE::Descriptor::sets;
 std::vector<VkDescriptorPoolSize> CE::Descriptor::poolSizes;
-std::vector<VkDescriptorSetLayoutBinding> CE::Descriptor::setLayoutBindings;
-std::vector<std::variant<VkDescriptorBufferInfo, VkDescriptorImageInfo>>
-    CE::Descriptor::descriptorInfos;
+std::array<VkDescriptorSetLayoutBinding, NUM_DESCRIPTORS>
+    CE::Descriptor::setLayoutBindings;
+
+size_t CE::Descriptor::writeIndex{0};
+std::array<std::array<VkWriteDescriptorSet, NUM_DESCRIPTORS>,
+           MAX_FRAMES_IN_FLIGHT>
+    CE::Descriptor::descriptorWrites;
 
 void CE::Device::createLogicalDevice(const InitializeVulkan& initVulkan,
                                      Queues& queues) {
@@ -520,7 +524,8 @@ CE::Descriptor::~Descriptor() {
 }
 
 void CE::Descriptor::createSetLayout(
-    const std::vector<VkDescriptorSetLayoutBinding>& layoutBindings) {
+    const std::array<VkDescriptorSetLayoutBinding, NUM_DESCRIPTORS>&
+        layoutBindings) {
   Log::text("{ |=| }", "Descriptor Set Layout:", layoutBindings.size(),
             "bindings");
   for (const VkDescriptorSetLayoutBinding& item : layoutBindings) {
@@ -540,75 +545,6 @@ void CE::Descriptor::createSetLayout(
                     &CE::Descriptor::setLayout);
 }
 
-void CE::Descriptor::createSets() {
-  Log::text("{ |=| }", "Descriptor Sets");
-
-  for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-    std::vector<VkWriteDescriptorSet> descriptorWrites{
-        {.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-         .dstSet = CE::Descriptor::sets[i],
-         .dstBinding = 0,
-         .dstArrayElement = 0,
-         .descriptorCount = 1,
-         .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-         .pBufferInfo = &std::get<VkDescriptorBufferInfo>(
-             CE::Descriptor::descriptorInfos[0])},
-
-        {.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-         .dstSet = CE::Descriptor::sets[i],
-         .dstBinding = static_cast<uint32_t>(i ? 2 : 1),
-         .dstArrayElement = 0,
-         .descriptorCount = 1,
-         .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-         .pBufferInfo = &std::get<VkDescriptorBufferInfo>(
-             CE::Descriptor::descriptorInfos[1])},
-
-        {.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-         .dstSet = CE::Descriptor::sets[i],
-         .dstBinding = static_cast<uint32_t>(i ? 1 : 2),
-         .dstArrayElement = 0,
-         .descriptorCount = 1,
-         .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-         .pBufferInfo = &std::get<VkDescriptorBufferInfo>(
-             CE::Descriptor::descriptorInfos[2])},
-
-        {.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-         .dstSet = CE::Descriptor::sets[i],
-         .dstBinding = 3,
-         .dstArrayElement = 0,
-         .descriptorCount = 1,
-         .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-         .pImageInfo = &std::get<VkDescriptorImageInfo>(
-             CE::Descriptor::descriptorInfos[3])},
-
-        {.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-         .dstSet = CE::Descriptor::sets[i],
-         .dstBinding = 4,
-         .dstArrayElement = 0,
-         .descriptorCount = 1,
-         .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
-         .pImageInfo = &std::get<VkDescriptorImageInfo>(
-             CE::Descriptor::descriptorInfos[static_cast<uint32_t>(i ? 5
-                                                                     : 4)])},
-    };
-
-    vkUpdateDescriptorSets(CE::Device::baseDevice->logical,
-                           static_cast<uint32_t>(descriptorWrites.size()),
-                           descriptorWrites.data(), 0, nullptr);
-  }
-}
-
-void CE::Descriptor::allocateSets() {
-  std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, setLayout);
-  VkDescriptorSetAllocateInfo allocateInfo{
-      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-      .descriptorPool = pool,
-      .descriptorSetCount = MAX_FRAMES_IN_FLIGHT,
-      .pSetLayouts = layouts.data()};
-  CE::VULKAN_RESULT(vkAllocateDescriptorSets, Device::baseDevice->logical,
-                    &allocateInfo, sets.data());
-}
-
 void CE::Descriptor::createPool() {
   Log::text("{ |=| }", "Descriptor Pool");
   for (size_t i = 0; i < poolSizes.size(); i++) {
@@ -622,6 +558,34 @@ void CE::Descriptor::createPool() {
       .pPoolSizes = poolSizes.data()};
   CE::VULKAN_RESULT(vkCreateDescriptorPool, Device::baseDevice->logical,
                     &poolInfo, nullptr, &CE::Descriptor::pool);
+}
+
+void CE::Descriptor::allocateSets() {
+  std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, setLayout);
+  VkDescriptorSetAllocateInfo allocateInfo{
+      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
+      .descriptorPool = pool,
+      .descriptorSetCount = MAX_FRAMES_IN_FLIGHT,
+      .pSetLayouts = layouts.data()};
+  CE::VULKAN_RESULT(vkAllocateDescriptorSets, Device::baseDevice->logical,
+                    &allocateInfo, sets.data());
+}
+
+void CE::Descriptor::createSets(
+    const std::array<VkDescriptorSet, MAX_FRAMES_IN_FLIGHT>& sets,
+    std::array<std::array<VkWriteDescriptorSet, NUM_DESCRIPTORS>,
+               MAX_FRAMES_IN_FLIGHT>& descriptorWrites) {
+  Log::text("{ |=| }", "Descriptor Sets");
+
+  for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+    for (auto& descriptor : descriptorWrites[i]) {
+      descriptor.dstSet = CE::Descriptor::sets[i];
+    }
+
+    vkUpdateDescriptorSets(CE::Device::baseDevice->logical,
+                           static_cast<uint32_t>(descriptorWrites[i].size()),
+                           descriptorWrites[i].data(), 0, nullptr);
+  }
 }
 
 CE::CommandBuffers::~CommandBuffers() {
@@ -1179,32 +1143,18 @@ void CE::PipelinesConfiguration::createPipelines(
         std::find(shaders.begin(), shaders.end(), "Comp") != shaders.end();
 
     if (!isCompute) [[likely]] {
-      Log::text("{ === }", "Graphics Pipeline: ", entry.first);
-      std::variant<Graphics, Compute>& variant =
+      Log::text("{ === }", "Graphics Pipeline: ", pipelineName);
+      std::variant<Graphics, Compute>& pipeline =
           this->pipelineMap[pipelineName];
 
-      std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
-
-      VkShaderStageFlagBits shaderStage = VK_SHADER_STAGE_VERTEX_BIT;
-      for (uint_fast8_t i = 0; i < shaders.size(); i++) {
-        if (shaders[i] == "Vert") {
-          shaderStage = VK_SHADER_STAGE_VERTEX_BIT;
-        } else if (shaders[i] == "Frag") {
-          shaderStage = VK_SHADER_STAGE_FRAGMENT_BIT;
-        } else if (shaders[i] == "Tesc") {
-          shaderStage = VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
-        } else if (shaders[i] == "Tese") {
-          shaderStage = VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
-        }
-        shaderStages.push_back(createShaderModules(
-            shaderStage, entry.first + shaders[i] + ".spv"));
-      }
+      std::vector<VkPipelineShaderStageCreateInfo> shaderStages{};
+      bool tesselationEnabled = setShaderStages(pipelineName, shaderStages);
 
       const auto& bindingDescription =
-          std::get<CE::PipelinesConfiguration::Graphics>(variant)
+          std::get<CE::PipelinesConfiguration::Graphics>(pipeline)
               .vertexBindings;
       const auto& attributesDescription =
-          std::get<CE::PipelinesConfiguration::Graphics>(variant)
+          std::get<CE::PipelinesConfiguration::Graphics>(pipeline)
               .vertexAttributes;
       uint32_t bindingsSize = static_cast<uint32_t>(bindingDescription.size());
       uint32_t attributeSize =
@@ -1261,15 +1211,25 @@ void CE::PipelinesConfiguration::createPipelines(
           .subpass = 0,
           .basePipelineHandle = VK_NULL_HANDLE};
 
+      VkPipelineTessellationStateCreateInfo tessellationStateInfo{
+          CE::tessellationStateDefault};
+      if (tesselationEnabled) {
+        inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_PATCH_LIST;
+        rasterization.polygonMode = VK_POLYGON_MODE_LINE;
+        rasterization.lineWidth = 5.0f;
+        colorBlendAttachment = CE::colorBlendAttachmentStateMultiply;
+        pipelineInfo.pTessellationState = &tessellationStateInfo;
+      }
+
       CE::VULKAN_RESULT(vkCreateGraphicsPipelines, Device::baseDevice->logical,
                         VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
                         &getPipelineObjectByName(pipelineName));
       destroyShaderModules();
     } else if (isCompute) {
-      Log::text("{ === }", "Compute  Pipeline: ", entry.first);
+      Log::text("{ === }", "Compute  Pipeline: ", pipelineName);
 
       VkPipelineShaderStageCreateInfo shaderStage{createShaderModules(
-          VK_SHADER_STAGE_COMPUTE_BIT, entry.first + shaders[0] + ".spv")};
+          VK_SHADER_STAGE_COMPUTE_BIT, pipelineName + shaders[0] + ".spv")};
 
       VkComputePipelineCreateInfo pipelineInfo{
           .sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
@@ -1282,6 +1242,48 @@ void CE::PipelinesConfiguration::createPipelines(
       destroyShaderModules();
     }
   }
+}
+
+bool CE::PipelinesConfiguration::setShaderStages(
+    const std::string& pipelineName,
+    std::vector<VkPipelineShaderStageCreateInfo>& shaderStages) {
+  std::vector<std::string> shaders = getPipelineShadersByName(pipelineName);
+  std::string shaderName{};
+  const std::array<std::string_view, 5> possibleStages = {"Vert", "Tesc",
+                                                          "Tese", "Frag"};
+  const std::unordered_map<std::string_view, VkShaderStageFlagBits> shaderType =
+      {{"Vert", VK_SHADER_STAGE_VERTEX_BIT},
+       {"Tesc", VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT},
+       {"Tese", VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT},
+       {"Frag", VK_SHADER_STAGE_FRAGMENT_BIT}};
+  bool tesselationEnabled{false};
+
+  for (uint32_t i = 0; i < shaders.size(); i++) {
+    VkShaderStageFlagBits shaderStage{};
+
+    if (shaderType.find(shaders[i]) != shaderType.end()) {
+      shaderName = pipelineName + shaders[i];
+      shaderStage = shaderType.at(shaders[i]);
+    } else {
+      shaderName = shaders[i];
+
+      for (const std::string_view& stage : possibleStages) {
+        size_t foundPosition = shaderName.find(stage);
+        if (foundPosition != std::string_view::npos) {
+          shaderStage = shaderType.at(stage);
+          break;
+        }
+      }
+    }
+    if (!tesselationEnabled) {
+      tesselationEnabled =
+          shaderStage == VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT ? true
+                                                                  : false;
+    }
+    shaderStages.push_back(
+        createShaderModules(shaderStage, shaderName + ".spv"));
+  }
+  return tesselationEnabled;
 }
 
 std::vector<char> CE::PipelinesConfiguration::readShaderFile(
@@ -1332,19 +1334,22 @@ VkPipelineShaderStageCreateInfo CE::PipelinesConfiguration::createShaderModules(
 
 void CE::PipelinesConfiguration::compileShaders() {
   Log::text("{ GLSL }", "Compile Shaders");
-  std::string systemCommand = "";
-  std::string shaderExtension = "";
-  std::string pipelineName = "";
+  std::string systemCommand{};
+  std::string shaderExtension{};
+  std::string pipelineName{};
 
   for (const auto& entry : this->pipelineMap) {
     pipelineName = entry.first;
     std::vector<std::string> shaders = getPipelineShadersByName(pipelineName);
     for (const auto& shader : shaders) {
-      shaderExtension = Lib::upperToLowerCase(shader);
-      systemCommand =
-          Lib::path(this->shaderDir + pipelineName + "." + shaderExtension +
-                    " -o " + this->shaderDir + pipelineName + shader + ".spv");
-      system(systemCommand.c_str());
+      if (shader == "Comp" || shader == "Vert" || shader == "Tesc" ||
+          shader == "Tese" || shader == "Frag") {
+        shaderExtension = Lib::upperToLowerCase(shader);
+        systemCommand = Lib::path(this->shaderDir + pipelineName + "." +
+                                  shaderExtension + " -o " + this->shaderDir +
+                                  pipelineName + shader + ".spv");
+        system(systemCommand.c_str());
+      }
     }
   }
 }
@@ -1365,7 +1370,7 @@ void CE::PipelinesConfiguration::destroyShaderModules() {
                           nullptr);
   }
   this->shaderModules.resize(0);
-};
+}
 
 std::vector<std::string>& CE::PipelinesConfiguration::getPipelineShadersByName(
     const std::string& name) {
