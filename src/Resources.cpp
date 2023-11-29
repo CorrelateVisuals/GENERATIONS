@@ -22,7 +22,7 @@ Resources::Resources(VulkanMechanics& mechanics, Pipelines& pipelines)
   CE::Descriptor::createSetLayout(CE::Descriptor::setLayoutBindings);
   CE::Descriptor::createPool();
   CE::Descriptor::allocateSets();
-  CE::Descriptor::createSets(CE::Descriptor::sets,
+  CE::Descriptor::updateSets(CE::Descriptor::sets,
                              CE::Descriptor::descriptorWrites);
 }
 

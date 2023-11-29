@@ -217,14 +217,18 @@ class SynchronizationObjects {
  public:
   SynchronizationObjects() = default;
   ~SynchronizationObjects() { destroy(); };
-  void create();
-  void destroy();
+
   std::array<VkSemaphore, MAX_FRAMES_IN_FLIGHT> imageAvailableSemaphores{};
   std::array<VkSemaphore, MAX_FRAMES_IN_FLIGHT> renderFinishedSemaphores{};
   std::array<VkSemaphore, MAX_FRAMES_IN_FLIGHT> computeFinishedSemaphores{};
   std::array<VkFence, MAX_FRAMES_IN_FLIGHT> graphicsInFlightFences{};
   std::array<VkFence, MAX_FRAMES_IN_FLIGHT> computeInFlightFences{};
   uint32_t currentFrame = 0;
+
+protected:
+    void create();
+private:
+    void destroy();
 };
 
 class Swapchain {
@@ -260,6 +264,7 @@ class Swapchain {
       const std::vector<VkPresentModeKHR>& availablePresentModes);
   VkExtent2D pickExtent(GLFWwindow* window,
                         const VkSurfaceCapabilitiesKHR& capabilities);
+  uint32_t getImageCount( const Swapchain::SupportDetails& swapchainSupport);
 };
 
 // Resources
@@ -280,7 +285,7 @@ class Descriptor {
           layoutBindings);
   static void createPool();
   static void allocateSets();
-  static void createSets(
+  static void updateSets(
       const std::array<VkDescriptorSet, MAX_FRAMES_IN_FLIGHT>& sets,
       std::array<std::array<VkWriteDescriptorSet, NUM_DESCRIPTORS>,
                  MAX_FRAMES_IN_FLIGHT>& descriptorWrites);

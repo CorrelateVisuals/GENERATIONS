@@ -121,9 +121,9 @@ const std::vector<VkPhysicalDevice> CE::Device::fillDevices(
 }
 
 const bool CE::Device::isDeviceSuitable(const VkPhysicalDevice& physical,
-                                  Queues& queues,
-                                  const InitializeVulkan& initVulkan,
-                                  Swapchain& swapchain) {
+                                        Queues& queues,
+                                        const InitializeVulkan& initVulkan,
+                                        Swapchain& swapchain) {
   Log::text(Log::Style::charLeader, "Is Device Suitable");
 
   queues.familyIndices = queues.findQueueFamilies(physical, initVulkan.surface);
@@ -157,7 +157,8 @@ void CE::Device::getMaxUsableSampleCount() {
   return;
 }
 
-const bool CE::Device::checkDeviceExtensionSupport(const VkPhysicalDevice& physical) const {
+const bool CE::Device::checkDeviceExtensionSupport(
+    const VkPhysicalDevice& physical) const {
   Log::text(Log::Style::charLeader, "Check Device Extension Support");
   uint32_t extensionCount(0);
   vkEnumerateDeviceExtensionProperties(physical, nullptr, &extensionCount,
@@ -177,7 +178,7 @@ const bool CE::Device::checkDeviceExtensionSupport(const VkPhysicalDevice& physi
 }
 
 const uint32_t CE::findMemoryType(const uint32_t typeFilter,
-                            const VkMemoryPropertyFlags properties) {
+                                  const VkMemoryPropertyFlags properties) {
   VkPhysicalDeviceMemoryProperties memProperties{};
   vkGetPhysicalDeviceMemoryProperties(Device::baseDevice->physical,
                                       &memProperties);
@@ -585,11 +586,11 @@ void CE::Descriptor::allocateSets() {
                     &allocateInfo, sets.data());
 }
 
-void CE::Descriptor::createSets(
+void CE::Descriptor::updateSets(
     const std::array<VkDescriptorSet, MAX_FRAMES_IN_FLIGHT>& sets,
     std::array<std::array<VkWriteDescriptorSet, NUM_DESCRIPTORS>,
                MAX_FRAMES_IN_FLIGHT>& descriptorWrites) {
-  Log::text("{ |=| }", "Descriptor Sets");
+  Log::text("{ |=| }", "Update Descriptor Sets");
 
   for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
     for (auto& descriptor : descriptorWrites[i]) {
@@ -765,6 +766,16 @@ VkExtent2D CE::Swapchain::pickExtent(
   }
 }
 
+uint32_t CE::Swapchain::getImageCount(
+    const Swapchain::SupportDetails& swapchainSupport) {
+  uint32_t imageCount = swapchainSupport.capabilities.minImageCount;
+  if (swapchainSupport.capabilities.maxImageCount > 0 &&
+      imageCount > swapchainSupport.capabilities.maxImageCount) {
+    imageCount = swapchainSupport.capabilities.maxImageCount;
+  }
+  return imageCount;
+}
+
 void CE::Swapchain::destroy() {
   if (Device::baseDevice) {
     Log::text("{ <-> }", "Destroy Swapchain");
@@ -811,11 +822,7 @@ void CE::Swapchain::create(const VkSurfaceKHR& surface, const Queues& queues) {
   VkExtent2D extent =
       pickExtent(Window::get().window, supportDetails.capabilities);
 
-  uint32_t imageCount = swapchainSupport.capabilities.minImageCount;
-  if (swapchainSupport.capabilities.maxImageCount > 0 &&
-      imageCount > swapchainSupport.capabilities.maxImageCount) {
-    imageCount = swapchainSupport.capabilities.maxImageCount;
-  }
+  uint32_t imageCount = getImageCount(swapchainSupport);
 
   VkSwapchainCreateInfoKHR createInfo{
       .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
@@ -832,8 +839,6 @@ void CE::Swapchain::create(const VkSurfaceKHR& surface, const Queues& queues) {
       .presentMode = presentMode,
       .clipped = VK_TRUE};
 
-  // Queues::FamilyIndices indices = findQueueFamilies(device.physical,
-  // surface);
   std::vector<uint32_t> queueFamilyIndices{
       queues.familyIndices.graphicsAndComputeFamily.value(),
       queues.familyIndices.presentFamily.value()};

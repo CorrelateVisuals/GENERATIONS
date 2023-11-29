@@ -34,6 +34,6 @@ void VulkanMechanics::Swapchain::recreate(const VkSurfaceKHR& surface,
                                       resources.depthImage.view);
 
   resources.storageImage.createDescriptorWrite(images);
-  CE::Descriptor::createSets(CE::Descriptor::sets,
+  CE::Descriptor::updateSets(CE::Descriptor::sets,
                              CE::Descriptor::descriptorWrites);
 }
