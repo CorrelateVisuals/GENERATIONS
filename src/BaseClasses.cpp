@@ -1143,7 +1143,7 @@ void CE::PipelinesConfiguration::createPipelines(
         std::find(shaders.begin(), shaders.end(), "Comp") != shaders.end();
 
     if (!isCompute) [[likely]] {
-      Log::text("{ === }", "Graphics Pipeline: ", entry.first);
+      Log::text("{ === }", "Graphics Pipeline: ", pipelineName);
       std::variant<Graphics, Compute>& variant =
           this->pipelineMap[pipelineName];
 
@@ -1163,7 +1163,7 @@ void CE::PipelinesConfiguration::createPipelines(
         VkShaderStageFlagBits shaderStage{};
 
         if (shaderType.find(shaders[i]) != shaderType.end()) {
-          shaderName = entry.first + shaders[i];
+          shaderName = pipelineName + shaders[i];
           shaderStage = shaderType.at(shaders[i]);
         } else {
           shaderName = shaders[i];
@@ -1263,10 +1263,10 @@ void CE::PipelinesConfiguration::createPipelines(
                         &getPipelineObjectByName(pipelineName));
       destroyShaderModules();
     } else if (isCompute) {
-      Log::text("{ === }", "Compute  Pipeline: ", entry.first);
+      Log::text("{ === }", "Compute  Pipeline: ", pipelineName);
 
       VkPipelineShaderStageCreateInfo shaderStage{createShaderModules(
-          VK_SHADER_STAGE_COMPUTE_BIT, entry.first + shaders[0] + ".spv")};
+          VK_SHADER_STAGE_COMPUTE_BIT, pipelineName + shaders[0] + ".spv")};
 
       VkComputePipelineCreateInfo pipelineInfo{
           .sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
@@ -1329,9 +1329,9 @@ VkPipelineShaderStageCreateInfo CE::PipelinesConfiguration::createShaderModules(
 
 void CE::PipelinesConfiguration::compileShaders() {
   Log::text("{ GLSL }", "Compile Shaders");
-  std::string systemCommand = "";
-  std::string shaderExtension = "";
-  std::string pipelineName = "";
+  std::string systemCommand{};
+  std::string shaderExtension{};
+  std::string pipelineName{};
 
   for (const auto& entry : this->pipelineMap) {
     pipelineName = entry.first;
