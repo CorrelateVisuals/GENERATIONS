@@ -1157,6 +1157,7 @@ void CE::PipelinesConfiguration::createPipelines(
                         {"Tesc", VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT},
                         {"Tese", VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT},
                         {"Frag", VK_SHADER_STAGE_FRAGMENT_BIT}};
+      bool tesselationEnabled{false};
 
       for (uint32_t i = 0; i < shaders.size(); i++) {
         VkShaderStageFlagBits shaderStage{};
@@ -1175,6 +1176,13 @@ void CE::PipelinesConfiguration::createPipelines(
             }
           }
         }
+
+        if (!tesselationEnabled) {
+            tesselationEnabled = shaderStage == VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT
+                     ? true
+                     : false;
+        }
+
         shaderStages.push_back(
             createShaderModules(shaderStage, shaderName + ".spv"));
       }
@@ -1240,11 +1248,9 @@ void CE::PipelinesConfiguration::createPipelines(
           .subpass = 0,
           .basePipelineHandle = VK_NULL_HANDLE};
 
-      bool tesselationEnabled = entry.first == "LandscapeWireFrame";
-
+      VkPipelineTessellationStateCreateInfo tessellationStateInfo{
+          CE::tessellationStateDefault};
       if (tesselationEnabled) {
-        VkPipelineTessellationStateCreateInfo tessellationStateInfo{
-            CE::tessellationStateDefault};
         inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_PATCH_LIST;
         rasterization.polygonMode = VK_POLYGON_MODE_LINE;
         rasterization.lineWidth = 5.0f;
