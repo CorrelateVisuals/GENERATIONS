@@ -1144,54 +1144,17 @@ void CE::PipelinesConfiguration::createPipelines(
 
     if (!isCompute) [[likely]] {
       Log::text("{ === }", "Graphics Pipeline: ", pipelineName);
-      std::variant<Graphics, Compute>& variant =
+      std::variant<Graphics, Compute>& pipeline =
           this->pipelineMap[pipelineName];
 
       std::vector<VkPipelineShaderStageCreateInfo> shaderStages{};
-      std::string shaderName{};
-
-      const std::array<std::string_view, 5> possibleStages = {"Vert", "Tesc",
-                                                              "Tese", "Frag"};
-      const std::unordered_map<std::string_view, VkShaderStageFlagBits>
-          shaderType = {{"Vert", VK_SHADER_STAGE_VERTEX_BIT},
-                        {"Tesc", VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT},
-                        {"Tese", VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT},
-                        {"Frag", VK_SHADER_STAGE_FRAGMENT_BIT}};
-      bool tesselationEnabled{false};
-
-      for (uint32_t i = 0; i < shaders.size(); i++) {
-        VkShaderStageFlagBits shaderStage{};
-
-        if (shaderType.find(shaders[i]) != shaderType.end()) {
-          shaderName = pipelineName + shaders[i];
-          shaderStage = shaderType.at(shaders[i]);
-        } else {
-          shaderName = shaders[i];
-
-          for (const std::string_view& stage : possibleStages) {
-            size_t foundPosition = shaderName.find(stage);
-            if (foundPosition != std::string_view::npos) {
-              shaderStage = shaderType.at(stage);
-              break;
-            }
-          }
-        }
-
-        if (!tesselationEnabled) {
-            tesselationEnabled = shaderStage == VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT
-                     ? true
-                     : false;
-        }
-
-        shaderStages.push_back(
-            createShaderModules(shaderStage, shaderName + ".spv"));
-      }
+      bool tesselationEnabled = setShaderStages(pipelineName, shaderStages);
 
       const auto& bindingDescription =
-          std::get<CE::PipelinesConfiguration::Graphics>(variant)
+          std::get<CE::PipelinesConfiguration::Graphics>(pipeline)
               .vertexBindings;
       const auto& attributesDescription =
-          std::get<CE::PipelinesConfiguration::Graphics>(variant)
+          std::get<CE::PipelinesConfiguration::Graphics>(pipeline)
               .vertexAttributes;
       uint32_t bindingsSize = static_cast<uint32_t>(bindingDescription.size());
       uint32_t attributeSize =
@@ -1279,6 +1242,48 @@ void CE::PipelinesConfiguration::createPipelines(
       destroyShaderModules();
     }
   }
+}
+
+bool CE::PipelinesConfiguration::setShaderStages(
+    const std::string& pipelineName,
+    std::vector<VkPipelineShaderStageCreateInfo>& shaderStages) {
+  std::vector<std::string> shaders = getPipelineShadersByName(pipelineName);
+  std::string shaderName{};
+  const std::array<std::string_view, 5> possibleStages = {"Vert", "Tesc",
+                                                          "Tese", "Frag"};
+  const std::unordered_map<std::string_view, VkShaderStageFlagBits> shaderType =
+      {{"Vert", VK_SHADER_STAGE_VERTEX_BIT},
+       {"Tesc", VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT},
+       {"Tese", VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT},
+       {"Frag", VK_SHADER_STAGE_FRAGMENT_BIT}};
+  bool tesselationEnabled{false};
+
+  for (uint32_t i = 0; i < shaders.size(); i++) {
+    VkShaderStageFlagBits shaderStage{};
+
+    if (shaderType.find(shaders[i]) != shaderType.end()) {
+      shaderName = pipelineName + shaders[i];
+      shaderStage = shaderType.at(shaders[i]);
+    } else {
+      shaderName = shaders[i];
+
+      for (const std::string_view& stage : possibleStages) {
+        size_t foundPosition = shaderName.find(stage);
+        if (foundPosition != std::string_view::npos) {
+          shaderStage = shaderType.at(stage);
+          break;
+        }
+      }
+    }
+    if (!tesselationEnabled) {
+      tesselationEnabled =
+          shaderStage == VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT ? true
+                                                                  : false;
+    }
+    shaderStages.push_back(
+        createShaderModules(shaderStage, shaderName + ".spv"));
+  }
+  return tesselationEnabled;
 }
 
 std::vector<char> CE::PipelinesConfiguration::readShaderFile(
