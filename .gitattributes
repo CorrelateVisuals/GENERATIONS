@@ -1,1 +1,7 @@
-*.tox linguist-language=C++
+*.cpp linguist-language=C++
+*.h linguist-language=C++
+*.comp linguist-language=GLSL
+*.vert linguist-language=GLSL
+*.frag linguist-language=GLSL
+*.tesc linguist-language=GLSL
+*.tese linguist-language=GLSL
