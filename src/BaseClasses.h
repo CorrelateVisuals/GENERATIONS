@@ -76,7 +76,7 @@ class Device {
   void pickPhysicalDevice(const InitializeVulkan& initVulkan,
                           Queues& queues,
                           Swapchain& swapchain);
-  void createLogicalDevice(const InitializeVulkan& initVulkan, Queues& queues);
+  void createLogicalDevice(const InitializeVulkan& initVulkan, Queues& queues) ;
   void destroyDevice();
 
  private:
@@ -87,6 +87,7 @@ class Device {
   const VkDeviceCreateInfo getDeviceCreateInfo(
       const std::vector<VkDeviceQueueCreateInfo>& queueCreateInfos) const;
   void setValidationLayers(const InitializeVulkan& initVulkan, VkDeviceCreateInfo& createInfo);
+  std::vector<VkPhysicalDevice> fillDevices(const InitializeVulkan& initVulkan);
   bool isDeviceSuitable(const VkPhysicalDevice& physical,
                         Queues& queues,
                         const InitializeVulkan& initVulkan,

@@ -48,16 +48,7 @@ void CE::Device::pickPhysicalDevice(const InitializeVulkan& initVulkan,
                                     Queues& queues,
                                     Swapchain& swapchain) {
   Log::text("{ ### }", "Physical Device");
-  uint32_t deviceCount(0);
-  vkEnumeratePhysicalDevices(initVulkan.instance, &deviceCount, nullptr);
-
-  if (deviceCount == 0) {
-    throw std::runtime_error(
-        "\n!ERROR! failed to find GPUs with Vulkan support!");
-  }
-
-  std::vector<VkPhysicalDevice> devices(deviceCount);
-  vkEnumeratePhysicalDevices(initVulkan.instance, &deviceCount, devices.data());
+  std::vector<VkPhysicalDevice> devices = fillDevices(initVulkan);
 
   for (const auto& device : devices) {
     if (isDeviceSuitable(device, queues, initVulkan, swapchain)) {
@@ -106,12 +97,27 @@ const VkDeviceCreateInfo CE::Device::getDeviceCreateInfo(
 }
 
 void CE::Device::setValidationLayers(const InitializeVulkan& initVulkan,
-                                        VkDeviceCreateInfo& createInfo) {
+                                     VkDeviceCreateInfo& createInfo) {
   if (initVulkan.validation.enableValidationLayers) {
     createInfo.enabledLayerCount =
         static_cast<uint32_t>(initVulkan.validation.validation.size());
     createInfo.ppEnabledLayerNames = initVulkan.validation.validation.data();
   }
+}
+
+std::vector<VkPhysicalDevice> CE::Device::fillDevices(
+    const InitializeVulkan& initVulkan) {
+  uint32_t deviceCount(0);
+  vkEnumeratePhysicalDevices(initVulkan.instance, &deviceCount, nullptr);
+
+  if (deviceCount == 0) {
+    throw std::runtime_error(
+        "\n!ERROR! failed to find GPUs with Vulkan support!");
+  }
+
+  std::vector<VkPhysicalDevice> devices(deviceCount);
+  vkEnumeratePhysicalDevices(initVulkan.instance, &deviceCount, devices.data());
+  return devices;
 }
 
 bool CE::Device::isDeviceSuitable(const VkPhysicalDevice& physical,
