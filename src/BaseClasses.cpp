@@ -1144,17 +1144,17 @@ void CE::PipelinesConfiguration::createPipelines(
 
     if (!isCompute) [[likely]] {
       Log::text("{ === }", "Graphics Pipeline: ", pipelineName);
-      std::variant<Graphics, Compute>& pipeline =
+      std::variant<Graphics, Compute>& pipelineVariant =
           this->pipelineMap[pipelineName];
 
       std::vector<VkPipelineShaderStageCreateInfo> shaderStages{};
       bool tesselationEnabled = setShaderStages(pipelineName, shaderStages);
 
       const auto& bindingDescription =
-          std::get<CE::PipelinesConfiguration::Graphics>(pipeline)
+          std::get<CE::PipelinesConfiguration::Graphics>(pipelineVariant)
               .vertexBindings;
       const auto& attributesDescription =
-          std::get<CE::PipelinesConfiguration::Graphics>(pipeline)
+          std::get<CE::PipelinesConfiguration::Graphics>(pipelineVariant)
               .vertexAttributes;
       uint32_t bindingsSize = static_cast<uint32_t>(bindingDescription.size());
       uint32_t attributeSize =
