@@ -82,8 +82,8 @@ class Device {
  private:
   VkPhysicalDeviceProperties properties{};
   std::vector<const char*> extensions{VK_KHR_SWAPCHAIN_EXTENSION_NAME};
-  std::vector<VkDeviceQueueCreateInfo> fillQueueCreateInfos(
-      const Queues& queues);
+  const std::vector<VkDeviceQueueCreateInfo> fillQueueCreateInfos(
+      const Queues& queues) const;
   VkDeviceCreateInfo getDeviceCreateInfo(
       const std::vector<VkDeviceQueueCreateInfo>& queueCreateInfos);
   void setValidationLayers(const InitializeVulkan& initVulkan, VkDeviceCreateInfo& createInfo);

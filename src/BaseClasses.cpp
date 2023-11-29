@@ -73,8 +73,8 @@ void CE::Device::pickPhysicalDevice(const InitializeVulkan& initVulkan,
   }
 }
 
-std::vector<VkDeviceQueueCreateInfo> CE::Device::fillQueueCreateInfos(
-    const Queues& queues) {
+const std::vector<VkDeviceQueueCreateInfo> CE::Device::fillQueueCreateInfos(
+    const Queues& queues) const {
   std::vector<VkDeviceQueueCreateInfo> queueCreateInfos{};
   std::set<uint32_t> uniqueQueueFamilies = {
       queues.familyIndices.graphicsAndComputeFamily.value(),
