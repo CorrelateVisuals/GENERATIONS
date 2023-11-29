@@ -82,7 +82,11 @@ class Device {
  private:
   VkPhysicalDeviceProperties properties{};
   std::vector<const char*> extensions{VK_KHR_SWAPCHAIN_EXTENSION_NAME};
-
+  std::vector<VkDeviceQueueCreateInfo> fillQueueCreateInfos(
+      const Queues& queues);
+  VkDeviceCreateInfo getDeviceCreateInfo(
+      const std::vector<VkDeviceQueueCreateInfo>& queueCreateInfos);
+  void setValidationLayers(const InitializeVulkan& initVulkan, VkDeviceCreateInfo& createInfo);
   bool isDeviceSuitable(const VkPhysicalDevice& physical,
                         Queues& queues,
                         const InitializeVulkan& initVulkan,
@@ -358,7 +362,9 @@ class PipelinesConfiguration {
   void compileShaders();
 
  private:
-  bool setShaderStages(const std::string& pipelineName, std::vector<VkPipelineShaderStageCreateInfo>& shaderStages);
+  bool setShaderStages(
+      const std::string& pipelineName,
+      std::vector<VkPipelineShaderStageCreateInfo>& shaderStages);
   std::vector<char> readShaderFile(const std::string& filename);
   VkPipelineShaderStageCreateInfo createShaderModules(
       VkShaderStageFlagBits shaderStage,

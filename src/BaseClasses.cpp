@@ -27,39 +27,13 @@ void CE::Device::createLogicalDevice(const InitializeVulkan& initVulkan,
                                      Queues& queues) {
   Log::text("{ +++ }", "Logical Device");
 
-  std::vector<VkDeviceQueueCreateInfo> queueCreateInfos{};
-  std::set<uint32_t> uniqueQueueFamilies = {
-      queues.familyIndices.graphicsAndComputeFamily.value(),
-      queues.familyIndices.presentFamily.value()};
-
-  float queuePriority = 1.0f;
-  for (uint_fast8_t queueFamily : uniqueQueueFamilies) {
-    VkDeviceQueueCreateInfo queueCreateInfo{
-        .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
-        .queueFamilyIndex = queueFamily,
-        .queueCount = 1,
-        .pQueuePriorities = &queuePriority};
-    queueCreateInfos.push_back(queueCreateInfo);
-  }
-
-  VkDeviceCreateInfo createInfo{
-      .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
-      .queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size()),
-      .pQueueCreateInfos = queueCreateInfos.data(),
-      .enabledLayerCount = 0,
-      .enabledExtensionCount = static_cast<uint32_t>(this->extensions.size()),
-      .ppEnabledExtensionNames = this->extensions.data(),
-      .pEnabledFeatures = &this->features};
-
-  if (initVulkan.validation.enableValidationLayers) {
-    createInfo.enabledLayerCount =
-        static_cast<uint32_t>(initVulkan.validation.validation.size());
-    createInfo.ppEnabledLayerNames = initVulkan.validation.validation.data();
-  }
+  std::vector<VkDeviceQueueCreateInfo> queueCreateInfos =
+      fillQueueCreateInfos(queues);
+  VkDeviceCreateInfo createInfo = getDeviceCreateInfo(queueCreateInfos);
+  setValidationLayers(initVulkan, createInfo);
 
   CE::VULKAN_RESULT(vkCreateDevice, this->physical, &createInfo, nullptr,
                     &this->logical);
-
   vkGetDeviceQueue(this->logical,
                    queues.familyIndices.graphicsAndComputeFamily.value(), 0,
                    &queues.graphics);
@@ -96,6 +70,47 @@ void CE::Device::pickPhysicalDevice(const InitializeVulkan& initVulkan,
   }
   if (this->physical == VK_NULL_HANDLE) {
     throw std::runtime_error("\n!ERROR! failed to find a suitable GPU!");
+  }
+}
+
+std::vector<VkDeviceQueueCreateInfo> CE::Device::fillQueueCreateInfos(
+    const Queues& queues) {
+  std::vector<VkDeviceQueueCreateInfo> queueCreateInfos{};
+  std::set<uint32_t> uniqueQueueFamilies = {
+      queues.familyIndices.graphicsAndComputeFamily.value(),
+      queues.familyIndices.presentFamily.value()};
+
+  float queuePriority = 1.0f;
+  for (uint_fast8_t queueFamily : uniqueQueueFamilies) {
+    VkDeviceQueueCreateInfo queueCreateInfo{
+        .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+        .queueFamilyIndex = queueFamily,
+        .queueCount = 1,
+        .pQueuePriorities = &queuePriority};
+    queueCreateInfos.push_back(queueCreateInfo);
+  }
+  return queueCreateInfos;
+}
+
+VkDeviceCreateInfo CE::Device::getDeviceCreateInfo(
+    const std::vector<VkDeviceQueueCreateInfo>& queueCreateInfos) {
+  VkDeviceCreateInfo createInfo{
+      .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+      .queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size()),
+      .pQueueCreateInfos = queueCreateInfos.data(),
+      .enabledLayerCount = 0,
+      .enabledExtensionCount = static_cast<uint32_t>(this->extensions.size()),
+      .ppEnabledExtensionNames = this->extensions.data(),
+      .pEnabledFeatures = &this->features};
+  return createInfo;
+}
+
+void CE::Device::setValidationLayers(const InitializeVulkan& initVulkan,
+                                        VkDeviceCreateInfo& createInfo) {
+  if (initVulkan.validation.enableValidationLayers) {
+    createInfo.enabledLayerCount =
+        static_cast<uint32_t>(initVulkan.validation.validation.size());
+    createInfo.ppEnabledLayerNames = initVulkan.validation.validation.data();
   }
 }
 
