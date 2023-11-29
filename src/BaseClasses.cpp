@@ -105,8 +105,8 @@ void CE::Device::setValidationLayers(const InitializeVulkan& initVulkan,
   }
 }
 
-std::vector<VkPhysicalDevice> CE::Device::fillDevices(
-    const InitializeVulkan& initVulkan) {
+const std::vector<VkPhysicalDevice> CE::Device::fillDevices(
+    const InitializeVulkan& initVulkan) const {
   uint32_t deviceCount(0);
   vkEnumeratePhysicalDevices(initVulkan.instance, &deviceCount, nullptr);
 
@@ -120,7 +120,7 @@ std::vector<VkPhysicalDevice> CE::Device::fillDevices(
   return devices;
 }
 
-bool CE::Device::isDeviceSuitable(const VkPhysicalDevice& physical,
+const bool CE::Device::isDeviceSuitable(const VkPhysicalDevice& physical,
                                   Queues& queues,
                                   const InitializeVulkan& initVulkan,
                                   Swapchain& swapchain) {
@@ -136,9 +136,6 @@ bool CE::Device::isDeviceSuitable(const VkPhysicalDevice& physical,
     swapchainAdequate = !swapchainSupport.formats.empty() &&
                         !swapchainSupport.presentModes.empty();
   }
-  // VkPhysicalDeviceFeatures supportedFeatures;
-  // vkGetPhysicalDeviceFeatures(mainDevice.physical, &supportedFeatures);
-  //&& supportedFeatures.samplerAnisotropy
   return queues.familyIndices.isComplete() && extensionsSupported &&
          swapchainAdequate;
 }
@@ -160,7 +157,7 @@ void CE::Device::getMaxUsableSampleCount() {
   return;
 }
 
-bool CE::Device::checkDeviceExtensionSupport(const VkPhysicalDevice& physical) {
+const bool CE::Device::checkDeviceExtensionSupport(const VkPhysicalDevice& physical) const {
   Log::text(Log::Style::charLeader, "Check Device Extension Support");
   uint32_t extensionCount(0);
   vkEnumerateDeviceExtensionProperties(physical, nullptr, &extensionCount,
@@ -179,7 +176,7 @@ bool CE::Device::checkDeviceExtensionSupport(const VkPhysicalDevice& physical) {
   return requiredExtensions.empty();
 }
 
-uint32_t CE::findMemoryType(const uint32_t typeFilter,
+const uint32_t CE::findMemoryType(const uint32_t typeFilter,
                             const VkMemoryPropertyFlags properties) {
   VkPhysicalDeviceMemoryProperties memProperties{};
   vkGetPhysicalDeviceMemoryProperties(Device::baseDevice->physical,
@@ -193,8 +190,6 @@ uint32_t CE::findMemoryType(const uint32_t typeFilter,
   }
   throw std::runtime_error("\n!ERROR! failed to find suitable memory type!");
 }
-
-CE::Buffer::Buffer() : buffer{}, memory{}, mapped{} {}
 
 CE::Buffer::~Buffer() {
   if (Device::baseDevice) {
@@ -278,8 +273,6 @@ void CE::Buffer::copyToImage(const VkBuffer& buffer,
                          VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
   CE::CommandBuffers::endSingularCommands(commandPool, queue);
 }
-
-CE::Image::Image() : image{}, memory{}, view{}, sampler{} {}
 
 void CE::Image::destroyVulkanImages() {
   if (Device::baseDevice && this->memory) {

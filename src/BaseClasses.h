@@ -76,7 +76,7 @@ class Device {
   void pickPhysicalDevice(const InitializeVulkan& initVulkan,
                           Queues& queues,
                           Swapchain& swapchain);
-  void createLogicalDevice(const InitializeVulkan& initVulkan, Queues& queues) ;
+  void createLogicalDevice(const InitializeVulkan& initVulkan, Queues& queues);
   void destroyDevice();
 
  private:
@@ -86,14 +86,17 @@ class Device {
       const Queues& queues) const;
   const VkDeviceCreateInfo getDeviceCreateInfo(
       const std::vector<VkDeviceQueueCreateInfo>& queueCreateInfos) const;
-  void setValidationLayers(const InitializeVulkan& initVulkan, VkDeviceCreateInfo& createInfo);
-  std::vector<VkPhysicalDevice> fillDevices(const InitializeVulkan& initVulkan);
-  bool isDeviceSuitable(const VkPhysicalDevice& physical,
-                        Queues& queues,
-                        const InitializeVulkan& initVulkan,
-                        Swapchain& swapchain);
+  void setValidationLayers(const InitializeVulkan& initVulkan,
+                           VkDeviceCreateInfo& createInfo);
+  const std::vector<VkPhysicalDevice> fillDevices(
+      const InitializeVulkan& initVulkan) const;
+  const bool isDeviceSuitable(const VkPhysicalDevice& physical,
+                              Queues& queues,
+                              const InitializeVulkan& initVulkan,
+                              Swapchain& swapchain);
   void getMaxUsableSampleCount();
-  bool checkDeviceExtensionSupport(const VkPhysicalDevice& physical);
+  const bool checkDeviceExtensionSupport(
+      const VkPhysicalDevice& physical) const;
   static std::vector<VkDevice> destroyedDevices;
 };
 
@@ -130,7 +133,7 @@ class Buffer {
   VkDeviceMemory memory{};
   void* mapped{};
 
-  Buffer();
+  Buffer() = default;
   virtual ~Buffer();
   static void create(const VkDeviceSize& size,
                      const VkBufferUsageFlags& usage,
@@ -173,8 +176,9 @@ class Image {
                          .pQueueFamilyIndices = nullptr,
                          .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED};
 
-  Image();
+  Image() = default;
   virtual ~Image() { destroyVulkanImages(); };
+
   void create(const uint32_t width,
               const uint32_t height,
               const VkSampleCountFlagBits numSamples,
@@ -182,10 +186,13 @@ class Image {
               const VkImageTiling tiling,
               const VkImageUsageFlags& usage,
               const VkMemoryPropertyFlags& properties);
-  void destroyVulkanImages();
   void recreate() { this->destroyVulkanImages(); };
   void createView(const VkImageAspectFlags aspectFlags);
   void createSampler();
+  void createResources(const VkExtent2D& dimensions,
+                       const VkFormat format,
+                       const VkImageUsageFlags usage,
+                       const VkImageAspectFlagBits aspect);
   void transitionLayout(const VkCommandBuffer& commandBuffer,
                         const VkFormat format,
                         const VkImageLayout oldLayout,
@@ -196,13 +203,14 @@ class Image {
                    const VkCommandPool& commandPool,
                    const VkQueue& queue);
   static VkFormat findDepthFormat();
+
+ protected:
   static VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates,
                                       const VkImageTiling tiling,
                                       const VkFormatFeatureFlags& features);
-  void createResources(const VkExtent2D& dimensions,
-                       const VkFormat format,
-                       const VkImageUsageFlags usage,
-                       const VkImageAspectFlagBits aspect);
+
+ private:
+  void destroyVulkanImages();
 };
 
 class SynchronizationObjects {
@@ -376,8 +384,8 @@ class PipelinesConfiguration {
 template <typename Checkresult, typename... Args>
 static void VULKAN_RESULT(Checkresult vkResult, Args&&... args);
 
-static uint32_t findMemoryType(const uint32_t typeFilter,
-                               const VkMemoryPropertyFlags properties);
+static const uint32_t findMemoryType(const uint32_t typeFilter,
+                                     const VkMemoryPropertyFlags properties);
 
 // Pipeline Presets
 constexpr static inline VkPipelineRasterizationStateCreateInfo
