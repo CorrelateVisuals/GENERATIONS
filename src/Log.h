@@ -12,6 +12,8 @@
 namespace Log {
 const enum LogLevel { LOG_OFF, LOG_MINIMIAL, LOG_MODERATE, LOG_DETAILED };
 static uint8_t logLevel = LOG_MINIMIAL;
+extern std::ofstream logFile;
+extern std::string previousTime;
 
 struct Style {
   static std::string charLeader;
@@ -22,9 +24,6 @@ struct Style {
 };
 void logTitle();
 void logFooter();
-
-extern std::ofstream logFile;
-extern std::string previousTime;
 
 template <class T, class... Ts>
 void text(const T& first, const Ts&... inputs);

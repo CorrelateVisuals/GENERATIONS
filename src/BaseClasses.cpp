@@ -1266,7 +1266,7 @@ void CE::PipelinesConfiguration::createPipelines(
 
 bool CE::PipelinesConfiguration::setShaderStages(
     const std::string& pipelineName,
-    std::vector<VkPipelineShaderStageCreateInfo>& shaderStages) const {
+    std::vector<VkPipelineShaderStageCreateInfo>& shaderStages) {
   std::vector<std::string> shaders = getPipelineShadersByName(pipelineName);
   std::string shaderName{};
   const std::array<std::string_view, 5> possibleStages = {"Vert", "Tesc",

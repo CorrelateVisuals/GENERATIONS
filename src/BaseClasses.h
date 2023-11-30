@@ -384,7 +384,7 @@ class PipelinesConfiguration {
  private:
   bool setShaderStages(
       const std::string& pipelineName,
-      std::vector<VkPipelineShaderStageCreateInfo>& shaderStages) const;
+      std::vector<VkPipelineShaderStageCreateInfo>& shaderStages);
   std::vector<char> readShaderFile(const std::string& filename);
   VkPipelineShaderStageCreateInfo createShaderModules(
       VkShaderStageFlagBits shaderStage,
