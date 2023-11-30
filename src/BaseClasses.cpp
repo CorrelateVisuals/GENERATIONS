@@ -873,9 +873,9 @@ void CE::Swapchain::create(const VkSurfaceKHR& surface, const Queues& queues) {
   };
 }
 
-CE::Queues::FamilyIndices CE::Queues::findQueueFamilies(
+const CE::Queues::FamilyIndices CE::Queues::findQueueFamilies(
     const VkPhysicalDevice& physicalDevice,
-    const VkSurfaceKHR& surface) {
+    const VkSurfaceKHR& surface) const {
   Log::text(Log::Style::charLeader, "Find Queue Families");
 
   CE::Queues::FamilyIndices indices{};
@@ -1013,7 +1013,7 @@ void CE::InitializeVulkan::createSurface(GLFWwindow* window) {
                     &this->surface);
 }
 
-std::vector<const char*> CE::InitializeVulkan::getRequiredExtensions() {
+ std::vector<const char*> CE::InitializeVulkan::getRequiredExtensions() const {
   uint32_t glfwExtensionCount(0);
   const char** glfwExtensions;
   glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
