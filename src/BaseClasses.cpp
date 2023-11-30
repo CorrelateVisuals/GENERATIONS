@@ -610,7 +610,7 @@ CE::CommandBuffers::~CommandBuffers() {
 };
 
 void CE::CommandBuffers::createPool(
-    const Queues::FamilyIndices& familyIndices) const {
+    const Queues::FamilyIndices& familyIndices) {
   Log::text("{ cmd }", "Command Pool");
 
   VkCommandPoolCreateInfo poolInfo{
@@ -906,7 +906,7 @@ CE::Queues::FamilyIndices CE::Queues::findQueueFamilies(
   return indices;
 }
 
-void CE::SynchronizationObjects::create()const {
+void CE::SynchronizationObjects::create() {
   Log::text("{ ||| }", "Sync Objects");
 
   VkSemaphoreCreateInfo semaphoreInfo{

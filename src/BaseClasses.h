@@ -124,7 +124,7 @@ class CommandBuffers {
                                            const uint32_t imageIndex) = 0;
 
  protected:
-  void createPool(const Queues::FamilyIndices& familyIndices) const;
+  void createPool(const Queues::FamilyIndices& familyIndices);
   void createBuffers(
       std::array<VkCommandBuffer, MAX_FRAMES_IN_FLIGHT>& commandBuffers) const;
 };
@@ -228,7 +228,7 @@ class SynchronizationObjects {
   uint32_t currentFrame = 0;
 
 protected:
-    void create() const;
+    void create();
 private:
     void destroy() const;
 };
