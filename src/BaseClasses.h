@@ -82,6 +82,8 @@ class Device {
  private:
   VkPhysicalDeviceProperties properties{};
   std::vector<const char*> extensions{VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+  static std::vector<VkDevice> destroyedDevices;
+
   const std::vector<VkDeviceQueueCreateInfo> fillQueueCreateInfos(
       const Queues& queues) const;
   const VkDeviceCreateInfo getDeviceCreateInfo(
@@ -97,7 +99,7 @@ class Device {
   void getMaxUsableSampleCount();
   const bool checkDeviceExtensionSupport(
       const VkPhysicalDevice& physical) const;
-  static std::vector<VkDevice> destroyedDevices;
+
 };
 
 class CommandBuffers {
@@ -122,9 +124,9 @@ class CommandBuffers {
                                            const uint32_t imageIndex) = 0;
 
  protected:
-  void createPool(const Queues::FamilyIndices& familyIndices);
+  void createPool(const Queues::FamilyIndices& familyIndices) const;
   void createBuffers(
-      std::array<VkCommandBuffer, MAX_FRAMES_IN_FLIGHT>& commandBuffers);
+      std::array<VkCommandBuffer, MAX_FRAMES_IN_FLIGHT>& commandBuffers) const;
 };
 
 class Buffer {
@@ -202,15 +204,15 @@ class Image {
                    VkCommandBuffer& commandBuffer,
                    const VkCommandPool& commandPool,
                    const VkQueue& queue);
-  static VkFormat findDepthFormat();
+  static const VkFormat findDepthFormat();
 
  protected:
-  static VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates,
+  static const VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates,
                                       const VkImageTiling tiling,
                                       const VkFormatFeatureFlags& features);
 
  private:
-  void destroyVulkanImages();
+  void destroyVulkanImages() const;
 };
 
 class SynchronizationObjects {
@@ -226,9 +228,9 @@ class SynchronizationObjects {
   uint32_t currentFrame = 0;
 
 protected:
-    void create();
+    void create() const;
 private:
-    void destroy();
+    void destroy() const;
 };
 
 class Swapchain {
@@ -247,7 +249,7 @@ class Swapchain {
 
   Swapchain() = default;
   virtual ~Swapchain() { destroy(); };
-  SupportDetails checkSupport(const VkPhysicalDevice& physicalDevice,
+  const SupportDetails checkSupport(const VkPhysicalDevice& physicalDevice,
                               const VkSurfaceKHR& surface);
 
  protected:
@@ -258,13 +260,13 @@ class Swapchain {
 
  private:
   void destroy();
-  VkSurfaceFormatKHR pickSurfaceFormat(
-      const std::vector<VkSurfaceFormatKHR>& availableFormats);
-  VkPresentModeKHR pickPresentMode(
-      const std::vector<VkPresentModeKHR>& availablePresentModes);
-  VkExtent2D pickExtent(GLFWwindow* window,
-                        const VkSurfaceCapabilitiesKHR& capabilities);
-  uint32_t getImageCount( const Swapchain::SupportDetails& swapchainSupport);
+  const VkSurfaceFormatKHR pickSurfaceFormat(
+      const std::vector<VkSurfaceFormatKHR>& availableFormats) const;
+  const VkPresentModeKHR pickPresentMode(
+      const std::vector<VkPresentModeKHR>& availablePresentModes) const;
+  const VkExtent2D pickExtent(GLFWwindow* window,
+                        const VkSurfaceCapabilitiesKHR& capabilities) const;
+  const uint32_t getImageCount( const Swapchain::SupportDetails& swapchainSupport) const;
 };
 
 // Resources

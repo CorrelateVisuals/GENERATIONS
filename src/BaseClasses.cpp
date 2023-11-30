@@ -275,7 +275,7 @@ void CE::Buffer::copyToImage(const VkBuffer& buffer,
   CE::CommandBuffers::endSingularCommands(commandPool, queue);
 }
 
-void CE::Image::destroyVulkanImages() {
+void CE::Image::destroyVulkanImages() const {
   if (Device::baseDevice && this->memory) {
     if (this->sampler != VK_NULL_HANDLE) {
       vkDestroySampler(Device::baseDevice->logical, this->sampler, nullptr);
@@ -459,16 +459,16 @@ void CE::Image::loadTexture(const std::string& imagePath,
   CommandBuffers::endSingularCommands(commandPool, queue);
 }
 
-VkFormat CE::Image::findDepthFormat() {
+const VkFormat CE::Image::findDepthFormat() {
   return findSupportedFormat(
       {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT,
        VK_FORMAT_D24_UNORM_S8_UINT},
       VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
 }
 
-VkFormat CE::Image::findSupportedFormat(const std::vector<VkFormat>& candidates,
+const VkFormat CE::Image::findSupportedFormat(const std::vector<VkFormat>& candidates,
                                         const VkImageTiling tiling,
-                                        const VkFormatFeatureFlags& features) {
+                                        const VkFormatFeatureFlags& features)  {
   for (VkFormat format : candidates) {
     VkFormatProperties props{};
     vkGetPhysicalDeviceFormatProperties(Device::baseDevice->physical, format,
@@ -610,7 +610,7 @@ CE::CommandBuffers::~CommandBuffers() {
 };
 
 void CE::CommandBuffers::createPool(
-    const Queues::FamilyIndices& familyIndices) {
+    const Queues::FamilyIndices& familyIndices) const {
   Log::text("{ cmd }", "Command Pool");
 
   VkCommandPoolCreateInfo poolInfo{
@@ -659,7 +659,7 @@ void CE::CommandBuffers::endSingularCommands(const VkCommandPool& commandPool,
 }
 
 void CE::CommandBuffers::createBuffers(
-    std::array<VkCommandBuffer, MAX_FRAMES_IN_FLIGHT>& commandBuffers) {
+    std::array<VkCommandBuffer, MAX_FRAMES_IN_FLIGHT>& commandBuffers) const {
   Log::text("{ cmd }", "Command Buffers:", MAX_FRAMES_IN_FLIGHT);
   VkCommandBufferAllocateInfo allocateInfo{
       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
@@ -687,7 +687,7 @@ void CE::Device::destroyDevice() {
   }
 }
 
-CE::Swapchain::SupportDetails CE::Swapchain::checkSupport(
+const CE::Swapchain::SupportDetails CE::Swapchain::checkSupport(
     const VkPhysicalDevice& physicalDevice,
     const VkSurfaceKHR& surface) {
   Log::text(Log::Style::charLeader, "Query Swap Chain Support");
@@ -717,8 +717,8 @@ CE::Swapchain::SupportDetails CE::Swapchain::checkSupport(
   }
 }
 
-VkSurfaceFormatKHR CE::Swapchain::pickSurfaceFormat(
-    const std::vector<VkSurfaceFormatKHR>& availableFormats) {
+const VkSurfaceFormatKHR CE::Swapchain::pickSurfaceFormat(
+    const std::vector<VkSurfaceFormatKHR>& availableFormats)const {
   Log::text(Log::Style::charLeader, "Choose Swap Surface Format");
 
   for (const auto& availableFormat : availableFormats) {
@@ -730,8 +730,8 @@ VkSurfaceFormatKHR CE::Swapchain::pickSurfaceFormat(
   return availableFormats[0];
 }
 
-VkPresentModeKHR CE::Swapchain::pickPresentMode(
-    const std::vector<VkPresentModeKHR>& availablePresentModes) {
+const VkPresentModeKHR CE::Swapchain::pickPresentMode(
+    const std::vector<VkPresentModeKHR>& availablePresentModes) const  {
   Log::text(Log::Style::charLeader, "Choose Swap Present Mode");
   for (const auto& availablePresentMode : availablePresentModes) {
     if (availablePresentMode == VK_PRESENT_MODE_FIFO_KHR) {
@@ -741,9 +741,9 @@ VkPresentModeKHR CE::Swapchain::pickPresentMode(
   return VK_PRESENT_MODE_MAILBOX_KHR;
 }
 
-VkExtent2D CE::Swapchain::pickExtent(
+const VkExtent2D CE::Swapchain::pickExtent(
     GLFWwindow* window,
-    const VkSurfaceCapabilitiesKHR& capabilities) {
+    const VkSurfaceCapabilitiesKHR& capabilities) const  {
   Log::text(Log::Style::charLeader, "Choose Swap Extent");
 
   if (capabilities.currentExtent.width !=
@@ -766,8 +766,8 @@ VkExtent2D CE::Swapchain::pickExtent(
   }
 }
 
-uint32_t CE::Swapchain::getImageCount(
-    const Swapchain::SupportDetails& swapchainSupport) {
+const uint32_t CE::Swapchain::getImageCount(
+    const Swapchain::SupportDetails& swapchainSupport) const {
   uint32_t imageCount = swapchainSupport.capabilities.minImageCount;
   if (swapchainSupport.capabilities.maxImageCount > 0 &&
       imageCount > swapchainSupport.capabilities.maxImageCount) {
@@ -906,7 +906,7 @@ CE::Queues::FamilyIndices CE::Queues::findQueueFamilies(
   return indices;
 }
 
-void CE::SynchronizationObjects::create() {
+void CE::SynchronizationObjects::create()const {
   Log::text("{ ||| }", "Sync Objects");
 
   VkSemaphoreCreateInfo semaphoreInfo{
@@ -932,7 +932,7 @@ void CE::SynchronizationObjects::create() {
   }
 }
 
-void CE::SynchronizationObjects::destroy() {
+void CE::SynchronizationObjects::destroy() const {
   if (Device::baseDevice) {
     Log::text("{ ||| }", "Destroy Synchronization Objects");
     for (uint_fast8_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
