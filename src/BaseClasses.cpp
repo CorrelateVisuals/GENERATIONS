@@ -1266,7 +1266,7 @@ void CE::PipelinesConfiguration::createPipelines(
 
 bool CE::PipelinesConfiguration::setShaderStages(
     const std::string& pipelineName,
-    std::vector<VkPipelineShaderStageCreateInfo>& shaderStages) {
+    std::vector<VkPipelineShaderStageCreateInfo>& shaderStages) const {
   std::vector<std::string> shaders = getPipelineShadersByName(pipelineName);
   std::string shaderName{};
   const std::array<std::string_view, 5> possibleStages = {"Vert", "Tesc",
@@ -1392,8 +1392,8 @@ void CE::PipelinesConfiguration::destroyShaderModules() {
   this->shaderModules.resize(0);
 }
 
-std::vector<std::string>& CE::PipelinesConfiguration::getPipelineShadersByName(
-    const std::string& name) {
+const std::vector<std::string>&
+CE::PipelinesConfiguration::getPipelineShadersByName(const std::string& name) {
   std::variant<Graphics, Compute>& variant = this->pipelineMap[name];
 
   if (std::holds_alternative<Graphics>(variant)) {

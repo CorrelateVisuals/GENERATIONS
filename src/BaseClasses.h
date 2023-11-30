@@ -373,7 +373,8 @@ class PipelinesConfiguration {
                        const VkPipelineLayout& graphicsLayout,
                        const VkPipelineLayout& computeLayout,
                        VkSampleCountFlagBits& msaaSamples);
-  std::vector<std::string>& getPipelineShadersByName(const std::string& name);
+  const std::vector<std::string>& getPipelineShadersByName(
+      const std::string& name);
   VkPipeline& getPipelineObjectByName(const std::string& name);
   const std::array<uint32_t, 3>& getWorkGroupsByName(const std::string& name);
 
@@ -383,7 +384,7 @@ class PipelinesConfiguration {
  private:
   bool setShaderStages(
       const std::string& pipelineName,
-      std::vector<VkPipelineShaderStageCreateInfo>& shaderStages);
+      std::vector<VkPipelineShaderStageCreateInfo>& shaderStages) const;
   std::vector<char> readShaderFile(const std::string& filename);
   VkPipelineShaderStageCreateInfo createShaderModules(
       VkShaderStageFlagBits shaderStage,
