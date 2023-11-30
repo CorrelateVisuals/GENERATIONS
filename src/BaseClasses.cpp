@@ -466,9 +466,10 @@ const VkFormat CE::Image::findDepthFormat() {
       VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
 }
 
-const VkFormat CE::Image::findSupportedFormat(const std::vector<VkFormat>& candidates,
-                                        const VkImageTiling tiling,
-                                        const VkFormatFeatureFlags& features)  {
+const VkFormat CE::Image::findSupportedFormat(
+    const std::vector<VkFormat>& candidates,
+    const VkImageTiling tiling,
+    const VkFormatFeatureFlags& features) {
   for (VkFormat format : candidates) {
     VkFormatProperties props{};
     vkGetPhysicalDeviceFormatProperties(Device::baseDevice->physical, format,
@@ -718,7 +719,7 @@ const CE::Swapchain::SupportDetails CE::Swapchain::checkSupport(
 }
 
 const VkSurfaceFormatKHR CE::Swapchain::pickSurfaceFormat(
-    const std::vector<VkSurfaceFormatKHR>& availableFormats)const {
+    const std::vector<VkSurfaceFormatKHR>& availableFormats) const {
   Log::text(Log::Style::charLeader, "Choose Swap Surface Format");
 
   for (const auto& availableFormat : availableFormats) {
@@ -731,7 +732,7 @@ const VkSurfaceFormatKHR CE::Swapchain::pickSurfaceFormat(
 }
 
 const VkPresentModeKHR CE::Swapchain::pickPresentMode(
-    const std::vector<VkPresentModeKHR>& availablePresentModes) const  {
+    const std::vector<VkPresentModeKHR>& availablePresentModes) const {
   Log::text(Log::Style::charLeader, "Choose Swap Present Mode");
   for (const auto& availablePresentMode : availablePresentModes) {
     if (availablePresentMode == VK_PRESENT_MODE_FIFO_KHR) {
@@ -743,7 +744,7 @@ const VkPresentModeKHR CE::Swapchain::pickPresentMode(
 
 const VkExtent2D CE::Swapchain::pickExtent(
     GLFWwindow* window,
-    const VkSurfaceCapabilitiesKHR& capabilities) const  {
+    const VkSurfaceCapabilitiesKHR& capabilities) const {
   Log::text(Log::Style::charLeader, "Choose Swap Extent");
 
   if (capabilities.currentExtent.width !=
@@ -1013,7 +1014,7 @@ void CE::InitializeVulkan::createSurface(GLFWwindow* window) {
                     &this->surface);
 }
 
- std::vector<const char*> CE::InitializeVulkan::getRequiredExtensions() const {
+std::vector<const char*> CE::InitializeVulkan::getRequiredExtensions() const {
   uint32_t glfwExtensionCount(0);
   const char** glfwExtensions;
   glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
@@ -1115,7 +1116,7 @@ void CE::RenderPass::create(VkSampleCountFlagBits msaaImageSamples,
 
 void CE::RenderPass::createFramebuffers(CE::Swapchain& swapchain,
                                         const VkImageView& msaaView,
-                                        const VkImageView& depthView) {
+                                        const VkImageView& depthView) const {
   Log::text("{ 101 }", "Frame Buffers:", swapchain.images.size());
 
   Log::text(Log::Style::charLeader,

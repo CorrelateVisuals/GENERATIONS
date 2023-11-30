@@ -33,7 +33,7 @@ class Queues {
   struct FamilyIndices {
     std::optional<uint32_t> graphicsAndComputeFamily{};
     std::optional<uint32_t> presentFamily{};
-    bool isComplete() const {
+    const bool isComplete() const {
       return graphicsAndComputeFamily.has_value() && presentFamily.has_value();
     }
   };
@@ -42,7 +42,7 @@ class Queues {
   Queues() = default;
   virtual ~Queues() = default;
   const FamilyIndices findQueueFamilies(const VkPhysicalDevice& physicalDevice,
-                                  const VkSurfaceKHR& surface)const;
+                                        const VkSurfaceKHR& surface) const;
 };
 
 class InitializeVulkan {
@@ -57,7 +57,7 @@ class InitializeVulkan {
  private:
   void createInstance();
   void createSurface(GLFWwindow* window);
-   std::vector<const char*> getRequiredExtensions() const;
+  std::vector<const char*> getRequiredExtensions() const;
 };
 
 class Device {
@@ -99,7 +99,6 @@ class Device {
   void getMaxUsableSampleCount();
   const bool checkDeviceExtensionSupport(
       const VkPhysicalDevice& physical) const;
-
 };
 
 class CommandBuffers {
@@ -207,9 +206,10 @@ class Image {
   static const VkFormat findDepthFormat();
 
  protected:
-  static const VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates,
-                                      const VkImageTiling tiling,
-                                      const VkFormatFeatureFlags& features);
+  static const VkFormat findSupportedFormat(
+      const std::vector<VkFormat>& candidates,
+      const VkImageTiling tiling,
+      const VkFormatFeatureFlags& features);
 
  private:
   void destroyVulkanImages() const;
@@ -227,10 +227,11 @@ class SynchronizationObjects {
   std::array<VkFence, MAX_FRAMES_IN_FLIGHT> computeInFlightFences{};
   uint32_t currentFrame = 0;
 
-protected:
-    void create();
-private:
-    void destroy() const;
+ protected:
+  void create();
+
+ private:
+  void destroy() const;
 };
 
 class Swapchain {
@@ -250,7 +251,7 @@ class Swapchain {
   Swapchain() = default;
   virtual ~Swapchain() { destroy(); };
   const SupportDetails checkSupport(const VkPhysicalDevice& physicalDevice,
-                              const VkSurfaceKHR& surface);
+                                    const VkSurfaceKHR& surface);
 
  protected:
   void create(const VkSurfaceKHR& surface, const Queues& queues);
@@ -264,9 +265,11 @@ class Swapchain {
       const std::vector<VkSurfaceFormatKHR>& availableFormats) const;
   const VkPresentModeKHR pickPresentMode(
       const std::vector<VkPresentModeKHR>& availablePresentModes) const;
-  const VkExtent2D pickExtent(GLFWwindow* window,
-                        const VkSurfaceCapabilitiesKHR& capabilities) const;
-  const uint32_t getImageCount( const Swapchain::SupportDetails& swapchainSupport) const;
+  const VkExtent2D pickExtent(
+      GLFWwindow* window,
+      const VkSurfaceCapabilitiesKHR& capabilities) const;
+  const uint32_t getImageCount(
+      const Swapchain::SupportDetails& swapchainSupport) const;
 };
 
 // Resources
@@ -339,7 +342,7 @@ class RenderPass {
               VkFormat swapchainImageFormat);
   void createFramebuffers(CE::Swapchain& swapchain,
                           const VkImageView& msaaView,
-                          const VkImageView& depthView);
+                          const VkImageView& depthView) const;
 };
 
 class PipelinesConfiguration {
