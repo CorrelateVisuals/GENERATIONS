@@ -4,16 +4,16 @@
 #include <string>
 #include <vector>
 
-struct ivec2_fast16_t {
+struct uivec2_fast16_t {
   uint_fast16_t x;
   uint_fast16_t y;
 };
 
-struct uint_channels {
+struct ivec4 {
   int r, g, b, a;
 };
 
-struct float_channels {
+struct vec4 {
   float r, g, b, a;
 };
 

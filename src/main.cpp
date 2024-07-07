@@ -5,6 +5,8 @@
 
 int main() {
   Interface interface;
+
+  Comp test;
   // Log::text(interface.canvasses);
 
   // return EXIT_SUCCESS;

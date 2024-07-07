@@ -6,13 +6,12 @@
 #include "Library.h"
 #include "Log.h"
 
-using Chan = glm::ivec4;  // r g b a
-
 struct Settings {
-  Settings(ivec2_fast16_t r, Chan c = Chan(1, 1, 1, 1))
+  Settings(uivec2_fast16_t r = uivec2_fast16_t(1000, 1000),
+           ivec4 c = ivec4(1, 1, 1, 1))
       : resolution(r), channels(c) {}
-  ivec2_fast16_t resolution;
-  Chan channels;
+  uivec2_fast16_t resolution;
+  ivec4 channels;
 };
 
 struct Blend {
@@ -21,29 +20,55 @@ struct Blend {
 };
 
 struct Comp {
-  Comp(Settings s, Blend b) : settings(s), blend(b) {}
+  Comp(Settings s, ivec4 c, vec4 b, Blend bl)
+      : settings(s), channels(c), background(b), blend(bl) {
+    Log::text("\n!!!!!!", s.channels.a, s.resolution.x);
+  }
+  Comp()
+      : settings{uivec2_fast16_t(1000, 1000), ivec4(1, 1, 1, 1)},
+        channels{1, 1, 1, 1},
+        background{0.0f, 0.0f, 0.0f, 1.0f},
+        blend{} {
+    Log::text("Default constructor called\n");
+  }
   Settings settings;
+  ivec4 channels;
+  vec4 background;
   Blend blend;
-  // 2D 3D
+};
+
+struct Display : Comp {
+  Display(Settings s, ivec4 c, vec4 b, Blend bl) : Comp(s, c, b, bl) {}
+};
+
+struct Canvas : Comp {
+  Canvas(Settings s, ivec4 c, vec4 b, Blend bl) : Comp(s, c, b, bl) {}
 };
 
 class Interface {
  public:
   Interface()
-      : display(ivec2_fast16_t(1920, 1080)),
-        canvasses{{Comp(Settings(ivec2_fast16_t(1920, 1080), Chan(1, 1, 1, 1)),
-                        Blend{0, 1}),
-                   Comp(Settings(ivec2_fast16_t(1920, 1080), Chan(2, 2, 2, 2)),
-                        Blend{0, 1})}} {
+      : display(Settings(uivec2_fast16_t(1920, 1080), ivec4(1, 1, 1, 1)),
+                ivec4(1, 1, 1, 1),
+                vec4(0.0, 0.0, 0.0, 1.0),
+                Blend{0, 1}),
+        canvasses{Comp(Settings(uivec2_fast16_t(1920, 1080), ivec4(1, 1, 1, 1)),
+                       ivec4(1, 1, 1, 1),
+                       vec4(0.0, 0.0, 0.0, 1.0),
+                       Blend{0, 1}),
+                  Comp(Settings(uivec2_fast16_t(1920, 1080), ivec4(2, 2, 2, 2)),
+                       ivec4(2, 2, 2, 2),
+                       vec4(0.0, 0.0, 0.0, 1.0),
+                       Blend{0, 1})} {
     run();
   }
   ~Interface() {}
-  Settings display;
+  Display display;
   std::array<Comp, 2> canvasses;
 
   int run() { return 0; }
 
  private:
   int draw(std::string shape) { return 0; }
-  int canvas(glm::ivec2 resolution) { return 0; };
+  int canvas(glm::ivec2 resolution) { return 0; }
 };

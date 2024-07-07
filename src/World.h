@@ -34,7 +34,7 @@ class World {
   };
 
   struct Grid : public Geometry {
-    ivec2_fast16_t size = {100, 100};
+    uivec2_fast16_t size = {100, 100};
     const uint_fast32_t initialAliveCells = 5000;
     const size_t pointCount{size.x * size.y};
 
