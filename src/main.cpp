@@ -1,8 +1,14 @@
 #include "CapitalEngine.h"
+#include "Interface.h"
 
 #include <string>
 
 int main() {
+  Interface interface;
+  // Log::text(interface.canvasses);
+
+  // return EXIT_SUCCESS;
+
   try {
     CapitalEngine GENERATIONS;
     GENERATIONS.mainLoop();

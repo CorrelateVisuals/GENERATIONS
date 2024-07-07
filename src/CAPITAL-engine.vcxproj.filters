@@ -98,7 +98,7 @@
     <ClInclude Include="BaseClasses.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Application.h">
+    <ClInclude Include="Interface.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

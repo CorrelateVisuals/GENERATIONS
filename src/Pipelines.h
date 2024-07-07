@@ -33,7 +33,7 @@ class Pipelines {
                   const VkPipelineLayout& graphicsLayout,
                   const VkPipelineLayout& computeLayout,
                   VkSampleCountFlagBits& msaaSamples,
-                  const vec2_uint_fast16_t gridSize) {
+                  const ivec2_fast16_t gridSize) {
       pipelineMap["Engine"] = Compute{
           .shaders = {"Comp"},
           .workGroups = {static_cast<uint32_t>(gridSize.x + 31) / 32,
