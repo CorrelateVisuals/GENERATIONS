@@ -21,26 +21,40 @@ class CapitalEngine {
 
   class Control {
   public:
-
+	  /// Grid 
+	  /// Timer
+	  /// Behavior of cells
 	  };
+
+  class World {
+  public:
+	  /// Textures
+	  /// Geometry
+	  ///
+  };
 
   class Engine {
   public:
-
+	  /// Render
+	  ///	- Pipelines
+	  ///	- Shader traffic
   };
 
   class GUI {
   public:
+	  /// Display
   };
 
-  Control control;
-  Engine engine;
-  GUI gui;
+
 
  private:
   VulkanMechanics mechanics;
   Resources resources;
   Pipelines pipelines;
+
+  Control control;
+  Engine engine;
+  GUI gui;
 
   void drawFrame();
 };
