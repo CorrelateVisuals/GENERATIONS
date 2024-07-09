@@ -3,7 +3,7 @@
 #include "CapitalEngine.h"
 #include "Resources.h"
 
-Resources::Resources(VulkanMechanics& mechanics, Pipelines& pipelines)
+Resources::Resources(VulkanMechanics& mechanics, Pipelines& pipelines, Control& control)
     : commands{mechanics.queues.familyIndices},
       pushConstants{},
       depthImage{mechanics.swapchain.extent, CE::Image::findDepthFormat()},
@@ -15,7 +15,7 @@ Resources::Resources(VulkanMechanics& mechanics, Pipelines& pipelines)
               mechanics.queues.graphics},
       storageImage{mechanics.swapchain.images},
       world{commands.singularCommandBuffer, commands.pool,
-            mechanics.queues.graphics} {
+            mechanics.queues.graphics}, control(control) {
   Log::text(Log::Style::headerGuard);
   Log::text("{ /// }", "constructing Resources");
 
@@ -306,7 +306,8 @@ void Resources::Commands::recordComputeCommandBuffer(
                           pipelines.compute.layout, 0, 1,
                           &CE::Descriptor::sets[imageIndex], 0, nullptr);
 
-  resources.pushConstants.setData(resources.world.time.passedHours);
+
+  resources.pushConstants.setData(resources.control.time.passedHours);
 
   vkCmdPushConstants(
       commandBuffer, pipelines.compute.layout,
@@ -438,7 +439,8 @@ void Resources::Commands::recordGraphicsCommandBuffer(
                           pipelines.compute.layout, 0, 1,
                           &CE::Descriptor::sets[imageIndex], 0, nullptr);
 
-  resources.pushConstants.setData(resources.world.time.passedHours);
+  resources.pushConstants.setData(
+      resources.control.time.passedHours);
   vkCmdPushConstants(
       commandBuffer, pipelines.compute.layout,
       resources.pushConstants.shaderStage, resources.pushConstants.offset,

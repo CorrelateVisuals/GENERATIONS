@@ -4,6 +4,7 @@
 #include "Mechanics.h"
 #include "Pipelines.h"
 #include "World.h"
+#include "Interface.h"
 
 #include <array>
 #include <cstring>
@@ -13,8 +14,11 @@
 #include <vector>
 
 class Resources {
+public:
+    Control control;
+
  public:
-  Resources(VulkanMechanics& mechanics, Pipelines& pipelines);
+  Resources(VulkanMechanics& mechanics, Pipelines& pipelines, Control& control);
   ~Resources();
 
   struct Commands : public CE::CommandBuffers {
@@ -98,4 +102,6 @@ class Resources {
       data.fill(0);
     }
   } pushConstants;
+
+
 };

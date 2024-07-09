@@ -1,7 +1,7 @@
 #include "CapitalEngine.h"
 
 CapitalEngine::CapitalEngine()
-    : pipelines(mechanics, resources), resources(mechanics, pipelines) {
+    : pipelines(mechanics, resources), resources(mechanics, pipelines, control) {
   Log::text(Log::Style::headerGuard);
   Log::text("| CAPITAL Engine");
 }
