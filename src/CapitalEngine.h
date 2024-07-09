@@ -12,6 +12,9 @@
 #include "Pipelines.h"
 #include "Resources.h"
 
+// temp
+#include "Timer.h"
+
 class CapitalEngine {
  public:
   CapitalEngine();
@@ -21,6 +24,8 @@ class CapitalEngine {
 
   class Control {
   public:
+	  float speed = 25.0f;
+	  Timer time{ speed };
 	  /// - Grid
 	  /// - Timer
 	  /// - Mouse & keyboard
