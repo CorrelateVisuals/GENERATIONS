@@ -21,28 +21,31 @@ class CapitalEngine {
 
   class Control {
   public:
-	  /// - Grid 
+	  /// - Grid
 	  /// - Timer
-	  /// - Behavior of cells
-	  /// - Resources
-	  /// - Mouse
-	  /// - Camera
-	  /// - Keyboard
+	  /// - Mouse & keyboard
+	  /// - Camer/light controls
+	  /// - Assets (Resources)
+	  ///	+ Textures
+	  ///	+ Data
 	  };
 
   class World {
   public:
-	  /// Textures
-	  /// Geometry
-	  ///	- Terrain
-	  ///	- Shapes
+	  /// Geometries
+	  ///	- Terrain (singular)
+	  ///	- Shapes  (can be instanced)
+	  ///	- Shapees ...
+	  /// Camera(s)
+	  /// Light(s)
   };
 
   class Engine {
   public:
 	  /// Render
-	  ///	- Pipelines
-	  ///	- Shader traffic
+	  ///	- Pipelines and Resources
+	  ///	- Shaders
+	  ///		+ descriptors
 	  ///		+ make and configure shader input, output and order.
 	  ///			- with the purpose to take these modular shaders and rearrange and change them for various visual effects
   };
@@ -51,6 +54,7 @@ class CapitalEngine {
   public:
 	  /// Window
   };
+
 
  private:
   VulkanMechanics mechanics;

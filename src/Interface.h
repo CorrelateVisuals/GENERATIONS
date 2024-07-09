@@ -27,14 +27,14 @@ struct Blend {
 struct Comp {
   Comp(Settings s, ivec4 c, vec4 b, Blend bl)
       : settings(s), channels(c), background(b), blend(bl) {
-    Log::text("\n!!!!!!", s.channels.a, s.resolution.x);
+    //Log::text("\n!!!!!!", s.channels.a, s.resolution.x);
   }
   Comp()
       : settings{uivec2_fast16_t(1000, 1000), ivec4(1, 1, 1, 1)},
         channels{1, 1, 1, 1},
         background{0.0f, 0.0f, 0.0f, 1.0f},
         blend{} {
-    Log::text("Default constructor called\n");
+    //Log::text("Default constructor called\n");
   }
   Settings settings;
   ivec4 channels;
