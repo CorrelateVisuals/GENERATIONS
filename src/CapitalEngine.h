@@ -19,6 +19,24 @@ class CapitalEngine {
 
   void mainLoop();
 
+  class Control {
+  public:
+
+	  };
+
+  class Engine {
+  public:
+
+  };
+
+  class GUI {
+  public:
+  };
+
+  Control control;
+  Engine engine;
+  GUI gui;
+
  private:
   VulkanMechanics mechanics;
   Resources resources;

@@ -6,6 +6,11 @@
 #include "Library.h"
 #include "Log.h"
 
+enum class Content {
+    SCENE_001,
+    SCENE_002
+};
+
 struct Settings {
   Settings(uivec2_fast16_t r = uivec2_fast16_t(1000, 1000),
            ivec4 c = ivec4(1, 1, 1, 1))
@@ -72,3 +77,5 @@ class Interface {
   int draw(std::string shape) { return 0; }
   int canvas(glm::ivec2 resolution) { return 0; }
 };
+
+
