@@ -15,7 +15,7 @@
 
 class Resources {
 public:
-    Control control;
+    Control& control;
 
  public:
   Resources(VulkanMechanics& mechanics, Pipelines& pipelines, Control& control);
