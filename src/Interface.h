@@ -4,11 +4,18 @@
 #include "glm/glm.hpp"
 
 #include "Timer.h"
+#include "Library.h"
+#include "Geometry.h"
 
 class Control {
 public:
 	float speed = 25.0f;
 	Timer time{ speed };
+
+	struct Grid {
+		uivec2_fast16_t size = { 100, 100 };
+		const uint_fast32_t initialAliveCells = 5000;
+	};
 	/// - Grid
 	/// - Timer
 	/// - Mouse & keyboard

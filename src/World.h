@@ -1,7 +1,7 @@
 #pragma once
 #include "Geometry.h"
 #include "Library.h"
-//#include "Timer.h"
+#include "Interface.h"
 
 #include <algorithm>
 #include <array>
@@ -34,8 +34,9 @@ class World {
   };
 
   struct Grid : public Geometry {
-    uivec2_fast16_t size = {100, 100};
-    const uint_fast32_t initialAliveCells = 5000;
+    Control::Grid grid;
+    uivec2_fast16_t size = {grid.size};
+    const uint_fast32_t initialAliveCells = grid.initialAliveCells;
     const size_t pointCount{size.x * size.y};
 
     std::vector<uint32_t> pointIDs = std::vector<uint32_t>(pointCount);
