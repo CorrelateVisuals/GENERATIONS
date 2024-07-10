@@ -8,10 +8,10 @@
 
 // Engine modules
 #include "BaseClasses.h"
+#include "Interface.h"
 #include "Mechanics.h"
 #include "Pipelines.h"
 #include "Resources.h"
-#include "Interface.h"
 
 // temp
 #include "Timer.h"
@@ -31,7 +31,7 @@ class CapitalEngine {
   Resources resources;
   Pipelines pipelines;
 
-  Engine engine;
+  Core core;
   GUI gui;
 
   void drawFrame();

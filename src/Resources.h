@@ -1,10 +1,10 @@
 #pragma once
 #include "vulkan/vulkan.h"
 
+#include "Interface.h"
 #include "Mechanics.h"
 #include "Pipelines.h"
 #include "World.h"
-#include "Interface.h"
 
 #include <array>
 #include <cstring>
@@ -14,8 +14,8 @@
 #include <vector>
 
 class Resources {
-public:
-    Control& control;
+ public:
+  Control& control;
 
  public:
   Resources(VulkanMechanics& mechanics, Pipelines& pipelines, Control& control);
@@ -81,6 +81,7 @@ public:
 
    private:
     void createDescriptorWrite();
+
     struct TextureImage : public CE::Image {
       TextureImage() { path = Lib::path("assets/Avatar.PNG"); }
     } textureImage;
@@ -102,6 +103,4 @@ public:
       data.fill(0);
     }
   } pushConstants;
-
-
 };
