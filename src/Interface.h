@@ -9,15 +9,14 @@
 
 class Control {
 public:
-	float speed = 25.0f;
+	float speed{ 25.0f };
 	Timer time{ speed };
 
 	struct Grid {
-		uivec2_fast16_t size = { 100, 100 };
-		const uint_fast32_t initialAliveCells = 5000;
+		uivec2_fast16_t size{ 100, 100 };
+		const uint_fast32_t initialAliveCells{ 5000 };
 	};
-	/// - Grid
-	/// - Timer
+
 	/// - Mouse & keyboard
 	/// - Camer/light controls
 	/// - Assets (Resources)
@@ -35,7 +34,7 @@ public:
 	/// Light(s)
 //};
 
-class Engine {
+class Core {
 public:
 	/// Render
 	///	- Pipelines and Resources
