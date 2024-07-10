@@ -1,10 +1,9 @@
 #include "CapitalEngine.h"
-#include "Interface.h"
+#include "Control.h"
 
 #include <string>
 
 int main() {
-
   try {
     CapitalEngine GENERATIONS;
     GENERATIONS.mainLoop();

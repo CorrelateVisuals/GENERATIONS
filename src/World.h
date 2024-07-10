@@ -1,7 +1,7 @@
 #pragma once
+#include "Control.h"
 #include "Geometry.h"
 #include "Library.h"
-#include "Interface.h"
 
 #include <algorithm>
 #include <array>
@@ -18,8 +18,8 @@ class World {
         const VkQueue& queue);
   ~World();
 
-  ///float speed = 25.0f;
-  ///Timer time{speed};
+  /// float speed = 25.0f;
+  /// Timer time{speed};
 
   struct alignas(16) Cell {
     glm::vec4 instancePosition{};
