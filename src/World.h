@@ -9,8 +9,6 @@
 #include <utility>
 #include <vector>
 
-// class Timer;
-
 class World {
  public:
   World(VkCommandBuffer& commandBuffer,
@@ -18,8 +16,15 @@ class World {
         const VkQueue& queue);
   ~World();
 
-  /// float speed = 25.0f;
-  /// Timer time{speed};
+  struct UniformBufferObject {
+    glm::vec4 light{};
+    glm::ivec2 gridXY{};
+    float waterThreshold{};
+    float cellSize{};
+    alignas(16) glm::mat4 model{};
+    alignas(16) glm::mat4 view{};
+    alignas(16) glm::mat4 projection{};
+  };
 
   struct alignas(16) Cell {
     glm::vec4 instancePosition{};
@@ -66,16 +71,6 @@ class World {
          const VkCommandPool& commandPool,
          const VkQueue& queue);
   } cube;
-
-  struct UniformBufferObject {
-    glm::vec4 light{};
-    glm::ivec2 gridXY{};
-    float waterThreshold{};
-    float cellSize{};
-    alignas(16) glm::mat4 model{};
-    alignas(16) glm::mat4 view{};
-    alignas(16) glm::mat4 projection{};
-  };
 
   struct Light {
     glm::vec4 position{0.0f, 20.0f, 20.0f, 0.0f};
