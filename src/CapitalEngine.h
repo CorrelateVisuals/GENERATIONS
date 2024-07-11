@@ -27,12 +27,10 @@ class CapitalEngine {
   VulkanMechanics mechanics;
 
   Control control;
+  Core core;
 
   Resources resources;
   Pipelines pipelines;
-
-  Core core;
-  GUI gui;
 
   void drawFrame();
 };

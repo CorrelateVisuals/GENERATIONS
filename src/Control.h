@@ -13,7 +13,7 @@ class Control {
   Timer time{speed};
 
   struct Grid {
-    uivec2_fast16_t size{100, 100};
+    uivec2_fast16_t size{1000, 1000};
     const uint_fast32_t initialAliveCells{5000};
   };
 
@@ -24,29 +24,17 @@ class Control {
   ///	+ Data
 };
 
-// class World {
-// public:
-/// Geometries
-///	- Terrain (singular)
-///	- Shapes  (can be instanced)
-///	- Shapees ...
-/// Camera(s)
-/// Light(s)
-//};
-
 class Core {
  public:
+  // Shader #1 rgba, 4*vec4 in in  4*vec4 out.
+  // Shader #1 rgba, 4*vec4 in in  4*vec4 out.
+  // Shader #1 rgba, 4*vec4 in in  4*vec4 out
+
   /// Render
   ///	- Pipelines and Resources
   ///	- Shaders
   ///		+ descriptors
   ///		+ make and configure shader input, output and order.
-  ///			- with the purpose to take these modular shaders and rearrange and
-  ///change them for various visual effects
-};
-
-class GUI {
- public:
-  /// Window
-  /// mouse?
+  ///			- with the purpose to take these modular shaders and
+  /// rearrange and change them for various visual effects
 };
