@@ -8,8 +8,10 @@ Resources::Resources(VulkanMechanics& mechanics,
                      Control& control)
     : commands{mechanics.queues.familyIndices},
       pushConstants{},
-      depthImage{mechanics.swapchain.extent, CE::Image::findDepthFormat()},
-      msaaImage{mechanics.swapchain.extent, mechanics.swapchain.imageFormat},
+      depthImage{"DepthImage", mechanics.swapchain.extent,
+                 CE::Image::findDepthFormat()},
+      msaaImage{"MultisamplingImage", mechanics.swapchain.extent,
+                mechanics.swapchain.imageFormat},
       shaderStorage{commands.singularCommandBuffer, commands.pool,
                     mechanics.queues.graphics, world.grid.cells,
                     world.grid.pointCount},
@@ -33,24 +35,25 @@ Resources::~Resources() {
   Log::text("{ /// }", "destructing Resources");
 }
 
-Resources::Commands::Commands(const CE::Queues::FamilyIndices& familyIndices) {
+ResourcesBase::Commands::Commands(
+    const CE::Queues::FamilyIndices& familyIndices) {
   createPool(familyIndices);
   createBuffers(graphics);
   createBuffers(compute);
 }
 
-Resources::DepthImage::DepthImage(const VkExtent2D extent,
-                                  const VkFormat format) {
-  createResources(extent, format, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
-                  VK_IMAGE_ASPECT_DEPTH_BIT);
-}
-
-Resources::MultisamplingImage::MultisamplingImage(const VkExtent2D extent,
-                                                  const VkFormat format) {
-  createResources(extent, format,
-                  VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT |
-                      VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-                  VK_IMAGE_ASPECT_COLOR_BIT);
+ResourcesBase::ImageEffect::ImageEffect(std::string kind,
+                                        const VkExtent2D extent,
+                                        const VkFormat format) {
+  if (kind == "DepthImage") {
+    createResources(extent, format, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+                    VK_IMAGE_ASPECT_DEPTH_BIT);
+  } else if (kind == "MultisamplingImage") {
+    createResources(extent, format,
+                    VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT |
+                        VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+                    VK_IMAGE_ASPECT_COLOR_BIT);
+  }
 }
 
 Resources::UniformBuffer::UniformBuffer() {
@@ -288,7 +291,7 @@ void Resources::StorageImage::createDescriptorWrite(
   }
 }
 
-void Resources::Commands::recordComputeCommandBuffer(
+void ResourcesBase::Commands::recordComputeCommandBuffer(
     Resources& resources,
     Pipelines& pipelines,
     const uint32_t imageIndex) {
@@ -323,7 +326,7 @@ void Resources::Commands::recordComputeCommandBuffer(
   CE::VULKAN_RESULT(vkEndCommandBuffer, commandBuffer);
 }
 
-void Resources::Commands::recordGraphicsCommandBuffer(
+void ResourcesBase::Commands::recordGraphicsCommandBuffer(
     CE::Swapchain& swapchain,
     Resources& resources,
     Pipelines& pipelines,

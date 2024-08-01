@@ -25,10 +25,7 @@ class CapitalEngine {
 
  private:
   VulkanMechanics mechanics;
-
   Control control;
-  Core core;
-
   Resources resources;
   Pipelines pipelines;
 

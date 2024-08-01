@@ -13,14 +13,8 @@
 #include <variant>
 #include <vector>
 
-class Resources {
+class ResourcesBase {
  public:
-  Control& control;
-
- public:
-  Resources(VulkanMechanics& mechanics, Pipelines& pipelines, Control& control);
-  ~Resources();
-
   struct Commands : public CE::CommandBuffers {
     Commands(const CE::Queues::FamilyIndices& familyIndices);
     void recordComputeCommandBuffer(Resources& resources,
@@ -30,17 +24,21 @@ class Resources {
                                      Resources& resources,
                                      Pipelines& pipelines,
                                      const uint32_t imageIndex) override;
-  } commands;
+  };
 
-  World world;
+  struct ImageEffect : public CE::Image {
+    ImageEffect(std::string kind,
+                const VkExtent2D extent,
+                const VkFormat format);
+  };
+};
 
-  struct DepthImage : public CE::Image {
-    DepthImage(const VkExtent2D extent, const VkFormat format);
-  } depthImage;
+class Resources {
+ public:
+  Control& control;
 
-  struct MultisamplingImage : public CE::Image {
-    MultisamplingImage(const VkExtent2D extent, const VkFormat format);
-  } msaaImage;
+  Resources(VulkanMechanics& mechanics, Pipelines& pipelines, Control& control);
+  ~Resources();
 
   class UniformBuffer : public CE::Descriptor {
    public:
@@ -62,7 +60,7 @@ class Resources {
     UniformBufferObject object;
     void createBuffer();
     void createDescriptorWrite();
-  } uniform;
+  };
 
   class StorageBuffer : public CE::Descriptor {
    public:
@@ -80,7 +78,7 @@ class Resources {
                 const auto& object,
                 const size_t quantity);
     void createDescriptorWrite(const size_t quantity);
-  } shaderStorage;
+  };
 
   class ImageSampler : public CE::Descriptor {
    public:
@@ -93,15 +91,16 @@ class Resources {
 
     struct TextureImage : public CE::Image {
       TextureImage() { path = Lib::path("assets/Avatar.PNG"); }
-    } textureImage;
-  } sampler;
+    };
+    TextureImage textureImage;
+  };
 
   class StorageImage : public CE::Descriptor {
    public:
     StorageImage(std::array<CE::Image, MAX_FRAMES_IN_FLIGHT>& images);
     void createDescriptorWrite(
         std::array<CE::Image, MAX_FRAMES_IN_FLIGHT>& images);
-  } storageImage;
+  };
 
   struct PushConstants : public CE::PushConstants {
     PushConstants() {
@@ -111,5 +110,18 @@ class Resources {
       size = 128;
       data.fill(0);
     }
-  } pushConstants;
+  };
+
+  ResourcesBase::Commands commands;
+
+  World world;
+
+  ResourcesBase::ImageEffect depthImage;
+  ResourcesBase::ImageEffect msaaImage;
+
+  UniformBuffer uniform;
+  StorageBuffer shaderStorage;
+  ImageSampler sampler;
+  StorageImage storageImage;
+  PushConstants pushConstants;
 };

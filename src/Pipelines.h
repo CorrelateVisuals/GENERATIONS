@@ -13,11 +13,11 @@ class Pipelines {
     ComputeLayout(CE::PushConstants& pushConstants) {
       createLayout(CE::Descriptor::setLayout, pushConstants);
     }
-  } compute;
+  };
 
   struct GraphicsLayout : public CE::PipelineLayout {
     GraphicsLayout() { createLayout(CE::Descriptor::setLayout); }
-  } graphics;
+  };
 
   struct Render : public CE::RenderPass {
     Render(CE::Swapchain& swapchain,
@@ -26,7 +26,7 @@ class Pipelines {
       create(msaaImage.info.samples, swapchain.imageFormat);
       createFramebuffers(swapchain, msaaImage.view, depthView);
     }
-  } render;
+  };
 
   struct Configuration : public CE::PipelinesConfiguration {
     Configuration(VkRenderPass& renderPass,
@@ -67,5 +67,10 @@ class Pipelines {
       compileShaders();
       createPipelines(renderPass, graphicsLayout, computeLayout, msaaSamples);
     }
-  } config;
+  };
+
+  GraphicsLayout graphics;
+  ComputeLayout compute;
+  Render render;
+  Configuration config;
 };
