@@ -48,8 +48,18 @@ class Resources {
     void update(World& world, const VkExtent2D extent);
 
    private:
+    struct UniformBufferObject {
+      glm::vec4 light{};
+      glm::ivec2 gridXY{};
+      float waterThreshold{};
+      float cellSize{};
+      alignas(16) glm::mat4 model{};
+      alignas(16) glm::mat4 view{};
+      alignas(16) glm::mat4 projection{};
+    };
+
     CE::Buffer buffer;
-    World::UniformBufferObject object;
+    UniformBufferObject object;
     void createBuffer();
     void createDescriptorWrite();
   } uniform;
@@ -64,7 +74,6 @@ class Resources {
                   const auto& object,
                   const size_t quantity);
 
-   private:
     void create(VkCommandBuffer& commandBuffer,
                 const VkCommandPool& commandPool,
                 const VkQueue& queue,

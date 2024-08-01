@@ -16,16 +16,6 @@ class World {
         const VkQueue& queue);
   ~World();
 
-  struct UniformBufferObject {
-    glm::vec4 light{};
-    glm::ivec2 gridXY{};
-    float waterThreshold{};
-    float cellSize{};
-    alignas(16) glm::mat4 model{};
-    alignas(16) glm::mat4 view{};
-    alignas(16) glm::mat4 projection{};
-  };
-
   struct alignas(16) Cell {
     glm::vec4 instancePosition{};
     glm::vec4 vertexPosition{};

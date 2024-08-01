@@ -3,7 +3,9 @@
 #include "CapitalEngine.h"
 #include "Resources.h"
 
-Resources::Resources(VulkanMechanics& mechanics, Pipelines& pipelines, Control& control)
+Resources::Resources(VulkanMechanics& mechanics,
+                     Pipelines& pipelines,
+                     Control& control)
     : commands{mechanics.queues.familyIndices},
       pushConstants{},
       depthImage{mechanics.swapchain.extent, CE::Image::findDepthFormat()},
@@ -15,7 +17,8 @@ Resources::Resources(VulkanMechanics& mechanics, Pipelines& pipelines, Control& 
               mechanics.queues.graphics},
       storageImage{mechanics.swapchain.images},
       world{commands.singularCommandBuffer, commands.pool,
-            mechanics.queues.graphics}, control(control) {
+            mechanics.queues.graphics},
+      control(control) {
   Log::text(Log::Style::headerGuard);
   Log::text("{ /// }", "constructing Resources");
 
@@ -73,7 +76,7 @@ Resources::UniformBuffer::UniformBuffer() {
 
 void Resources::UniformBuffer::createBuffer() {
   Log::text("{ 101 }", MAX_FRAMES_IN_FLIGHT, "Uniform Buffers");
-  VkDeviceSize bufferSize = sizeof(World::UniformBufferObject);
+  VkDeviceSize bufferSize = sizeof(UniformBufferObject);
 
   CE::Buffer::create(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
                      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
@@ -85,8 +88,8 @@ void Resources::UniformBuffer::createBuffer() {
 }
 
 void Resources::UniformBuffer::createDescriptorWrite() {
-  VkDescriptorBufferInfo bufferInfo{
-      .buffer = buffer.buffer, .range = sizeof(World::UniformBufferObject)};
+  VkDescriptorBufferInfo bufferInfo{.buffer = buffer.buffer,
+                                    .range = sizeof(UniformBufferObject)};
   info.currentFrame = bufferInfo;
 
   VkWriteDescriptorSet descriptorWrite{
@@ -306,7 +309,6 @@ void Resources::Commands::recordComputeCommandBuffer(
                           pipelines.compute.layout, 0, 1,
                           &CE::Descriptor::sets[imageIndex], 0, nullptr);
 
-
   resources.pushConstants.setData(resources.control.time.passedHours);
 
   vkCmdPushConstants(
@@ -439,8 +441,7 @@ void Resources::Commands::recordGraphicsCommandBuffer(
                           pipelines.compute.layout, 0, 1,
                           &CE::Descriptor::sets[imageIndex], 0, nullptr);
 
-  resources.pushConstants.setData(
-      resources.control.time.passedHours);
+  resources.pushConstants.setData(resources.control.time.passedHours);
   vkCmdPushConstants(
       commandBuffer, pipelines.compute.layout,
       resources.pushConstants.shaderStage, resources.pushConstants.offset,
