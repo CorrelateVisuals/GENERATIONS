@@ -11,8 +11,8 @@ World::World(VkCommandBuffer& commandBuffer,
              const VkCommandPool& commandPool,
              const VkQueue& queue)
     : grid{commandBuffer, commandPool, queue},
-      rectangle{commandBuffer, commandPool, queue},
-      cube{commandBuffer, commandPool, queue} {
+      rectangle{"Rectangle", true, commandBuffer, commandPool, queue},
+      cube{"Sphere", false, commandBuffer, commandPool, queue} {
   Log::text("{ wWw }", "constructing World");
 }
 
@@ -24,7 +24,7 @@ std::vector<VkVertexInputBindingDescription>
 World::Cell::getBindingDescription() {
   std::vector<VkVertexInputBindingDescription> description{
       {0, sizeof(Cell), VK_VERTEX_INPUT_RATE_INSTANCE},
-      {1, sizeof(Cube::Vertex), VK_VERTEX_INPUT_RATE_VERTEX}};
+      {1, sizeof(Shape::Vertex), VK_VERTEX_INPUT_RATE_VERTEX}};
   return description;
 }
 
@@ -34,9 +34,9 @@ World::Cell::getAttributeDescription() {
       {0, 0, VK_FORMAT_R32G32B32A32_SFLOAT,
        static_cast<uint32_t>(offsetof(Cell, instancePosition))},
       {1, 1, VK_FORMAT_R32G32B32A32_SFLOAT,
-       static_cast<uint32_t>(offsetof(Cube::Vertex, vertexPosition))},
+       static_cast<uint32_t>(offsetof(Shape::Vertex, vertexPosition))},
       {2, 1, VK_FORMAT_R32G32B32A32_SFLOAT,
-       static_cast<uint32_t>(offsetof(Cube::Vertex, normal))},
+       static_cast<uint32_t>(offsetof(Shape::Vertex, normal))},
       {3, 0, VK_FORMAT_R32G32B32A32_SFLOAT,
        static_cast<uint32_t>(offsetof(Cell, color))},
       {4, 0, VK_FORMAT_R32G32B32A32_SINT,
@@ -105,19 +105,25 @@ World::Grid::Grid(VkCommandBuffer& commandBuffer,
   createIndexBuffer(commandBuffer, commandPool, queue, indices);
 }
 
-World::Rectangle::Rectangle(VkCommandBuffer& commandBuffer,
-                            const VkCommandPool& commandPool,
-                            const VkQueue& queue)
-    : Geometry("Rectangle") {
-  createVertexBuffer(commandBuffer, commandPool, queue, uniqueVertices);
-  createIndexBuffer(commandBuffer, commandPool, queue, indices);
+World::Shape::Shape(const std::string& shape,
+                    bool hasIndices,
+                    VkCommandBuffer& commandBuffer,
+                    const VkCommandPool& commandPool,
+                    const VkQueue& queue)
+    : Geometry(shape) {
+  createBuffers(hasIndices, commandBuffer, commandPool, queue);
 }
 
-World::Cube::Cube(VkCommandBuffer& commandBuffer,
-                  const VkCommandPool& commandPool,
-                  const VkQueue& queue)
-    : Geometry("Cube") {
-  createVertexBuffer(commandBuffer, commandPool, queue, allVertices);
+void World::Shape::createBuffers(bool hasIndices,
+                                 VkCommandBuffer& commandBuffer,
+                                 const VkCommandPool& commandPool,
+                                 const VkQueue& queue) {
+  if (hasIndices) {
+    createVertexBuffer(commandBuffer, commandPool, queue, uniqueVertices);
+    createIndexBuffer(commandBuffer, commandPool, queue, indices);
+  } else {
+    createVertexBuffer(commandBuffer, commandPool, queue, allVertices);
+  }
 }
 
 std::vector<VkVertexInputAttributeDescription>

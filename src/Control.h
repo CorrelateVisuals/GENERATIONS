@@ -13,7 +13,7 @@ class Control {
   Timer time{speed};
 
   struct Grid {
-    uivec2_fast16_t size{1000, 1000};
+    uivec2_fast16_t size{100, 100};
     const uint_fast32_t initialAliveCells{5000};
   };
 

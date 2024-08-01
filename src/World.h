@@ -58,23 +58,25 @@ class World {
    private:
     std::vector<uint_fast32_t> setCellsAliveRandomly(
         uint_fast32_t numberOfCells);
-  } grid;
+  };
 
-  struct Rectangle : public Geometry {
-    Rectangle(VkCommandBuffer& commandBuffer,
-              const VkCommandPool& commandPool,
-              const VkQueue& queue);
-  } rectangle;
+  struct Shape : public Geometry {
+    Shape(const std::string& shape,
+          bool hasIndices,
+          VkCommandBuffer& commandBuffer,
+          const VkCommandPool& commandPool,
+          const VkQueue& queue);
 
-  struct Cube : public Geometry {
-    Cube(VkCommandBuffer& commandBuffer,
-         const VkCommandPool& commandPool,
-         const VkQueue& queue);
-  } cube;
+   private:
+    void createBuffers(bool hasIndices,
+                       VkCommandBuffer& commandBuffer,
+                       const VkCommandPool& commandPool,
+                       const VkQueue& queue);
+  };
 
   struct Light {
     glm::vec4 position{0.0f, 20.0f, 20.0f, 0.0f};
-  } light;
+  };
 
   class Camera {
    public:
@@ -93,7 +95,15 @@ class World {
 
    private:
     void update();
-  } camera;
+  };
+
+  Grid grid;
+
+  Shape rectangle;
+  Shape cube;
+
+  Light light;
+  Camera camera;
 };
 
 // float getForwardMovement(const glm::vec2& leftButtonDelta);
