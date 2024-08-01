@@ -47,25 +47,23 @@ World::Cell::getAttributeDescription() {
 World::Grid::Grid(VkCommandBuffer& commandBuffer,
                   const VkCommandPool& commandPool,
                   const VkQueue& queue) {
-  Terrain::Config terrainLayer1 = {.dimensions = size,
-                                   .roughness = 0.4f,
-                                   .octaves = 10,
-                                   .scale = 1.1f,
-                                   .amplitude = 5.0f,
-                                   .exponent = 2.0f,
-                                   .frequency = 2.0f,
-                                   .heightOffset = 0.0f};
-  Terrain terrain(terrainLayer1);
+  Terrain terrain(Terrain::Config{.dimensions = size,
+                                  .roughness = 0.4f,
+                                  .octaves = 10,
+                                  .scale = 1.1f,
+                                  .amplitude = 5.0f,
+                                  .exponent = 2.0f,
+                                  .frequency = 2.0f,
+                                  .heightOffset = 0.0f});
 
-  Terrain::Config terrainLayer2 = {.dimensions = size,
-                                   .roughness = 1.0f,
-                                   .octaves = 10,
-                                   .scale = 1.1f,
-                                   .amplitude = 0.3f,
-                                   .exponent = 1.0f,
-                                   .frequency = 2.0f,
-                                   .heightOffset = 0.0f};
-  Terrain terrainSurface(terrainLayer2);
+  Terrain terrainSurface(Terrain::Config{.dimensions = size,
+                                         .roughness = 1.0f,
+                                         .octaves = 10,
+                                         .scale = 1.1f,
+                                         .amplitude = 0.3f,
+                                         .exponent = 1.0f,
+                                         .frequency = 2.0f,
+                                         .heightOffset = 0.0f});
 
   std::vector<float> terrainPerlinGrid1 = terrain.generatePerlinGrid();
   std::vector<float> terrainPerlinGrid2 = terrainSurface.generatePerlinGrid();
@@ -111,13 +109,6 @@ World::Shape::Shape(const std::string& shape,
                     const VkCommandPool& commandPool,
                     const VkQueue& queue)
     : Geometry(shape) {
-  createBuffers(hasIndices, commandBuffer, commandPool, queue);
-}
-
-void World::Shape::createBuffers(bool hasIndices,
-                                 VkCommandBuffer& commandBuffer,
-                                 const VkCommandPool& commandPool,
-                                 const VkQueue& queue) {
   if (hasIndices) {
     createVertexBuffer(commandBuffer, commandPool, queue, uniqueVertices);
     createIndexBuffer(commandBuffer, commandPool, queue, indices);

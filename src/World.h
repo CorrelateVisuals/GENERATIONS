@@ -66,12 +66,6 @@ class World {
           VkCommandBuffer& commandBuffer,
           const VkCommandPool& commandPool,
           const VkQueue& queue);
-
-   private:
-    void createBuffers(bool hasIndices,
-                       VkCommandBuffer& commandBuffer,
-                       const VkCommandPool& commandPool,
-                       const VkQueue& queue);
   };
 
   struct Light {
@@ -97,13 +91,12 @@ class World {
     void update();
   };
 
-  Grid grid;
-
-  Shape rectangle;
-  Shape cube;
-
   Light light;
   Camera camera;
+
+  Grid grid;
+  Shape rectangle;
+  Shape cube;
 };
 
 // float getForwardMovement(const glm::vec2& leftButtonDelta);
