@@ -1,5 +1,5 @@
 #include "CapitalEngine.h"
-#include "Control.h"
+//#include "Control.h"
 
 #include <string>
 
