@@ -2,8 +2,6 @@
 #include "vulkan/vulkan.h"
 
 #include "BaseClasses.h"
-#include "Mechanics.h"
-#include "Pipelines.h"
 #include "World.h"
 
 #include <array>
@@ -12,6 +10,9 @@
 #include <utility>
 #include <variant>
 #include <vector>
+
+class Pipelines;
+class VulkanMechanics;
 
 class Resources {
  public:

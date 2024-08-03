@@ -1,6 +1,9 @@
 #include "CapitalEngine.h"
-
 #include "Window.h"
+
+#include "Mechanics.h"
+#include "Pipelines.h"
+#include "Resources.h"
 
 CapitalEngine::CapitalEngine()
     : pipelines(mechanics, resources), resources(mechanics, pipelines) {
