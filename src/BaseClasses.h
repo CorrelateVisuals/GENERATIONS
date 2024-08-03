@@ -20,6 +20,7 @@ constexpr size_t NUM_DESCRIPTORS = 5;
 class VulkanMechanics;
 class Resources;
 class Pipelines;
+class ValidationLayers;
 
 namespace CE {
 class Swapchain;
