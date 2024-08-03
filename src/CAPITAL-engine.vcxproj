@@ -185,7 +185,6 @@
   <ItemGroup>
     <ClInclude Include="BaseClasses.h" />
     <ClInclude Include="Geometry.h" />
-    <ClInclude Include="Application.h" />
     <ClInclude Include="Log.h" />
     <ClInclude Include="CapitalEngine.h" />
     <ClInclude Include="Library.h" />
