@@ -1,8 +1,7 @@
 #include "vulkan/vulkan.h"
 
+#include "CapitalEngine.h"
 #include "Resources.h"
-#include "Mechanics.h"
-#include "Pipelines.h"
 
 Resources::Resources(VulkanMechanics& mechanics, Pipelines& pipelines)
     : commands{mechanics.queues.familyIndices},
