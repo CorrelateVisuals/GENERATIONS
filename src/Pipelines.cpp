@@ -2,6 +2,7 @@
 
 #include "CapitalEngine.h"
 #include "Pipelines.h"
+#include "Resources.h"
 
 Pipelines::Pipelines(VulkanMechanics& mechanics, Resources& resources)
     : compute{resources.pushConstants},
