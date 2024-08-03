@@ -1,5 +1,5 @@
 #pragma once
-#include "Mechanics.h" // can't be forward declared
+#include "Mechanics.h"  // can't be forward declared
 
 class Resources;
 class Pipelines;
@@ -12,7 +12,7 @@ class CapitalEngine {
   void mainLoop();
 
  private:
-  VulkanMechanics mechanics;	
+  VulkanMechanics mechanics;
   Resources resources;
   Pipelines pipelines;
 
