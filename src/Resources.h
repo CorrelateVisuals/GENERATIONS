@@ -1,6 +1,7 @@
 #pragma once
 #include "vulkan/vulkan.h"
 
+#include "BaseClasses.h"
 #include "Mechanics.h"
 #include "Pipelines.h"
 #include "World.h"

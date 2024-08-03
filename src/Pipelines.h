@@ -1,6 +1,7 @@
 #pragma once
 #include <glm/glm.hpp>
 
+#include "BaseClasses.h"
 #include "Mechanics.h"
 #include "Resources.h"
 

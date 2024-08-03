@@ -1,5 +1,6 @@
 #pragma once
 #include "CapitalEngine.h"
+#include "BaseClasses.h"
 #include "Pipelines.h"
 #include "Resources.h"
 
