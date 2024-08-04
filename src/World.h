@@ -79,14 +79,27 @@ class World {
 
   class Camera {
    public:
-    float zoomSpeed = 0.5f;
-    float panningSpeed = 1.2f;
-    const float fieldOfView = 40.0f;
-    const float nearClipping = 0.1f;
-    const float farClipping = 100.0f;
-    glm::vec3 position{0.0f, 0.0f, 30.0f};
+    float zoomSpeed;
+    float panningSpeed;
+    const float fieldOfView;
+    const float nearClipping;
+    const float farClipping;
+    glm::vec3 position;
     glm::vec3 front{0.0f, 0.0f, -1.0f};
     glm::vec3 up{0.0f, -1.0f, 0.0f};
+
+    Camera(float zoomSpeed = 0.5f,
+           float panningSpeed = 1.2f,
+           float fieldOfView = 40.0f,
+           float nearClipping = 0.1f,
+           float farClipping = 100.0f,
+           glm::vec3 position = {0.0f, 0.0f, 30.0f})
+        : zoomSpeed(zoomSpeed),
+          panningSpeed(panningSpeed),
+          fieldOfView(fieldOfView),
+          nearClipping(nearClipping),
+          farClipping(farClipping),
+          position(position) {}
 
     glm::mat4 setModel();
     glm::mat4 setView();
@@ -102,7 +115,7 @@ class World {
   Rectangle rectangle;
   Cube cube;
   Light light;
-  Camera camera;
+  Camera camera{0.5f, 1.2f, 40.0f, 0.1f, 100.0f, {0.0f, 0.0f, 30.0f}};
 };
 
 // float getForwardMovement(const glm::vec2& leftButtonDelta);
