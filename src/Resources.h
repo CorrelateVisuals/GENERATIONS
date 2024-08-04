@@ -27,17 +27,15 @@ class Resources {
                                      Resources& resources,
                                      Pipelines& pipelines,
                                      const uint32_t imageIndex) override;
-  } commands;
-
-  World world;
+  };
 
   struct DepthImage : public CE::Image {
     DepthImage(const VkExtent2D extent, const VkFormat format);
-  } depthImage;
+  };
 
   struct MultisamplingImage : public CE::Image {
     MultisamplingImage(const VkExtent2D extent, const VkFormat format);
-  } msaaImage;
+  };
 
   class UniformBuffer : public CE::Descriptor {
    public:
@@ -49,7 +47,7 @@ class Resources {
     World::UniformBufferObject object;
     void createBuffer();
     void createDescriptorWrite();
-  } uniform;
+  };
 
   class StorageBuffer : public CE::Descriptor {
    public:
@@ -68,7 +66,7 @@ class Resources {
                 const auto& object,
                 const size_t quantity);
     void createDescriptorWrite(const size_t quantity);
-  } shaderStorage;
+  };
 
   class ImageSampler : public CE::Descriptor {
    public:
@@ -80,15 +78,16 @@ class Resources {
     void createDescriptorWrite();
     struct TextureImage : public CE::Image {
       TextureImage() { path = Lib::path("assets/Avatar.PNG"); }
-    } textureImage;
-  } sampler;
+    };
+    TextureImage textureImage;
+  };
 
   class StorageImage : public CE::Descriptor {
    public:
     StorageImage(std::array<CE::Image, MAX_FRAMES_IN_FLIGHT>& images);
     void createDescriptorWrite(
         std::array<CE::Image, MAX_FRAMES_IN_FLIGHT>& images);
-  } storageImage;
+  };
 
   struct PushConstants : public CE::PushConstants {
     PushConstants() {
@@ -98,5 +97,15 @@ class Resources {
       size = 128;
       data.fill(0);
     }
-  } pushConstants;
+  };
+
+  Commands commands;
+  World world;
+  DepthImage depthImage;
+  MultisamplingImage msaaImage;
+  UniformBuffer uniform;
+  StorageBuffer shaderStorage;
+  ImageSampler sampler;
+  StorageImage storageImage;
+  PushConstants pushConstants;
 };
