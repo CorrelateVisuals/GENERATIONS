@@ -18,9 +18,6 @@ class World {
         const VkQueue& queue);
   ~World();
 
-  float speed = 25.0f;
-  Timer time{speed};
-
   struct alignas(16) Cell {
     glm::vec4 instancePosition{};
     glm::vec4 vertexPosition{};
@@ -52,19 +49,19 @@ class World {
    private:
     std::vector<uint_fast32_t> setCellsAliveRandomly(
         uint_fast32_t numberOfCells);
-  } grid;
+  };
 
   struct Rectangle : public Geometry {
     Rectangle(VkCommandBuffer& commandBuffer,
               const VkCommandPool& commandPool,
               const VkQueue& queue);
-  } rectangle;
+  };
 
   struct Cube : public Geometry {
     Cube(VkCommandBuffer& commandBuffer,
          const VkCommandPool& commandPool,
          const VkQueue& queue);
-  } cube;
+  };
 
   struct UniformBufferObject {
     glm::vec4 light{};
@@ -78,7 +75,7 @@ class World {
 
   struct Light {
     glm::vec4 position{0.0f, 20.0f, 20.0f, 0.0f};
-  } light;
+  };
 
   class Camera {
    public:
@@ -97,7 +94,15 @@ class World {
 
    private:
     void update();
-  } camera;
+  };
+
+  float speed = 25.0f;
+  Timer time{speed};
+  Grid grid;
+  Rectangle rectangle;
+  Cube cube;
+  Light light;
+  Camera camera;
 };
 
 // float getForwardMovement(const glm::vec2& leftButtonDelta);

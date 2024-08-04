@@ -8,8 +8,6 @@ class Window {
  public:
   Window(const Window&) = delete;
 
-  bool framebufferResized;
-
   struct DisplayConfiguration {
     DisplayConfiguration(const char* t, uint16_t w, uint16_t h)
         : title{t}, width{w}, height{h} {}
@@ -32,6 +30,7 @@ class Window {
     std::array<Button, 3> previousButtonDown{};
   };
 
+  bool framebufferResized;
   GLFWwindow* window;
   DisplayConfiguration display{"GENERATIONS", 3840, 1080};
   Mouse mouse{0.18f, 0.5f};
