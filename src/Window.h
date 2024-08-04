@@ -27,9 +27,9 @@ class Window {
     struct Button {
       glm::vec2 position;
     };
-    std::array<Button, 3> buttonClick;
-    std::array<Button, 3> buttonDown;
-    std::array<Button, 3> previousButtonDown;
+    std::array<Button, 3> buttonClick{};
+    std::array<Button, 3> buttonDown{};
+    std::array<Button, 3> previousButtonDown{};
   };
 
   GLFWwindow* window;
