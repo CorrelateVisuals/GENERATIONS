@@ -75,43 +75,41 @@ class World {
 
   struct Light {
     glm::vec4 position;
-
     Light() = default;
 
     void initialize(glm::vec4 position) { this->position = position; }
   };
 
   class Camera {
-   public:
-    float zoomSpeed;
-    float panningSpeed;
-    const float fieldOfView;
-    const float nearClipping;
-    const float farClipping;
-    glm::vec3 position;
-    glm::vec3 front{0.0f, 0.0f, -1.0f};
-    glm::vec3 up{0.0f, -1.0f, 0.0f};
+  public:
+      float zoomSpeed;
+      float panningSpeed;
+      float fieldOfView;
+      float nearClipping;
+      float farClipping;
+      glm::vec3 position;
+      glm::vec3 front{ 0.0f, 0.0f, -1.0f };
+      glm::vec3 up{ 0.0f, -1.0f, 0.0f };
 
-    Camera(float zoomSpeed = 0.5f,
-           float panningSpeed = 1.2f,
-           float fieldOfView = 40.0f,
-           float nearClipping = 0.1f,
-           float farClipping = 100.0f,
-           glm::vec3 position = {0.0f, 0.0f, 30.0f})
-        : zoomSpeed(zoomSpeed),
-          panningSpeed(panningSpeed),
-          fieldOfView(fieldOfView),
-          nearClipping(nearClipping),
-          farClipping(farClipping),
-          position(position) {}
+      Camera() = default;
 
-    glm::mat4 setModel();
-    glm::mat4 setView();
-    glm::mat4 setProjection(const VkExtent2D& swapchainExtent);
+      void initialize(float zoomSpeed, float panningSpeed, float fieldOfView, float nearClipping, float farClipping, glm::vec3 position) {
+          this->zoomSpeed = zoomSpeed;
+          this->panningSpeed = panningSpeed;
+          this->fieldOfView = fieldOfView;
+          this->nearClipping = nearClipping;
+          this->farClipping = farClipping;
+          this->position = position;
+      }
 
-   private:
-    void update();
+      glm::mat4 setModel();
+      glm::mat4 setView();
+      glm::mat4 setProjection(const VkExtent2D& swapchainExtent);
+
+  private:
+      void update();
   };
+
 
   float speed{25.0f};
   Timer time{speed};
@@ -122,7 +120,7 @@ class World {
 
   Light light;
 
-  Camera camera{0.5f, 1.2f, 40.0f, 0.1f, 100.0f, {0.0f, 0.0f, 30.0f}};
+  Camera camera;
 };
 
 // float getForwardMovement(const glm::vec2& leftButtonDelta);

@@ -13,8 +13,9 @@ World::World(VkCommandBuffer& commandBuffer,
       : grid(commandBuffer, commandPool, queue),
         rectangle(commandBuffer, commandPool, queue),
         cube(commandBuffer, commandPool, queue) {
-    //grid.initialize({150, 150}, 5000, 0.6f);
-    light.initialize({0.0f, 20.0f, 20.0f, 0.0f});
+    // grid.initialize({150, 150}, 5000, 0.6f);
+    camera.initialize( 0.5f, 1.2f, 40.0f, 0.1f, 100.0f, {0.0f, 0.0f, 30.0f});
+    light.initialize({0.0f, 20.0f, 20.0f, 0.0f}); // vec4 position
     Log::text("{ wWw }", "constructing World");
 }
 
