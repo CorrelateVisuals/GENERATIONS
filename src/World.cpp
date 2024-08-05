@@ -8,12 +8,14 @@
 #include <random>
 
 World::World(VkCommandBuffer& commandBuffer,
-             const VkCommandPool& commandPool,
-             const VkQueue& queue)
-    : grid{commandBuffer, commandPool, queue},
-      rectangle{commandBuffer, commandPool, queue},
-      cube{commandBuffer, commandPool, queue} {
-  Log::text("{ wWw }", "constructing World");
+        const VkCommandPool& commandPool,
+        const VkQueue& queue)
+      : grid(commandBuffer, commandPool, queue),
+        rectangle(commandBuffer, commandPool, queue),
+        cube(commandBuffer, commandPool, queue) {
+    //grid.initialize({150, 150}, 5000, 0.6f);
+    light.initialize({0.0f, 20.0f, 20.0f, 0.0f});
+    Log::text("{ wWw }", "constructing World");
 }
 
 World::~World() {
@@ -90,12 +92,12 @@ World::Grid::Grid(VkCommandBuffer& commandBuffer,
 
     float height = terrain.linearInterpolationFunction(
         terrainPerlinGrid1[i], terrainPerlinGrid2[i], blendFactor);
-    coorindates[i] = {(startX + i % size.x), (startY + i / size.x), height};
-    addVertexPosition(coorindates[i]);
+    coordinates[i] = {(startX + i % size.x), (startY + i / size.x), height};
+    addVertexPosition(coordinates[i]);
 
     const bool isAlive = isAliveIndices[i];
 
-    cells[i].instancePosition = {coorindates[i],
+    cells[i].instancePosition = {coordinates[i],
                                  isAlive ? initialCellSize : 0.0f};
     cells[i].color = isAlive ? blue : red;
     cells[i].states = isAlive ? alive : dead;

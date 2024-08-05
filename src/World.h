@@ -36,7 +36,7 @@ class World {
     const size_t pointCount{size.x * size.y};
 
     std::vector<uint32_t> pointIDs = std::vector<uint32_t>(pointCount);
-    std::vector<glm::vec3> coorindates = std::vector<glm::vec3>(pointCount);
+    std::vector<glm::vec3> coordinates = std::vector<glm::vec3>(pointCount);
     std::vector<World::Cell> cells = std::vector<World::Cell>(pointCount);
     const float initialCellSize{0.5f};
 
@@ -74,7 +74,11 @@ class World {
   };
 
   struct Light {
-    glm::vec4 position{0.0f, 20.0f, 20.0f, 0.0f};
+    glm::vec4 position;
+
+    Light() = default;
+
+    void initialize(glm::vec4 position) { this->position = position; }
   };
 
   class Camera {
@@ -109,12 +113,15 @@ class World {
     void update();
   };
 
-  float speed = 25.0f;
+  float speed{25.0f};
   Timer time{speed};
+
   Grid grid;
   Rectangle rectangle;
   Cube cube;
+
   Light light;
+
   Camera camera{0.5f, 1.2f, 40.0f, 0.1f, 100.0f, {0.0f, 0.0f, 30.0f}};
 };
 
