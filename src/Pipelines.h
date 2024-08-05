@@ -53,12 +53,12 @@ class Pipelines {
           .vertexBindings = World::Grid::getBindingDescription()};
       pipelineMap["Texture"] = Graphics{
           .shaders = {"Vert", "Frag"},
-          .vertexAttributes = World::Rectangle::getAttributeDescription(),
-          .vertexBindings = World::Rectangle::getBindingDescription()};
+          .vertexAttributes = World::Shape::getAttributeDescription(),
+          .vertexBindings = World::Shape::getBindingDescription()};
       pipelineMap["Water"] = Graphics{
           .shaders = {"Vert", "Frag"},
-          .vertexAttributes = World::Rectangle::getAttributeDescription(),
-          .vertexBindings = World::Rectangle::getBindingDescription()};
+          .vertexAttributes = World::Shape::getAttributeDescription(),
+          .vertexBindings = World::Shape::getBindingDescription()};
       pipelineMap["PostFX"] = Compute{
           .shaders = {"Comp"},
           .workGroups = {

@@ -51,16 +51,12 @@ class World {
         uint_fast32_t numberOfCells);
   };
 
-  struct Rectangle : public Geometry {
-    Rectangle(VkCommandBuffer& commandBuffer,
-              const VkCommandPool& commandPool,
-              const VkQueue& queue);
-  };
-
-  struct Cube : public Geometry {
-    Cube(VkCommandBuffer& commandBuffer,
-         const VkCommandPool& commandPool,
-         const VkQueue& queue);
+  struct Shape : public Geometry {
+    Shape(std::string shape,
+          bool indices,
+          VkCommandBuffer& commandBuffer,
+          const VkCommandPool& commandPool,
+          const VkQueue& queue);
   };
 
   struct UniformBufferObject {
@@ -81,42 +77,46 @@ class World {
   };
 
   class Camera {
-  public:
-      float zoomSpeed;
-      float panningSpeed;
-      float fieldOfView;
-      float nearClipping;
-      float farClipping;
-      glm::vec3 position;
-      glm::vec3 front{ 0.0f, 0.0f, -1.0f };
-      glm::vec3 up{ 0.0f, -1.0f, 0.0f };
+   public:
+    float zoomSpeed;
+    float panningSpeed;
+    float fieldOfView;
+    float nearClipping;
+    float farClipping;
+    glm::vec3 position;
+    glm::vec3 front{0.0f, 0.0f, -1.0f};
+    glm::vec3 up{0.0f, -1.0f, 0.0f};
 
-      Camera() = default;
+    Camera() = default;
 
-      void initialize(float zoomSpeed, float panningSpeed, float fieldOfView, float nearClipping, float farClipping, glm::vec3 position) {
-          this->zoomSpeed = zoomSpeed;
-          this->panningSpeed = panningSpeed;
-          this->fieldOfView = fieldOfView;
-          this->nearClipping = nearClipping;
-          this->farClipping = farClipping;
-          this->position = position;
-      }
+    void initialize(float zoomSpeed,
+                    float panningSpeed,
+                    float fieldOfView,
+                    float nearClipping,
+                    float farClipping,
+                    glm::vec3 position) {
+      this->zoomSpeed = zoomSpeed;
+      this->panningSpeed = panningSpeed;
+      this->fieldOfView = fieldOfView;
+      this->nearClipping = nearClipping;
+      this->farClipping = farClipping;
+      this->position = position;
+    }
 
-      glm::mat4 setModel();
-      glm::mat4 setView();
-      glm::mat4 setProjection(const VkExtent2D& swapchainExtent);
+    glm::mat4 setModel();
+    glm::mat4 setView();
+    glm::mat4 setProjection(const VkExtent2D& swapchainExtent);
 
-  private:
-      void update();
+   private:
+    void update();
   };
-
 
   float speed{25.0f};
   Timer time{speed};
 
   Grid grid;
-  Rectangle rectangle;
-  Cube cube;
+  Shape rectangle;
+  Shape cube;
 
   Light light;
 
