@@ -15,12 +15,8 @@ World::World(VkCommandBuffer& commandBuffer,
       cube("Cube", false, commandBuffer, commandPool, queue) {
   // grid.initialize({150, 150}, 5000, 0.6f);
 
-  light.initialize({0.0f, 20.0f, 20.0f, 0.0f});  // vec4 position
-  camera.initialize(
-      0.5f, 1.2f, 40.0f, 0.1f, 100.0f,
-      {0.0f, 0.0f,
-       30.0f});  // float zoomSpeed, float panningSpeed, float fieldOfView,
-                 // float nearClipping, float farClipping, glm::vec3 position
+  light.initialize({0.0f, 20.0f, 20.0f, 0.0f});
+  camera.initialize(0.5f, 1.2f, 40.0f, 0.1f, 100.0f, {0.0f, 0.0f, 30.0f});
 
   Log::text("{ wWw }", "constructing World");
 }
