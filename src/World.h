@@ -30,9 +30,9 @@ class World {
   };
 
   struct Grid : public Geometry {
-    vec2_uint_fast16_t size{100, 100};
-    uint_fast32_t initialAliveCells{5000};
-    const size_t pointCount{size.x * size.y};
+    vec2_uint_fast16_t size{};
+    const uint_fast32_t initialAliveCells{};
+    const size_t pointCount{};
 
     std::vector<uint32_t> pointIDs = std::vector<uint32_t>(pointCount);
     std::vector<glm::vec3> coordinates = std::vector<glm::vec3>(pointCount);
