@@ -52,6 +52,7 @@ World::Grid::Grid(vec2_uint_fast16_t size,
                   VkCommandBuffer& commandBuffer,
                   const VkCommandPool& commandPool,
                   const VkQueue& queue) {
+  UniformBufferObject ubo;
   Terrain::Config terrainLayer1 = {.dimensions = size,
                                    .roughness = 0.4f,
                                    .octaves = 10,
@@ -100,8 +101,7 @@ World::Grid::Grid(vec2_uint_fast16_t size,
 
     const bool isAlive = isAliveIndices[i];
 
-    cells[i].instancePosition = {coordinates[i],
-                                 isAlive ? initialCellSize : 0.0f};
+    cells[i].instancePosition = {coordinates[i], isAlive ? ubo.cellSize : 0.0f};
     cells[i].color = isAlive ? blue : red;
     cells[i].states = isAlive ? alive : dead;
   }
@@ -138,5 +138,3 @@ std::vector<uint_fast32_t> World::Grid::setCellsAliveRandomly(
   std::sort(CellIDs.begin(), CellIDs.end());
   return CellIDs;
 }
-
-

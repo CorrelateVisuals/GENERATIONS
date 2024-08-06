@@ -79,3 +79,4 @@ public:
         const VkCommandPool& commandPool,
         const VkQueue& queue);
 };
+

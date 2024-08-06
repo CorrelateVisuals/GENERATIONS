@@ -28,3 +28,15 @@ class Camera {
  private:
   void update();
 };
+
+struct ModelViewProjection {
+  alignas(16) glm::mat4 model{};
+  alignas(16) glm::mat4 view{};
+  alignas(16) glm::mat4 projection{};
+};
+
+class Light {
+ public:
+  glm::vec4 position;
+  Light(glm::vec4 p) : position(p){};
+};

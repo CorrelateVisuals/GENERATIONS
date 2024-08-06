@@ -105,11 +105,9 @@ void Resources::UniformBuffer::update(World& world, const VkExtent2D extent) {
   object.light = world.light.position;
   object.gridXY = glm::vec2(static_cast<uint32_t>(world.grid.size.x),
                             static_cast<uint32_t>(world.grid.size.y));
-  object.waterThreshold = 0.1f;
-  object.cellSize = world.grid.initialCellSize;
-  object.model = world.camera.setModel();
-  object.view = world.camera.setView();
-  object.projection = world.camera.setProjection(extent);
+  object.mvp.model = world.camera.setModel();
+  object.mvp.view = world.camera.setView();
+  object.mvp.projection = world.camera.setProjection(extent);
 
   std::memcpy(buffer.mapped, &object, sizeof(object));
 }
@@ -405,21 +403,18 @@ void Resources::Commands::recordGraphicsCommandBuffer(
                     pipelines.config.getPipelineObjectByName("Water"));
   VkBuffer vertexBuffers[] = {resources.world.rect.vertexBuffer.buffer};
   vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
-  vkCmdBindIndexBuffer(commandBuffer,
-                       resources.world.rect.indexBuffer.buffer, 0,
-                       VK_INDEX_TYPE_UINT32);
-  vkCmdDrawIndexed(
-      commandBuffer,
-      static_cast<uint32_t>(resources.world.rect.indices.size()), 1, 0, 0,
-      0);
+  vkCmdBindIndexBuffer(commandBuffer, resources.world.rect.indexBuffer.buffer,
+                       0, VK_INDEX_TYPE_UINT32);
+  vkCmdDrawIndexed(commandBuffer,
+                   static_cast<uint32_t>(resources.world.rect.indices.size()),
+                   1, 0, 0, 0);
 
   // Pipeline 4
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                     pipelines.config.getPipelineObjectByName("Texture"));
-  vkCmdDrawIndexed(
-      commandBuffer,
-      static_cast<uint32_t>(resources.world.rect.indices.size()), 1, 0, 0,
-      0);
+  vkCmdDrawIndexed(commandBuffer,
+                   static_cast<uint32_t>(resources.world.rect.indices.size()),
+                   1, 0, 0, 0);
   vkCmdEndRenderPass(commandBuffer);
 
   //       This is part of an image memory barrier (i.e., vkCmdPipelineBarrier
