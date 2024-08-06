@@ -32,7 +32,7 @@ class World {
 
   struct Grid : public Geometry {
     vec2_uint_fast16_t size = {100, 100};
-    const uint_fast32_t initialAliveCells = 5000;
+    uint_fast32_t initialAliveCells = 5000;
     const size_t pointCount{size.x * size.y};
 
     std::vector<uint32_t> pointIDs = std::vector<uint32_t>(pointCount);
@@ -40,7 +40,9 @@ class World {
     std::vector<World::Cell> cells = std::vector<World::Cell>(pointCount);
     const float initialCellSize{0.5f};
 
-    Grid(VkCommandBuffer& commandBuffer,
+    Grid(vec2_uint_fast16_t size,
+         uint_fast32_t aliveCells,
+         VkCommandBuffer& commandBuffer,
          const VkCommandPool& commandPool,
          const VkQueue& queue);
     static std::vector<VkVertexInputAttributeDescription>
@@ -71,37 +73,32 @@ class World {
 
   struct Light {
     glm::vec4 position;
-    Light() = default;
-
-    void initialize(glm::vec4 position) { this->position = position; }
+    Light(glm::vec4 p) : position(p){};
   };
 
   class Camera {
    public:
-    float zoomSpeed;
-    float panningSpeed;
-    float fieldOfView;
-    float nearClipping;
-    float farClipping;
-    glm::vec3 position;
+    float zoomSpeed{};
+    float panningSpeed{};
+    float fieldOfView{};
+    float nearClipping{};
+    float farClipping{};
+    glm::vec3 position{};
     glm::vec3 front{0.0f, 0.0f, -1.0f};
     glm::vec3 up{0.0f, -1.0f, 0.0f};
 
-    Camera() = default;
-
-    void initialize(float zoomSpeed,
-                    float panningSpeed,
-                    float fieldOfView,
-                    float nearClipping,
-                    float farClipping,
-                    glm::vec3 position) {
-      this->zoomSpeed = zoomSpeed;
-      this->panningSpeed = panningSpeed;
-      this->fieldOfView = fieldOfView;
-      this->nearClipping = nearClipping;
-      this->farClipping = farClipping;
-      this->position = position;
-    }
+    Camera(float zoom,
+           float pan,
+           float fov,
+           float near,
+           float far,
+           glm::vec3 pos)
+        : zoomSpeed(zoom),
+          panningSpeed(pan),
+          fieldOfView(fov),
+          nearClipping(near),
+          farClipping(far),
+          position(pos){};
 
     glm::mat4 setModel();
     glm::mat4 setView();

@@ -10,14 +10,11 @@
 World::World(VkCommandBuffer& commandBuffer,
              const VkCommandPool& commandPool,
              const VkQueue& queue)
-    : grid(commandBuffer, commandPool, queue),
+    : light({0.0f, 20.0f, 20.0f, 0.0f}),
+      camera(0.5f, 1.2f, 40.0f, 0.1f, 100.0f, {0.0f, 0.0f, 30.0f}),
+      grid({100, 100}, 5000, commandBuffer, commandPool, queue),
       rectangle("Rectangle", true, commandBuffer, commandPool, queue),
       cube("Cube", false, commandBuffer, commandPool, queue) {
-  // grid.initialize({150, 150}, 5000, 0.6f);
-
-  light.initialize({0.0f, 20.0f, 20.0f, 0.0f});
-  camera.initialize(0.5f, 1.2f, 40.0f, 0.1f, 100.0f, {0.0f, 0.0f, 30.0f});
-
   Log::text("{ wWw }", "constructing World");
 }
 
@@ -49,7 +46,9 @@ World::Cell::getAttributeDescription() {
   return description;
 };
 
-World::Grid::Grid(VkCommandBuffer& commandBuffer,
+World::Grid::Grid(vec2_uint_fast16_t size,
+                  uint_fast32_t aliveCells,
+                  VkCommandBuffer& commandBuffer,
                   const VkCommandPool& commandPool,
                   const VkQueue& queue) {
   Terrain::Config terrainLayer1 = {.dimensions = size,
