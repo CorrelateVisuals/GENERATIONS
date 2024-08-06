@@ -39,12 +39,12 @@ class Resources {
 
   class UniformBuffer : public CE::Descriptor {
    public:
-    UniformBuffer();
+    UniformBuffer(World::UniformBufferObject& u);
     void update(World& world, const VkExtent2D extent);
 
    private:
     CE::Buffer buffer;
-    World::UniformBufferObject object;
+    World::UniformBufferObject& ubo;
     void createBuffer();
     void createDescriptorWrite();
   };

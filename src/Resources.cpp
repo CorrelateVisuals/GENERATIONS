@@ -15,7 +15,8 @@ Resources::Resources(VulkanMechanics& mechanics, Pipelines& pipelines)
               mechanics.queues.graphics},
       storageImage{mechanics.swapchain.images},
       world{commands.singularCommandBuffer, commands.pool,
-            mechanics.queues.graphics} {
+            mechanics.queues.graphics},
+      uniform{world.ubo} {
   Log::text(Log::Style::headerGuard);
   Log::text("{ /// }", "constructing Resources");
 
@@ -50,7 +51,8 @@ Resources::MultisamplingImage::MultisamplingImage(const VkExtent2D extent,
                   VK_IMAGE_ASPECT_COLOR_BIT);
 }
 
-Resources::UniformBuffer::UniformBuffer() {
+Resources::UniformBuffer::UniformBuffer(World::UniformBufferObject& u)
+    : ubo(u) {
   myIndex = writeIndex;
   writeIndex++;
 
@@ -102,14 +104,14 @@ void Resources::UniformBuffer::createDescriptorWrite() {
 };
 
 void Resources::UniformBuffer::update(World& world, const VkExtent2D extent) {
-  object.light = world.light.position;
-  object.gridXY = glm::vec2(static_cast<uint32_t>(world.grid.size.x),
+  ubo.light = world.light.position;
+  ubo.gridXY = glm::vec2(static_cast<uint32_t>(world.grid.size.x),
                             static_cast<uint32_t>(world.grid.size.y));
-  object.mvp.model = world.camera.setModel();
-  object.mvp.view = world.camera.setView();
-  object.mvp.projection = world.camera.setProjection(extent);
+  ubo.mvp.model = world.camera.setModel();
+  ubo.mvp.view = world.camera.setView();
+  ubo.mvp.projection = world.camera.setProjection(extent);
 
-  std::memcpy(buffer.mapped, &object, sizeof(object));
+  std::memcpy(buffer.mapped, &ubo, sizeof(ubo));
 }
 
 Resources::StorageBuffer::StorageBuffer(VkCommandBuffer& commandBuffer,

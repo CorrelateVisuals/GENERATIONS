@@ -29,6 +29,17 @@ class World {
     getAttributeDescription();
   };
 
+  struct UniformBufferObject {
+    glm::vec4 light;
+    glm::ivec2 gridXY;
+    float waterThreshold;
+    float cellSize;
+    alignas(16) ModelViewProjection mvp{};
+
+    UniformBufferObject(glm::vec4 l, glm::ivec2 xy, float w, float s)
+        : light(l), gridXY(xy), waterThreshold(w), cellSize(s){};
+  };
+
   struct Grid : public Geometry {
     vec2_uint_fast16_t size{};
     const uint_fast32_t initialAliveCells{};
@@ -38,7 +49,8 @@ class World {
     std::vector<glm::vec3> coordinates = std::vector<glm::vec3>(pointCount);
     std::vector<World::Cell> cells = std::vector<World::Cell>(pointCount);
 
-    Grid(vec2_uint_fast16_t size,
+    Grid(UniformBufferObject& ubo,
+         vec2_uint_fast16_t size,
          uint_fast32_t aliveCells,
          VkCommandBuffer& commandBuffer,
          const VkCommandPool& commandPool,
@@ -51,6 +63,7 @@ class World {
         uint_fast32_t numberOfCells);
   };
 
+  UniformBufferObject ubo;
   Light light;
   Camera camera;
   Timer time;
@@ -58,12 +71,4 @@ class World {
   Grid grid;
   Shape rect;
   Shape cube;
-
-  struct UniformBufferObject {
-    glm::vec4 light{};
-    glm::ivec2 gridXY{};
-    float waterThreshold{0.1f};
-    float cellSize{0.5f};
-    alignas(16) ModelViewProjection mvp;
-  };
 };
