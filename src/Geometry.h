@@ -70,3 +70,12 @@ class Geometry : public Vertex {
                       const glm::vec3& translationDistance = glm::vec3(0.0f),
                       float scale = 1.0f);
 };
+
+class Shape : public Geometry {
+public:
+    Shape(std::string shape,
+        bool hasIndices,
+        VkCommandBuffer& commandBuffer,
+        const VkCommandPool& commandPool,
+        const VkQueue& queue);
+};

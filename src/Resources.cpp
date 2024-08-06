@@ -403,14 +403,14 @@ void Resources::Commands::recordGraphicsCommandBuffer(
   // Pipeline 3
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                     pipelines.config.getPipelineObjectByName("Water"));
-  VkBuffer vertexBuffers[] = {resources.world.rectangle.vertexBuffer.buffer};
+  VkBuffer vertexBuffers[] = {resources.world.rect.vertexBuffer.buffer};
   vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
   vkCmdBindIndexBuffer(commandBuffer,
-                       resources.world.rectangle.indexBuffer.buffer, 0,
+                       resources.world.rect.indexBuffer.buffer, 0,
                        VK_INDEX_TYPE_UINT32);
   vkCmdDrawIndexed(
       commandBuffer,
-      static_cast<uint32_t>(resources.world.rectangle.indices.size()), 1, 0, 0,
+      static_cast<uint32_t>(resources.world.rect.indices.size()), 1, 0, 0,
       0);
 
   // Pipeline 4
@@ -418,7 +418,7 @@ void Resources::Commands::recordGraphicsCommandBuffer(
                     pipelines.config.getPipelineObjectByName("Texture"));
   vkCmdDrawIndexed(
       commandBuffer,
-      static_cast<uint32_t>(resources.world.rectangle.indices.size()), 1, 0, 0,
+      static_cast<uint32_t>(resources.world.rect.indices.size()), 1, 0, 0,
       0);
   vkCmdEndRenderPass(commandBuffer);
 

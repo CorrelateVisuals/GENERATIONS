@@ -4,6 +4,7 @@
 #include "BaseClasses.h"
 #include "Mechanics.h"
 #include "Resources.h"
+#include "Geometry.h"
 
 class Pipelines {
  public:
@@ -53,12 +54,12 @@ class Pipelines {
           .vertexBindings = World::Grid::getBindingDescription()};
       pipelineMap["Texture"] = Graphics{
           .shaders = {"Vert", "Frag"},
-          .vertexAttributes = World::Shape::getAttributeDescription(),
-          .vertexBindings = World::Shape::getBindingDescription()};
+          .vertexAttributes = Shape::getAttributeDescription(),
+          .vertexBindings = Shape::getBindingDescription()};
       pipelineMap["Water"] = Graphics{
           .shaders = {"Vert", "Frag"},
-          .vertexAttributes = World::Shape::getAttributeDescription(),
-          .vertexBindings = World::Shape::getBindingDescription()};
+          .vertexAttributes = Shape::getAttributeDescription(),
+          .vertexBindings = Shape::getBindingDescription()};
       pipelineMap["PostFX"] = Compute{
           .shaders = {"Comp"},
           .workGroups = {

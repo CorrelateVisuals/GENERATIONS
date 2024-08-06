@@ -221,3 +221,18 @@ void Geometry::transformModel(std::vector<Vertex>& vertices,
   }
   return;
 }
+
+Shape::Shape(std::string shape,
+             bool hasIndices,
+             VkCommandBuffer& commandBuffer,
+             const VkCommandPool& commandPool,
+             const VkQueue& queue)
+    : Geometry(shape) {
+  if (hasIndices) {
+    createVertexBuffer(commandBuffer, commandPool, queue, uniqueVertices);
+    createIndexBuffer(commandBuffer, commandPool, queue, indices);
+  }
+  if (!hasIndices) {
+    createVertexBuffer(commandBuffer, commandPool, queue, allVertices);
+  }
+}
