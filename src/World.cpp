@@ -7,15 +7,42 @@
 #include <ctime>
 #include <random>
 
+namespace {
+constexpr glm::ivec2 GRID_SIZE = {250, 250};
+constexpr uint_fast32_t NUMBER_OF_ALIVE_CELLS = 30000;
+constexpr float CELL_SIZE = 0.5f;
+
+constexpr float TIMER_SPEED = 25.0f;
+constexpr float WATER_THRESHOLD = 0.1f;
+constexpr glm::vec4 LIGHT_POS = {0.0f, 20.0f, 20.0f, 0.0f};
+
+constexpr float ZOOM_SPEED = 0.5f;
+constexpr float PANNING_SPEED = 1.2f;
+constexpr float FIELD_OF_VIEW = 40.0f;
+constexpr float NEAR_CLIPPING = 0.1f;
+constexpr float FAR_CLIPPING = 100.0f;
+constexpr glm::vec3 CAMERA_POSITION = {0.0f, 0.0f, 30.0f};
+}  // namespace
+
 World::World(VkCommandBuffer& commandBuffer,
              const VkCommandPool& commandPool,
              const VkQueue& queue)
-    : ubo({0.0f, 20.0f, 20.0f, 0.0f}, {250, 250}, 0.1f, 0.5f),
-      camera(0.5f, 1.2f, 40.0f, 0.1f, 100.0f, {0.0f, 0.0f, 30.0f}),
-      time(25.0f),
-      grid(ubo, 30000, commandBuffer, commandPool, queue),
+    : grid(GRID_SIZE,
+           NUMBER_OF_ALIVE_CELLS,
+           CELL_SIZE,
+           commandBuffer,
+           commandPool,
+           queue),
       rect("Rectangle", true, commandBuffer, commandPool, queue),
-      cube("Cube", false, commandBuffer, commandPool, queue) {
+      cube("Cube", false, commandBuffer, commandPool, queue),
+      ubo(LIGHT_POS, GRID_SIZE, WATER_THRESHOLD, CELL_SIZE),
+      camera(ZOOM_SPEED,
+             PANNING_SPEED,
+             FIELD_OF_VIEW,
+             NEAR_CLIPPING,
+             FAR_CLIPPING,
+             CAMERA_POSITION),
+      time(TIMER_SPEED) {
   Log::text("{ wWw }", "constructing World");
 }
 
@@ -47,12 +74,13 @@ World::Cell::getAttributeDescription() {
   return description;
 };
 
-World::Grid::Grid(UniformBufferObject& ubo,
+World::Grid::Grid(vec2_uint_fast16_t gridSize,
                   uint_fast32_t aliveCells,
+                  float cellSize,
                   VkCommandBuffer& commandBuffer,
                   const VkCommandPool& commandPool,
                   const VkQueue& queue)
-    : size(ubo.gridXY),
+    : size(gridSize),
       initialAliveCells(aliveCells),
       pointCount(size.x * size.y) {
   Terrain::Config terrainLayer1 = {.dimensions = size,
@@ -103,7 +131,7 @@ World::Grid::Grid(UniformBufferObject& ubo,
 
     const bool isAlive = isAliveIndices[i];
 
-    cells[i].instancePosition = {coordinates[i], isAlive ? ubo.cellSize : 0.0f};
+    cells[i].instancePosition = {coordinates[i], isAlive ? cellSize : 0.0f};
     cells[i].color = isAlive ? blue : red;
     cells[i].states = isAlive ? alive : dead;
   }

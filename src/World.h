@@ -49,8 +49,9 @@ class World {
     std::vector<glm::vec3> coordinates = std::vector<glm::vec3>(pointCount);
     std::vector<World::Cell> cells = std::vector<World::Cell>(pointCount);
 
-    Grid(UniformBufferObject& ubo,
+    Grid(vec2_uint_fast16_t gridSize,
          uint_fast32_t aliveCells,
+         float cellSize,
          VkCommandBuffer& commandBuffer,
          const VkCommandPool& commandPool,
          const VkQueue& queue);
@@ -62,11 +63,11 @@ class World {
         uint_fast32_t numberOfCells);
   };
 
-  UniformBufferObject ubo;
-  Camera camera;
-  Timer time;
-
   Grid grid;
   Shape rect;
   Shape cube;
+
+  UniformBufferObject ubo;
+  Camera camera;
+  Timer time;
 };
