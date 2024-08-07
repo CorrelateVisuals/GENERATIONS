@@ -104,9 +104,9 @@ void Resources::UniformBuffer::createDescriptorWrite() {
 };
 
 void Resources::UniformBuffer::update(World& world, const VkExtent2D extent) {
-  ubo.light = world.light.position;
+  ubo.light = world.ubo.light;
   ubo.gridXY = glm::vec2(static_cast<uint32_t>(world.grid.size.x),
-                            static_cast<uint32_t>(world.grid.size.y));
+                         static_cast<uint32_t>(world.grid.size.y));
   ubo.mvp.model = world.camera.setModel();
   ubo.mvp.view = world.camera.setView();
   ubo.mvp.projection = world.camera.setProjection(extent);

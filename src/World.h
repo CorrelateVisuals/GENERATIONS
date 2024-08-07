@@ -50,7 +50,6 @@ class World {
     std::vector<World::Cell> cells = std::vector<World::Cell>(pointCount);
 
     Grid(UniformBufferObject& ubo,
-         vec2_uint_fast16_t size,
          uint_fast32_t aliveCells,
          VkCommandBuffer& commandBuffer,
          const VkCommandPool& commandPool,
@@ -64,7 +63,6 @@ class World {
   };
 
   UniformBufferObject ubo;
-  Light light;
   Camera camera;
   Timer time;
 

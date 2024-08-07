@@ -7,6 +7,13 @@
 struct vec2_uint_fast16_t {
   uint_fast16_t x;
   uint_fast16_t y;
+
+  vec2_uint_fast16_t(uint_fast16_t x_val = 0, uint_fast16_t y_val = 0)
+      : x(x_val), y(y_val) {}
+
+  vec2_uint_fast16_t(const glm::ivec2& vec)
+      : x(static_cast<uint_fast16_t>(vec.x)),
+        y(static_cast<uint_fast16_t>(vec.y)) {}
 };
 
 namespace Lib {
