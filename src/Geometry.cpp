@@ -4,6 +4,10 @@
 #include "Geometry.h"
 #include "Library.h"
 
+namespace {
+constexpr glm::vec3 STANDARD_ORIENTATION{90.0f, 180.0f, 0.0f};
+}  // namespace
+
 std::vector<VkVertexInputBindingDescription> Vertex::getBindingDescription() {
   std::vector<VkVertexInputBindingDescription> binding{
       {0, sizeof(Vertex), VK_VERTEX_INPUT_RATE_VERTEX}};
@@ -37,9 +41,9 @@ Geometry::Geometry(const std::string& modelName) {
   if (!modelName.empty()) {
     loadModel(modelName, *this);
     transformModel(allVertices, ORIENTATION_ORDER{ROTATE_SCALE_TRANSLATE},
-                   glm::vec3(90.0f, 180.0f, 0.0f));
+                   STANDARD_ORIENTATION);
     transformModel(uniqueVertices, ORIENTATION_ORDER{ROTATE_SCALE_TRANSLATE},
-                   glm::vec3(90.0f, 180.0f, 0.0f));
+                   STANDARD_ORIENTATION);
   }
 }
 
