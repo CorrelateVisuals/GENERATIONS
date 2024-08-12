@@ -5,14 +5,13 @@
 
 Resources::Resources(VulkanMechanics& mechanics, Pipelines& pipelines)
     : commands{mechanics.queues.familyIndices},
+      commandInterface{commands.singularCommandBuffer, commands.pool,
+                       mechanics.queues.graphics},
       pushConstants{VK_SHADER_STAGE_COMPUTE_BIT, 128, 0},
       depthImage{mechanics.swapchain.extent, CE::Image::findDepthFormat()},
       msaaImage{mechanics.swapchain.extent, mechanics.swapchain.imageFormat},
-      common{commands.singularCommandBuffer, commands.pool,
-             mechanics.queues.graphics},
-      shaderStorage{common, world.grid.cells, world.grid.pointCount},
-      sampler{commands.singularCommandBuffer, commands.pool,
-              mechanics.queues.graphics, Lib::path("assets/Avatar.PNG")},
+      shaderStorage{commandInterface, world.grid.cells, world.grid.pointCount},
+      sampler{commandInterface, Lib::path("assets/Avatar.PNG")},
       storageImage{mechanics.swapchain.images},
       world{commands.singularCommandBuffer, commands.pool,
             mechanics.queues.graphics},
@@ -114,7 +113,7 @@ void Resources::UniformBuffer::update(World& world, const VkExtent2D extent) {
   std::memcpy(buffer.mapped, &ubo, sizeof(ubo));
 }
 
-Resources::StorageBuffer::StorageBuffer(const CommandData& commandData,
+Resources::StorageBuffer::StorageBuffer(const CommandInterface& commandData,
                                         const auto& object,
                                         const size_t quantity) {
   myIndex = writeIndex;
@@ -137,7 +136,7 @@ Resources::StorageBuffer::StorageBuffer(const CommandData& commandData,
   createDescriptorWrite(quantity);
 }
 
-void Resources::StorageBuffer::create(const CommandData& commandData,
+void Resources::StorageBuffer::create(const CommandInterface& commandData,
                                       const auto& object,
                                       const size_t quantity) {
   Log::text("{ 101 }", "Shader Storage Buffers");
@@ -163,7 +162,8 @@ void Resources::StorageBuffer::create(const CommandData& commandData,
                          VK_BUFFER_USAGE_TRANSFER_DST_BIT,
                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, bufferIn);
   CE::Buffer::copy(stagingResources.buffer, bufferIn.buffer, bufferSize,
-      commandData.commandBuffer, commandData.commandPool, commandData.queue);
+                   commandData.commandBuffer, commandData.commandPool,
+                   commandData.queue);
 
   CE::Buffer::create(static_cast<VkDeviceSize>(bufferSize),
                      VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
@@ -171,7 +171,8 @@ void Resources::StorageBuffer::create(const CommandData& commandData,
                          VK_BUFFER_USAGE_TRANSFER_DST_BIT,
                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, bufferOut);
   CE::Buffer::copy(stagingResources.buffer, bufferOut.buffer, bufferSize,
-      commandData.commandBuffer, commandData.commandPool, commandData.queue);
+                   commandData.commandBuffer, commandData.commandPool,
+                   commandData.queue);
 }
 
 void Resources::StorageBuffer::createDescriptorWrite(const size_t quantity) {
@@ -198,9 +199,7 @@ void Resources::StorageBuffer::createDescriptorWrite(const size_t quantity) {
   }
 };
 
-Resources::ImageSampler::ImageSampler(VkCommandBuffer& commandBuffer,
-                                      VkCommandPool& commandPool,
-                                      const VkQueue& queue,
+Resources::ImageSampler::ImageSampler(const CommandInterface& commandData,
                                       const std::string& texturePath)
     : textureImage(texturePath) {
   myIndex = writeIndex;
@@ -217,7 +216,8 @@ Resources::ImageSampler::ImageSampler(VkCommandBuffer& commandBuffer,
   poolSizes.push_back(poolSize);
 
   textureImage.loadTexture(textureImage.path, VK_FORMAT_R8G8B8A8_SRGB,
-                           commandBuffer, commandPool, queue);
+                           commandData.commandBuffer, commandData.commandPool,
+                           commandData.queue);
   textureImage.createView(VK_IMAGE_ASPECT_COLOR_BIT);
   textureImage.createSampler();
 

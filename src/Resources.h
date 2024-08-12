@@ -29,13 +29,15 @@ class Resources {
                                      const uint32_t imageIndex) override;
   };
 
-  struct CommandData {
-      VkCommandBuffer& commandBuffer;
-      const VkCommandPool& commandPool;
-      const VkQueue& queue;
+  struct CommandInterface {
+    VkCommandBuffer& commandBuffer;
+    const VkCommandPool& commandPool;
+    const VkQueue& queue;
 
-      CommandData(VkCommandBuffer& cmdBuffer, const VkCommandPool& cmdPool, const VkQueue& q)
-          : commandBuffer(cmdBuffer), commandPool(cmdPool), queue(q) {}
+    CommandInterface(VkCommandBuffer& cmdBuffer,
+                const VkCommandPool& cmdPool,
+                const VkQueue& q)
+        : commandBuffer(cmdBuffer), commandPool(cmdPool), queue(q) {}
   };
 
   struct DepthImage : public CE::Image {
@@ -59,28 +61,25 @@ class Resources {
   };
 
   class StorageBuffer : public CE::Descriptor {
-  public:
-      CE::Buffer bufferIn;
-      CE::Buffer bufferOut;
+   public:
+    CE::Buffer bufferIn;
+    CE::Buffer bufferOut;
 
-      StorageBuffer(const CommandData& commandData,
-          const auto& object,
-          const size_t quantity);
+    StorageBuffer(const CommandInterface& commandData,
+                  const auto& object,
+                  const size_t quantity);
 
-  private:
-      void create(const CommandData& commandData,
-          const auto& object,
-          const size_t quantity);
-      void createDescriptorWrite(const size_t quantity);
+   private:
+    void create(const CommandInterface& commandData,
+                const auto& object,
+                const size_t quantity);
+    void createDescriptorWrite(const size_t quantity);
   };
-
 
   class ImageSampler : public CE::Descriptor {
    public:
-       ImageSampler(VkCommandBuffer& commandBuffer,
-           VkCommandPool& commandPool,
-           const VkQueue& queue,
-           const std::string& texturePath);
+    ImageSampler(const CommandInterface& commandData,
+                 const std::string& texturePath);
 
    private:
     void createDescriptorWrite();
@@ -107,12 +106,13 @@ class Resources {
   };
 
   Commands commands;
+
   World world;
   DepthImage depthImage;
   MultisamplingImage msaaImage;
   UniformBuffer uniform;
 
-  CommandData common;
+  CommandInterface commandInterface;
 
   StorageBuffer shaderStorage;
   ImageSampler sampler;
