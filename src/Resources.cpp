@@ -12,7 +12,7 @@ Resources::Resources(VulkanMechanics& mechanics, Pipelines& pipelines)
                     mechanics.queues.graphics, world.grid.cells,
                     world.grid.pointCount},
       sampler{commands.singularCommandBuffer, commands.pool,
-              mechanics.queues.graphics},
+              mechanics.queues.graphics, Lib::path("assets/Avatar.PNG")},
       storageImage{mechanics.swapchain.images},
       world{commands.singularCommandBuffer, commands.pool,
             mechanics.queues.graphics},
@@ -205,7 +205,9 @@ void Resources::StorageBuffer::createDescriptorWrite(const size_t quantity) {
 
 Resources::ImageSampler::ImageSampler(VkCommandBuffer& commandBuffer,
                                       VkCommandPool& commandPool,
-                                      const VkQueue& queue) {
+                                      const VkQueue& queue,
+                                      const std::string& texturePath)
+    : textureImage(texturePath) {
   myIndex = writeIndex;
   writeIndex++;
 

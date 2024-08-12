@@ -70,15 +70,18 @@ class Resources {
 
   class ImageSampler : public CE::Descriptor {
    public:
-    ImageSampler(VkCommandBuffer& commandBuffer,
-                 VkCommandPool& commandPool,
-                 const VkQueue& queue);
+       ImageSampler(VkCommandBuffer& commandBuffer,
+           VkCommandPool& commandPool,
+           const VkQueue& queue,
+           const std::string& texturePath);
 
    private:
     void createDescriptorWrite();
+
     struct TextureImage : public CE::Image {
-      TextureImage() { path = Lib::path("assets/Avatar.PNG"); }
+      TextureImage(const std::string& texturePath) { path = texturePath; }
     };
+
     TextureImage textureImage;
   };
 
@@ -90,10 +93,11 @@ class Resources {
   };
 
   class PushConstants : public CE::PushConstants {
-  public:
-      PushConstants(VkShaderStageFlags stage, uint32_t dataSize, uint32_t dataOffset = 0);
+   public:
+    PushConstants(VkShaderStageFlags stage,
+                  uint32_t dataSize,
+                  uint32_t dataOffset = 0);
   };
-
 
   Commands commands;
   World world;
