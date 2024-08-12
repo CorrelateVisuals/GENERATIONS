@@ -89,15 +89,11 @@ class Resources {
         std::array<CE::Image, MAX_FRAMES_IN_FLIGHT>& images);
   };
 
-  struct PushConstants : public CE::PushConstants {
-    PushConstants() {
-      shaderStage = VK_SHADER_STAGE_COMPUTE_BIT;
-      count = 1;
-      offset = 0;
-      size = 128;
-      data.fill(0);
-    }
+  class PushConstants : public CE::PushConstants {
+  public:
+      PushConstants(VkShaderStageFlags stage, uint32_t dataSize, uint32_t dataOffset = 0);
   };
+
 
   Commands commands;
   World world;

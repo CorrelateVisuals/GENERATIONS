@@ -5,7 +5,7 @@
 
 Resources::Resources(VulkanMechanics& mechanics, Pipelines& pipelines)
     : commands{mechanics.queues.familyIndices},
-      pushConstants{},
+      pushConstants{VK_SHADER_STAGE_COMPUTE_BIT, 128, 0},
       depthImage{mechanics.swapchain.extent, CE::Image::findDepthFormat()},
       msaaImage{mechanics.swapchain.extent, mechanics.swapchain.imageFormat},
       shaderStorage{commands.singularCommandBuffer, commands.pool,
@@ -450,4 +450,23 @@ void Resources::Commands::recordGraphicsCommandBuffer(
       /* -> */ VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
   CE::VULKAN_RESULT(vkEndCommandBuffer, commandBuffer);
+}
+
+Resources::PushConstants::PushConstants(VkShaderStageFlags stage,
+                                        uint32_t dataSize,
+                                        uint32_t dataOffset) {
+  shaderStage = stage;
+
+  size = (dataSize % 4 == 0) ? dataSize : ((dataSize + 3) & ~3);
+  if (size > 128) {
+    size = 128;
+  }
+  offset = (dataOffset % 4 == 0) ? dataOffset : ((dataOffset + 3) & ~3);
+  count = 1;
+  std::fill(data.begin(), data.end(), 0);
+
+  if (size > data.size() * sizeof(uint64_t)) {
+    throw std::runtime_error(
+        "Size exceeds the available space in the data array.");
+  }
 }

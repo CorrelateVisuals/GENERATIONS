@@ -41,9 +41,9 @@ class World {
   };
 
   struct Grid : public Geometry {
-    vec2_uint_fast16_t size{};
-    const uint_fast32_t initialAliveCells{};
-    const size_t pointCount{};
+    vec2_uint_fast16_t size;
+    const uint_fast32_t initialAliveCells;
+    const size_t pointCount;
 
     std::vector<uint32_t> pointIDs = std::vector<uint32_t>(pointCount);
     std::vector<glm::vec3> coordinates = std::vector<glm::vec3>(pointCount);
