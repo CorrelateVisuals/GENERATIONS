@@ -8,9 +8,9 @@ Resources::Resources(VulkanMechanics& mechanics, Pipelines& pipelines)
       pushConstants{VK_SHADER_STAGE_COMPUTE_BIT, 128, 0},
       depthImage{mechanics.swapchain.extent, CE::Image::findDepthFormat()},
       msaaImage{mechanics.swapchain.extent, mechanics.swapchain.imageFormat},
-      shaderStorage{commands.singularCommandBuffer, commands.pool,
-                    mechanics.queues.graphics, world.grid.cells,
-                    world.grid.pointCount},
+      common{commands.singularCommandBuffer, commands.pool,
+             mechanics.queues.graphics},
+      shaderStorage{common, world.grid.cells, world.grid.pointCount},
       sampler{commands.singularCommandBuffer, commands.pool,
               mechanics.queues.graphics, Lib::path("assets/Avatar.PNG")},
       storageImage{mechanics.swapchain.images},
@@ -114,9 +114,7 @@ void Resources::UniformBuffer::update(World& world, const VkExtent2D extent) {
   std::memcpy(buffer.mapped, &ubo, sizeof(ubo));
 }
 
-Resources::StorageBuffer::StorageBuffer(VkCommandBuffer& commandBuffer,
-                                        const VkCommandPool& commandPool,
-                                        const VkQueue& queue,
+Resources::StorageBuffer::StorageBuffer(const CommandData& commandData,
                                         const auto& object,
                                         const size_t quantity) {
   myIndex = writeIndex;
@@ -134,16 +132,13 @@ Resources::StorageBuffer::StorageBuffer(VkCommandBuffer& commandBuffer,
   poolSize.descriptorCount = MAX_FRAMES_IN_FLIGHT * 2;
   poolSizes.push_back(poolSize);
 
-  create(commandBuffer, commandPool, queue, object, quantity);
+  create(commandData, object, quantity);
 
   createDescriptorWrite(quantity);
 }
 
-void Resources::StorageBuffer::create(VkCommandBuffer& commandBuffer,
-                                      const VkCommandPool& commandPool,
-                                      const VkQueue& queue,
+void Resources::StorageBuffer::create(const CommandData& commandData,
                                       const auto& object,
-
                                       const size_t quantity) {
   Log::text("{ 101 }", "Shader Storage Buffers");
 
@@ -168,7 +163,7 @@ void Resources::StorageBuffer::create(VkCommandBuffer& commandBuffer,
                          VK_BUFFER_USAGE_TRANSFER_DST_BIT,
                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, bufferIn);
   CE::Buffer::copy(stagingResources.buffer, bufferIn.buffer, bufferSize,
-                   commandBuffer, commandPool, queue);
+      commandData.commandBuffer, commandData.commandPool, commandData.queue);
 
   CE::Buffer::create(static_cast<VkDeviceSize>(bufferSize),
                      VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
@@ -176,7 +171,7 @@ void Resources::StorageBuffer::create(VkCommandBuffer& commandBuffer,
                          VK_BUFFER_USAGE_TRANSFER_DST_BIT,
                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, bufferOut);
   CE::Buffer::copy(stagingResources.buffer, bufferOut.buffer, bufferSize,
-                   commandBuffer, commandPool, queue);
+      commandData.commandBuffer, commandData.commandPool, commandData.queue);
 }
 
 void Resources::StorageBuffer::createDescriptorWrite(const size_t quantity) {

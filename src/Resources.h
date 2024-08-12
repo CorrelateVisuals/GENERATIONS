@@ -29,6 +29,15 @@ class Resources {
                                      const uint32_t imageIndex) override;
   };
 
+  struct CommandData {
+      VkCommandBuffer& commandBuffer;
+      const VkCommandPool& commandPool;
+      const VkQueue& queue;
+
+      CommandData(VkCommandBuffer& cmdBuffer, const VkCommandPool& cmdPool, const VkQueue& q)
+          : commandBuffer(cmdBuffer), commandPool(cmdPool), queue(q) {}
+  };
+
   struct DepthImage : public CE::Image {
     DepthImage(const VkExtent2D extent, const VkFormat format);
   };
@@ -50,23 +59,21 @@ class Resources {
   };
 
   class StorageBuffer : public CE::Descriptor {
-   public:
-    CE::Buffer bufferIn;
-    CE::Buffer bufferOut;
-    StorageBuffer(VkCommandBuffer& commandBuffer,
-                  const VkCommandPool& commandPool,
-                  const VkQueue& queue,
-                  const auto& object,
-                  const size_t quantity);
+  public:
+      CE::Buffer bufferIn;
+      CE::Buffer bufferOut;
 
-   private:
-    void create(VkCommandBuffer& commandBuffer,
-                const VkCommandPool& commandPool,
-                const VkQueue& queue,
-                const auto& object,
-                const size_t quantity);
-    void createDescriptorWrite(const size_t quantity);
+      StorageBuffer(const CommandData& commandData,
+          const auto& object,
+          const size_t quantity);
+
+  private:
+      void create(const CommandData& commandData,
+          const auto& object,
+          const size_t quantity);
+      void createDescriptorWrite(const size_t quantity);
   };
+
 
   class ImageSampler : public CE::Descriptor {
    public:
@@ -104,6 +111,9 @@ class Resources {
   DepthImage depthImage;
   MultisamplingImage msaaImage;
   UniformBuffer uniform;
+
+  CommandData common;
+
   StorageBuffer shaderStorage;
   ImageSampler sampler;
   StorageImage storageImage;
