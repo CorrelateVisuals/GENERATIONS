@@ -193,6 +193,12 @@ class Image {
                          .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED};
 
   Image() = default;
+  Image(IMAGE_RESOURCE_TYPES image_type,
+        const VkExtent2D& extent,
+        const VkFormat format) {
+    createResources(image_type, extent, format);
+  }
+
   virtual ~Image() { destroyVulkanImages(); };
 
   void create(const uint32_t width,

@@ -11,8 +11,10 @@ Resources::Resources(VulkanMechanics& mechanics, Pipelines& pipelines)
                        mechanics.queues.graphics},
 
       pushConstants{VK_SHADER_STAGE_COMPUTE_BIT, 128, 0},
-      depthImage{mechanics.swapchain.extent, CE::Image::findDepthFormat()},
-      msaaImage{mechanics.swapchain.extent, mechanics.swapchain.imageFormat},
+      depthImage{CE_DEPTH_IMAGE, mechanics.swapchain.extent,
+                 CE::Image::findDepthFormat()},
+      msaaImage{CE_MULTISAMPLE_IMAGE, mechanics.swapchain.extent,
+                mechanics.swapchain.imageFormat},
 
       shaderStorage{commandInterface, world.grid.cells, world.grid.pointCount},
       sampler{commandInterface, Lib::path("assets/Avatar.PNG")},

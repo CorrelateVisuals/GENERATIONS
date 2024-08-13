@@ -98,8 +98,10 @@ class Resources {
   CE::CommandInterface commandInterface;
 
   World world;
-  DepthImage depthImage;
-  MultisamplingImage msaaImage;
+  CE::Image depthImage;
+  CE::Image msaaImage;
+  // DepthImage depthImage;
+  // MultisamplingImage msaaImage;
   UniformBuffer uniform;
 
   StorageBuffer shaderStorage;
