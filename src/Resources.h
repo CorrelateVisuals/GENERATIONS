@@ -29,14 +29,6 @@ class Resources {
                                      const uint32_t imageIndex) override;
   };
 
-  struct DepthImage : public CE::Image {
-    DepthImage(const VkExtent2D extent, const VkFormat format);
-  };
-
-  struct MultisamplingImage : public CE::Image {
-    MultisamplingImage(const VkExtent2D extent, const VkFormat format);
-  };
-
   class UniformBuffer : public CE::Descriptor {
    public:
     UniformBuffer(World::UniformBufferObject& u);
@@ -73,11 +65,7 @@ class Resources {
    private:
     void createDescriptorWrite();
 
-    struct TextureImage : public CE::Image {
-      TextureImage(const std::string& texturePath) { path = texturePath; }
-    };
-
-    TextureImage textureImage;
+    CE::Image textureImage;
   };
 
   class StorageImage : public CE::Descriptor {

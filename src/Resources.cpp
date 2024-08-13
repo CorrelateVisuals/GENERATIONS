@@ -43,16 +43,6 @@ Resources::Commands::Commands(const CE::Queues::FamilyIndices& familyIndices) {
   createBuffers(compute);
 }
 
-Resources::DepthImage::DepthImage(const VkExtent2D extent,
-                                  const VkFormat format) {
-  createResources(CE_DEPTH_IMAGE, extent, format);
-}
-
-Resources::MultisamplingImage::MultisamplingImage(const VkExtent2D extent,
-                                                  const VkFormat format) {
-  createResources(CE_MULTISAMPLE_IMAGE, extent, format);
-}
-
 Resources::UniformBuffer::UniformBuffer(World::UniformBufferObject& u)
     : ubo(u) {
   myIndex = writeIndex;
