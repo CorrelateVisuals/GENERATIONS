@@ -7,12 +7,15 @@ Resources::Resources(VulkanMechanics& mechanics, Pipelines& pipelines)
     : commands{mechanics.queues.familyIndices},
       commandInterface{commands.singularCommandBuffer, commands.pool,
                        mechanics.queues.graphics},
+
       pushConstants{VK_SHADER_STAGE_COMPUTE_BIT, 128, 0},
       depthImage{mechanics.swapchain.extent, CE::Image::findDepthFormat()},
       msaaImage{mechanics.swapchain.extent, mechanics.swapchain.imageFormat},
+
       shaderStorage{commandInterface, world.grid.cells, world.grid.pointCount},
       sampler{commandInterface, Lib::path("assets/Avatar.PNG")},
       storageImage{mechanics.swapchain.images},
+
       world{commands.singularCommandBuffer, commands.pool,
             mechanics.queues.graphics},
       uniform{world.ubo} {
@@ -113,7 +116,7 @@ void Resources::UniformBuffer::update(World& world, const VkExtent2D extent) {
   std::memcpy(buffer.mapped, &ubo, sizeof(ubo));
 }
 
-Resources::StorageBuffer::StorageBuffer(const CommandInterface& commandData,
+Resources::StorageBuffer::StorageBuffer(const CE::CommandInterface& commandData,
                                         const auto& object,
                                         const size_t quantity) {
   myIndex = writeIndex;
@@ -136,7 +139,7 @@ Resources::StorageBuffer::StorageBuffer(const CommandInterface& commandData,
   createDescriptorWrite(quantity);
 }
 
-void Resources::StorageBuffer::create(const CommandInterface& commandData,
+void Resources::StorageBuffer::create(const CE::CommandInterface& commandData,
                                       const auto& object,
                                       const size_t quantity) {
   Log::text("{ 101 }", "Shader Storage Buffers");
@@ -199,7 +202,7 @@ void Resources::StorageBuffer::createDescriptorWrite(const size_t quantity) {
   }
 };
 
-Resources::ImageSampler::ImageSampler(const CommandInterface& commandData,
+Resources::ImageSampler::ImageSampler(const CE::CommandInterface& commandData,
                                       const std::string& texturePath)
     : textureImage(texturePath) {
   myIndex = writeIndex;

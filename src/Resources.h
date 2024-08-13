@@ -29,17 +29,6 @@ class Resources {
                                      const uint32_t imageIndex) override;
   };
 
-  struct CommandInterface {
-    VkCommandBuffer& commandBuffer;
-    const VkCommandPool& commandPool;
-    const VkQueue& queue;
-
-    CommandInterface(VkCommandBuffer& cmdBuffer,
-                const VkCommandPool& cmdPool,
-                const VkQueue& q)
-        : commandBuffer(cmdBuffer), commandPool(cmdPool), queue(q) {}
-  };
-
   struct DepthImage : public CE::Image {
     DepthImage(const VkExtent2D extent, const VkFormat format);
   };
@@ -65,12 +54,12 @@ class Resources {
     CE::Buffer bufferIn;
     CE::Buffer bufferOut;
 
-    StorageBuffer(const CommandInterface& commandData,
+    StorageBuffer(const CE::CommandInterface& commandData,
                   const auto& object,
                   const size_t quantity);
 
    private:
-    void create(const CommandInterface& commandData,
+    void create(const CE::CommandInterface& commandData,
                 const auto& object,
                 const size_t quantity);
     void createDescriptorWrite(const size_t quantity);
@@ -78,7 +67,7 @@ class Resources {
 
   class ImageSampler : public CE::Descriptor {
    public:
-    ImageSampler(const CommandInterface& commandData,
+    ImageSampler(const CE::CommandInterface& commandData,
                  const std::string& texturePath);
 
    private:
@@ -106,13 +95,12 @@ class Resources {
   };
 
   Commands commands;
+  CE::CommandInterface commandInterface;
 
   World world;
   DepthImage depthImage;
   MultisamplingImage msaaImage;
   UniformBuffer uniform;
-
-  CommandInterface commandInterface;
 
   StorageBuffer shaderStorage;
   ImageSampler sampler;

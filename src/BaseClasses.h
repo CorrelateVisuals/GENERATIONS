@@ -128,6 +128,17 @@ class CommandBuffers {
       std::array<VkCommandBuffer, MAX_FRAMES_IN_FLIGHT>& commandBuffers) const;
 };
 
+struct CommandInterface {
+  VkCommandBuffer& commandBuffer;
+  const VkCommandPool& commandPool;
+  const VkQueue& queue;
+
+  CommandInterface(VkCommandBuffer& commandBuffer,
+                   const VkCommandPool& commandPool,
+                   const VkQueue& queue)
+      : commandBuffer(commandBuffer), commandPool(commandPool), queue(queue) {}
+};
+
 class Buffer {
  public:
   VkBuffer buffer{};
