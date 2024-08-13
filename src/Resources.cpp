@@ -3,6 +3,8 @@
 #include "CapitalEngine.h"
 #include "Resources.h"
 
+namespace {}
+
 Resources::Resources(VulkanMechanics& mechanics, Pipelines& pipelines)
     : commands{mechanics.queues.familyIndices},
       commandInterface{commands.singularCommandBuffer, commands.pool,
@@ -41,16 +43,12 @@ Resources::Commands::Commands(const CE::Queues::FamilyIndices& familyIndices) {
 
 Resources::DepthImage::DepthImage(const VkExtent2D extent,
                                   const VkFormat format) {
-  createResources(extent, format, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
-                  VK_IMAGE_ASPECT_DEPTH_BIT);
+  createResources(CE_DEPTH_IMAGE, extent, format);
 }
 
 Resources::MultisamplingImage::MultisamplingImage(const VkExtent2D extent,
                                                   const VkFormat format) {
-  createResources(extent, format,
-                  VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT |
-                      VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-                  VK_IMAGE_ASPECT_COLOR_BIT);
+  createResources(CE_MULTISAMPLE_IMAGE, extent, format);
 }
 
 Resources::UniformBuffer::UniformBuffer(World::UniformBufferObject& u)

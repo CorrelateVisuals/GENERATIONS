@@ -486,12 +486,32 @@ const VkFormat CE::Image::findSupportedFormat(
   throw std::runtime_error("\n!ERROR! failed to find supported format!");
 }
 
-void CE::Image::createResources(const VkExtent2D& dimensions,
-                                const VkFormat format,
-                                const VkImageUsageFlags usage,
-                                const VkImageAspectFlagBits aspect) {
+void CE::Image::createResources(IMAGE_RESOURCE_TYPES imageType,
+                                const VkExtent2D& dimensions,
+                                const VkFormat format) {
   Log::text("{ []< }", "Color Resources ");
   this->destroyVulkanImages();
+
+  VkImageUsageFlags usage = 0;
+  VkImageAspectFlags aspect = 0;
+
+  switch (imageType) {
+    case CE_DEPTH_IMAGE:
+      usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+      aspect = VK_IMAGE_ASPECT_DEPTH_BIT;
+      break;
+
+    case CE_MULTISAMPLE_IMAGE:
+      usage = VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT |
+              VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+      aspect = VK_IMAGE_ASPECT_COLOR_BIT;
+      break;
+
+    default:
+      Log::text("Unknown image type!", "Error");
+      return;
+  }
+
   this->create(dimensions.width, dimensions.height,
                Device::baseDevice->maxUsableSampleCount, format,
                VK_IMAGE_TILING_OPTIMAL, usage,

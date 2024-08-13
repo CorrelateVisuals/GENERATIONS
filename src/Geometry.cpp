@@ -40,9 +40,9 @@ struct std::hash<Vertex> {
 Geometry::Geometry(const std::string& modelName) {
   if (!modelName.empty()) {
     loadModel(modelName, *this);
-    transformModel(allVertices, ORIENTATION_ORDER{ROTATE_SCALE_TRANSLATE},
+    transformModel(allVertices, ORIENTATION_ORDER{CE_ROTATE_SCALE_TRANSLATE},
                    STANDARD_ORIENTATION);
-    transformModel(uniqueVertices, ORIENTATION_ORDER{ROTATE_SCALE_TRANSLATE},
+    transformModel(uniqueVertices, ORIENTATION_ORDER{CE_ROTATE_SCALE_TRANSLATE},
                    STANDARD_ORIENTATION);
   }
 }
@@ -203,7 +203,7 @@ void Geometry::transformModel(std::vector<Vertex>& vertices,
 
   for (auto& vertex : vertices) {
     switch (order) {
-      case ORIENTATION_ORDER::ROTATE_SCALE_TRANSLATE:
+      case ORIENTATION_ORDER::CE_ROTATE_SCALE_TRANSLATE:
         vertex.vertexPosition =
             glm::vec3(rotationMatrix * glm::vec4(vertex.vertexPosition, 1.0f));
         vertex.vertexPosition *= scale;
@@ -212,7 +212,7 @@ void Geometry::transformModel(std::vector<Vertex>& vertices,
         vertex.normal =
             glm::vec3(rotationMatrix * glm::vec4(vertex.normal, 1.0f));
         break;
-      case ORIENTATION_ORDER::ROTATE_TRANSLATE_SCALE:
+      case ORIENTATION_ORDER::CE_ROTATE_TRANSLATE_SCALE:
         vertex.vertexPosition =
             glm::vec3(rotationMatrix * glm::vec4(vertex.vertexPosition, 1.0f));
         vertex.vertexPosition = vertex.vertexPosition + translationDistance;

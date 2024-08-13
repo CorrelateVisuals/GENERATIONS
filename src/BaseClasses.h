@@ -14,8 +14,12 @@
 #include <variant>
 #include <vector>
 
+enum IMAGE_RESOURCE_TYPES { CE_DEPTH_IMAGE, CE_MULTISAMPLE_IMAGE };
+
+namespace {
 constexpr uint32_t MAX_FRAMES_IN_FLIGHT = 2;
 constexpr size_t NUM_DESCRIPTORS = 5;
+}  // namespace
 
 class VulkanMechanics;
 class Resources;
@@ -201,10 +205,9 @@ class Image {
   void recreate() { this->destroyVulkanImages(); };
   void createView(const VkImageAspectFlags aspectFlags);
   void createSampler();
-  void createResources(const VkExtent2D& dimensions,
-                       const VkFormat format,
-                       const VkImageUsageFlags usage,
-                       const VkImageAspectFlagBits aspect);
+  void createResources(IMAGE_RESOURCE_TYPES imageType,
+                       const VkExtent2D& dimensions,
+                       const VkFormat format);
   void transitionLayout(const VkCommandBuffer& commandBuffer,
                         const VkFormat format,
                         const VkImageLayout oldLayout,
