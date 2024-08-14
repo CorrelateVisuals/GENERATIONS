@@ -28,7 +28,7 @@ void CapitalEngine::mainLoop() {
     glfwPollEvents();
 
     Window::get().setMouse();
-    resources.world._time.run();
+    resources._world._time.run();
 
     vkDeviceWaitIdle(mechanics.mainDevice.logical);
     drawFrame();
@@ -52,7 +52,7 @@ void CapitalEngine::drawFrame() {
            .computeInFlightFences[mechanics.syncObjects.currentFrame],
       VK_TRUE, UINT64_MAX);
 
-  resources.uniform.update(resources.world, mechanics.swapchain.extent);
+  resources._uniform.update(resources._world, mechanics.swapchain.extent);
 
   vkResetFences(
       mechanics.mainDevice.logical, 1,
@@ -60,15 +60,15 @@ void CapitalEngine::drawFrame() {
            .computeInFlightFences[mechanics.syncObjects.currentFrame]);
 
   vkResetCommandBuffer(
-      resources.commands.compute[mechanics.syncObjects.currentFrame], 0);
-  resources.commands.recordComputeCommandBuffer(
+      resources._commands.compute[mechanics.syncObjects.currentFrame], 0);
+  resources._commands.record_compute_command_buffer(
       resources, pipelines, mechanics.syncObjects.currentFrame);
 
   VkSubmitInfo computeSubmitInfo{
       .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
       .commandBufferCount = 1,
       .pCommandBuffers =
-          &resources.commands.compute[mechanics.syncObjects.currentFrame],
+          &resources._commands.compute[mechanics.syncObjects.currentFrame],
       .signalSemaphoreCount = 1,
       .pSignalSemaphores =
           &mechanics.syncObjects
@@ -86,12 +86,12 @@ void CapitalEngine::drawFrame() {
            .graphicsInFlightFences[mechanics.syncObjects.currentFrame],
       VK_TRUE, UINT64_MAX);
 
-  uint32_t imageIndex;
+  uint32_t image_index;
   VkResult result = vkAcquireNextImageKHR(
       mechanics.mainDevice.logical, mechanics.swapchain.swapchain, UINT64_MAX,
       mechanics.syncObjects
           .imageAvailableSemaphores[mechanics.syncObjects.currentFrame],
-      VK_NULL_HANDLE, &imageIndex);
+      VK_NULL_HANDLE, &image_index);
 
   if (result == VK_ERROR_OUT_OF_DATE_KHR) {
     mechanics.swapchain.recreate(mechanics.initVulkan.surface, mechanics.queues,
@@ -107,9 +107,9 @@ void CapitalEngine::drawFrame() {
            .graphicsInFlightFences[mechanics.syncObjects.currentFrame]);
 
   vkResetCommandBuffer(
-      resources.commands.graphics[mechanics.syncObjects.currentFrame], 0);
+      resources._commands.graphics[mechanics.syncObjects.currentFrame], 0);
 
-  resources.commands.recordGraphicsCommandBuffer(
+  resources._commands.record_graphics_command_buffer(
       mechanics.swapchain, resources, pipelines,
       mechanics.syncObjects.currentFrame);
 
@@ -129,7 +129,7 @@ void CapitalEngine::drawFrame() {
       .pWaitDstStageMask = waitStages.data(),
       .commandBufferCount = 1,
       .pCommandBuffers =
-          &resources.commands.graphics[mechanics.syncObjects.currentFrame],
+          &resources._commands.graphics[mechanics.syncObjects.currentFrame],
       .signalSemaphoreCount = 1,
       .pSignalSemaphores =
           &mechanics.syncObjects
@@ -150,7 +150,7 @@ void CapitalEngine::drawFrame() {
                .renderFinishedSemaphores[mechanics.syncObjects.currentFrame],
       .swapchainCount = 1,
       .pSwapchains = swapchains.data(),
-      .pImageIndices = &imageIndex};
+      .pImageIndices = &image_index};
 
   result = vkQueuePresentKHR(mechanics.queues.present, &presentInfo);
 

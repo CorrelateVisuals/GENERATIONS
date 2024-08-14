@@ -12,8 +12,8 @@ class Pipelines {
   ~Pipelines();
 
   struct ComputeLayout : public CE::PipelineLayout {
-    ComputeLayout(CE::PushConstants& pushConstant) {
-      createLayout(CE::Descriptor::setLayout, pushConstant);
+    ComputeLayout(CE::PushConstants& _pushConstant) {
+      createLayout(CE::Descriptor::setLayout, _pushConstant);
     }
   };
 
@@ -23,10 +23,10 @@ class Pipelines {
 
   struct Render : public CE::RenderPass {
     Render(CE::Swapchain& swapchain,
-           const CE::Image& msaaImage,
+           const CE::Image& _msaaImage,
            const VkImageView& depthView) {
-      create(msaaImage.info.samples, swapchain.imageFormat);
-      createFramebuffers(swapchain, msaaImage.view, depthView);
+      create(_msaaImage.info.samples, swapchain.imageFormat);
+      createFramebuffers(swapchain, _msaaImage.view, depthView);
     }
   };
 

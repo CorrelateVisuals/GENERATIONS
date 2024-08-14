@@ -41,7 +41,7 @@ class Queues {
       return graphicsAndComputeFamily.has_value() && presentFamily.has_value();
     }
   };
-  FamilyIndices familyIndices{};
+  FamilyIndices family_indices{};
 
   Queues() = default;
   virtual ~Queues() = default;
@@ -118,16 +118,16 @@ class CommandBuffers {
                                     const VkQueue& queue);
   static void endSingularCommands(const VkCommandPool& commandPool,
                                   const VkQueue& queue);
-  virtual void recordComputeCommandBuffer(Resources& resources,
-                                          Pipelines& pipelines,
-                                          const uint32_t imageIndex) = 0;
-  virtual void recordGraphicsCommandBuffer(Swapchain& swapchain,
-                                           Resources& resources,
-                                           Pipelines& pipelines,
-                                           const uint32_t imageIndex) = 0;
+  virtual void record_compute_command_buffer(Resources& resources,
+                                             Pipelines& pipelines,
+                                             const uint32_t image_index) = 0;
+  virtual void record_graphics_command_buffer(Swapchain& swapchain,
+                                              Resources& resources,
+                                              Pipelines& pipelines,
+                                              const uint32_t image_index) = 0;
 
  protected:
-  void createPool(const Queues::FamilyIndices& familyIndices);
+  void createPool(const Queues::FamilyIndices& family_indices);
   void createBuffers(
       std::array<VkCommandBuffer, MAX_FRAMES_IN_FLIGHT>& commandBuffers) const;
 };

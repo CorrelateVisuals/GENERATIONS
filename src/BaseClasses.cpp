@@ -35,12 +35,12 @@ void CE::Device::createLogicalDevice(const InitializeVulkan& initVulkan,
   CE::VULKAN_RESULT(vkCreateDevice, this->physical, &createInfo, nullptr,
                     &this->logical);
   vkGetDeviceQueue(this->logical,
-                   queues.familyIndices.graphicsAndComputeFamily.value(), 0,
+                   queues.family_indices.graphicsAndComputeFamily.value(), 0,
                    &queues.graphics);
   vkGetDeviceQueue(this->logical,
-                   queues.familyIndices.graphicsAndComputeFamily.value(), 0,
+                   queues.family_indices.graphicsAndComputeFamily.value(), 0,
                    &queues.compute);
-  vkGetDeviceQueue(this->logical, queues.familyIndices.presentFamily.value(), 0,
+  vkGetDeviceQueue(this->logical, queues.family_indices.presentFamily.value(), 0,
                    &queues.present);
 }
 
@@ -68,8 +68,8 @@ const std::vector<VkDeviceQueueCreateInfo> CE::Device::fillQueueCreateInfos(
     const Queues& queues) const {
   std::vector<VkDeviceQueueCreateInfo> queueCreateInfos{};
   std::set<uint32_t> uniqueQueueFamilies = {
-      queues.familyIndices.graphicsAndComputeFamily.value(),
-      queues.familyIndices.presentFamily.value()};
+      queues.family_indices.graphicsAndComputeFamily.value(),
+      queues.family_indices.presentFamily.value()};
 
   float queuePriority = 1.0f;
   for (uint_fast8_t queueFamily : uniqueQueueFamilies) {
@@ -126,7 +126,7 @@ const bool CE::Device::isDeviceSuitable(const VkPhysicalDevice& physical,
                                         Swapchain& swapchain) {
   Log::text(Log::Style::charLeader, "Is Device Suitable");
 
-  queues.familyIndices = queues.findQueueFamilies(physical, initVulkan.surface);
+  queues.family_indices = queues.findQueueFamilies(physical, initVulkan.surface);
   bool extensionsSupported = checkDeviceExtensionSupport(physical);
 
   bool swapchainAdequate = false;
@@ -136,7 +136,7 @@ const bool CE::Device::isDeviceSuitable(const VkPhysicalDevice& physical,
     swapchainAdequate = !swapchainSupport.formats.empty() &&
                         !swapchainSupport.presentModes.empty();
   }
-  return queues.familyIndices.isComplete() && extensionsSupported &&
+  return queues.family_indices.isComplete() && extensionsSupported &&
          swapchainAdequate;
 }
 
@@ -393,7 +393,7 @@ void CE::Image::transitionLayout(const VkCommandBuffer& commandBuffer,
     // (Image Layout Transitions perform
     // both, read AND write access.)
 
-    sourceStage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;  // All commands must have
+    sourceStage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;  // All _commands must have
     // finished...
     destinationStage =
         VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;  // ...before any command may
@@ -631,13 +631,13 @@ CE::CommandBuffers::~CommandBuffers() {
 };
 
 void CE::CommandBuffers::createPool(
-    const Queues::FamilyIndices& familyIndices) {
+    const Queues::FamilyIndices& family_indices) {
   Log::text("{ cmd }", "Command Pool");
 
   VkCommandPoolCreateInfo poolInfo{
       .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
       .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
-      .queueFamilyIndex = familyIndices.graphicsAndComputeFamily.value()};
+      .queueFamilyIndex = family_indices.graphicsAndComputeFamily.value()};
 
   CE::VULKAN_RESULT(vkCreateCommandPool, Device::baseDevice->logical, &poolInfo,
                     nullptr, &this->pool);
@@ -861,11 +861,11 @@ void CE::Swapchain::create(const VkSurfaceKHR& surface, const Queues& queues) {
       .clipped = VK_TRUE};
 
   std::vector<uint32_t> queueFamilyIndices{
-      queues.familyIndices.graphicsAndComputeFamily.value(),
-      queues.familyIndices.presentFamily.value()};
+      queues.family_indices.graphicsAndComputeFamily.value(),
+      queues.family_indices.presentFamily.value()};
 
-  if (queues.familyIndices.graphicsAndComputeFamily !=
-      queues.familyIndices.presentFamily) {
+  if (queues.family_indices.graphicsAndComputeFamily !=
+      queues.family_indices.presentFamily) {
     createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
     createInfo.queueFamilyIndexCount =
         static_cast<uint32_t>(queueFamilyIndices.size());
@@ -1140,7 +1140,7 @@ void CE::RenderPass::createFramebuffers(CE::Swapchain& swapchain,
   Log::text("{ 101 }", "Frame Buffers:", swapchain.images.size());
 
   Log::text(Log::Style::charLeader,
-            "attachments: msaaImage., depthImage, swapchain imageViews");
+            "attachments: _msaaImage., _depthImage, swapchain imageViews");
   for (uint_fast8_t i = 0; i < swapchain.images.size(); i++) {
     std::array<VkImageView, 3> attachments{msaaView, depthView,
                                            swapchain.images[i].view};
