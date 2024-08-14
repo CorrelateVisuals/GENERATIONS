@@ -198,7 +198,7 @@ class Image {
         const VkFormat format) {
     createResources(image_type, extent, format);
   }
-  Image(const std::string& texturePath) { path = texturePath; }
+  Image(const std::string& texture_path) { path = texture_path; }
 
   virtual ~Image() { destroyVulkanImages(); };
 

@@ -32,11 +32,11 @@ class Resources {
   class UniformBuffer : public CE::Descriptor {
    public:
     UniformBuffer(World::UniformBufferObject& u);
-    void update(World& _world, const VkExtent2D extent);
+    void update(World& world, const VkExtent2D extent);
 
    private:
     CE::Buffer buffer;
-    World::UniformBufferObject& _ubo;
+    World::UniformBufferObject& ubo;
     void create_buffer();
     void create_descriptor_write();
   };
@@ -46,12 +46,12 @@ class Resources {
     CE::Buffer bufferIn;
     CE::Buffer bufferOut;
 
-    StorageBuffer(const CE::CommandInterface& commandData,
+    StorageBuffer(const CE::CommandInterface& command_data,
                   const auto& object,
                   const size_t quantity);
 
    private:
-    void create(const CE::CommandInterface& commandData,
+    void create(const CE::CommandInterface& command_data,
                 const auto& object,
                 const size_t quantity);
     void create_descriptor_write(const size_t quantity);
@@ -59,8 +59,8 @@ class Resources {
 
   class ImageSampler : public CE::Descriptor {
    public:
-    ImageSampler(const CE::CommandInterface& commandData,
-                 const std::string& texturePath);
+    ImageSampler(const CE::CommandInterface& command_data,
+                 const std::string& texture_path);
 
    private:
     void create_descriptor_write();
@@ -90,6 +90,6 @@ class Resources {
   StorageBuffer _shaderStorage;  // FeedbackLoop compute shader
 
   // Image Descriptors
-  ImageSampler sampler;       // Texture vertex shader
-  StorageImage storageImage;  //  PostFX compute shader
+  ImageSampler _texture;       // Texture vertex shader
+  StorageImage _storageImage;  //  PostFX compute shader
 };
