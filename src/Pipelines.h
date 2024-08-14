@@ -12,8 +12,8 @@ class Pipelines {
   ~Pipelines();
 
   struct ComputeLayout : public CE::PipelineLayout {
-    ComputeLayout(CE::PushConstants& pushConstants) {
-      createLayout(CE::Descriptor::setLayout, pushConstants);
+    ComputeLayout(CE::PushConstants& pushConstant) {
+      createLayout(CE::Descriptor::setLayout, pushConstant);
     }
   };
 

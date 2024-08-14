@@ -18,8 +18,8 @@ class Resources {
   Resources(VulkanMechanics& mechanics, Pipelines& pipelines);
   ~Resources();
 
-  struct Commands : public CE::CommandBuffers {
-    Commands(const CE::Queues::FamilyIndices& familyIndices);
+  struct CommandResources : public CE::CommandBuffers {
+    CommandResources(const CE::Queues::FamilyIndices& familyIndices);
     void recordComputeCommandBuffer(Resources& resources,
                                     Pipelines& pipelines,
                                     const uint32_t imageIndex) override;
@@ -73,17 +73,23 @@ class Resources {
     void createDescriptorWrite(
         std::array<CE::Image, MAX_FRAMES_IN_FLIGHT>& images);
   };
-
-  Commands commands;
+  // GPU Interface
+  CommandResources commands;
   CE::CommandInterface commandInterface;
+  CE::PushConstants pushConstant;
 
-  World world;
+  // Scene
+  World world;  // World objects, light, camera
+
+  // Images
   CE::Image depthImage;
   CE::Image msaaImage;
-  UniformBuffer uniform;
 
-  StorageBuffer shaderStorage;
-  ImageSampler sampler;
-  StorageImage storageImage;
-  CE::PushConstants pushConstants;
+  // Descriptors
+  UniformBuffer uniform;        // UniformParameters
+  StorageBuffer shaderStorage;  // FeedbackLoop
+
+  // Image Descriptors
+  ImageSampler sampler;       // Texture
+  StorageImage storageImage;  //  PostFX
 };

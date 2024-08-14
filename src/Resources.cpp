@@ -10,7 +10,7 @@ Resources::Resources(VulkanMechanics& mechanics, Pipelines& pipelines)
       commandInterface{commands.singularCommandBuffer, commands.pool,
                        mechanics.queues.graphics},
 
-      pushConstants{VK_SHADER_STAGE_COMPUTE_BIT, 128, 0},
+      pushConstant{VK_SHADER_STAGE_COMPUTE_BIT, 128, 0},
       depthImage{CE_DEPTH_IMAGE, mechanics.swapchain.extent,
                  CE::Image::findDepthFormat()},
       msaaImage{CE_MULTISAMPLE_IMAGE, mechanics.swapchain.extent,
@@ -37,7 +37,7 @@ Resources::~Resources() {
   Log::text("{ /// }", "destructing Resources");
 }
 
-Resources::Commands::Commands(const CE::Queues::FamilyIndices& familyIndices) {
+Resources::CommandResources::CommandResources(const CE::Queues::FamilyIndices& familyIndices) {
   createPool(familyIndices);
   createBuffers(graphics);
   createBuffers(compute);
@@ -275,7 +275,7 @@ void Resources::StorageImage::createDescriptorWrite(
   }
 }
 
-void Resources::Commands::recordComputeCommandBuffer(
+void Resources::CommandResources::recordComputeCommandBuffer(
     Resources& resources,
     Pipelines& pipelines,
     const uint32_t imageIndex) {
@@ -296,12 +296,12 @@ void Resources::Commands::recordComputeCommandBuffer(
                           pipelines.compute.layout, 0, 1,
                           &CE::Descriptor::sets[imageIndex], 0, nullptr);
 
-  resources.pushConstants.setData(resources.world.time.passedHours);
+  resources.pushConstant.setData(resources.world.time.passedHours);
 
   vkCmdPushConstants(
       commandBuffer, pipelines.compute.layout,
-      resources.pushConstants.shaderStage, resources.pushConstants.offset,
-      resources.pushConstants.size, resources.pushConstants.data.data());
+      resources.pushConstant.shaderStage, resources.pushConstant.offset,
+      resources.pushConstant.size, resources.pushConstant.data.data());
 
   const std::array<uint32_t, 3>& workGroups =
       pipelines.config.getWorkGroupsByName("Engine");
@@ -310,7 +310,7 @@ void Resources::Commands::recordComputeCommandBuffer(
   CE::VULKAN_RESULT(vkEndCommandBuffer, commandBuffer);
 }
 
-void Resources::Commands::recordGraphicsCommandBuffer(
+void Resources::CommandResources::recordGraphicsCommandBuffer(
     CE::Swapchain& swapchain,
     Resources& resources,
     Pipelines& pipelines,
@@ -425,11 +425,11 @@ void Resources::Commands::recordGraphicsCommandBuffer(
                           pipelines.compute.layout, 0, 1,
                           &CE::Descriptor::sets[imageIndex], 0, nullptr);
 
-  resources.pushConstants.setData(resources.world.time.passedHours);
+  resources.pushConstant.setData(resources.world.time.passedHours);
   vkCmdPushConstants(
       commandBuffer, pipelines.compute.layout,
-      resources.pushConstants.shaderStage, resources.pushConstants.offset,
-      resources.pushConstants.size, resources.pushConstants.data.data());
+      resources.pushConstant.shaderStage, resources.pushConstant.offset,
+      resources.pushConstant.size, resources.pushConstant.data.data());
 
   const std::array<uint32_t, 3>& workGroups =
       pipelines.config.getWorkGroupsByName("PostFX");

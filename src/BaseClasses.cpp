@@ -645,7 +645,7 @@ void CE::CommandBuffers::createPool(
 
 void CE::CommandBuffers::beginSingularCommands(const VkCommandPool& commandPool,
                                                const VkQueue& queue) {
-  Log::text("{ 1.. }", "Begin Single Time Commands");
+  Log::text("{ 1.. }", "Begin Single Time CommandResources");
 
   VkCommandBufferAllocateInfo allocInfo{
       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
@@ -666,7 +666,7 @@ void CE::CommandBuffers::beginSingularCommands(const VkCommandPool& commandPool,
 
 void CE::CommandBuffers::endSingularCommands(const VkCommandPool& commandPool,
                                              const VkQueue& queue) {
-  Log::text("{ ..1 }", "End Single Time Commands");
+  Log::text("{ ..1 }", "End Single Time CommandResources");
 
   vkEndCommandBuffer(singularCommandBuffer);
   VkSubmitInfo submitInfo{.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
