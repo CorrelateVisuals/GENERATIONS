@@ -63,11 +63,11 @@ class World {
         uint_fast32_t numberOfCells);
   };
 
-  Grid grid;
-  Shape rect;
-  Shape cube;
+  Grid _grid;
+  Shape _rectangle;
+  Shape _cube;
 
-  UniformBufferObject ubo;
-  Camera camera;
-  Timer time;
+  UniformBufferObject _ubo;
+  Camera _camera;
+  Timer _time;
 };

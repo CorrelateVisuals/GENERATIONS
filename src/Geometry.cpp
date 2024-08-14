@@ -37,7 +37,25 @@ struct std::hash<Vertex> {
   }
 };
 
-Geometry::Geometry(const std::string& modelName) {
+Geometry::Geometry(GEOMETRY_SHAPE shape) {
+  const std::string modelName = [&]() -> std::string {
+    switch (shape) {
+      case CE_RECTANGLE:
+        return "Rectangle";
+      case CE_CUBE:
+        return "Cube";
+      case CE_SPHERE:
+        return "Sphere";
+      case CE_SPHERE_HR:
+          return "SphereHR";
+      case CE_TORUS:
+          return "SphereHR";
+
+      default:
+        throw std::invalid_argument("Invalid geometry shape");
+    }
+  }();
+
   if (!modelName.empty()) {
     loadModel(modelName, *this);
     transformModel(allVertices, ORIENTATION_ORDER{CE_ROTATE_SCALE_TRANSLATE},
@@ -226,7 +244,7 @@ void Geometry::transformModel(std::vector<Vertex>& vertices,
   return;
 }
 
-Shape::Shape(std::string shape,
+Shape::Shape(GEOMETRY_SHAPE shape,
              bool hasIndices,
              VkCommandBuffer& commandBuffer,
              const VkCommandPool& commandPool,

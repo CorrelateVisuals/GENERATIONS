@@ -1,5 +1,6 @@
 #include "World.h"
 #include "CapitalEngine.h"
+#include "Geometry.h"
 #include "Terrain.h"
 
 #include <algorithm>
@@ -22,27 +23,31 @@ constexpr float FIELD_OF_VIEW = 40.0f;
 constexpr float NEAR_CLIPPING = 0.1f;
 constexpr float FAR_CLIPPING = 100.0f;
 constexpr glm::vec3 CAMERA_POSITION = {0.0f, 0.0f, 30.0f};
+
+constexpr GEOMETRY_SHAPE cube = CE_CUBE;
+constexpr GEOMETRY_SHAPE rectangle = CE_RECTANGLE;
+constexpr GEOMETRY_SHAPE sphere = CE_SPHERE;
 }  // namespace
 
 World::World(VkCommandBuffer& commandBuffer,
              const VkCommandPool& commandPool,
              const VkQueue& queue)
-    : grid(GRID_SIZE,
-           NUMBER_OF_ALIVE_CELLS,
-           CELL_SIZE,
-           commandBuffer,
-           commandPool,
-           queue),
-      rect("Rectangle", true, commandBuffer, commandPool, queue),
-      cube("Cube", false, commandBuffer, commandPool, queue),
-      ubo(LIGHT_POS, GRID_SIZE, WATER_THRESHOLD, CELL_SIZE),
-      camera(ZOOM_SPEED,
-             PANNING_SPEED,
-             FIELD_OF_VIEW,
-             NEAR_CLIPPING,
-             FAR_CLIPPING,
-             CAMERA_POSITION),
-      time(TIMER_SPEED) {
+    : _grid(GRID_SIZE,
+            NUMBER_OF_ALIVE_CELLS,
+            CELL_SIZE,
+            commandBuffer,
+            commandPool,
+            queue),
+      _rectangle(rectangle, true, commandBuffer, commandPool, queue),
+      _cube(sphere, false, commandBuffer, commandPool, queue),
+      _ubo(LIGHT_POS, GRID_SIZE, WATER_THRESHOLD, CELL_SIZE),
+      _camera(ZOOM_SPEED,
+              PANNING_SPEED,
+              FIELD_OF_VIEW,
+              NEAR_CLIPPING,
+              FAR_CLIPPING,
+              CAMERA_POSITION),
+      _time(TIMER_SPEED) {
   Log::text("{ wWw }", "constructing World");
 }
 

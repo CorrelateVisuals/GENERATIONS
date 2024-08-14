@@ -10,19 +10,21 @@ Resources::Resources(VulkanMechanics& mechanics, Pipelines& pipelines)
       commandInterface{commands.singularCommandBuffer, commands.pool,
                        mechanics.queues.graphics},
 
+      world{commands.singularCommandBuffer, commands.pool,
+            mechanics.queues.graphics},
       pushConstant{VK_SHADER_STAGE_COMPUTE_BIT, 128, 0},
-      depthImage{CE_DEPTH_IMAGE, mechanics.swapchain.extent,
-                 CE::Image::findDepthFormat()},
-      msaaImage{CE_MULTISAMPLE_IMAGE, mechanics.swapchain.extent,
-                mechanics.swapchain.imageFormat},
 
-      shaderStorage{commandInterface, world.grid.cells, world.grid.pointCount},
+      uniform{world._ubo},
+      shaderStorage{commandInterface, world._grid.cells, world._grid.pointCount},
       sampler{commandInterface, Lib::path("assets/Avatar.PNG")},
       storageImage{mechanics.swapchain.images},
 
-      world{commands.singularCommandBuffer, commands.pool,
-            mechanics.queues.graphics},
-      uniform{world.ubo} {
+      depthImage{CE_DEPTH_IMAGE, mechanics.swapchain.extent,
+                 CE::Image::findDepthFormat()},
+      msaaImage{CE_MULTISAMPLE_IMAGE, mechanics.swapchain.extent,
+                mechanics.swapchain.imageFormat}
+
+{
   Log::text(Log::Style::headerGuard);
   Log::text("{ /// }", "constructing Resources");
 
@@ -37,14 +39,15 @@ Resources::~Resources() {
   Log::text("{ /// }", "destructing Resources");
 }
 
-Resources::CommandResources::CommandResources(const CE::Queues::FamilyIndices& familyIndices) {
+Resources::CommandResources::CommandResources(
+    const CE::Queues::FamilyIndices& familyIndices) {
   createPool(familyIndices);
   createBuffers(graphics);
   createBuffers(compute);
 }
 
 Resources::UniformBuffer::UniformBuffer(World::UniformBufferObject& u)
-    : ubo(u) {
+    : _ubo(u) {
   myIndex = writeIndex;
   writeIndex++;
 
@@ -96,14 +99,14 @@ void Resources::UniformBuffer::createDescriptorWrite() {
 };
 
 void Resources::UniformBuffer::update(World& world, const VkExtent2D extent) {
-  ubo.light = world.ubo.light;
-  ubo.gridXY = glm::vec2(static_cast<uint32_t>(world.grid.size.x),
-                         static_cast<uint32_t>(world.grid.size.y));
-  ubo.mvp.model = world.camera.setModel();
-  ubo.mvp.view = world.camera.setView();
-  ubo.mvp.projection = world.camera.setProjection(extent);
+  _ubo.light = world._ubo.light;
+  _ubo.gridXY = glm::vec2(static_cast<uint32_t>(world._grid.size.x),
+                         static_cast<uint32_t>(world._grid.size.y));
+  _ubo.mvp.model = world._camera.setModel();
+  _ubo.mvp.view = world._camera.setView();
+  _ubo.mvp.projection = world._camera.setProjection(extent);
 
-  std::memcpy(buffer.mapped, &ubo, sizeof(ubo));
+  std::memcpy(buffer.mapped, &_ubo, sizeof(_ubo));
 }
 
 Resources::StorageBuffer::StorageBuffer(const CE::CommandInterface& commandData,
@@ -296,12 +299,12 @@ void Resources::CommandResources::recordComputeCommandBuffer(
                           pipelines.compute.layout, 0, 1,
                           &CE::Descriptor::sets[imageIndex], 0, nullptr);
 
-  resources.pushConstant.setData(resources.world.time.passedHours);
+  resources.pushConstant.setData(resources.world._time.passedHours);
 
-  vkCmdPushConstants(
-      commandBuffer, pipelines.compute.layout,
-      resources.pushConstant.shaderStage, resources.pushConstant.offset,
-      resources.pushConstant.size, resources.pushConstant.data.data());
+  vkCmdPushConstants(commandBuffer, pipelines.compute.layout,
+                     resources.pushConstant.shaderStage,
+                     resources.pushConstant.offset, resources.pushConstant.size,
+                     resources.pushConstant.data.data());
 
   const std::array<uint32_t, 3>& workGroups =
       pipelines.config.getWorkGroupsByName("Engine");
@@ -364,22 +367,22 @@ void Resources::CommandResources::recordGraphicsCommandBuffer(
       resources.shaderStorage.bufferOut.buffer};
 
   VkBuffer vertexBuffers0[] = {currentShaderStorageBuffer[imageIndex],
-                               resources.world.cube.vertexBuffer.buffer};
+                               resources.world._cube.vertexBuffer.buffer};
 
   vkCmdBindVertexBuffers(commandBuffer, 0, 2, vertexBuffers0, offsets0);
   vkCmdDraw(commandBuffer,
-            static_cast<uint32_t>(resources.world.cube.allVertices.size()),
-            resources.world.grid.size.x * resources.world.grid.size.y, 0, 0);
+            static_cast<uint32_t>(resources.world._cube.allVertices.size()),
+            resources.world._grid.size.x * resources.world._grid.size.y, 0, 0);
 
   // Landscape
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                     pipelines.config.getPipelineObjectByName("Landscape"));
-  VkBuffer vertexBuffers1[] = {resources.world.grid.vertexBuffer.buffer};
+  VkBuffer vertexBuffers1[] = {resources.world._grid.vertexBuffer.buffer};
   vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers1, offsets);
-  vkCmdBindIndexBuffer(commandBuffer, resources.world.grid.indexBuffer.buffer,
+  vkCmdBindIndexBuffer(commandBuffer, resources.world._grid.indexBuffer.buffer,
                        0, VK_INDEX_TYPE_UINT32);
   vkCmdDrawIndexed(commandBuffer,
-                   static_cast<uint32_t>(resources.world.grid.indices.size()),
+                   static_cast<uint32_t>(resources.world._grid.indices.size()),
                    1, 0, 0, 0);
 
   //   Landscape Wireframe
@@ -387,25 +390,25 @@ void Resources::CommandResources::recordGraphicsCommandBuffer(
       commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
       pipelines.config.getPipelineObjectByName("LandscapeWireFrame"));
   vkCmdDrawIndexed(commandBuffer,
-                   static_cast<uint32_t>(resources.world.grid.indices.size()),
+                   static_cast<uint32_t>(resources.world._grid.indices.size()),
                    1, 0, 0, 0);
 
   // Pipeline 3
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                     pipelines.config.getPipelineObjectByName("Water"));
-  VkBuffer vertexBuffers[] = {resources.world.rect.vertexBuffer.buffer};
+  VkBuffer vertexBuffers[] = {resources.world._rectangle.vertexBuffer.buffer};
   vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
-  vkCmdBindIndexBuffer(commandBuffer, resources.world.rect.indexBuffer.buffer,
+  vkCmdBindIndexBuffer(commandBuffer, resources.world._rectangle.indexBuffer.buffer,
                        0, VK_INDEX_TYPE_UINT32);
   vkCmdDrawIndexed(commandBuffer,
-                   static_cast<uint32_t>(resources.world.rect.indices.size()),
+                   static_cast<uint32_t>(resources.world._rectangle.indices.size()),
                    1, 0, 0, 0);
 
   // Pipeline 4
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                     pipelines.config.getPipelineObjectByName("Texture"));
   vkCmdDrawIndexed(commandBuffer,
-                   static_cast<uint32_t>(resources.world.rect.indices.size()),
+                   static_cast<uint32_t>(resources.world._rectangle.indices.size()),
                    1, 0, 0, 0);
   vkCmdEndRenderPass(commandBuffer);
 
@@ -425,11 +428,11 @@ void Resources::CommandResources::recordGraphicsCommandBuffer(
                           pipelines.compute.layout, 0, 1,
                           &CE::Descriptor::sets[imageIndex], 0, nullptr);
 
-  resources.pushConstant.setData(resources.world.time.passedHours);
-  vkCmdPushConstants(
-      commandBuffer, pipelines.compute.layout,
-      resources.pushConstant.shaderStage, resources.pushConstant.offset,
-      resources.pushConstant.size, resources.pushConstant.data.data());
+  resources.pushConstant.setData(resources.world._time.passedHours);
+  vkCmdPushConstants(commandBuffer, pipelines.compute.layout,
+                     resources.pushConstant.shaderStage,
+                     resources.pushConstant.offset, resources.pushConstant.size,
+                     resources.pushConstant.data.data());
 
   const std::array<uint32_t, 3>& workGroups =
       pipelines.config.getWorkGroupsByName("PostFX");

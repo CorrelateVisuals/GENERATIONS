@@ -36,7 +36,7 @@ class Resources {
 
    private:
     CE::Buffer buffer;
-    World::UniformBufferObject& ubo;
+    World::UniformBufferObject& _ubo;
     void createBuffer();
     void createDescriptorWrite();
   };
@@ -79,17 +79,17 @@ class Resources {
   CE::PushConstants pushConstant;
 
   // Scene
-  World world;  // World objects, light, camera
+  World world;  // World objects, light, _camera
 
   // Images
   CE::Image depthImage;
   CE::Image msaaImage;
 
   // Descriptors
-  UniformBuffer uniform;        // UniformParameters
-  StorageBuffer shaderStorage;  // FeedbackLoop
+  UniformBuffer uniform;        // UniformParameters world details
+  StorageBuffer shaderStorage;  // FeedbackLoop compute shader
 
   // Image Descriptors
-  ImageSampler sampler;       // Texture
-  StorageImage storageImage;  //  PostFX
+  ImageSampler sampler;       // Texture vertex shader
+  StorageImage storageImage;  //  PostFX compute shader
 };
