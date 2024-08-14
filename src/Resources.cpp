@@ -441,22 +441,3 @@ void Resources::Commands::recordGraphicsCommandBuffer(
 
   CE::VULKAN_RESULT(vkEndCommandBuffer, commandBuffer);
 }
-
-Resources::PushConstants::PushConstants(VkShaderStageFlags stage,
-                                        uint32_t dataSize,
-                                        uint32_t dataOffset) {
-  shaderStage = stage;
-
-  size = (dataSize % 4 == 0) ? dataSize : ((dataSize + 3) & ~3);
-  if (size > 128) {
-    size = 128;
-  }
-  offset = (dataOffset % 4 == 0) ? dataOffset : ((dataOffset + 3) & ~3);
-  count = 1;
-  std::fill(data.begin(), data.end(), 0);
-
-  if (size > data.size() * sizeof(uint64_t)) {
-    throw std::runtime_error(
-        "Size exceeds the available space in the data array.");
-  }
-}

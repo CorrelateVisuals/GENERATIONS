@@ -64,7 +64,6 @@ class Resources {
 
    private:
     void createDescriptorWrite();
-
     CE::Image textureImage;
   };
 
@@ -75,25 +74,16 @@ class Resources {
         std::array<CE::Image, MAX_FRAMES_IN_FLIGHT>& images);
   };
 
-  class PushConstants : public CE::PushConstants {
-   public:
-    PushConstants(VkShaderStageFlags stage,
-                  uint32_t dataSize,
-                  uint32_t dataOffset = 0);
-  };
-
   Commands commands;
   CE::CommandInterface commandInterface;
 
   World world;
   CE::Image depthImage;
   CE::Image msaaImage;
-  // DepthImage depthImage;
-  // MultisamplingImage msaaImage;
   UniformBuffer uniform;
 
   StorageBuffer shaderStorage;
   ImageSampler sampler;
   StorageImage storageImage;
-  PushConstants pushConstants;
+  CE::PushConstants pushConstants;
 };

@@ -336,7 +336,9 @@ struct PushConstants {
   uint32_t size{};
   std::array<uint64_t, 32> data{};
 
-  PushConstants() = default;
+  PushConstants(VkShaderStageFlags stage,
+                uint32_t dataSize,
+                uint32_t dataOffset);
   virtual ~PushConstants() = default;
   void setData(const uint64_t& data);
 };
