@@ -47,7 +47,7 @@ Resources::CommandResources::CommandResources(
 }
 
 Resources::UniformBuffer::UniformBuffer(World::UniformBufferObject& u)
-    : _ubo(u) {
+    : ubo(u) {
   myIndex = writeIndex;
   writeIndex++;
 
@@ -99,14 +99,14 @@ void Resources::UniformBuffer::createDescriptorWrite() {
 };
 
 void Resources::UniformBuffer::update(World& world, const VkExtent2D extent) {
-  _ubo.light = world._ubo.light;
-  _ubo.gridXY = glm::vec2(static_cast<uint32_t>(world._grid.size.x),
+  ubo.light = world._ubo.light;
+  ubo.gridXY = glm::vec2(static_cast<uint32_t>(world._grid.size.x),
                          static_cast<uint32_t>(world._grid.size.y));
-  _ubo.mvp.model = world._camera.setModel();
-  _ubo.mvp.view = world._camera.setView();
-  _ubo.mvp.projection = world._camera.setProjection(extent);
+  ubo.mvp.model = world._camera.setModel();
+  ubo.mvp.view = world._camera.setView();
+  ubo.mvp.projection = world._camera.setProjection(extent);
 
-  std::memcpy(buffer.mapped, &_ubo, sizeof(_ubo));
+  std::memcpy(buffer.mapped, &ubo, sizeof(ubo));
 }
 
 Resources::StorageBuffer::StorageBuffer(const CE::CommandInterface& commandData,

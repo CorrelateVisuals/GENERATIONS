@@ -36,7 +36,7 @@ class Resources {
 
    private:
     CE::Buffer buffer;
-    World::UniformBufferObject& _ubo;
+    World::UniformBufferObject& ubo;
     void createBuffer();
     void createDescriptorWrite();
   };
@@ -74,9 +74,9 @@ class Resources {
         std::array<CE::Image, MAX_FRAMES_IN_FLIGHT>& images);
   };
   // GPU Interface
-  CommandResources commands;
-  CE::CommandInterface commandInterface;
-  CE::PushConstants pushConstant;
+  CommandResources commands;  // virtual function to record command buffers
+  CE::CommandInterface commandInterface;  // interface for command buffers
+  CE::PushConstants pushConstant;         
 
   // Scene
   World world;  // World objects, light, _camera
