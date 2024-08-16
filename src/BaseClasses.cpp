@@ -486,12 +486,32 @@ const VkFormat CE::Image::findSupportedFormat(
   throw std::runtime_error("\n!ERROR! failed to find supported format!");
 }
 
-void CE::Image::createResources(const VkExtent2D& dimensions,
-                                const VkFormat format,
-                                const VkImageUsageFlags usage,
-                                const VkImageAspectFlagBits aspect) {
+void CE::Image::createResources(IMAGE_RESOURCE_TYPES imageType,
+                                const VkExtent2D& dimensions,
+                                const VkFormat format) {
   Log::text("{ []< }", "Color Resources ");
   this->destroyVulkanImages();
+
+  VkImageUsageFlags usage = 0;
+  VkImageAspectFlags aspect = 0;
+
+  switch (imageType) {
+    case CE_DEPTH_IMAGE:
+      usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+      aspect = VK_IMAGE_ASPECT_DEPTH_BIT;
+      break;
+
+    case CE_MULTISAMPLE_IMAGE:
+      usage = VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT |
+              VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+      aspect = VK_IMAGE_ASPECT_COLOR_BIT;
+      break;
+
+    default:
+      Log::text("Unknown image type!", "Error");
+      return;
+  }
+
   this->create(dimensions.width, dimensions.height,
                Device::baseDevice->maxUsableSampleCount, format,
                VK_IMAGE_TILING_OPTIMAL, usage,
@@ -625,7 +645,7 @@ void CE::CommandBuffers::createPool(
 
 void CE::CommandBuffers::beginSingularCommands(const VkCommandPool& commandPool,
                                                const VkQueue& queue) {
-  Log::text("{ 1.. }", "Begin Single Time Commands");
+  Log::text("{ 1.. }", "Begin Single Time CommandResources");
 
   VkCommandBufferAllocateInfo allocInfo{
       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
@@ -646,7 +666,7 @@ void CE::CommandBuffers::beginSingularCommands(const VkCommandPool& commandPool,
 
 void CE::CommandBuffers::endSingularCommands(const VkCommandPool& commandPool,
                                              const VkQueue& queue) {
-  Log::text("{ ..1 }", "End Single Time Commands");
+  Log::text("{ ..1 }", "End Single Time CommandResources");
 
   vkEndCommandBuffer(singularCommandBuffer);
   VkSubmitInfo submitInfo{.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
@@ -1432,6 +1452,25 @@ void CE::PipelineLayout::createLayout(const VkDescriptorSetLayout& setLayout,
 CE::PipelineLayout::~PipelineLayout() {
   if (Device::baseDevice) {
     vkDestroyPipelineLayout(Device::baseDevice->logical, this->layout, nullptr);
+  }
+}
+
+CE::PushConstants::PushConstants(VkShaderStageFlags stage,
+                                 uint32_t dataSize,
+                                 uint32_t dataOffset) {
+  shaderStage = stage;
+
+  size = (dataSize % 4 == 0) ? dataSize : ((dataSize + 3) & ~3);
+  if (size > 128) {
+    size = 128;
+  }
+  offset = (dataOffset % 4 == 0) ? dataOffset : ((dataOffset + 3) & ~3);
+  count = 1;
+  std::fill(data.begin(), data.end(), 0);
+
+  if (size > data.size() * sizeof(uint64_t)) {
+    throw std::runtime_error(
+        "Size exceeds the available space in the data array.");
   }
 }
 

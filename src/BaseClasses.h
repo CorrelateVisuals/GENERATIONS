@@ -14,8 +14,12 @@
 #include <variant>
 #include <vector>
 
+enum IMAGE_RESOURCE_TYPES { CE_DEPTH_IMAGE = 0, CE_MULTISAMPLE_IMAGE = 1 };
+
+namespace {
 constexpr uint32_t MAX_FRAMES_IN_FLIGHT = 2;
 constexpr size_t NUM_DESCRIPTORS = 5;
+}  // namespace
 
 class VulkanMechanics;
 class Resources;
@@ -128,6 +132,17 @@ class CommandBuffers {
       std::array<VkCommandBuffer, MAX_FRAMES_IN_FLIGHT>& commandBuffers) const;
 };
 
+struct CommandInterface {
+  VkCommandBuffer& commandBuffer;
+  const VkCommandPool& commandPool;
+  const VkQueue& queue;
+
+  CommandInterface(VkCommandBuffer& commandBuffer,
+                   const VkCommandPool& commandPool,
+                   const VkQueue& queue)
+      : commandBuffer(commandBuffer), commandPool(commandPool), queue(queue) {}
+};
+
 class Buffer {
  public:
   VkBuffer buffer{};
@@ -178,6 +193,13 @@ class Image {
                          .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED};
 
   Image() = default;
+  Image(IMAGE_RESOURCE_TYPES image_type,
+        const VkExtent2D& extent,
+        const VkFormat format) {
+    createResources(image_type, extent, format);
+  }
+  Image(const std::string& texturePath) { path = texturePath; }
+
   virtual ~Image() { destroyVulkanImages(); };
 
   void create(const uint32_t width,
@@ -190,10 +212,9 @@ class Image {
   void recreate() { this->destroyVulkanImages(); };
   void createView(const VkImageAspectFlags aspectFlags);
   void createSampler();
-  void createResources(const VkExtent2D& dimensions,
-                       const VkFormat format,
-                       const VkImageUsageFlags usage,
-                       const VkImageAspectFlagBits aspect);
+  void createResources(IMAGE_RESOURCE_TYPES imageType,
+                       const VkExtent2D& dimensions,
+                       const VkFormat format);
   void transitionLayout(const VkCommandBuffer& commandBuffer,
                         const VkFormat format,
                         const VkImageLayout oldLayout,
@@ -315,7 +336,9 @@ struct PushConstants {
   uint32_t size{};
   std::array<uint64_t, 32> data{};
 
-  PushConstants() = default;
+  PushConstants(VkShaderStageFlags stage,
+                uint32_t dataSize,
+                uint32_t dataOffset);
   virtual ~PushConstants() = default;
   void setData(const uint64_t& data);
 };

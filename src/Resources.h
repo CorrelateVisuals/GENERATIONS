@@ -18,8 +18,8 @@ class Resources {
   Resources(VulkanMechanics& mechanics, Pipelines& pipelines);
   ~Resources();
 
-  struct Commands : public CE::CommandBuffers {
-    Commands(const CE::Queues::FamilyIndices& familyIndices);
+  struct CommandResources : public CE::CommandBuffers {
+    CommandResources(const CE::Queues::FamilyIndices& familyIndices);
     void recordComputeCommandBuffer(Resources& resources,
                                     Pipelines& pipelines,
                                     const uint32_t imageIndex) override;
@@ -29,40 +29,29 @@ class Resources {
                                      const uint32_t imageIndex) override;
   };
 
-  struct DepthImage : public CE::Image {
-    DepthImage(const VkExtent2D extent, const VkFormat format);
-  };
-
-  struct MultisamplingImage : public CE::Image {
-    MultisamplingImage(const VkExtent2D extent, const VkFormat format);
-  };
-
   class UniformBuffer : public CE::Descriptor {
    public:
-    UniformBuffer();
+    UniformBuffer(World::UniformBufferObject& u);
     void update(World& world, const VkExtent2D extent);
 
    private:
     CE::Buffer buffer;
-    World::UniformBufferObject object;
+    World::UniformBufferObject& ubo;
     void createBuffer();
     void createDescriptorWrite();
   };
 
   class StorageBuffer : public CE::Descriptor {
    public:
-    CE::Buffer bufferIn;
-    CE::Buffer bufferOut;
-    StorageBuffer(VkCommandBuffer& commandBuffer,
-                  const VkCommandPool& commandPool,
-                  const VkQueue& queue,
+       CE::Buffer bufferIn;
+       CE::Buffer bufferOut;
+
+    StorageBuffer(const CE::CommandInterface& commandData,
                   const auto& object,
                   const size_t quantity);
 
    private:
-    void create(VkCommandBuffer& commandBuffer,
-                const VkCommandPool& commandPool,
-                const VkQueue& queue,
+    void create(const CE::CommandInterface& commandData,
                 const auto& object,
                 const size_t quantity);
     void createDescriptorWrite(const size_t quantity);
@@ -70,16 +59,12 @@ class Resources {
 
   class ImageSampler : public CE::Descriptor {
    public:
-    ImageSampler(VkCommandBuffer& commandBuffer,
-                 VkCommandPool& commandPool,
-                 const VkQueue& queue);
+    ImageSampler(const CE::CommandInterface& commandData,
+                 const std::string& texturePath);
 
    private:
     void createDescriptorWrite();
-    struct TextureImage : public CE::Image {
-      TextureImage() { path = Lib::path("assets/Avatar.PNG"); }
-    };
-    TextureImage textureImage;
+    CE::Image textureImage;
   };
 
   class StorageImage : public CE::Descriptor {
@@ -88,24 +73,23 @@ class Resources {
     void createDescriptorWrite(
         std::array<CE::Image, MAX_FRAMES_IN_FLIGHT>& images);
   };
+  // GPU Interface
+  CommandResources commands;  // virtual function to record command buffers
+  CE::CommandInterface commandInterface;  // interface for command buffers
+  CE::PushConstants pushConstant;         
 
-  struct PushConstants : public CE::PushConstants {
-    PushConstants() {
-      shaderStage = VK_SHADER_STAGE_COMPUTE_BIT;
-      count = 1;
-      offset = 0;
-      size = 128;
-      data.fill(0);
-    }
-  };
+  // Scene
+  World world;  // World objects, light, _camera
 
-  Commands commands;
-  World world;
-  DepthImage depthImage;
-  MultisamplingImage msaaImage;
-  UniformBuffer uniform;
-  StorageBuffer shaderStorage;
-  ImageSampler sampler;
-  StorageImage storageImage;
-  PushConstants pushConstants;
+  // Images
+  CE::Image depthImage;
+  CE::Image msaaImage;
+
+  // Descriptors
+  UniformBuffer uniform;        // UniformParameters world details
+  StorageBuffer shaderStorage;  // FeedbackLoop compute shader
+
+  // Image Descriptors
+  ImageSampler sampler;       // Texture vertex shader
+  StorageImage storageImage;  //  PostFX compute shader
 };

@@ -5,12 +5,12 @@
 #include "Resources.h"
 
 Pipelines::Pipelines(VulkanMechanics& mechanics, Resources& resources)
-    : compute{resources.pushConstants},
+    : compute{resources.pushConstant},
       graphics{},
       render{mechanics.swapchain, resources.msaaImage,
              resources.depthImage.view},
       config{render.renderPass, graphics.layout, compute.layout,
-             resources.msaaImage.info.samples, resources.world.grid.size} {
+             resources.msaaImage.info.samples, resources.world._grid.size} {
   Log::text("{ === }", "constructing Pipelines");
 }
 

@@ -29,17 +29,29 @@ class World {
     getAttributeDescription();
   };
 
+  struct UniformBufferObject {
+    glm::vec4 light;
+    glm::ivec2 gridXY;
+    float waterThreshold;
+    float cellSize;
+    alignas(16) ModelViewProjection mvp{};
+
+    UniformBufferObject(glm::vec4 l, glm::ivec2 xy, float w, float s)
+        : light(l), gridXY(xy), waterThreshold(w), cellSize(s){};
+  };
+
   struct Grid : public Geometry {
-    vec2_uint_fast16_t size{};
-    const uint_fast32_t initialAliveCells{};
-    const size_t pointCount{};
+    vec2_uint_fast16_t size;
+    const uint_fast32_t initialAliveCells;
+    const size_t pointCount;
 
     std::vector<uint32_t> pointIDs = std::vector<uint32_t>(pointCount);
     std::vector<glm::vec3> coordinates = std::vector<glm::vec3>(pointCount);
     std::vector<World::Cell> cells = std::vector<World::Cell>(pointCount);
 
-    Grid(vec2_uint_fast16_t size,
+    Grid(vec2_uint_fast16_t gridSize,
          uint_fast32_t aliveCells,
+         float cellSize,
          VkCommandBuffer& commandBuffer,
          const VkCommandPool& commandPool,
          const VkQueue& queue);
@@ -51,19 +63,11 @@ class World {
         uint_fast32_t numberOfCells);
   };
 
-  Light light;
-  Camera camera;
-  Timer time;
+  Grid _grid;
+  Shape _rectangle;
+  Shape _cube;
 
-  Grid grid;
-  Shape rect;
-  Shape cube;
-
-  struct UniformBufferObject {
-    glm::vec4 light{};
-    glm::ivec2 gridXY{};
-    float waterThreshold{0.1f};
-    float cellSize{0.5f};
-    alignas(16) ModelViewProjection mvp;
-  };
+  UniformBufferObject _ubo;
+  Camera _camera;
+  Timer _time;
 };

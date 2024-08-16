@@ -14,7 +14,18 @@
 #include <string>
 #include <vector>
 
-enum ORIENTATION_ORDER { ROTATE_SCALE_TRANSLATE, ROTATE_TRANSLATE_SCALE };
+enum ORIENTATION_ORDER {
+  CE_ROTATE_SCALE_TRANSLATE = 0,
+  CE_ROTATE_TRANSLATE_SCALE = 1
+};
+
+enum GEOMETRY_SHAPE {
+  CE_RECTANGLE = 0,
+  CE_CUBE = 1,
+  CE_SPHERE = 2,
+  CE_SPHERE_HR = 3,
+  CE_TORUS = 4
+};
 
 class Vertex {
  public:
@@ -37,7 +48,8 @@ class Vertex {
 
 class Geometry : public Vertex {
  public:
-  Geometry(const std::string& modelName = "");
+  Geometry() = default;
+  Geometry(GEOMETRY_SHAPE shape);
   virtual ~Geometry() = default;
   std::vector<Vertex> allVertices{};
   std::vector<Vertex> uniqueVertices{};
@@ -72,11 +84,10 @@ class Geometry : public Vertex {
 };
 
 class Shape : public Geometry {
-public:
-    Shape(std::string shape,
+ public:
+  Shape(GEOMETRY_SHAPE shape,
         bool hasIndices,
         VkCommandBuffer& commandBuffer,
         const VkCommandPool& commandPool,
         const VkQueue& queue);
 };
-

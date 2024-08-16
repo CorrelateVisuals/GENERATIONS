@@ -28,7 +28,7 @@ void CapitalEngine::mainLoop() {
     glfwPollEvents();
 
     Window::get().setMouse();
-    resources.world.time.run();
+    resources.world._time.run();
 
     vkDeviceWaitIdle(mechanics.mainDevice.logical);
     drawFrame();

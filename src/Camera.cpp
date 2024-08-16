@@ -99,7 +99,7 @@ glm::mat4 Camera::setProjection(const VkExtent2D& swapchainExtent) {
 //         glm::vec2 leftButtonDelta = buttonType[left];
 //         glm::vec2 rightButtonDelta = buttonType[right];
 //         glm::vec2 middleButtonDelta = buttonType[middle];
-//         glm::vec3 cameraRight = glm::cross(camera.front, camera.up);
+//         glm::vec3 cameraRight = glm::cross(_camera.front, _camera.up);
 //
 //          glm::vec2 absDelta = glm::abs(leftButtonDelta);
 //          constexpr float rotationSpeed = 0.4f * glm::pi<float>() / 180.0f;
@@ -111,24 +111,24 @@ glm::mat4 Camera::setProjection(const VkExtent2D& swapchainExtent) {
 //                glm::rotate(rotationMatrix, -rotationDelta.y, cameraRight);
 //          } else if (absDelta.x > absDelta.y) {
 //            rotationMatrix = glm::rotate(rotationMatrix, rotationDelta.x,
-//            camera.up);
+//            _camera.up);
 //          }
-//          camera.front = glm::normalize(
-//              glm::vec3(rotationMatrix * glm::vec4(camera.front, 0.0f)));
-//          camera.up =
-//              glm::normalize(glm::vec3(rotationMatrix * glm::vec4(camera.up,
+//          _camera.front = glm::normalize(
+//              glm::vec3(rotationMatrix * glm::vec4(_camera.front, 0.0f)));
+//          _camera.up =
+//              glm::normalize(glm::vec3(rotationMatrix * glm::vec4(_camera.up,
 //              0.0f)));
 //
 //            float movementSpeed = getForwardMovement(leftButtonDelta);
-//            camera.position += movementSpeed * camera.front;
+//            _camera.position += movementSpeed * _camera.front;
 //         constexpr float panningSpeed = 1.3f;
-//         glm::vec3 cameraUp = glm::cross(cameraRight, camera.front);
-//         camera.position -= panningSpeed * rightButtonDelta.x * cameraRight;
-//         camera.position -= panningSpeed * rightButtonDelta.y * cameraUp;
+//         glm::vec3 cameraUp = glm::cross(cameraRight, _camera.front);
+//         _camera.position -= panningSpeed * rightButtonDelta.x * cameraRight;
+//         _camera.position -= panningSpeed * rightButtonDelta.y * cameraUp;
 //
 //         constexpr float zoomSpeed = 0.5f;
-//         camera.position += zoomSpeed * middleButtonDelta.x * camera.front;
-//         camera.position.z = std::max(camera.position.z, 0.0f);
+//         _camera.position += zoomSpeed * middleButtonDelta.x * _camera.front;
+//         _camera.position.z = std::max(_camera.position.z, 0.0f);
 //     }
 //     run = mousePositionChanged;
 // }
