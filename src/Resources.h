@@ -43,8 +43,8 @@ class Resources {
 
   class StorageBuffer : public CE::Descriptor {
    public:
-    CE::Buffer bufferIn;
-    CE::Buffer bufferOut;
+       CE::Buffer bufferIn;
+       CE::Buffer bufferOut;
 
     StorageBuffer(const CE::CommandInterface& commandData,
                   const auto& object,

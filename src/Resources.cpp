@@ -9,20 +9,21 @@ Resources::Resources(VulkanMechanics& mechanics, Pipelines& pipelines)
     : commands{mechanics.queues.familyIndices},
       commandInterface{commands.singularCommandBuffer, commands.pool,
                        mechanics.queues.graphics},
-
+      pushConstant{VK_SHADER_STAGE_COMPUTE_BIT, 128, 0},
       world{commands.singularCommandBuffer, commands.pool,
             mechanics.queues.graphics},
-      pushConstant{VK_SHADER_STAGE_COMPUTE_BIT, 128, 0},
-
-      uniform{world._ubo},
-      shaderStorage{commandInterface, world._grid.cells, world._grid.pointCount},
-      sampler{commandInterface, Lib::path("assets/Avatar.PNG")},
-      storageImage{mechanics.swapchain.images},
 
       depthImage{CE_DEPTH_IMAGE, mechanics.swapchain.extent,
                  CE::Image::findDepthFormat()},
       msaaImage{CE_MULTISAMPLE_IMAGE, mechanics.swapchain.extent,
-                mechanics.swapchain.imageFormat}
+                mechanics.swapchain.imageFormat},
+
+      // Descriptors
+      uniform{world._ubo},
+      shaderStorage{commandInterface, world._grid.cells,
+                    world._grid.pointCount},
+      sampler{commandInterface, Lib::path("assets/Avatar.PNG")},
+      storageImage{mechanics.swapchain.images}
 
 {
   Log::text(Log::Style::headerGuard);
@@ -109,9 +110,11 @@ void Resources::UniformBuffer::update(World& world, const VkExtent2D extent) {
   std::memcpy(buffer.mapped, &ubo, sizeof(ubo));
 }
 
-Resources::StorageBuffer::StorageBuffer(const CE::CommandInterface& commandData,
-                                        const auto& object,
-                                        const size_t quantity) {
+Resources::StorageBuffer::StorageBuffer(
+    // DescriptorInterface& descriptor,
+    const CE::CommandInterface& commandData,
+    const auto& object,
+    const size_t quantity) {
   myIndex = writeIndex;
   writeIndex += 2;
 
@@ -398,18 +401,21 @@ void Resources::CommandResources::recordGraphicsCommandBuffer(
                     pipelines.config.getPipelineObjectByName("Water"));
   VkBuffer vertexBuffers[] = {resources.world._rectangle.vertexBuffer.buffer};
   vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
-  vkCmdBindIndexBuffer(commandBuffer, resources.world._rectangle.indexBuffer.buffer,
-                       0, VK_INDEX_TYPE_UINT32);
-  vkCmdDrawIndexed(commandBuffer,
-                   static_cast<uint32_t>(resources.world._rectangle.indices.size()),
-                   1, 0, 0, 0);
+  vkCmdBindIndexBuffer(commandBuffer,
+                       resources.world._rectangle.indexBuffer.buffer, 0,
+                       VK_INDEX_TYPE_UINT32);
+  vkCmdDrawIndexed(
+      commandBuffer,
+      static_cast<uint32_t>(resources.world._rectangle.indices.size()), 1, 0, 0,
+      0);
 
   // Pipeline 4
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                     pipelines.config.getPipelineObjectByName("Texture"));
-  vkCmdDrawIndexed(commandBuffer,
-                   static_cast<uint32_t>(resources.world._rectangle.indices.size()),
-                   1, 0, 0, 0);
+  vkCmdDrawIndexed(
+      commandBuffer,
+      static_cast<uint32_t>(resources.world._rectangle.indices.size()), 1, 0, 0,
+      0);
   vkCmdEndRenderPass(commandBuffer);
 
   //       This is part of an image memory barrier (i.e., vkCmdPipelineBarrier

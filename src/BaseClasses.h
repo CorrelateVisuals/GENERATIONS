@@ -14,7 +14,7 @@
 #include <variant>
 #include <vector>
 
-enum IMAGE_RESOURCE_TYPES { CE_DEPTH_IMAGE, CE_MULTISAMPLE_IMAGE };
+enum IMAGE_RESOURCE_TYPES { CE_DEPTH_IMAGE = 0, CE_MULTISAMPLE_IMAGE = 1 };
 
 namespace {
 constexpr uint32_t MAX_FRAMES_IN_FLIGHT = 2;
