@@ -2,9 +2,9 @@
 #include <glm/glm.hpp>
 
 #include "BaseClasses.h"
+#include "Geometry.h"
 #include "Mechanics.h"
 #include "Resources.h"
-#include "Geometry.h"
 
 class Pipelines {
  public:
@@ -12,13 +12,16 @@ class Pipelines {
   ~Pipelines();
 
   struct ComputeLayout : public CE::PipelineLayout {
-    ComputeLayout(CE::PushConstants& pushConstant) {
-      createLayout(CE::Descriptor::setLayout, pushConstant);
+    ComputeLayout(CE::DescriptorInterface& interface,
+                  CE::PushConstants& pushConstant) {
+      createLayout(interface.setLayout, pushConstant);
     }
   };
 
   struct GraphicsLayout : public CE::PipelineLayout {
-    GraphicsLayout() { createLayout(CE::Descriptor::setLayout); }
+    GraphicsLayout(CE::DescriptorInterface& interface) {
+      createLayout(interface.setLayout);
+    }
   };
 
   struct Render : public CE::RenderPass {
@@ -52,14 +55,14 @@ class Pipelines {
           .shaders = {"LandscapeVert", "Tesc", "Tese", "LandscapeFrag"},
           .vertexAttributes = World::Grid::getAttributeDescription(),
           .vertexBindings = World::Grid::getBindingDescription()};
-      pipelineMap["Texture"] = Graphics{
-          .shaders = {"Vert", "Frag"},
-          .vertexAttributes = Shape::getAttributeDescription(),
-          .vertexBindings = Shape::getBindingDescription()};
-      pipelineMap["Water"] = Graphics{
-          .shaders = {"Vert", "Frag"},
-          .vertexAttributes = Shape::getAttributeDescription(),
-          .vertexBindings = Shape::getBindingDescription()};
+      pipelineMap["Texture"] =
+          Graphics{.shaders = {"Vert", "Frag"},
+                   .vertexAttributes = Shape::getAttributeDescription(),
+                   .vertexBindings = Shape::getBindingDescription()};
+      pipelineMap["Water"] =
+          Graphics{.shaders = {"Vert", "Frag"},
+                   .vertexAttributes = Shape::getAttributeDescription(),
+                   .vertexBindings = Shape::getBindingDescription()};
       pipelineMap["PostFX"] = Compute{
           .shaders = {"Comp"},
           .workGroups = {

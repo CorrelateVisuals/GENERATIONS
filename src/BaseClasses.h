@@ -155,12 +155,10 @@ class CommandBuffers {
                                     const VkQueue& queue);
   static void endSingularCommands(const VkCommandPool& commandPool,
                                   const VkQueue& queue);
-  virtual void recordComputeCommandBuffer(DescriptorInterface& interface,
-                                          Resources& resources,
+  virtual void recordComputeCommandBuffer(Resources& resources,
                                           Pipelines& pipelines,
                                           const uint32_t imageIndex) = 0;
-  virtual void recordGraphicsCommandBuffer(DescriptorInterface& interface,
-                                           Swapchain& swapchain,
+  virtual void recordGraphicsCommandBuffer(Swapchain& swapchain,
                                            Resources& resources,
                                            Pipelines& pipelines,
                                            const uint32_t imageIndex) = 0;

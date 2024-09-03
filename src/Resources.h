@@ -20,12 +20,10 @@ class Resources {
 
   struct CommandResources : public CE::CommandBuffers {
     CommandResources(const CE::Queues::FamilyIndices& familyIndices);
-    void recordComputeCommandBuffer(CE::DescriptorInterface& interface,
-                                    Resources& resources,
+    void recordComputeCommandBuffer(Resources& resources,
                                     Pipelines& pipelines,
                                     const uint32_t imageIndex) override;
-    void recordGraphicsCommandBuffer(CE::DescriptorInterface& interface,
-                                     CE::Swapchain& swapchain,
+    void recordGraphicsCommandBuffer(CE::Swapchain& swapchain,
                                      Resources& resources,
                                      Pipelines& pipelines,
                                      const uint32_t imageIndex) override;
@@ -49,7 +47,8 @@ class Resources {
     CE::Buffer bufferIn;
     CE::Buffer bufferOut;
 
-    StorageBuffer(const CE::CommandInterface& commandData,
+    StorageBuffer(CE::DescriptorInterface& interface,
+                  const CE::CommandInterface& commandData,
                   const auto& object,
                   const size_t quantity);
 
@@ -57,8 +56,8 @@ class Resources {
     void create(const CE::CommandInterface& commandData,
                 const auto& object,
                 const size_t quantity);
-    void createDescriptorWrite(const size_t quantity,
-                               CE::DescriptorInterface& interface);
+    void createDescriptorWrite(CE::DescriptorInterface& interface,
+                               const size_t quantity );
   };
 
   class ImageSampler : public CE::Descriptor {

@@ -5,8 +5,8 @@
 #include "Resources.h"
 
 Pipelines::Pipelines(VulkanMechanics& mechanics, Resources& resources)
-    : compute{resources.pushConstant},
-      graphics{},
+    : compute{resources.descriptorInterface, resources.pushConstant},
+      graphics{ resources.descriptorInterface},
       render{mechanics.swapchain, resources.msaaImage,
              resources.depthImage.view},
       config{render.renderPass, graphics.layout, compute.layout,
