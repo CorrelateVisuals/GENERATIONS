@@ -31,8 +31,8 @@ class Resources {
 
   class UniformBuffer : public CE::Descriptor {
    public:
-    UniformBuffer(World::UniformBufferObject& u,
-                  CE::DescriptorInterface& interface);
+    UniformBuffer(CE::DescriptorInterface& interface, World::UniformBufferObject& u
+                  );
     void update(World& world, const VkExtent2D extent);
 
    private:
@@ -47,13 +47,13 @@ class Resources {
     CE::Buffer bufferIn;
     CE::Buffer bufferOut;
 
-    StorageBuffer(CE::DescriptorInterface& interface,
-                  const CE::CommandInterface& commandData,
+    StorageBuffer(CE::DescriptorInterface& descriptorInterface,
+                  const CE::CommandInterface& commandInterface,
                   const auto& object,
                   const size_t quantity);
 
    private:
-    void create(const CE::CommandInterface& commandData,
+    void create(const CE::CommandInterface& commandInterface,
                 const auto& object,
                 const size_t quantity);
     void createDescriptorWrite(CE::DescriptorInterface& interface,
@@ -63,7 +63,7 @@ class Resources {
   class ImageSampler : public CE::Descriptor {
    public:
     ImageSampler(CE::DescriptorInterface& interface,
-                 const CE::CommandInterface& commandData,
+                 const CE::CommandInterface& commandInterface,
                  const std::string& texturePath);
 
    private:
