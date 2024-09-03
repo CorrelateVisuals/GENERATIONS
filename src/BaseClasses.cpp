@@ -593,6 +593,14 @@ void CE::DescriptorInterface::allocateSets() {
                     &allocateInfo, sets.data());
 }
 
+void CE::DescriptorInterface::initialzeSets()
+{
+    createSetLayout();
+    createPool();
+    allocateSets();
+    updateSets();
+}
+
 void CE::DescriptorInterface::updateSets() {
   Log::text("{ |=| }", "Update Descriptor Sets");
 

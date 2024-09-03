@@ -21,8 +21,8 @@ constexpr float ZOOM_SPEED = 0.5f;
 constexpr float PANNING_SPEED = 1.2f;
 constexpr float FIELD_OF_VIEW = 40.0f;
 constexpr float NEAR_CLIPPING = 0.1f;
-constexpr float FAR_CLIPPING = 100.0f;
-constexpr glm::vec3 CAMERA_POSITION = {0.0f, 0.0f, 30.0f};
+constexpr float FAR_CLIPPING = 1000.0f;
+constexpr glm::vec3 CAMERA_POSITION = {0.0f, 0.0f, 60.0f};
 
 constexpr GEOMETRY_SHAPE cube = CE_CUBE;
 constexpr GEOMETRY_SHAPE rectangle = CE_RECTANGLE;

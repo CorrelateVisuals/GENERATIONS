@@ -3,21 +3,25 @@
 #include "CapitalEngine.h"
 #include "Resources.h"
 
-namespace {}
+namespace {
+// constexpr World::UniformBufferObject& UNIFORM_BUFFER = world._ubo;
+// SHADER_STORAGE = world._grid.cells, world._grid.pointCount;
+
+}
 
 Resources::Resources(VulkanMechanics& mechanics, Pipelines& pipelines)
     : commands{mechanics.queues.familyIndices},
       commandInterface{commands.singularCommandBuffer, commands.pool,
                        mechanics.queues.graphics},
-      pushConstant{VK_SHADER_STAGE_COMPUTE_BIT, 128, 0},
-      world{commands.singularCommandBuffer, commands.pool,
-            mechanics.queues.graphics},
 
-      
       depthImage{CE_DEPTH_IMAGE, mechanics.swapchain.extent,
                  CE::Image::findDepthFormat()},
       msaaImage{CE_MULTISAMPLE_IMAGE, mechanics.swapchain.extent,
                 mechanics.swapchain.imageFormat},
+
+      pushConstant{VK_SHADER_STAGE_COMPUTE_BIT, 128, 0},
+      world{commands.singularCommandBuffer, commands.pool,
+            mechanics.queues.graphics},
 
       // Descriptors
       descriptorInterface(),
@@ -32,10 +36,7 @@ Resources::Resources(VulkanMechanics& mechanics, Pipelines& pipelines)
   Log::text(Log::Style::headerGuard);
   Log::text("{ /// }", "constructing Resources");
 
-  descriptorInterface.createSetLayout();
-  descriptorInterface.createPool();
-  descriptorInterface.allocateSets();
-  descriptorInterface.updateSets();
+  descriptorInterface.initialzeSets();
 }
 
 Resources::~Resources() {
@@ -114,10 +115,11 @@ void Resources::UniformBuffer::update(World& world, const VkExtent2D extent) {
   std::memcpy(buffer.mapped, &ubo, sizeof(ubo));
 }
 
-Resources::StorageBuffer::StorageBuffer(CE::DescriptorInterface& descriptorInterface,
-                                        const CE::CommandInterface& commandInterface,
-                                        const auto& object,
-                                        const size_t quantity) {
+Resources::StorageBuffer::StorageBuffer(
+    CE::DescriptorInterface& descriptorInterface,
+    const CE::CommandInterface& commandInterface,
+    const auto& object,
+    const size_t quantity) {
   myIndex = descriptorInterface.writeIndex;
   descriptorInterface.writeIndex += 2;
 
@@ -138,9 +140,10 @@ Resources::StorageBuffer::StorageBuffer(CE::DescriptorInterface& descriptorInter
   createDescriptorWrite(descriptorInterface, quantity);
 }
 
-void Resources::StorageBuffer::create(const CE::CommandInterface& commandInterface,
-                                      const auto& object,
-                                      const size_t quantity) {
+void Resources::StorageBuffer::create(
+    const CE::CommandInterface& commandInterface,
+    const auto& object,
+    const size_t quantity) {
   Log::text("{ 101 }", "Shader Storage Buffers");
 
   // Create a staging buffer used to upload data to the gpu
@@ -203,9 +206,10 @@ void Resources::StorageBuffer::createDescriptorWrite(
   }
 };
 
-Resources::ImageSampler::ImageSampler(CE::DescriptorInterface& interface,
-                                      const CE::CommandInterface& commandInterface,
-                                      const std::string& texturePath)
+Resources::ImageSampler::ImageSampler(
+    CE::DescriptorInterface& interface,
+    const CE::CommandInterface& commandInterface,
+    const std::string& texturePath)
     : textureImage(texturePath) {
   myIndex = interface.writeIndex;
   interface.writeIndex++;
@@ -221,7 +225,8 @@ Resources::ImageSampler::ImageSampler(CE::DescriptorInterface& interface,
   interface.poolSizes.push_back(poolSize);
 
   textureImage.loadTexture(textureImage.path, VK_FORMAT_R8G8B8A8_SRGB,
-                           commandInterface.commandBuffer, commandInterface.commandPool,
+                           commandInterface.commandBuffer,
+                           commandInterface.commandPool,
                            commandInterface.queue);
   textureImage.createView(VK_IMAGE_ASPECT_COLOR_BIT);
   textureImage.createSampler();
