@@ -11,18 +11,6 @@ CE::Device* CE::Device::baseDevice = nullptr;
 std::vector<VkDevice> CE::Device::destroyedDevices;
 VkCommandBuffer CE::CommandBuffers::singularCommandBuffer = VK_NULL_HANDLE;
 
-VkDescriptorPool CE::Descriptor::pool;
-VkDescriptorSetLayout CE::Descriptor::setLayout;
-std::array<VkDescriptorSet, MAX_FRAMES_IN_FLIGHT> CE::Descriptor::sets;
-std::vector<VkDescriptorPoolSize> CE::Descriptor::poolSizes;
-std::array<VkDescriptorSetLayoutBinding, NUM_DESCRIPTORS>
-    CE::Descriptor::setLayoutBindings;
-
-size_t CE::Descriptor::writeIndex{0};
-std::array<std::array<VkWriteDescriptorSet, NUM_DESCRIPTORS>,
-           MAX_FRAMES_IN_FLIGHT>
-    CE::Descriptor::descriptorWrites;
-
 void CE::Device::createLogicalDevice(const InitializeVulkan& initVulkan,
                                      Queues& queues) {
   Log::text("{ +++ }", "Logical Device");
@@ -545,7 +533,7 @@ void CE::Image::createSampler() {
   }
 }
 
-CE::Descriptor::~Descriptor() {
+CE::DescriptorInterface::~DescriptorInterface() {
   if (Device::baseDevice) {
     if (this->pool != VK_NULL_HANDLE) {
       vkDestroyDescriptorPool(Device::baseDevice->logical, this->pool, nullptr);
@@ -559,12 +547,10 @@ CE::Descriptor::~Descriptor() {
   }
 }
 
-void CE::Descriptor::createSetLayout(
-    const std::array<VkDescriptorSetLayoutBinding, NUM_DESCRIPTORS>&
-        layoutBindings) {
-  Log::text("{ |=| }", "Descriptor Set Layout:", layoutBindings.size(),
+void CE::DescriptorInterface::createSetLayout() {
+  Log::text("{ |=| }", "Descriptor Set Layout:", setLayoutBindings.size(),
             "bindings");
-  for (const VkDescriptorSetLayoutBinding& item : layoutBindings) {
+  for (const VkDescriptorSetLayoutBinding& item : setLayoutBindings) {
     Log::text("{ ", item.binding, " }",
               Log::getDescriptorTypeString(item.descriptorType));
     Log::text(Log::Style::charLeader,
@@ -573,15 +559,15 @@ void CE::Descriptor::createSetLayout(
 
   VkDescriptorSetLayoutCreateInfo layoutInfo{
       .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-      .bindingCount = static_cast<uint32_t>(layoutBindings.size()),
-      .pBindings = layoutBindings.data()};
+      .bindingCount = static_cast<uint32_t>(setLayoutBindings.size()),
+      .pBindings = setLayoutBindings.data()};
 
   CE::VULKAN_RESULT(vkCreateDescriptorSetLayout,
                     CE::Device::baseDevice->logical, &layoutInfo, nullptr,
-                    &CE::Descriptor::setLayout);
+                    &this->setLayout);
 }
 
-void CE::Descriptor::createPool() {
+void CE::DescriptorInterface::createPool() {
   Log::text("{ |=| }", "Descriptor Pool");
   for (size_t i = 0; i < poolSizes.size(); i++) {
     Log::text(Log::Style::charLeader,
@@ -593,10 +579,10 @@ void CE::Descriptor::createPool() {
       .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
       .pPoolSizes = poolSizes.data()};
   CE::VULKAN_RESULT(vkCreateDescriptorPool, Device::baseDevice->logical,
-                    &poolInfo, nullptr, &CE::Descriptor::pool);
+                    &poolInfo, nullptr, &this->pool);
 }
 
-void CE::Descriptor::allocateSets() {
+void CE::DescriptorInterface::allocateSets() {
   std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, setLayout);
   VkDescriptorSetAllocateInfo allocateInfo{
       .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
@@ -607,15 +593,20 @@ void CE::Descriptor::allocateSets() {
                     &allocateInfo, sets.data());
 }
 
-void CE::Descriptor::updateSets(
-    const std::array<VkDescriptorSet, MAX_FRAMES_IN_FLIGHT>& sets,
-    std::array<std::array<VkWriteDescriptorSet, NUM_DESCRIPTORS>,
-               MAX_FRAMES_IN_FLIGHT>& descriptorWrites) {
+void CE::DescriptorInterface::initialzeSets()
+{
+    createSetLayout();
+    createPool();
+    allocateSets();
+    updateSets();
+}
+
+void CE::DescriptorInterface::updateSets() {
   Log::text("{ |=| }", "Update Descriptor Sets");
 
   for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
     for (auto& descriptor : descriptorWrites[i]) {
-      descriptor.dstSet = CE::Descriptor::sets[i];
+      descriptor.dstSet = this->sets[i];
     }
 
     vkUpdateDescriptorSets(CE::Device::baseDevice->logical,
