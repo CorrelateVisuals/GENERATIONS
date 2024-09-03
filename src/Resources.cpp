@@ -13,6 +13,7 @@ Resources::Resources(VulkanMechanics& mechanics, Pipelines& pipelines)
       world{commands.singularCommandBuffer, commands.pool,
             mechanics.queues.graphics},
 
+      descriptorInterface(),
       depthImage{CE_DEPTH_IMAGE, mechanics.swapchain.extent,
                  CE::Image::findDepthFormat()},
       msaaImage{CE_MULTISAMPLE_IMAGE, mechanics.swapchain.extent,
@@ -29,11 +30,10 @@ Resources::Resources(VulkanMechanics& mechanics, Pipelines& pipelines)
   Log::text(Log::Style::headerGuard);
   Log::text("{ /// }", "constructing Resources");
 
-  CE::Descriptor::createSetLayout(CE::Descriptor::setLayoutBindings);
-  CE::Descriptor::createPool();
-  CE::Descriptor::allocateSets();
-  CE::Descriptor::updateSets(CE::Descriptor::sets,
-                             CE::Descriptor::descriptorWrites);
+  descriptorInterface.createSetLayout();
+  descriptorInterface.createPool();
+  descriptorInterface.allocateSets();
+  descriptorInterface.updateSets();
 }
 
 Resources::~Resources() {

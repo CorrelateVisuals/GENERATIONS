@@ -25,7 +25,7 @@ class Resources {
                                     const uint32_t imageIndex) override;
     void recordGraphicsCommandBuffer(CE::Swapchain& swapchain,
                                      Resources& resources,
-                                     Pipelines& pipelines,
+                                     Pipelines& pipelines,  
                                      const uint32_t imageIndex) override;
   };
 
@@ -80,6 +80,8 @@ class Resources {
 
   // Scene
   World world;  // World objects, light, _camera
+
+  CE::DescriptorInterface descriptorInterface;
 
   // Images
   CE::Image depthImage;
