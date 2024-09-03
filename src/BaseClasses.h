@@ -105,6 +105,43 @@ class Device {
       const VkPhysicalDevice& physical) const;
 };
 
+class DescriptorInterface {
+public:
+    size_t writeIndex;
+    std::array<VkDescriptorSet, MAX_FRAMES_IN_FLIGHT> sets;
+    VkDescriptorSetLayout setLayout;
+    std::array<VkDescriptorSetLayoutBinding, NUM_DESCRIPTORS> setLayoutBindings;
+    std::array<std::array<VkWriteDescriptorSet, NUM_DESCRIPTORS>,
+        MAX_FRAMES_IN_FLIGHT>
+        descriptorWrites;
+    std::vector<VkDescriptorPoolSize> poolSizes;
+
+    DescriptorInterface() = default;
+    virtual ~DescriptorInterface();
+    void createSetLayout();
+    void createPool();
+    void allocateSets();
+    void updateSets();
+
+protected:
+    VkDescriptorPool pool;
+};
+
+class Descriptor {
+public:
+    Descriptor() = default;
+    virtual ~Descriptor() {};
+
+protected:
+    size_t myIndex{ 0 };
+    VkDescriptorPoolSize poolSize{};
+    VkDescriptorSetLayoutBinding setLayoutBinding{};
+    struct DescriptorInformation {
+        std::variant<VkDescriptorBufferInfo, VkDescriptorImageInfo> previousFrame{};
+        std::variant<VkDescriptorBufferInfo, VkDescriptorImageInfo> currentFrame{};
+    } info;
+};
+
 class CommandBuffers {
  public:
   VkCommandPool pool{};
@@ -118,10 +155,12 @@ class CommandBuffers {
                                     const VkQueue& queue);
   static void endSingularCommands(const VkCommandPool& commandPool,
                                   const VkQueue& queue);
-  virtual void recordComputeCommandBuffer(Resources& resources,
+  virtual void recordComputeCommandBuffer(DescriptorInterface& interface,
+                                          Resources& resources,
                                           Pipelines& pipelines,
                                           const uint32_t imageIndex) = 0;
-  virtual void recordGraphicsCommandBuffer(Swapchain& swapchain,
+  virtual void recordGraphicsCommandBuffer(DescriptorInterface& interface,
+                                           Swapchain& swapchain,
                                            Resources& resources,
                                            Pipelines& pipelines,
                                            const uint32_t imageIndex) = 0;
@@ -294,42 +333,7 @@ class Swapchain {
 };
 
 // Resources
-class Descriptor {
- public:
-  Descriptor() = default;
-  virtual ~Descriptor(){};
 
- protected:
-  size_t myIndex{0};
-  VkDescriptorPoolSize poolSize{};
-  VkDescriptorSetLayoutBinding setLayoutBinding{};
-  struct DescriptorInformation {
-    std::variant<VkDescriptorBufferInfo, VkDescriptorImageInfo> previousFrame{};
-    std::variant<VkDescriptorBufferInfo, VkDescriptorImageInfo> currentFrame{};
-  } info;
-};
-
-class DescriptorInterface {
- public:
-  std::array<VkDescriptorSet, MAX_FRAMES_IN_FLIGHT> sets;
-  VkDescriptorSetLayout setLayout;
-  std::array<VkDescriptorSetLayoutBinding, NUM_DESCRIPTORS> setLayoutBindings;
-  std::array<std::array<VkWriteDescriptorSet, NUM_DESCRIPTORS>,
-             MAX_FRAMES_IN_FLIGHT>
-      descriptorWrites;
-
-  DescriptorInterface() = default;
-  virtual ~DescriptorInterface();
-  void createSetLayout();
-  void createPool();
-  void allocateSets();
-  void updateSets();
-
- protected:
-  size_t writeIndex;
-  VkDescriptorPool pool;
-  std::vector<VkDescriptorPoolSize> poolSizes;
-};
 
 struct PushConstants {
   VkShaderStageFlags shaderStage{};
