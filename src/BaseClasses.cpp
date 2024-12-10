@@ -11,55 +11,17 @@ CE::Device* CE::Device::baseDevice = nullptr;
 std::vector<VkDevice> CE::Device::destroyedDevices;
 VkCommandBuffer CE::CommandBuffers::singularCommandBuffer = VK_NULL_HANDLE;
 
-VkDescriptorPool CE::Descriptor::pool;
-VkDescriptorSetLayout CE::Descriptor::setLayout;
-std::array<VkDescriptorSet, MAX_FRAMES_IN_FLIGHT> CE::Descriptor::sets;
-std::vector<VkDescriptorPoolSize> CE::Descriptor::poolSizes;
-std::array<VkDescriptorSetLayoutBinding, NUM_DESCRIPTORS>
-    CE::Descriptor::setLayoutBindings;
-
-size_t CE::Descriptor::writeIndex{0};
-std::array<std::array<VkWriteDescriptorSet, NUM_DESCRIPTORS>,
-           MAX_FRAMES_IN_FLIGHT>
-    CE::Descriptor::descriptorWrites;
-
 void CE::Device::createLogicalDevice(const InitializeVulkan& initVulkan,
                                      Queues& queues) {
   Log::text("{ +++ }", "Logical Device");
 
-  std::vector<VkDeviceQueueCreateInfo> queueCreateInfos{};
-  std::set<uint32_t> uniqueQueueFamilies = {
-      queues.familyIndices.graphicsAndComputeFamily.value(),
-      queues.familyIndices.presentFamily.value()};
-
-  float queuePriority = 1.0f;
-  for (uint_fast8_t queueFamily : uniqueQueueFamilies) {
-    VkDeviceQueueCreateInfo queueCreateInfo{
-        .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
-        .queueFamilyIndex = queueFamily,
-        .queueCount = 1,
-        .pQueuePriorities = &queuePriority};
-    queueCreateInfos.push_back(queueCreateInfo);
-  }
-
-  VkDeviceCreateInfo createInfo{
-      .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
-      .queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size()),
-      .pQueueCreateInfos = queueCreateInfos.data(),
-      .enabledLayerCount = 0,
-      .enabledExtensionCount = static_cast<uint32_t>(this->extensions.size()),
-      .ppEnabledExtensionNames = this->extensions.data(),
-      .pEnabledFeatures = &this->features};
-
-  if (initVulkan.validation.enableValidationLayers) {
-    createInfo.enabledLayerCount =
-        static_cast<uint32_t>(initVulkan.validation.validation.size());
-    createInfo.ppEnabledLayerNames = initVulkan.validation.validation.data();
-  }
+  std::vector<VkDeviceQueueCreateInfo> queueCreateInfos =
+      fillQueueCreateInfos(queues);
+  VkDeviceCreateInfo createInfo = getDeviceCreateInfo(queueCreateInfos);
+  setValidationLayers(initVulkan, createInfo);
 
   CE::VULKAN_RESULT(vkCreateDevice, this->physical, &createInfo, nullptr,
                     &this->logical);
-
   vkGetDeviceQueue(this->logical,
                    queues.familyIndices.graphicsAndComputeFamily.value(), 0,
                    &queues.graphics);
@@ -74,16 +36,7 @@ void CE::Device::pickPhysicalDevice(const InitializeVulkan& initVulkan,
                                     Queues& queues,
                                     Swapchain& swapchain) {
   Log::text("{ ### }", "Physical Device");
-  uint32_t deviceCount(0);
-  vkEnumeratePhysicalDevices(initVulkan.instance, &deviceCount, nullptr);
-
-  if (deviceCount == 0) {
-    throw std::runtime_error(
-        "\n!ERROR! failed to find GPUs with Vulkan support!");
-  }
-
-  std::vector<VkPhysicalDevice> devices(deviceCount);
-  vkEnumeratePhysicalDevices(initVulkan.instance, &deviceCount, devices.data());
+  std::vector<VkPhysicalDevice> devices = fillDevices(initVulkan);
 
   for (const auto& device : devices) {
     if (isDeviceSuitable(device, queues, initVulkan, swapchain)) {
@@ -99,10 +52,66 @@ void CE::Device::pickPhysicalDevice(const InitializeVulkan& initVulkan,
   }
 }
 
-bool CE::Device::isDeviceSuitable(const VkPhysicalDevice& physical,
-                                  Queues& queues,
-                                  const InitializeVulkan& initVulkan,
-                                  Swapchain& swapchain) {
+const std::vector<VkDeviceQueueCreateInfo> CE::Device::fillQueueCreateInfos(
+    const Queues& queues) const {
+  std::vector<VkDeviceQueueCreateInfo> queueCreateInfos{};
+  std::set<uint32_t> uniqueQueueFamilies = {
+      queues.familyIndices.graphicsAndComputeFamily.value(),
+      queues.familyIndices.presentFamily.value()};
+
+  float queuePriority = 1.0f;
+  for (uint_fast8_t queueFamily : uniqueQueueFamilies) {
+    VkDeviceQueueCreateInfo queueCreateInfo{
+        .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+        .queueFamilyIndex = queueFamily,
+        .queueCount = 1,
+        .pQueuePriorities = &queuePriority};
+    queueCreateInfos.push_back(queueCreateInfo);
+  }
+  return queueCreateInfos;
+}
+
+const VkDeviceCreateInfo CE::Device::getDeviceCreateInfo(
+    const std::vector<VkDeviceQueueCreateInfo>& queueCreateInfos) const {
+  VkDeviceCreateInfo createInfo{
+      .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+      .queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size()),
+      .pQueueCreateInfos = queueCreateInfos.data(),
+      .enabledLayerCount = 0,
+      .enabledExtensionCount = static_cast<uint32_t>(this->extensions.size()),
+      .ppEnabledExtensionNames = this->extensions.data(),
+      .pEnabledFeatures = &this->features};
+  return createInfo;
+}
+
+void CE::Device::setValidationLayers(const InitializeVulkan& initVulkan,
+                                     VkDeviceCreateInfo& createInfo) {
+  if (initVulkan.validation.enableValidationLayers) {
+    createInfo.enabledLayerCount =
+        static_cast<uint32_t>(initVulkan.validation.validation.size());
+    createInfo.ppEnabledLayerNames = initVulkan.validation.validation.data();
+  }
+}
+
+const std::vector<VkPhysicalDevice> CE::Device::fillDevices(
+    const InitializeVulkan& initVulkan) const {
+  uint32_t deviceCount(0);
+  vkEnumeratePhysicalDevices(initVulkan.instance, &deviceCount, nullptr);
+
+  if (deviceCount == 0) {
+    throw std::runtime_error(
+        "\n!ERROR! failed to find GPUs with Vulkan support!");
+  }
+
+  std::vector<VkPhysicalDevice> devices(deviceCount);
+  vkEnumeratePhysicalDevices(initVulkan.instance, &deviceCount, devices.data());
+  return devices;
+}
+
+const bool CE::Device::isDeviceSuitable(const VkPhysicalDevice& physical,
+                                        Queues& queues,
+                                        const InitializeVulkan& initVulkan,
+                                        Swapchain& swapchain) {
   Log::text(Log::Style::charLeader, "Is Device Suitable");
 
   queues.familyIndices = queues.findQueueFamilies(physical, initVulkan.surface);
@@ -115,9 +124,6 @@ bool CE::Device::isDeviceSuitable(const VkPhysicalDevice& physical,
     swapchainAdequate = !swapchainSupport.formats.empty() &&
                         !swapchainSupport.presentModes.empty();
   }
-  // VkPhysicalDeviceFeatures supportedFeatures;
-  // vkGetPhysicalDeviceFeatures(mainDevice.physical, &supportedFeatures);
-  //&& supportedFeatures.samplerAnisotropy
   return queues.familyIndices.isComplete() && extensionsSupported &&
          swapchainAdequate;
 }
@@ -139,7 +145,8 @@ void CE::Device::getMaxUsableSampleCount() {
   return;
 }
 
-bool CE::Device::checkDeviceExtensionSupport(const VkPhysicalDevice& physical) {
+const bool CE::Device::checkDeviceExtensionSupport(
+    const VkPhysicalDevice& physical) const {
   Log::text(Log::Style::charLeader, "Check Device Extension Support");
   uint32_t extensionCount(0);
   vkEnumerateDeviceExtensionProperties(physical, nullptr, &extensionCount,
@@ -158,8 +165,8 @@ bool CE::Device::checkDeviceExtensionSupport(const VkPhysicalDevice& physical) {
   return requiredExtensions.empty();
 }
 
-uint32_t CE::findMemoryType(const uint32_t typeFilter,
-                            const VkMemoryPropertyFlags properties) {
+const uint32_t CE::findMemoryType(const uint32_t typeFilter,
+                                  const VkMemoryPropertyFlags properties) {
   VkPhysicalDeviceMemoryProperties memProperties{};
   vkGetPhysicalDeviceMemoryProperties(Device::baseDevice->physical,
                                       &memProperties);
@@ -172,8 +179,6 @@ uint32_t CE::findMemoryType(const uint32_t typeFilter,
   }
   throw std::runtime_error("\n!ERROR! failed to find suitable memory type!");
 }
-
-CE::Buffer::Buffer() : buffer{}, memory{}, mapped{} {}
 
 CE::Buffer::~Buffer() {
   if (Device::baseDevice) {
@@ -258,9 +263,7 @@ void CE::Buffer::copyToImage(const VkBuffer& buffer,
   CE::CommandBuffers::endSingularCommands(commandPool, queue);
 }
 
-CE::Image::Image() : image{}, memory{}, view{}, sampler{} {}
-
-void CE::Image::destroyVulkanImages() {
+void CE::Image::destroyVulkanImages() const {
   if (Device::baseDevice && this->memory) {
     if (this->sampler != VK_NULL_HANDLE) {
       vkDestroySampler(Device::baseDevice->logical, this->sampler, nullptr);
@@ -444,16 +447,17 @@ void CE::Image::loadTexture(const std::string& imagePath,
   CommandBuffers::endSingularCommands(commandPool, queue);
 }
 
-VkFormat CE::Image::findDepthFormat() {
+const VkFormat CE::Image::findDepthFormat() {
   return findSupportedFormat(
       {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT,
        VK_FORMAT_D24_UNORM_S8_UINT},
       VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
 }
 
-VkFormat CE::Image::findSupportedFormat(const std::vector<VkFormat>& candidates,
-                                        const VkImageTiling tiling,
-                                        const VkFormatFeatureFlags& features) {
+const VkFormat CE::Image::findSupportedFormat(
+    const std::vector<VkFormat>& candidates,
+    const VkImageTiling tiling,
+    const VkFormatFeatureFlags& features) {
   for (VkFormat format : candidates) {
     VkFormatProperties props{};
     vkGetPhysicalDeviceFormatProperties(Device::baseDevice->physical, format,
@@ -470,12 +474,32 @@ VkFormat CE::Image::findSupportedFormat(const std::vector<VkFormat>& candidates,
   throw std::runtime_error("\n!ERROR! failed to find supported format!");
 }
 
-void CE::Image::createResources(const VkExtent2D& dimensions,
-                                const VkFormat format,
-                                const VkImageUsageFlags usage,
-                                const VkImageAspectFlagBits aspect) {
+void CE::Image::createResources(IMAGE_RESOURCE_TYPES imageType,
+                                const VkExtent2D& dimensions,
+                                const VkFormat format) {
   Log::text("{ []< }", "Color Resources ");
   this->destroyVulkanImages();
+
+  VkImageUsageFlags usage = 0;
+  VkImageAspectFlags aspect = 0;
+
+  switch (imageType) {
+    case CE_DEPTH_IMAGE:
+      usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+      aspect = VK_IMAGE_ASPECT_DEPTH_BIT;
+      break;
+
+    case CE_MULTISAMPLE_IMAGE:
+      usage = VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT |
+              VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+      aspect = VK_IMAGE_ASPECT_COLOR_BIT;
+      break;
+
+    default:
+      Log::text("Unknown image type!", "Error");
+      return;
+  }
+
   this->create(dimensions.width, dimensions.height,
                Device::baseDevice->maxUsableSampleCount, format,
                VK_IMAGE_TILING_OPTIMAL, usage,
@@ -509,7 +533,7 @@ void CE::Image::createSampler() {
   }
 }
 
-CE::Descriptor::~Descriptor() {
+CE::DescriptorInterface::~DescriptorInterface() {
   if (Device::baseDevice) {
     if (this->pool != VK_NULL_HANDLE) {
       vkDestroyDescriptorPool(Device::baseDevice->logical, this->pool, nullptr);
@@ -523,12 +547,10 @@ CE::Descriptor::~Descriptor() {
   }
 }
 
-void CE::Descriptor::createSetLayout(
-    const std::array<VkDescriptorSetLayoutBinding, NUM_DESCRIPTORS>&
-        layoutBindings) {
-  Log::text("{ |=| }", "Descriptor Set Layout:", layoutBindings.size(),
+void CE::DescriptorInterface::createSetLayout() {
+  Log::text("{ |=| }", "Descriptor Set Layout:", setLayoutBindings.size(),
             "bindings");
-  for (const VkDescriptorSetLayoutBinding& item : layoutBindings) {
+  for (const VkDescriptorSetLayoutBinding& item : setLayoutBindings) {
     Log::text("{ ", item.binding, " }",
               Log::getDescriptorTypeString(item.descriptorType));
     Log::text(Log::Style::charLeader,
@@ -537,15 +559,15 @@ void CE::Descriptor::createSetLayout(
 
   VkDescriptorSetLayoutCreateInfo layoutInfo{
       .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-      .bindingCount = static_cast<uint32_t>(layoutBindings.size()),
-      .pBindings = layoutBindings.data()};
+      .bindingCount = static_cast<uint32_t>(setLayoutBindings.size()),
+      .pBindings = setLayoutBindings.data()};
 
   CE::VULKAN_RESULT(vkCreateDescriptorSetLayout,
                     CE::Device::baseDevice->logical, &layoutInfo, nullptr,
-                    &CE::Descriptor::setLayout);
+                    &this->setLayout);
 }
 
-void CE::Descriptor::createPool() {
+void CE::DescriptorInterface::createPool() {
   Log::text("{ |=| }", "Descriptor Pool");
   for (size_t i = 0; i < poolSizes.size(); i++) {
     Log::text(Log::Style::charLeader,
@@ -557,10 +579,10 @@ void CE::Descriptor::createPool() {
       .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
       .pPoolSizes = poolSizes.data()};
   CE::VULKAN_RESULT(vkCreateDescriptorPool, Device::baseDevice->logical,
-                    &poolInfo, nullptr, &CE::Descriptor::pool);
+                    &poolInfo, nullptr, &this->pool);
 }
 
-void CE::Descriptor::allocateSets() {
+void CE::DescriptorInterface::allocateSets() {
   std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, setLayout);
   VkDescriptorSetAllocateInfo allocateInfo{
       .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
@@ -571,15 +593,20 @@ void CE::Descriptor::allocateSets() {
                     &allocateInfo, sets.data());
 }
 
-void CE::Descriptor::createSets(
-    const std::array<VkDescriptorSet, MAX_FRAMES_IN_FLIGHT>& sets,
-    std::array<std::array<VkWriteDescriptorSet, NUM_DESCRIPTORS>,
-               MAX_FRAMES_IN_FLIGHT>& descriptorWrites) {
-  Log::text("{ |=| }", "Descriptor Sets");
+void CE::DescriptorInterface::initialzeSets()
+{
+    createSetLayout();
+    createPool();
+    allocateSets();
+    updateSets();
+}
+
+void CE::DescriptorInterface::updateSets() {
+  Log::text("{ |=| }", "Update Descriptor Sets");
 
   for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
     for (auto& descriptor : descriptorWrites[i]) {
-      descriptor.dstSet = CE::Descriptor::sets[i];
+      descriptor.dstSet = this->sets[i];
     }
 
     vkUpdateDescriptorSets(CE::Device::baseDevice->logical,
@@ -609,7 +636,7 @@ void CE::CommandBuffers::createPool(
 
 void CE::CommandBuffers::beginSingularCommands(const VkCommandPool& commandPool,
                                                const VkQueue& queue) {
-  Log::text("{ 1.. }", "Begin Single Time Commands");
+  Log::text("{ 1.. }", "Begin Single Time CommandResources");
 
   VkCommandBufferAllocateInfo allocInfo{
       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
@@ -630,7 +657,7 @@ void CE::CommandBuffers::beginSingularCommands(const VkCommandPool& commandPool,
 
 void CE::CommandBuffers::endSingularCommands(const VkCommandPool& commandPool,
                                              const VkQueue& queue) {
-  Log::text("{ ..1 }", "End Single Time Commands");
+  Log::text("{ ..1 }", "End Single Time CommandResources");
 
   vkEndCommandBuffer(singularCommandBuffer);
   VkSubmitInfo submitInfo{.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
@@ -644,7 +671,7 @@ void CE::CommandBuffers::endSingularCommands(const VkCommandPool& commandPool,
 }
 
 void CE::CommandBuffers::createBuffers(
-    std::array<VkCommandBuffer, MAX_FRAMES_IN_FLIGHT>& commandBuffers) {
+    std::array<VkCommandBuffer, MAX_FRAMES_IN_FLIGHT>& commandBuffers) const {
   Log::text("{ cmd }", "Command Buffers:", MAX_FRAMES_IN_FLIGHT);
   VkCommandBufferAllocateInfo allocateInfo{
       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
@@ -672,7 +699,7 @@ void CE::Device::destroyDevice() {
   }
 }
 
-CE::Swapchain::SupportDetails CE::Swapchain::checkSupport(
+const CE::Swapchain::SupportDetails CE::Swapchain::checkSupport(
     const VkPhysicalDevice& physicalDevice,
     const VkSurfaceKHR& surface) {
   Log::text(Log::Style::charLeader, "Query Swap Chain Support");
@@ -702,8 +729,8 @@ CE::Swapchain::SupportDetails CE::Swapchain::checkSupport(
   }
 }
 
-VkSurfaceFormatKHR CE::Swapchain::pickSurfaceFormat(
-    const std::vector<VkSurfaceFormatKHR>& availableFormats) {
+const VkSurfaceFormatKHR CE::Swapchain::pickSurfaceFormat(
+    const std::vector<VkSurfaceFormatKHR>& availableFormats) const {
   Log::text(Log::Style::charLeader, "Choose Swap Surface Format");
 
   for (const auto& availableFormat : availableFormats) {
@@ -715,8 +742,8 @@ VkSurfaceFormatKHR CE::Swapchain::pickSurfaceFormat(
   return availableFormats[0];
 }
 
-VkPresentModeKHR CE::Swapchain::pickPresentMode(
-    const std::vector<VkPresentModeKHR>& availablePresentModes) {
+const VkPresentModeKHR CE::Swapchain::pickPresentMode(
+    const std::vector<VkPresentModeKHR>& availablePresentModes) const {
   Log::text(Log::Style::charLeader, "Choose Swap Present Mode");
   for (const auto& availablePresentMode : availablePresentModes) {
     if (availablePresentMode == VK_PRESENT_MODE_FIFO_KHR) {
@@ -726,9 +753,9 @@ VkPresentModeKHR CE::Swapchain::pickPresentMode(
   return VK_PRESENT_MODE_MAILBOX_KHR;
 }
 
-VkExtent2D CE::Swapchain::pickExtent(
+const VkExtent2D CE::Swapchain::pickExtent(
     GLFWwindow* window,
-    const VkSurfaceCapabilitiesKHR& capabilities) {
+    const VkSurfaceCapabilitiesKHR& capabilities) const {
   Log::text(Log::Style::charLeader, "Choose Swap Extent");
 
   if (capabilities.currentExtent.width !=
@@ -749,6 +776,16 @@ VkExtent2D CE::Swapchain::pickExtent(
 
     return actualExtent;
   }
+}
+
+const uint32_t CE::Swapchain::getImageCount(
+    const Swapchain::SupportDetails& swapchainSupport) const {
+  uint32_t imageCount = swapchainSupport.capabilities.minImageCount;
+  if (swapchainSupport.capabilities.maxImageCount > 0 &&
+      imageCount > swapchainSupport.capabilities.maxImageCount) {
+    imageCount = swapchainSupport.capabilities.maxImageCount;
+  }
+  return imageCount;
 }
 
 void CE::Swapchain::destroy() {
@@ -797,11 +834,7 @@ void CE::Swapchain::create(const VkSurfaceKHR& surface, const Queues& queues) {
   VkExtent2D extent =
       pickExtent(Window::get().window, supportDetails.capabilities);
 
-  uint32_t imageCount = swapchainSupport.capabilities.minImageCount;
-  if (swapchainSupport.capabilities.maxImageCount > 0 &&
-      imageCount > swapchainSupport.capabilities.maxImageCount) {
-    imageCount = swapchainSupport.capabilities.maxImageCount;
-  }
+  uint32_t imageCount = getImageCount(swapchainSupport);
 
   VkSwapchainCreateInfoKHR createInfo{
       .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
@@ -818,8 +851,6 @@ void CE::Swapchain::create(const VkSurfaceKHR& surface, const Queues& queues) {
       .presentMode = presentMode,
       .clipped = VK_TRUE};
 
-  // Queues::FamilyIndices indices = findQueueFamilies(device.physical,
-  // surface);
   std::vector<uint32_t> queueFamilyIndices{
       queues.familyIndices.graphicsAndComputeFamily.value(),
       queues.familyIndices.presentFamily.value()};
@@ -854,9 +885,9 @@ void CE::Swapchain::create(const VkSurfaceKHR& surface, const Queues& queues) {
   };
 }
 
-CE::Queues::FamilyIndices CE::Queues::findQueueFamilies(
+const CE::Queues::FamilyIndices CE::Queues::findQueueFamilies(
     const VkPhysicalDevice& physicalDevice,
-    const VkSurfaceKHR& surface) {
+    const VkSurfaceKHR& surface) const {
   Log::text(Log::Style::charLeader, "Find Queue Families");
 
   CE::Queues::FamilyIndices indices{};
@@ -913,7 +944,7 @@ void CE::SynchronizationObjects::create() {
   }
 }
 
-void CE::SynchronizationObjects::destroy() {
+void CE::SynchronizationObjects::destroy() const {
   if (Device::baseDevice) {
     Log::text("{ ||| }", "Destroy Synchronization Objects");
     for (uint_fast8_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
@@ -994,7 +1025,7 @@ void CE::InitializeVulkan::createSurface(GLFWwindow* window) {
                     &this->surface);
 }
 
-std::vector<const char*> CE::InitializeVulkan::getRequiredExtensions() {
+std::vector<const char*> CE::InitializeVulkan::getRequiredExtensions() const {
   uint32_t glfwExtensionCount(0);
   const char** glfwExtensions;
   glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
@@ -1096,7 +1127,7 @@ void CE::RenderPass::create(VkSampleCountFlagBits msaaImageSamples,
 
 void CE::RenderPass::createFramebuffers(CE::Swapchain& swapchain,
                                         const VkImageView& msaaView,
-                                        const VkImageView& depthView) {
+                                        const VkImageView& depthView) const {
   Log::text("{ 101 }", "Frame Buffers:", swapchain.images.size());
 
   Log::text(Log::Style::charLeader,
@@ -1144,17 +1175,17 @@ void CE::PipelinesConfiguration::createPipelines(
 
     if (!isCompute) [[likely]] {
       Log::text("{ === }", "Graphics Pipeline: ", pipelineName);
-      std::variant<Graphics, Compute>& pipeline =
+      std::variant<Graphics, Compute>& pipelineVariant =
           this->pipelineMap[pipelineName];
 
       std::vector<VkPipelineShaderStageCreateInfo> shaderStages{};
       bool tesselationEnabled = setShaderStages(pipelineName, shaderStages);
 
       const auto& bindingDescription =
-          std::get<CE::PipelinesConfiguration::Graphics>(pipeline)
+          std::get<CE::PipelinesConfiguration::Graphics>(pipelineVariant)
               .vertexBindings;
       const auto& attributesDescription =
-          std::get<CE::PipelinesConfiguration::Graphics>(pipeline)
+          std::get<CE::PipelinesConfiguration::Graphics>(pipelineVariant)
               .vertexAttributes;
       uint32_t bindingsSize = static_cast<uint32_t>(bindingDescription.size());
       uint32_t attributeSize =
@@ -1372,8 +1403,8 @@ void CE::PipelinesConfiguration::destroyShaderModules() {
   this->shaderModules.resize(0);
 }
 
-std::vector<std::string>& CE::PipelinesConfiguration::getPipelineShadersByName(
-    const std::string& name) {
+const std::vector<std::string>&
+CE::PipelinesConfiguration::getPipelineShadersByName(const std::string& name) {
   std::variant<Graphics, Compute>& variant = this->pipelineMap[name];
 
   if (std::holds_alternative<Graphics>(variant)) {
@@ -1412,6 +1443,25 @@ void CE::PipelineLayout::createLayout(const VkDescriptorSetLayout& setLayout,
 CE::PipelineLayout::~PipelineLayout() {
   if (Device::baseDevice) {
     vkDestroyPipelineLayout(Device::baseDevice->logical, this->layout, nullptr);
+  }
+}
+
+CE::PushConstants::PushConstants(VkShaderStageFlags stage,
+                                 uint32_t dataSize,
+                                 uint32_t dataOffset) {
+  shaderStage = stage;
+
+  size = (dataSize % 4 == 0) ? dataSize : ((dataSize + 3) & ~3);
+  if (size > 128) {
+    size = 128;
+  }
+  offset = (dataOffset % 4 == 0) ? dataOffset : ((dataOffset + 3) & ~3);
+  count = 1;
+  std::fill(data.begin(), data.end(), 0);
+
+  if (size > data.size() * sizeof(uint64_t)) {
+    throw std::runtime_error(
+        "Size exceeds the available space in the data array.");
   }
 }
 

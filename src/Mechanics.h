@@ -1,4 +1,5 @@
 #pragma once
+#include "BaseClasses.h"
 #include "CapitalEngine.h"
 #include "Pipelines.h"
 #include "Resources.h"
@@ -30,11 +31,11 @@ class VulkanMechanics {
       createLogicalDevice(initVulkan, queues);
     };
     ~Device() { destroyDevice(); }
-  } mainDevice;
+  };
 
   struct SynchronizationObjects : public CE::SynchronizationObjects {
     SynchronizationObjects() { create(); }
-  } syncObjects;
+  };
 
   struct Swapchain : public CE::Swapchain {
     Swapchain(const VkSurfaceKHR& surface, const CE::Queues& queues) {
@@ -45,5 +46,9 @@ class VulkanMechanics {
                   SynchronizationObjects& syncObjects,
                   Pipelines& pipelines,
                   Resources& resources);
-  } swapchain;
+  };
+
+  Device mainDevice;
+  SynchronizationObjects syncObjects;
+  Swapchain swapchain;
 };

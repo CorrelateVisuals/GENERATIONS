@@ -4,6 +4,10 @@
 #include "Geometry.h"
 #include "Library.h"
 
+namespace {
+constexpr glm::vec3 STANDARD_ORIENTATION{90.0f, 180.0f, 0.0f};
+}  // namespace
+
 std::vector<VkVertexInputBindingDescription> Vertex::getBindingDescription() {
   std::vector<VkVertexInputBindingDescription> binding{
       {0, sizeof(Vertex), VK_VERTEX_INPUT_RATE_VERTEX}};
@@ -33,13 +37,31 @@ struct std::hash<Vertex> {
   }
 };
 
-Geometry::Geometry(const std::string& modelName) {
+Geometry::Geometry(GEOMETRY_SHAPE shape) {
+  const std::string modelName = [&]() -> std::string {
+    switch (shape) {
+      case CE_RECTANGLE:
+        return "Rectangle";
+      case CE_CUBE:
+        return "Cube";
+      case CE_SPHERE:
+        return "Sphere";
+      case CE_SPHERE_HR:
+          return "SphereHR";
+      case CE_TORUS:
+          return "SphereHR";
+
+      default:
+        throw std::invalid_argument("Invalid geometry shape");
+    }
+  }();
+
   if (!modelName.empty()) {
     loadModel(modelName, *this);
-    transformModel(allVertices, ORIENTATION_ORDER{ROTATE_SCALE_TRANSLATE},
-                   glm::vec3(90.0f, 180.0f, 0.0f));
-    transformModel(uniqueVertices, ORIENTATION_ORDER{ROTATE_SCALE_TRANSLATE},
-                   glm::vec3(90.0f, 180.0f, 0.0f));
+    transformModel(allVertices, ORIENTATION_ORDER{CE_ROTATE_SCALE_TRANSLATE},
+                   STANDARD_ORIENTATION);
+    transformModel(uniqueVertices, ORIENTATION_ORDER{CE_ROTATE_SCALE_TRANSLATE},
+                   STANDARD_ORIENTATION);
   }
 }
 
@@ -199,7 +221,7 @@ void Geometry::transformModel(std::vector<Vertex>& vertices,
 
   for (auto& vertex : vertices) {
     switch (order) {
-      case ORIENTATION_ORDER::ROTATE_SCALE_TRANSLATE:
+      case ORIENTATION_ORDER::CE_ROTATE_SCALE_TRANSLATE:
         vertex.vertexPosition =
             glm::vec3(rotationMatrix * glm::vec4(vertex.vertexPosition, 1.0f));
         vertex.vertexPosition *= scale;
@@ -208,7 +230,7 @@ void Geometry::transformModel(std::vector<Vertex>& vertices,
         vertex.normal =
             glm::vec3(rotationMatrix * glm::vec4(vertex.normal, 1.0f));
         break;
-      case ORIENTATION_ORDER::ROTATE_TRANSLATE_SCALE:
+      case ORIENTATION_ORDER::CE_ROTATE_TRANSLATE_SCALE:
         vertex.vertexPosition =
             glm::vec3(rotationMatrix * glm::vec4(vertex.vertexPosition, 1.0f));
         vertex.vertexPosition = vertex.vertexPosition + translationDistance;
@@ -220,4 +242,19 @@ void Geometry::transformModel(std::vector<Vertex>& vertices,
     }
   }
   return;
+}
+
+Shape::Shape(GEOMETRY_SHAPE shape,
+             bool hasIndices,
+             VkCommandBuffer& commandBuffer,
+             const VkCommandPool& commandPool,
+             const VkQueue& queue)
+    : Geometry(shape) {
+  if (hasIndices) {
+    createVertexBuffer(commandBuffer, commandPool, queue, uniqueVertices);
+    createIndexBuffer(commandBuffer, commandPool, queue, indices);
+  }
+  if (!hasIndices) {
+    createVertexBuffer(commandBuffer, commandPool, queue, allVertices);
+  }
 }

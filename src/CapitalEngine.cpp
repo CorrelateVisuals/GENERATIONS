@@ -1,4 +1,8 @@
 #include "CapitalEngine.h"
+#include "Mechanics.h"
+#include "Resources.h"
+#include "Pipelines.h"
+#include "Window.h"
 
 CapitalEngine::CapitalEngine()
     : pipelines(mechanics, resources), resources(mechanics, pipelines) {
@@ -24,7 +28,7 @@ void CapitalEngine::mainLoop() {
     glfwPollEvents();
 
     Window::get().setMouse();
-    resources.world.time.run();
+    resources.world._time.run();
 
     vkDeviceWaitIdle(mechanics.mainDevice.logical);
     drawFrame();
@@ -57,8 +61,7 @@ void CapitalEngine::drawFrame() {
 
   vkResetCommandBuffer(
       resources.commands.compute[mechanics.syncObjects.currentFrame], 0);
-  resources.commands.recordComputeCommandBuffer(
-      resources, pipelines, mechanics.syncObjects.currentFrame);
+  resources.commands.recordComputeCommandBuffer(resources, pipelines, mechanics.syncObjects.currentFrame);
 
   VkSubmitInfo computeSubmitInfo{
       .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,

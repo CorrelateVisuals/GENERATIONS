@@ -1,6 +1,8 @@
 #pragma once
 #include <glm/glm.hpp>
 
+#include "BaseClasses.h"
+#include "Geometry.h"
 #include "Mechanics.h"
 #include "Resources.h"
 
@@ -10,14 +12,17 @@ class Pipelines {
   ~Pipelines();
 
   struct ComputeLayout : public CE::PipelineLayout {
-    ComputeLayout(CE::PushConstants& pushConstants) {
-      createLayout(CE::Descriptor::setLayout, pushConstants);
+    ComputeLayout(CE::DescriptorInterface& interface,
+                  CE::PushConstants& pushConstant) {
+      createLayout(interface.setLayout, pushConstant);
     }
-  } compute;
+  };
 
   struct GraphicsLayout : public CE::PipelineLayout {
-    GraphicsLayout() { createLayout(CE::Descriptor::setLayout); }
-  } graphics;
+    GraphicsLayout(CE::DescriptorInterface& interface) {
+      createLayout(interface.setLayout);
+    }
+  };
 
   struct Render : public CE::RenderPass {
     Render(CE::Swapchain& swapchain,
@@ -26,7 +31,7 @@ class Pipelines {
       create(msaaImage.info.samples, swapchain.imageFormat);
       createFramebuffers(swapchain, msaaImage.view, depthView);
     }
-  } render;
+  };
 
   struct Configuration : public CE::PipelinesConfiguration {
     Configuration(VkRenderPass& renderPass,
@@ -50,14 +55,14 @@ class Pipelines {
           .shaders = {"LandscapeVert", "Tesc", "Tese", "LandscapeFrag"},
           .vertexAttributes = World::Grid::getAttributeDescription(),
           .vertexBindings = World::Grid::getBindingDescription()};
-      pipelineMap["Texture"] = Graphics{
-          .shaders = {"Vert", "Frag"},
-          .vertexAttributes = World::Rectangle::getAttributeDescription(),
-          .vertexBindings = World::Rectangle::getBindingDescription()};
-      pipelineMap["Water"] = Graphics{
-          .shaders = {"Vert", "Frag"},
-          .vertexAttributes = World::Rectangle::getAttributeDescription(),
-          .vertexBindings = World::Rectangle::getBindingDescription()};
+      pipelineMap["Texture"] =
+          Graphics{.shaders = {"Vert", "Frag"},
+                   .vertexAttributes = Shape::getAttributeDescription(),
+                   .vertexBindings = Shape::getBindingDescription()};
+      pipelineMap["Water"] =
+          Graphics{.shaders = {"Vert", "Frag"},
+                   .vertexAttributes = Shape::getAttributeDescription(),
+                   .vertexBindings = Shape::getBindingDescription()};
       pipelineMap["PostFX"] = Compute{
           .shaders = {"Comp"},
           .workGroups = {
@@ -67,5 +72,10 @@ class Pipelines {
       compileShaders();
       createPipelines(renderPass, graphicsLayout, computeLayout, msaaSamples);
     }
-  } config;
+  };
+
+  ComputeLayout compute;
+  GraphicsLayout graphics;
+  Render render;
+  Configuration config;
 };

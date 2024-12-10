@@ -1,6 +1,7 @@
 #pragma once
 #include "vulkan/vulkan.h"
 
+#include "BaseClasses.h"
 #include "Mechanics.h"
 #include "Pipelines.h"
 #include "World.h"
@@ -17,8 +18,8 @@ class Resources {
   Resources(VulkanMechanics& mechanics, Pipelines& pipelines);
   ~Resources();
 
-  struct Commands : public CE::CommandBuffers {
-    Commands(const CE::Queues::FamilyIndices& familyIndices);
+  struct CommandResources : public CE::CommandBuffers {
+    CommandResources(const CE::Queues::FamilyIndices& familyIndices);
     void recordComputeCommandBuffer(Resources& resources,
                                     Pipelines& pipelines,
                                     const uint32_t imageIndex) override;
@@ -26,76 +27,77 @@ class Resources {
                                      Resources& resources,
                                      Pipelines& pipelines,
                                      const uint32_t imageIndex) override;
-  } commands;
-
-  World world;
-
-  struct DepthImage : public CE::Image {
-    DepthImage(const VkExtent2D extent, const VkFormat format);
-  } depthImage;
-
-  struct MultisamplingImage : public CE::Image {
-    MultisamplingImage(const VkExtent2D extent, const VkFormat format);
-  } msaaImage;
+  };
 
   class UniformBuffer : public CE::Descriptor {
    public:
-    UniformBuffer();
+    UniformBuffer(CE::DescriptorInterface& interface, World::UniformBufferObject& u
+                  );
     void update(World& world, const VkExtent2D extent);
 
    private:
     CE::Buffer buffer;
-    World::UniformBufferObject object;
+    World::UniformBufferObject& ubo;
     void createBuffer();
-    void createDescriptorWrite();
-  } uniform;
+    void createDescriptorWrite(CE::DescriptorInterface& interface);
+  };
 
   class StorageBuffer : public CE::Descriptor {
    public:
     CE::Buffer bufferIn;
     CE::Buffer bufferOut;
-    StorageBuffer(VkCommandBuffer& commandBuffer,
-                  const VkCommandPool& commandPool,
-                  const VkQueue& queue,
+
+    StorageBuffer(CE::DescriptorInterface& descriptorInterface,
+                  const CE::CommandInterface& commandInterface,
                   const auto& object,
                   const size_t quantity);
 
    private:
-    void create(VkCommandBuffer& commandBuffer,
-                const VkCommandPool& commandPool,
-                const VkQueue& queue,
+    void create(const CE::CommandInterface& commandInterface,
                 const auto& object,
                 const size_t quantity);
-    void createDescriptorWrite(const size_t quantity);
-  } shaderStorage;
+    void createDescriptorWrite(CE::DescriptorInterface& interface,
+                               const size_t quantity );
+  };
 
   class ImageSampler : public CE::Descriptor {
    public:
-    ImageSampler(VkCommandBuffer& commandBuffer,
-                 VkCommandPool& commandPool,
-                 const VkQueue& queue);
+    ImageSampler(CE::DescriptorInterface& interface,
+                 const CE::CommandInterface& commandInterface,
+                 const std::string& texturePath);
 
    private:
-    void createDescriptorWrite();
-    struct TextureImage : public CE::Image {
-      TextureImage() { path = Lib::path("assets/Avatar.PNG"); }
-    } textureImage;
-  } sampler;
+    void createDescriptorWrite(CE::DescriptorInterface& interface);
+    CE::Image textureImage;
+  };
 
   class StorageImage : public CE::Descriptor {
    public:
-    StorageImage(std::array<CE::Image, MAX_FRAMES_IN_FLIGHT>& images);
+    StorageImage(CE::DescriptorInterface& interface,
+                 std::array<CE::Image, MAX_FRAMES_IN_FLIGHT>& images);
     void createDescriptorWrite(
+        CE::DescriptorInterface& interface,
         std::array<CE::Image, MAX_FRAMES_IN_FLIGHT>& images);
-  } storageImage;
+  };
+  // GPU Interface
+  CommandResources commands;  // virtual function to record command buffers
+  CE::CommandInterface commandInterface;  // interface for command buffers
+  CE::PushConstants pushConstant;
 
-  struct PushConstants : public CE::PushConstants {
-    PushConstants() {
-      shaderStage = VK_SHADER_STAGE_COMPUTE_BIT;
-      count = 1;
-      offset = 0;
-      size = 128;
-      data.fill(0);
-    }
-  } pushConstants;
+  // Scene
+  World world;  // World objects, light, _camera
+
+  CE::DescriptorInterface descriptorInterface;
+
+  // Images
+  CE::Image depthImage;
+  CE::Image msaaImage;
+
+  // Descriptors
+  UniformBuffer uniform;        // UniformParameters world details
+  StorageBuffer shaderStorage;  // FeedbackLoop compute shader
+
+  // Image Descriptors
+  ImageSampler sampler;       // Texture vertex shader
+  StorageImage storageImage;  //  PostFX compute shader
 };

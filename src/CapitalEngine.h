@@ -1,16 +1,8 @@
 #pragma once
-// Namespaces
-#include "Library.h"
-#include "Log.h"
+#include "Mechanics.h"  // can't be forward declared
 
-// Singletons
-#include "Window.h"
-
-// Engine modules
-#include "BaseClasses.h"
-#include "Mechanics.h"
-#include "Pipelines.h"
-#include "Resources.h"
+class Resources;
+class Pipelines;
 
 class CapitalEngine {
  public:

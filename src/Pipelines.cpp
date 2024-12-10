@@ -2,14 +2,15 @@
 
 #include "CapitalEngine.h"
 #include "Pipelines.h"
+#include "Resources.h"
 
 Pipelines::Pipelines(VulkanMechanics& mechanics, Resources& resources)
-    : compute{resources.pushConstants},
-      graphics{},
+    : compute{resources.descriptorInterface, resources.pushConstant},
+      graphics{ resources.descriptorInterface},
       render{mechanics.swapchain, resources.msaaImage,
              resources.depthImage.view},
       config{render.renderPass, graphics.layout, compute.layout,
-             resources.msaaImage.info.samples, resources.world.grid.size} {
+             resources.msaaImage.info.samples, resources.world._grid.size} {
   Log::text("{ === }", "constructing Pipelines");
 }
 

@@ -7,29 +7,35 @@
 class Window {
  public:
   Window(const Window&) = delete;
-  static Window& get() { return mainWindow; }
-
-  GLFWwindow* window;
-  bool framebufferResized;
 
   struct DisplayConfiguration {
-    const char* title{"GENERATIONS"};
-    uint16_t width = 3800;
-    uint16_t height = 1080;
-  } display;
+    DisplayConfiguration(const char* t, uint16_t w, uint16_t h)
+        : title{t}, width{w}, height{h} {}
+
+    const char* title;
+    uint16_t width;
+    uint16_t height;
+  };
 
   struct Mouse {
-    float pressDelay = 0.18f;
-    float speed = 0.5f;
+    Mouse(float d, float s) : pressDelay(d), speed(s) {}
+    float pressDelay;
+    float speed;
 
     struct Button {
       glm::vec2 position;
     };
-    std::array<Button, 3> buttonClick;
-    std::array<Button, 3> buttonDown;
-    std::array<Button, 3> previousButtonDown;
-  } mouse;
+    std::array<Button, 3> buttonClick{};
+    std::array<Button, 3> buttonDown{};
+    std::array<Button, 3> previousButtonDown{};
+  };
 
+  bool framebufferResized;
+  GLFWwindow* window;
+  DisplayConfiguration display{"GENERATIONS", 3840, 1080};
+  Mouse mouse{0.18f, 0.5f};
+
+  static Window& get() { return mainWindow; }
   void setMouse();
 
  private:

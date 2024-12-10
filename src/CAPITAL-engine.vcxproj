@@ -168,6 +168,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="BaseClasses.cpp" />
+    <ClCompile Include="Camera.cpp" />
     <ClCompile Include="CapitalEngine.cpp" />
     <ClCompile Include="Geometry.cpp" />
     <ClCompile Include="Log.cpp" />
@@ -184,6 +185,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BaseClasses.h" />
+    <ClInclude Include="Camera.h" />
     <ClInclude Include="Geometry.h" />
     <ClInclude Include="Log.h" />
     <ClInclude Include="CapitalEngine.h" />

@@ -10,8 +10,15 @@
 #define STRINGIFICATION(x) #x
 
 namespace Log {
-const enum LogLevel { LOG_OFF, LOG_MINIMIAL, LOG_MODERATE, LOG_DETAILED };
-static uint8_t logLevel = LOG_MINIMIAL;
+enum LogLevel {
+  LOG_OFF = 0,
+  LOG_MINIMIAL = 1,
+  LOG_MODERATE = 2,
+  LOG_DETAILED = 3
+};
+static uint8_t logLevel = LOG_DETAILED;
+extern std::ofstream logFile;
+extern std::string previousTime;
 
 struct Style {
   static std::string charLeader;
@@ -22,9 +29,6 @@ struct Style {
 };
 void logTitle();
 void logFooter();
-
-extern std::ofstream logFile;
-extern std::string previousTime;
 
 template <class T, class... Ts>
 void text(const T& first, const Ts&... inputs);

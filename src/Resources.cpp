@@ -3,56 +3,58 @@
 #include "CapitalEngine.h"
 #include "Resources.h"
 
+namespace {
+// constexpr World::UniformBufferObject& UNIFORM_BUFFER = world._ubo;
+// SHADER_STORAGE = world._grid.cells, world._grid.pointCount;
+
+}
+
 Resources::Resources(VulkanMechanics& mechanics, Pipelines& pipelines)
     : commands{mechanics.queues.familyIndices},
-      pushConstants{},
-      depthImage{mechanics.swapchain.extent, CE::Image::findDepthFormat()},
-      msaaImage{mechanics.swapchain.extent, mechanics.swapchain.imageFormat},
-      shaderStorage{commands.singularCommandBuffer, commands.pool,
-                    mechanics.queues.graphics, world.grid.cells,
-                    world.grid.pointCount},
-      sampler{commands.singularCommandBuffer, commands.pool,
-              mechanics.queues.graphics},
-      storageImage{mechanics.swapchain.images},
+      commandInterface{commands.singularCommandBuffer, commands.pool,
+                       mechanics.queues.graphics},
+
+      depthImage{CE_DEPTH_IMAGE, mechanics.swapchain.extent,
+                 CE::Image::findDepthFormat()},
+      msaaImage{CE_MULTISAMPLE_IMAGE, mechanics.swapchain.extent,
+                mechanics.swapchain.imageFormat},
+
+      pushConstant{VK_SHADER_STAGE_COMPUTE_BIT, 128, 0},
       world{commands.singularCommandBuffer, commands.pool,
-            mechanics.queues.graphics} {
+            mechanics.queues.graphics},
+
+      // Descriptors
+      descriptorInterface(),
+      uniform{descriptorInterface, world._ubo},
+      shaderStorage{descriptorInterface, commandInterface, world._grid.cells,
+                    world._grid.pointCount},
+      sampler{descriptorInterface, commandInterface,
+              Lib::path("assets/Avatar.PNG")},
+      storageImage{descriptorInterface, mechanics.swapchain.images}
+
+{
   Log::text(Log::Style::headerGuard);
   Log::text("{ /// }", "constructing Resources");
 
-  CE::Descriptor::createSetLayout(CE::Descriptor::setLayoutBindings);
-  CE::Descriptor::createPool();
-  CE::Descriptor::allocateSets();
-  CE::Descriptor::createSets(CE::Descriptor::sets,
-                             CE::Descriptor::descriptorWrites);
+  descriptorInterface.initialzeSets();
 }
 
 Resources::~Resources() {
   Log::text("{ /// }", "destructing Resources");
 }
 
-Resources::Commands::Commands(const CE::Queues::FamilyIndices& familyIndices) {
+Resources::CommandResources::CommandResources(
+    const CE::Queues::FamilyIndices& familyIndices) {
   createPool(familyIndices);
   createBuffers(graphics);
   createBuffers(compute);
 }
 
-Resources::DepthImage::DepthImage(const VkExtent2D extent,
-                                  const VkFormat format) {
-  createResources(extent, format, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
-                  VK_IMAGE_ASPECT_DEPTH_BIT);
-}
-
-Resources::MultisamplingImage::MultisamplingImage(const VkExtent2D extent,
-                                                  const VkFormat format) {
-  createResources(extent, format,
-                  VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT |
-                      VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-                  VK_IMAGE_ASPECT_COLOR_BIT);
-}
-
-Resources::UniformBuffer::UniformBuffer() {
-  myIndex = writeIndex;
-  writeIndex++;
+Resources::UniformBuffer::UniformBuffer(CE::DescriptorInterface& interface,
+                                        World::UniformBufferObject& u)
+    : ubo(u) {
+  myIndex = interface.writeIndex;
+  interface.writeIndex++;
 
   VkDescriptorType type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
   setLayoutBinding.binding = 0;
@@ -60,15 +62,15 @@ Resources::UniformBuffer::UniformBuffer() {
   setLayoutBinding.descriptorCount = 1;
   setLayoutBinding.stageFlags =
       VK_SHADER_STAGE_COMPUTE_BIT | VK_SHADER_STAGE_VERTEX_BIT;
-  setLayoutBindings[myIndex] = setLayoutBinding;
+  interface.setLayoutBindings[myIndex] = setLayoutBinding;
 
   poolSize.type = type;
   poolSize.descriptorCount = MAX_FRAMES_IN_FLIGHT;
-  poolSizes.push_back(poolSize);
+  interface.poolSizes.push_back(poolSize);
 
   createBuffer();
 
-  createDescriptorWrite();
+  createDescriptorWrite(interface);
 }
 
 void Resources::UniformBuffer::createBuffer() {
@@ -84,7 +86,8 @@ void Resources::UniformBuffer::createBuffer() {
               &buffer.mapped);
 }
 
-void Resources::UniformBuffer::createDescriptorWrite() {
+void Resources::UniformBuffer::createDescriptorWrite(
+    CE::DescriptorInterface& interface) {
   VkDescriptorBufferInfo bufferInfo{
       .buffer = buffer.buffer, .range = sizeof(World::UniformBufferObject)};
   info.currentFrame = bufferInfo;
@@ -97,54 +100,50 @@ void Resources::UniformBuffer::createDescriptorWrite() {
       .pBufferInfo = &std::get<VkDescriptorBufferInfo>(info.currentFrame)};
 
   for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-    descriptorWrites[i][myIndex] = descriptorWrite;
+    interface.descriptorWrites[i][myIndex] = descriptorWrite;
   }
 };
 
 void Resources::UniformBuffer::update(World& world, const VkExtent2D extent) {
-  object.light = world.light.position;
-  object.gridXY = glm::vec2(static_cast<uint32_t>(world.grid.size.x),
-                            static_cast<uint32_t>(world.grid.size.y));
-  object.waterThreshold = 0.1f;
-  object.cellSize = world.grid.initialCellSize;
-  object.model = world.camera.setModel();
-  object.view = world.camera.setView();
-  object.projection = world.camera.setProjection(extent);
+  ubo.light = world._ubo.light;
+  ubo.gridXY = glm::vec2(static_cast<uint32_t>(world._grid.size.x),
+                         static_cast<uint32_t>(world._grid.size.y));
+  ubo.mvp.model = world._camera.setModel();
+  ubo.mvp.view = world._camera.setView();
+  ubo.mvp.projection = world._camera.setProjection(extent);
 
-  std::memcpy(buffer.mapped, &object, sizeof(object));
+  std::memcpy(buffer.mapped, &ubo, sizeof(ubo));
 }
 
-Resources::StorageBuffer::StorageBuffer(VkCommandBuffer& commandBuffer,
-                                        const VkCommandPool& commandPool,
-                                        const VkQueue& queue,
-                                        const auto& object,
-                                        const size_t quantity) {
-  myIndex = writeIndex;
-  writeIndex += 2;
+Resources::StorageBuffer::StorageBuffer(
+    CE::DescriptorInterface& descriptorInterface,
+    const CE::CommandInterface& commandInterface,
+    const auto& object,
+    const size_t quantity) {
+  myIndex = descriptorInterface.writeIndex;
+  descriptorInterface.writeIndex += 2;
 
   setLayoutBinding.binding = 1;
   setLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
   setLayoutBinding.descriptorCount = 1;
   setLayoutBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-  setLayoutBindings[myIndex] = setLayoutBinding;
+  descriptorInterface.setLayoutBindings[myIndex] = setLayoutBinding;
   setLayoutBinding.binding = 2;
-  setLayoutBindings[myIndex + 1] = setLayoutBinding;
+  descriptorInterface.setLayoutBindings[myIndex + 1] = setLayoutBinding;
 
   poolSize.type = setLayoutBinding.descriptorType;
   poolSize.descriptorCount = MAX_FRAMES_IN_FLIGHT * 2;
-  poolSizes.push_back(poolSize);
+  descriptorInterface.poolSizes.push_back(poolSize);
 
-  create(commandBuffer, commandPool, queue, object, quantity);
+  create(commandInterface, object, quantity);
 
-  createDescriptorWrite(quantity);
+  createDescriptorWrite(descriptorInterface, quantity);
 }
 
-void Resources::StorageBuffer::create(VkCommandBuffer& commandBuffer,
-                                      const VkCommandPool& commandPool,
-                                      const VkQueue& queue,
-                                      const auto& object,
-
-                                      const size_t quantity) {
+void Resources::StorageBuffer::create(
+    const CE::CommandInterface& commandInterface,
+    const auto& object,
+    const size_t quantity) {
   Log::text("{ 101 }", "Shader Storage Buffers");
 
   // Create a staging buffer used to upload data to the gpu
@@ -168,7 +167,8 @@ void Resources::StorageBuffer::create(VkCommandBuffer& commandBuffer,
                          VK_BUFFER_USAGE_TRANSFER_DST_BIT,
                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, bufferIn);
   CE::Buffer::copy(stagingResources.buffer, bufferIn.buffer, bufferSize,
-                   commandBuffer, commandPool, queue);
+                   commandInterface.commandBuffer, commandInterface.commandPool,
+                   commandInterface.queue);
 
   CE::Buffer::create(static_cast<VkDeviceSize>(bufferSize),
                      VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
@@ -176,10 +176,13 @@ void Resources::StorageBuffer::create(VkCommandBuffer& commandBuffer,
                          VK_BUFFER_USAGE_TRANSFER_DST_BIT,
                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, bufferOut);
   CE::Buffer::copy(stagingResources.buffer, bufferOut.buffer, bufferSize,
-                   commandBuffer, commandPool, queue);
+                   commandInterface.commandBuffer, commandInterface.commandPool,
+                   commandInterface.queue);
 }
 
-void Resources::StorageBuffer::createDescriptorWrite(const size_t quantity) {
+void Resources::StorageBuffer::createDescriptorWrite(
+    CE::DescriptorInterface& interface,
+    const size_t quantity) {
   for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
     VkDescriptorBufferInfo bufferInfo{
         .buffer = !i ? bufferIn.buffer : bufferOut.buffer,
@@ -195,39 +198,44 @@ void Resources::StorageBuffer::createDescriptorWrite(const size_t quantity) {
         .descriptorType = setLayoutBinding.descriptorType,
         .pBufferInfo = &std::get<VkDescriptorBufferInfo>(info.currentFrame)};
 
-    descriptorWrites[i][myIndex] = descriptorWrite;
+    interface.descriptorWrites[i][myIndex] = descriptorWrite;
     descriptorWrite.dstBinding = static_cast<uint32_t>(i ? 1 : 2);
     descriptorWrite.pBufferInfo =
         &std::get<VkDescriptorBufferInfo>(info.previousFrame);
-    descriptorWrites[i][myIndex + 1] = descriptorWrite;
+    interface.descriptorWrites[i][myIndex + 1] = descriptorWrite;
   }
 };
 
-Resources::ImageSampler::ImageSampler(VkCommandBuffer& commandBuffer,
-                                      VkCommandPool& commandPool,
-                                      const VkQueue& queue) {
-  myIndex = writeIndex;
-  writeIndex++;
+Resources::ImageSampler::ImageSampler(
+    CE::DescriptorInterface& interface,
+    const CE::CommandInterface& commandInterface,
+    const std::string& texturePath)
+    : textureImage(texturePath) {
+  myIndex = interface.writeIndex;
+  interface.writeIndex++;
 
   setLayoutBinding.binding = 3;
   setLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
   setLayoutBinding.descriptorCount = 1;
   setLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-  setLayoutBindings[myIndex] = setLayoutBinding;
+  interface.setLayoutBindings[myIndex] = setLayoutBinding;
 
   poolSize.type = setLayoutBinding.descriptorType;
   poolSize.descriptorCount = MAX_FRAMES_IN_FLIGHT;
-  poolSizes.push_back(poolSize);
+  interface.poolSizes.push_back(poolSize);
 
   textureImage.loadTexture(textureImage.path, VK_FORMAT_R8G8B8A8_SRGB,
-                           commandBuffer, commandPool, queue);
+                           commandInterface.commandBuffer,
+                           commandInterface.commandPool,
+                           commandInterface.queue);
   textureImage.createView(VK_IMAGE_ASPECT_COLOR_BIT);
   textureImage.createSampler();
 
-  createDescriptorWrite();
+  createDescriptorWrite(interface);
 }
 
-void Resources::ImageSampler::createDescriptorWrite() {
+void Resources::ImageSampler::createDescriptorWrite(
+    CE::DescriptorInterface& interface) {
   VkDescriptorImageInfo imageInfo{
       .sampler = textureImage.sampler,
       .imageView = textureImage.view,
@@ -242,29 +250,31 @@ void Resources::ImageSampler::createDescriptorWrite() {
       .pImageInfo = &std::get<VkDescriptorImageInfo>(info.currentFrame)};
 
   for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-    descriptorWrites[i][myIndex] = descriptorWrite;
+    interface.descriptorWrites[i][myIndex] = descriptorWrite;
   }
 }
 
 Resources::StorageImage::StorageImage(
+    CE::DescriptorInterface& interface,
     std::array<CE::Image, MAX_FRAMES_IN_FLIGHT>& images) {
-  myIndex = writeIndex;
-  writeIndex++;
+  myIndex = interface.writeIndex;
+  interface.writeIndex++;
 
   setLayoutBinding.binding = 4;
   setLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
   setLayoutBinding.descriptorCount = 1;
   setLayoutBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-  setLayoutBindings[myIndex] = setLayoutBinding;
+  interface.setLayoutBindings[myIndex] = setLayoutBinding;
 
   poolSize.type = setLayoutBinding.descriptorType;
   poolSize.descriptorCount = MAX_FRAMES_IN_FLIGHT;
-  poolSizes.push_back(poolSize);
+  interface.poolSizes.push_back(poolSize);
 
-  createDescriptorWrite(images);
+  createDescriptorWrite(interface, images);
 }
 
 void Resources::StorageImage::createDescriptorWrite(
+    CE::DescriptorInterface& interface,
     std::array<CE::Image, MAX_FRAMES_IN_FLIGHT>& images) {
   for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
     VkDescriptorImageInfo imageInfo{.sampler = VK_NULL_HANDLE,
@@ -281,11 +291,11 @@ void Resources::StorageImage::createDescriptorWrite(
         .pImageInfo = &std::get<VkDescriptorImageInfo>(
             !i ? info.currentFrame : info.previousFrame)};
 
-    descriptorWrites[i][myIndex] = descriptorWrite;
+    interface.descriptorWrites[i][myIndex] = descriptorWrite;
   }
 }
 
-void Resources::Commands::recordComputeCommandBuffer(
+void Resources::CommandResources::recordComputeCommandBuffer(
     Resources& resources,
     Pipelines& pipelines,
     const uint32_t imageIndex) {
@@ -302,16 +312,16 @@ void Resources::Commands::recordComputeCommandBuffer(
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
                     pipelines.config.getPipelineObjectByName("Engine"));
 
-  vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
-                          pipelines.compute.layout, 0, 1,
-                          &CE::Descriptor::sets[imageIndex], 0, nullptr);
+  vkCmdBindDescriptorSets(
+      commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipelines.compute.layout,
+      0, 1, &resources.descriptorInterface.sets[imageIndex], 0, nullptr);
 
-  resources.pushConstants.setData(resources.world.time.passedHours);
+  resources.pushConstant.setData(resources.world._time.passedHours);
 
-  vkCmdPushConstants(
-      commandBuffer, pipelines.compute.layout,
-      resources.pushConstants.shaderStage, resources.pushConstants.offset,
-      resources.pushConstants.size, resources.pushConstants.data.data());
+  vkCmdPushConstants(commandBuffer, pipelines.compute.layout,
+                     resources.pushConstant.shaderStage,
+                     resources.pushConstant.offset, resources.pushConstant.size,
+                     resources.pushConstant.data.data());
 
   const std::array<uint32_t, 3>& workGroups =
       pipelines.config.getWorkGroupsByName("Engine");
@@ -320,7 +330,7 @@ void Resources::Commands::recordComputeCommandBuffer(
   CE::VULKAN_RESULT(vkEndCommandBuffer, commandBuffer);
 }
 
-void Resources::Commands::recordGraphicsCommandBuffer(
+void Resources::CommandResources::recordGraphicsCommandBuffer(
     CE::Swapchain& swapchain,
     Resources& resources,
     Pipelines& pipelines,
@@ -358,9 +368,9 @@ void Resources::Commands::recordGraphicsCommandBuffer(
   VkRect2D scissor{.offset = {0, 0}, .extent = swapchain.extent};
   vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-  vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                          pipelines.graphics.layout, 0, 1,
-                          &CE::Descriptor::sets[imageIndex], 0, nullptr);
+  vkCmdBindDescriptorSets(
+      commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelines.graphics.layout,
+      0, 1, &resources.descriptorInterface.sets[imageIndex], 0, nullptr);
 
   // Pipeline 1
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -374,22 +384,22 @@ void Resources::Commands::recordGraphicsCommandBuffer(
       resources.shaderStorage.bufferOut.buffer};
 
   VkBuffer vertexBuffers0[] = {currentShaderStorageBuffer[imageIndex],
-                               resources.world.cube.vertexBuffer.buffer};
+                               resources.world._cube.vertexBuffer.buffer};
 
   vkCmdBindVertexBuffers(commandBuffer, 0, 2, vertexBuffers0, offsets0);
   vkCmdDraw(commandBuffer,
-            static_cast<uint32_t>(resources.world.cube.allVertices.size()),
-            resources.world.grid.size.x * resources.world.grid.size.y, 0, 0);
+            static_cast<uint32_t>(resources.world._cube.allVertices.size()),
+            resources.world._grid.size.x * resources.world._grid.size.y, 0, 0);
 
   // Landscape
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                     pipelines.config.getPipelineObjectByName("Landscape"));
-  VkBuffer vertexBuffers1[] = {resources.world.grid.vertexBuffer.buffer};
+  VkBuffer vertexBuffers1[] = {resources.world._grid.vertexBuffer.buffer};
   vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers1, offsets);
-  vkCmdBindIndexBuffer(commandBuffer, resources.world.grid.indexBuffer.buffer,
+  vkCmdBindIndexBuffer(commandBuffer, resources.world._grid.indexBuffer.buffer,
                        0, VK_INDEX_TYPE_UINT32);
   vkCmdDrawIndexed(commandBuffer,
-                   static_cast<uint32_t>(resources.world.grid.indices.size()),
+                   static_cast<uint32_t>(resources.world._grid.indices.size()),
                    1, 0, 0, 0);
 
   //   Landscape Wireframe
@@ -397,20 +407,20 @@ void Resources::Commands::recordGraphicsCommandBuffer(
       commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
       pipelines.config.getPipelineObjectByName("LandscapeWireFrame"));
   vkCmdDrawIndexed(commandBuffer,
-                   static_cast<uint32_t>(resources.world.grid.indices.size()),
+                   static_cast<uint32_t>(resources.world._grid.indices.size()),
                    1, 0, 0, 0);
 
   // Pipeline 3
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                     pipelines.config.getPipelineObjectByName("Water"));
-  VkBuffer vertexBuffers[] = {resources.world.rectangle.vertexBuffer.buffer};
+  VkBuffer vertexBuffers[] = {resources.world._rectangle.vertexBuffer.buffer};
   vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
   vkCmdBindIndexBuffer(commandBuffer,
-                       resources.world.rectangle.indexBuffer.buffer, 0,
+                       resources.world._rectangle.indexBuffer.buffer, 0,
                        VK_INDEX_TYPE_UINT32);
   vkCmdDrawIndexed(
       commandBuffer,
-      static_cast<uint32_t>(resources.world.rectangle.indices.size()), 1, 0, 0,
+      static_cast<uint32_t>(resources.world._rectangle.indices.size()), 1, 0, 0,
       0);
 
   // Pipeline 4
@@ -418,7 +428,7 @@ void Resources::Commands::recordGraphicsCommandBuffer(
                     pipelines.config.getPipelineObjectByName("Texture"));
   vkCmdDrawIndexed(
       commandBuffer,
-      static_cast<uint32_t>(resources.world.rectangle.indices.size()), 1, 0, 0,
+      static_cast<uint32_t>(resources.world._rectangle.indices.size()), 1, 0, 0,
       0);
   vkCmdEndRenderPass(commandBuffer);
 
@@ -434,15 +444,15 @@ void Resources::Commands::recordGraphicsCommandBuffer(
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
                     pipelines.config.getPipelineObjectByName("PostFX"));
 
-  vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
-                          pipelines.compute.layout, 0, 1,
-                          &CE::Descriptor::sets[imageIndex], 0, nullptr);
+  vkCmdBindDescriptorSets(
+      commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipelines.compute.layout,
+      0, 1, &resources.descriptorInterface.sets[imageIndex], 0, nullptr);
 
-  resources.pushConstants.setData(resources.world.time.passedHours);
-  vkCmdPushConstants(
-      commandBuffer, pipelines.compute.layout,
-      resources.pushConstants.shaderStage, resources.pushConstants.offset,
-      resources.pushConstants.size, resources.pushConstants.data.data());
+  resources.pushConstant.setData(resources.world._time.passedHours);
+  vkCmdPushConstants(commandBuffer, pipelines.compute.layout,
+                     resources.pushConstant.shaderStage,
+                     resources.pushConstant.offset, resources.pushConstant.size,
+                     resources.pushConstant.data.data());
 
   const std::array<uint32_t, 3>& workGroups =
       pipelines.config.getWorkGroupsByName("PostFX");

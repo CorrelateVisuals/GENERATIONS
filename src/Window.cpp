@@ -5,7 +5,7 @@
 
 Window Window::mainWindow;
 
-Window::Window() : window{nullptr}, framebufferResized{false}, mouse{} {
+Window::Window() : window{nullptr}, framebufferResized{false} {
   Log::logTitle();
   Log::text("{ [-] }", "constructing Window");
   initWindow();

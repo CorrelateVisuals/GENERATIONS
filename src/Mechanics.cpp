@@ -23,17 +23,13 @@ void VulkanMechanics::Swapchain::recreate(const VkSurfaceKHR& surface,
                                           Pipelines& pipelines,
                                           Resources& resources) {
   CE::Swapchain::recreate(surface, queues, syncObjects);
-  resources.msaaImage.createResources(extent, imageFormat,
-                                      VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT |
-                                          VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-                                      VK_IMAGE_ASPECT_COLOR_BIT);
-  resources.depthImage.createResources(
-      extent, CE::Image::findDepthFormat(),
-      VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_IMAGE_ASPECT_DEPTH_BIT);
+  resources.msaaImage.createResources(CE_MULTISAMPLE_IMAGE, extent,
+                                      imageFormat);
+  resources.depthImage.createResources(CE_DEPTH_IMAGE, extent,
+                                       CE::Image::findDepthFormat());
   pipelines.render.createFramebuffers(*this, resources.msaaImage.view,
                                       resources.depthImage.view);
 
-  resources.storageImage.createDescriptorWrite(images);
-  CE::Descriptor::createSets(CE::Descriptor::sets,
-                             CE::Descriptor::descriptorWrites);
+  resources.storageImage.createDescriptorWrite(resources.descriptorInterface, images);
+  resources.descriptorInterface.updateSets();
 }
