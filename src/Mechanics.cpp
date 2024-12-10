@@ -1,6 +1,8 @@
 #include "vulkan/vulkan.h"
 
 #include "Mechanics.h"
+#include "Pipelines.h"
+#include "Resources.h"
 
 VulkanMechanics::VulkanMechanics()
     : initVulkan{},
@@ -29,6 +31,7 @@ void VulkanMechanics::Swapchain::recreate(const VkSurfaceKHR& surface,
   pipelines.render.createFramebuffers(*this, resources.msaaImage.view,
                                       resources.depthImage.view);
 
-  resources.storageImage.createDescriptorWrite(resources.descriptorInterface, images);
+  resources.storageImage.createDescriptorWrite(resources.descriptorInterface,
+                                               images);
   resources.descriptorInterface.updateSets();
 }

@@ -1,7 +1,8 @@
 #pragma once
 #include "BaseClasses.h"
-#include "Pipelines.h"
-#include "Resources.h"
+
+class Pipelines;
+class Resources;
 
 class VulkanMechanics {
  public:
