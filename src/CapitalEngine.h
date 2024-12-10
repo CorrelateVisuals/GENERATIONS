@@ -1,8 +1,7 @@
 #pragma once
 #include "Mechanics.h"  // can't be forward declared
-
-class Resources;
-class Pipelines;
+#include "Resources.h"
+#include "Pipelines.h"
 
 class CapitalEngine {
  public:

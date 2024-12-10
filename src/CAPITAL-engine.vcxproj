@@ -99,7 +99,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)..\Libraries\glfw-3.3.8\include;$(SolutionDir)..\Libraries\glm;C:\VulkanSDK\1.3.250.1\Include;$(SolutionDir)\libraries;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalOptions>/MP %(AdditionalOptions)</AdditionalOptions>
-      <ShowIncludes>true</ShowIncludes>
+      <ShowIncludes>false</ShowIncludes>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -119,7 +119,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)..\Libraries\glfw-3.3.8\include;$(SolutionDir)..\Libraries\glm;C:\VulkanSDK\1.3.250.1\Include;$(SolutionDir)\libraries;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalOptions>/MP %(AdditionalOptions)</AdditionalOptions>
-      <ShowIncludes>true</ShowIncludes>
+      <ShowIncludes>false</ShowIncludes>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -139,7 +139,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)..\Libraries\glfw-3.3.8\include;$(SolutionDir)..\Libraries\glm;C:\VulkanSDK\1.3.250.1\Include;$(SolutionDir)\libraries;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalOptions>/MP %(AdditionalOptions)</AdditionalOptions>
-      <ShowIncludes>true</ShowIncludes>
+      <ShowIncludes>false</ShowIncludes>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -159,7 +159,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)..\Libraries\glfw-3.3.8\include;$(SolutionDir)..\Libraries\glm;C:\VulkanSDK\1.3.250.1\Include;$(SolutionDir)\libraries;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalOptions>/MP %(AdditionalOptions)</AdditionalOptions>
-      <ShowIncludes>true</ShowIncludes>
+      <ShowIncludes>false</ShowIncludes>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

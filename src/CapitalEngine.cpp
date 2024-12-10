@@ -1,6 +1,4 @@
 #include "CapitalEngine.h"
-#include "Resources.h"
-#include "Pipelines.h"
 #include "Window.h"
 
 CapitalEngine::CapitalEngine()

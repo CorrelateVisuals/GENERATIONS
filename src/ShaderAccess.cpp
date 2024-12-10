@@ -1,6 +1,6 @@
 #include "ShaderAccess.h"
-
 #include "Pipelines.h"
+#include "Resources.h" 
 
 void CE::ShaderAccess::CommandResources::recordComputeCommandBuffer(
     Resources& resources,

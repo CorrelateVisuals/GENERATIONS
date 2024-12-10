@@ -1,6 +1,5 @@
 #include "vulkan/vulkan.h"
 
-#include "CapitalEngine.h"
 #include "Mechanics.h"
 
 VulkanMechanics::VulkanMechanics()
