@@ -1,7 +1,6 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/noise.hpp>
 
-#include "CapitalEngine.h"
 #include "Terrain.h"
 
 #include <cmath>

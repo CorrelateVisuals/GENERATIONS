@@ -2,9 +2,11 @@
 #include <glm/glm.hpp>
 
 #include "BaseClasses.h"
-#include "Geometry.h"
-#include "Mechanics.h"
-#include "Resources.h"
+#include "Library.h"
+#include "World.h"
+
+class VulkanMechanics;
+class Resources;
 
 class Pipelines {
  public:
