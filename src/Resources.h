@@ -5,7 +5,6 @@
 #include "Mechanics.h"
 #include "Pipelines.h"
 #include "World.h"
-#include "ShaderAccess.h"
 
 #include <array>
 #include <cstring>
@@ -19,19 +18,15 @@ class Resources {
   Resources(VulkanMechanics& mechanics, Pipelines& pipelines);
   ~Resources();
 
-
-  class TestA{
-  public:
-      struct CommandResources : public CE::CommandBuffers {
-        CommandResources(const CE::Queues::FamilyIndices& familyIndices);
-        void recordComputeCommandBuffer(Resources& resources,
-                                        Pipelines& pipelines,
-                                        const uint32_t imageIndex) override;
-        void recordGraphicsCommandBuffer(CE::Swapchain& swapchain,
-                                         Resources& resources,
-                                         Pipelines& pipelines,
-                                         const uint32_t imageIndex) override;
-      };
+  struct CommandResources : public CE::CommandBuffers {
+    CommandResources(const CE::Queues::FamilyIndices& familyIndices);
+    void recordComputeCommandBuffer(Resources& resources,
+                                    Pipelines& pipelines,
+                                    const uint32_t imageIndex) override;
+    void recordGraphicsCommandBuffer(CE::Swapchain& swapchain,
+                                     Resources& resources,
+                                     Pipelines& pipelines,
+                                     const uint32_t imageIndex) override;
   };
 
   class UniformBuffer : public CE::Descriptor {
@@ -85,7 +80,7 @@ class Resources {
         std::array<CE::Image, MAX_FRAMES_IN_FLIGHT>& images);
   };
   // GPU Interface
-  CE::ShaderAccess::CommandResources commands;  // virtual function to record command buffers
+  CommandResources commands;  // virtual function to record command buffers
   CE::CommandInterface commandInterface;  // interface for command buffers
   CE::PushConstants pushConstant;
 
