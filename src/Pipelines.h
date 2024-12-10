@@ -3,8 +3,10 @@
 
 #include "BaseClasses.h"
 #include "Geometry.h"
+#include "Library.h"
 #include "Mechanics.h"
 #include "Resources.h"
+#include "World.h"
 
 class Pipelines {
  public:
