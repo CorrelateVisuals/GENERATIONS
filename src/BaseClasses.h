@@ -14,16 +14,16 @@
 #include <variant>
 #include <vector>
 
+class VulkanMechanics;
+class Resources;
+class Pipelines;
+
 enum IMAGE_RESOURCE_TYPES { CE_DEPTH_IMAGE = 0, CE_MULTISAMPLE_IMAGE = 1 };
 
 namespace {
 constexpr uint32_t MAX_FRAMES_IN_FLIGHT = 2;
 constexpr size_t NUM_DESCRIPTORS = 5;
 }  // namespace
-
-class VulkanMechanics;
-class Resources;
-class Pipelines;
 
 namespace CE {
 class Swapchain;
@@ -295,43 +295,43 @@ class Swapchain {
 
 // Resources
 class DescriptorInterface {
-public:
-    size_t writeIndex{};
-    std::array<VkDescriptorSet, MAX_FRAMES_IN_FLIGHT> sets{};
-    VkDescriptorSetLayout setLayout{};
-    std::array<VkDescriptorSetLayoutBinding, NUM_DESCRIPTORS> setLayoutBindings{};
-    std::array<std::array<VkWriteDescriptorSet, NUM_DESCRIPTORS>,
-        MAX_FRAMES_IN_FLIGHT>
-        descriptorWrites{};
-    std::vector<VkDescriptorPoolSize> poolSizes{};
+ public:
+  size_t writeIndex{};
+  std::array<VkDescriptorSet, MAX_FRAMES_IN_FLIGHT> sets{};
+  VkDescriptorSetLayout setLayout{};
+  std::array<VkDescriptorSetLayoutBinding, NUM_DESCRIPTORS> setLayoutBindings{};
+  std::array<std::array<VkWriteDescriptorSet, NUM_DESCRIPTORS>,
+             MAX_FRAMES_IN_FLIGHT>
+      descriptorWrites{};
+  std::vector<VkDescriptorPoolSize> poolSizes{};
 
-    DescriptorInterface() = default;
-    virtual ~DescriptorInterface();
+  DescriptorInterface() = default;
+  virtual ~DescriptorInterface();
 
-    void initialzeSets();
-    void updateSets();
+  void initialzeSets();
+  void updateSets();
 
-private:
-    VkDescriptorPool pool;
+ private:
+  VkDescriptorPool pool;
 
-    void createSetLayout();
-    void createPool();
-    void allocateSets();
+  void createSetLayout();
+  void createPool();
+  void allocateSets();
 };
 
 class Descriptor {
-public:
-    Descriptor() = default;
-    virtual ~Descriptor() {};
+ public:
+  Descriptor() = default;
+  virtual ~Descriptor(){};
 
-protected:
-    size_t myIndex{ 0 };
-    VkDescriptorPoolSize poolSize{};
-    VkDescriptorSetLayoutBinding setLayoutBinding{};
-    struct DescriptorInformation {
-        std::variant<VkDescriptorBufferInfo, VkDescriptorImageInfo> previousFrame{};
-        std::variant<VkDescriptorBufferInfo, VkDescriptorImageInfo> currentFrame{};
-    } info;
+ protected:
+  size_t myIndex{0};
+  VkDescriptorPoolSize poolSize{};
+  VkDescriptorSetLayoutBinding setLayoutBinding{};
+  struct DescriptorInformation {
+    std::variant<VkDescriptorBufferInfo, VkDescriptorImageInfo> previousFrame{};
+    std::variant<VkDescriptorBufferInfo, VkDescriptorImageInfo> currentFrame{};
+  } info;
 };
 
 struct PushConstants {
