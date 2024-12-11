@@ -181,7 +181,6 @@
     <ClCompile Include="Resources.cpp" />
     <ClCompile Include="Pipelines.cpp" />
     <ClCompile Include="Mechanics.cpp" />
-    <ClCompile Include="ShaderAccess.cpp" />
     <ClCompile Include="Terrain.cpp" />
     <ClCompile Include="Timer.cpp" />
     <ClCompile Include="ValidationLayers.cpp" />
@@ -198,7 +197,6 @@
     <ClInclude Include="Resources.h" />
     <ClInclude Include="Pipelines.h" />
     <ClInclude Include="Mechanics.h" />
-    <ClInclude Include="ShaderAccess.h" />
     <ClInclude Include="Terrain.h" />
     <ClInclude Include="Timer.h" />
     <ClInclude Include="ValidationLayers.h" />
