@@ -11,15 +11,18 @@ namespace {
 }
 
 Resources::Resources(VulkanMechanics& mechanics, Pipelines& pipelines)
-    : commands{mechanics.queues.familyIndices},
+    : // Setup commands
+      commands{mechanics.queues.familyIndices},
       commandInterface{commands.singularCommandBuffer, commands.pool,
                        mechanics.queues.graphics},
 
+      // Visual Effects
       depthImage{CE_DEPTH_IMAGE, mechanics.swapchain.extent,
                  CE::Image::findDepthFormat()},
       msaaImage{CE_MULTISAMPLE_IMAGE, mechanics.swapchain.extent,
                 mechanics.swapchain.imageFormat},
-
+       
+      // Update world settings
       pushConstant{VK_SHADER_STAGE_COMPUTE_BIT, 128, 0},
       world{commands.singularCommandBuffer, commands.pool,
             mechanics.queues.graphics},
