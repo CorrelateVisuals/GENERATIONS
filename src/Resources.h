@@ -2,7 +2,6 @@
 #include "vulkan/vulkan.h"
 
 #include "BaseClasses.h"
-//#include "ShaderAccess.h"
 #include "World.h"
 
 #include <array>

@@ -11,6 +11,7 @@ class CapitalEngine {
   void mainLoop();
 
  private:
+	
   VulkanMechanics mechanics;
   Resources resources;
   Pipelines pipelines;
