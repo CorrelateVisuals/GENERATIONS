@@ -16,7 +16,7 @@ enum LogLevel {
   LOG_MODERATE = 2,
   LOG_DETAILED = 3
 };
-static uint8_t logLevel = LOG_DETAILED;
+static uint8_t logLevel = LOG_MINIMIAL;
 extern std::ofstream logFile;
 extern std::string previousTime;
 
