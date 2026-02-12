@@ -41,15 +41,32 @@ file(GLOB SHADERS ${SHADER_DIR}/*.vert ${SHADER_DIR}/*.frag ${SHADER_DIR}/*.comp
 
 find_package(Vulkan)
 
-foreach(SHADER IN LISTS SHADERS)
-    get_filename_component(FILENAME ${SHADER} NAME)
-    string(REPLACE "shader." "" new_name ${FILENAME})
-    add_custom_command(OUTPUT ${SHADER_DIR}/${new_name}.spv
-        COMMAND ${Vulkan_GLSLC_EXECUTABLE} ${SHADER} -o ${SHADER_DIR}/${new_name}.spv
-        DEPENDS ${SHADER}
-        COMMENT "Compiling ${FILENAME}")
-    list(APPEND SPV_SHADERS ${SHADER_DIR}/${new_name}.spv)
-endForeach()
+# Use glslc if available, otherwise fall back to glslangValidator
+if(Vulkan_GLSLC_EXECUTABLE)
+    set(SHADER_COMPILER ${Vulkan_GLSLC_EXECUTABLE})
+    foreach(SHADER IN LISTS SHADERS)
+        get_filename_component(FILENAME ${SHADER} NAME)
+        string(REPLACE "shader." "" new_name ${FILENAME})
+        add_custom_command(OUTPUT ${SHADER_DIR}/${new_name}.spv
+            COMMAND ${SHADER_COMPILER} ${SHADER} -o ${SHADER_DIR}/${new_name}.spv
+            DEPENDS ${SHADER}
+            COMMENT "Compiling ${FILENAME}")
+        list(APPEND SPV_SHADERS ${SHADER_DIR}/${new_name}.spv)
+    endForeach()
+elseif(Vulkan_GLSLANG_VALIDATOR_EXECUTABLE)
+    set(SHADER_COMPILER ${Vulkan_GLSLANG_VALIDATOR_EXECUTABLE})
+    foreach(SHADER IN LISTS SHADERS)
+        get_filename_component(FILENAME ${SHADER} NAME)
+        string(REPLACE "shader." "" new_name ${FILENAME})
+        add_custom_command(OUTPUT ${SHADER_DIR}/${new_name}.spv
+            COMMAND ${SHADER_COMPILER} -V ${SHADER} -o ${SHADER_DIR}/${new_name}.spv
+            DEPENDS ${SHADER}
+            COMMENT "Compiling ${FILENAME}")
+        list(APPEND SPV_SHADERS ${SHADER_DIR}/${new_name}.spv)
+    endForeach()
+else()
+    message(FATAL_ERROR "No shader compiler found. Install glslang-tools or shaderc.")
+endif()
 
 add_custom_target(shaders ALL DEPENDS ${SPV_SHADERS})
 
