@@ -64,27 +64,26 @@ sudo apt-get install mesa-vulkan-drivers
 sudo apt-get install mesa-vulkan-drivers intel-media-va-driver
 ```
 
-### Step 3: Fix CMakeLists.txt Configuration
+### Step 3: Clone or Update Repository
 
-The CMakeLists.txt file currently references a non-existent `stb` directory. It needs to be updated to reference the correct `libraries` directory:
+If you haven't cloned the repository yet:
 
-Edit `CMakeLists.txt` and change line 28 from:
-```cmake
-include_directories(${PROJECT_SOURCE_DIR}/stb)
-```
-to:
-```cmake
-include_directories(${PROJECT_SOURCE_DIR}/libraries)
+```bash
+git clone https://github.com/CorrelateVisuals/GENERATIONS.git
+cd GENERATIONS
 ```
 
-Also update line 37 to remove the stb reference:
-```cmake
-file(GLOB_RECURSE CAPITALENGINE_SOURCES
-    RELATIVE "${CMAKE_SOURCE_DIR}"
-    src/*.cpp
-    src/*.h
-)
+If you already have the repository, make sure you have the latest changes:
+
+```bash
+cd GENERATIONS
+git pull
 ```
+
+**Note:** The repository has been updated to fix Linux compatibility issues:
+- Fixed include directory path (`libraries` instead of `stb`)
+- Added support for `glslangValidator` shader compiler (in addition to `glslc`)
+- Fixed missing `<thread>` include in Timer.cpp
 
 ### Step 4: Build the Project
 
