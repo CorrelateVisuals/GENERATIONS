@@ -6,6 +6,41 @@
 
 namespace {
 constexpr glm::vec3 STANDARD_ORIENTATION{90.0f, 180.0f, 0.0f};
+
+void fillFallbackQuad(Geometry& geometry) {
+  geometry.allVertices.clear();
+  geometry.uniqueVertices.clear();
+  geometry.indices.clear();
+
+  Vertex v0{};
+  v0.vertexPosition = {-0.5f, -0.5f, 0.0f};
+  v0.normal = {0.0f, 0.0f, 1.0f};
+  v0.color = {1.0f, 1.0f, 1.0f};
+  v0.textureCoordinates = {0.0f, 0.0f};
+
+  Vertex v1{};
+  v1.vertexPosition = {0.5f, -0.5f, 0.0f};
+  v1.normal = {0.0f, 0.0f, 1.0f};
+  v1.color = {1.0f, 1.0f, 1.0f};
+  v1.textureCoordinates = {1.0f, 0.0f};
+
+  Vertex v2{};
+  v2.vertexPosition = {0.5f, 0.5f, 0.0f};
+  v2.normal = {0.0f, 0.0f, 1.0f};
+  v2.color = {1.0f, 1.0f, 1.0f};
+  v2.textureCoordinates = {1.0f, 1.0f};
+
+  Vertex v3{};
+  v3.vertexPosition = {-0.5f, 0.5f, 0.0f};
+  v3.normal = {0.0f, 0.0f, 1.0f};
+  v3.color = {1.0f, 1.0f, 1.0f};
+  v3.textureCoordinates = {0.0f, 1.0f};
+
+  geometry.uniqueVertices = {v0, v1, v2, v3};
+  geometry.indices = {0, 1, 2, 2, 3, 0};
+
+  geometry.allVertices = {v0, v1, v2, v2, v3, v0};
+}
 }  // namespace
 
 std::vector<VkVertexInputBindingDescription> Vertex::getBindingDescription() {
@@ -57,7 +92,18 @@ Geometry::Geometry(GEOMETRY_SHAPE shape) {
   }();
 
   if (!modelName.empty()) {
-    loadModel(modelName, *this);
+    bool loaded = false;
+    try {
+      loadModel(modelName, *this);
+      loaded = true;
+    } catch (const std::exception& ex) {
+      Log::text("{ !!! }", "Model load failed:", modelName, ex.what());
+    }
+
+    if (!loaded) {
+      fillFallbackQuad(*this);
+    }
+
     transformModel(allVertices, ORIENTATION_ORDER{CE_ROTATE_SCALE_TRANSLATE},
                    STANDARD_ORIENTATION);
     transformModel(uniqueVertices, ORIENTATION_ORDER{CE_ROTATE_SCALE_TRANSLATE},

@@ -5,6 +5,7 @@
 #include "Library.h"
 
 #include <algorithm>
+#include <fstream>
 #include <set>
 
 CE::Device* CE::Device::baseDevice = nullptr;
@@ -696,6 +697,10 @@ void CE::Device::destroyDevice() {
     extensions.clear();
     vkDestroyDevice(this->logical, nullptr);
     destroyedDevices.push_back(this->logical);
+    if (Device::baseDevice == this) {
+      Device::baseDevice = nullptr;
+    }
+    this->logical = VK_NULL_HANDLE;
   }
 }
 
@@ -1175,8 +1180,7 @@ void CE::PipelinesConfiguration::createPipelines(
 
     if (!isCompute) [[likely]] {
       Log::text("{ === }", "Graphics Pipeline: ", pipelineName);
-      std::variant<Graphics, Compute>& pipelineVariant =
-          this->pipelineMap[pipelineName];
+        std::variant<Graphics, Compute>& pipelineVariant = entry.second;
 
       std::vector<VkPipelineShaderStageCreateInfo> shaderStages{};
       bool tesselationEnabled = setShaderStages(pipelineName, shaderStages);
@@ -1376,9 +1380,16 @@ void CE::PipelinesConfiguration::compileShaders() {
       if (shader == "Comp" || shader == "Vert" || shader == "Tesc" ||
           shader == "Tese" || shader == "Frag") {
         shaderExtension = Lib::upperToLowerCase(shader);
-        systemCommand = Lib::path(this->shaderDir + pipelineName + "." +
-                                  shaderExtension + " -o " + this->shaderDir +
-                                  pipelineName + shader + ".spv");
+        std::string shaderSourcePath =
+            this->shaderDir + pipelineName + "." + shaderExtension;
+        std::string shaderOutputPath =
+            this->shaderDir + pipelineName + shader + ".spv";
+        std::ifstream outputFile(shaderOutputPath);
+        if (outputFile.good()) {
+          continue;
+        }
+        systemCommand =
+            Lib::path(shaderSourcePath + " -o " + shaderOutputPath);
         system(systemCommand.c_str());
       }
     }
@@ -1387,7 +1398,7 @@ void CE::PipelinesConfiguration::compileShaders() {
 
 VkPipeline& CE::PipelinesConfiguration::getPipelineObjectByName(
     const std::string& name) {
-  std::variant<Graphics, Compute>& variant = this->pipelineMap[name];
+  std::variant<Graphics, Compute>& variant = this->pipelineMap.at(name);
   if (std::holds_alternative<Graphics>(variant)) {
     return std::get<Graphics>(variant).pipeline;
   } else {
@@ -1405,7 +1416,7 @@ void CE::PipelinesConfiguration::destroyShaderModules() {
 
 const std::vector<std::string>&
 CE::PipelinesConfiguration::getPipelineShadersByName(const std::string& name) {
-  std::variant<Graphics, Compute>& variant = this->pipelineMap[name];
+  std::variant<Graphics, Compute>& variant = this->pipelineMap.at(name);
 
   if (std::holds_alternative<Graphics>(variant)) {
     return std::get<Graphics>(variant).shaders;
@@ -1416,7 +1427,7 @@ CE::PipelinesConfiguration::getPipelineShadersByName(const std::string& name) {
 
 const std::array<uint32_t, 3>& CE::PipelinesConfiguration::getWorkGroupsByName(
     const std::string& name) {
-  std::variant<Graphics, Compute>& variant = this->pipelineMap[name];
+  std::variant<Graphics, Compute>& variant = this->pipelineMap.at(name);
   return std::get<CE::PipelinesConfiguration::Compute>(variant).workGroups;
 };
 

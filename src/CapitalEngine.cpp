@@ -2,7 +2,7 @@
 #include "Window.h"
 
 CapitalEngine::CapitalEngine()
-    : pipelines(mechanics, resources), resources(mechanics, pipelines) {
+    : resources(mechanics), pipelines(mechanics, resources) {
   Log::text(Log::Style::headerGuard);
   Log::text("| CAPITAL Engine");
 }

@@ -9,7 +9,7 @@ namespace {
 
 }
 
-Resources::Resources(VulkanMechanics& mechanics, Pipelines& pipelines)
+Resources::Resources(VulkanMechanics& mechanics)
     : commands{mechanics.queues.familyIndices},
       commandInterface{commands.singularCommandBuffer, commands.pool,
                        mechanics.queues.graphics},

@@ -6,10 +6,12 @@
 
 VulkanMechanics::VulkanMechanics()
     : initVulkan{},
-      mainDevice{initVulkan, queues, swapchain},
       queues{},
-      swapchain{initVulkan.surface, queues},
+      swapchainSupport{},
+      mainDevice{initVulkan, queues, swapchainSupport},
+      swapchain{},
       syncObjects{} {
+  swapchain.initialize(initVulkan.surface, queues);
   Log::text("{ Vk. }", "constructing Vulkan Mechanics");
   Log::text(Log::Style::headerGuard);
 }

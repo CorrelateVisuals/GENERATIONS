@@ -80,7 +80,7 @@ std::string Lib::ifShaderCompile(std::string shaderPath) {
 #ifdef _WIN32
     std::string glslangValidator = "glslangValidator.exe -V ";
 #else
-    std::string glslangValidator = "glslc ";
+  std::string glslangValidator = "glslangValidator -V ";
 #endif
     shaderPath.insert(0, glslangValidator);
     return shaderPath;
