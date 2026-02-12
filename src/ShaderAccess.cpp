@@ -43,6 +43,7 @@ void CE::ShaderAccess::CommandResources::recordGraphicsCommandBuffer(
     Pipelines& pipelines,
     const uint32_t imageIndex) {
     VkCommandBuffer commandBuffer = this->graphics[imageIndex];
+    const bool enablePostFX = true;
 
     VkCommandBufferBeginInfo beginInfo{
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
@@ -50,7 +51,7 @@ void CE::ShaderAccess::CommandResources::recordGraphicsCommandBuffer(
     CE::VULKAN_RESULT(vkBeginCommandBuffer, commandBuffer, &beginInfo);
 
     std::array<VkClearValue, 2> clearValues{
-        VkClearValue{.color = {{0.0f, 0.0f, 0.0f, 1.0f}}},
+        VkClearValue{.color = {{0.1f, 0.6f, 0.9f, 1.0f}}},
         VkClearValue{.depthStencil = {1.0f, 0}} };
 
     VkRenderPassBeginInfo renderPassInfo{
@@ -142,32 +143,35 @@ void CE::ShaderAccess::CommandResources::recordGraphicsCommandBuffer(
     //       This is part of an image memory barrier (i.e., vkCmdPipelineBarrier
     //       with the VkImageMemoryBarrier parameter set)
 
-    swapchain.images[imageIndex].transitionLayout(
-        commandBuffer, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
-        /* -> */ VK_IMAGE_LAYOUT_GENERAL);
+    if (enablePostFX) {
+        swapchain.images[imageIndex].transitionLayout(
+            commandBuffer, VK_FORMAT_R8G8B8A8_SRGB,
+            VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+            /* -> */ VK_IMAGE_LAYOUT_GENERAL);
 
-    // vkDeviceWaitIdle(_mainDevice.logical);
+        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
+            pipelines.config.getPipelineObjectByName("PostFX"));
 
-    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
-        pipelines.config.getPipelineObjectByName("PostFX"));
+        vkCmdBindDescriptorSets(
+            commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
+            pipelines.compute.layout, 0, 1,
+            &resources.descriptorInterface.sets[imageIndex], 0, nullptr);
 
-    vkCmdBindDescriptorSets(
-        commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipelines.compute.layout,
-        0, 1, &resources.descriptorInterface.sets[imageIndex], 0, nullptr);
+        resources.pushConstant.setData(resources.world._time.passedHours);
+        vkCmdPushConstants(commandBuffer, pipelines.compute.layout,
+            resources.pushConstant.shaderStage,
+            resources.pushConstant.offset, resources.pushConstant.size,
+            resources.pushConstant.data.data());
 
-    resources.pushConstant.setData(resources.world._time.passedHours);
-    vkCmdPushConstants(commandBuffer, pipelines.compute.layout,
-        resources.pushConstant.shaderStage,
-        resources.pushConstant.offset, resources.pushConstant.size,
-        resources.pushConstant.data.data());
+        const std::array<uint32_t, 3>& workGroups =
+            pipelines.config.getWorkGroupsByName("PostFX");
+        vkCmdDispatch(commandBuffer, workGroups[0], workGroups[1],
+            workGroups[2]);
 
-    const std::array<uint32_t, 3>& workGroups =
-        pipelines.config.getWorkGroupsByName("PostFX");
-    vkCmdDispatch(commandBuffer, workGroups[0], workGroups[1], workGroups[2]);
-
-    swapchain.images[imageIndex].transitionLayout(
-        commandBuffer, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_GENERAL,
-        /* -> */ VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+        swapchain.images[imageIndex].transitionLayout(
+            commandBuffer, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_GENERAL,
+            /* -> */ VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+    }
 
     CE::VULKAN_RESULT(vkEndCommandBuffer, commandBuffer);
 }
