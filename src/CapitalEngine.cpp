@@ -27,7 +27,12 @@ void CapitalEngine::mainLoop() {
     Window::get().setMouse();
     resources.world._time.run();
 
-    vkDeviceWaitIdle(mechanics.mainDevice.logical);
+    // Removed vkDeviceWaitIdle() here - it was blocking the entire CPU/GPU pipeline
+    // every frame, destroying timing determinism and preventing CPU/GPU parallelism.
+    // Proper synchronization is already handled by the fence waits in drawFrame()
+    // (lines 46-50 for compute, lines 79-83 for graphics). This change enables
+    // pipelined execution where the CPU can prepare the next frame while the GPU
+    // processes the current one, improving performance and frame time consistency.
     drawFrame();
 
     if (glfwGetKey(Window::get().window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
