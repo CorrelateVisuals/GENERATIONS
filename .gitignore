@@ -74,6 +74,10 @@ _deps
 # Shaders
 *.spv
 
+# Backup files
+*.backup
+*~
+
 # Visual Studio
 .vcxproj.user
 
