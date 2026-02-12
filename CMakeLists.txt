@@ -25,7 +25,7 @@ add_compile_options(
 )
 
 include_directories(${PROJECT_SOURCE_DIR}/src)
-include_directories(${PROJECT_SOURCE_DIR}/stb)
+include_directories(${PROJECT_SOURCE_DIR}/libraries)
 
 
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
@@ -34,7 +34,6 @@ file(GLOB_RECURSE CAPITALENGINE_SOURCES
     RELATIVE "${CMAKE_SOURCE_DIR}"
     src/*.cpp
     src/*.h
-    stb/*.h
 )
 
 set(SHADER_DIR ${PROJECT_SOURCE_DIR}/shaders)
