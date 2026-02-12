@@ -9,7 +9,7 @@
 #include <random>
 
 namespace {
-constexpr glm::ivec2 GRID_SIZE = {250, 250};
+constexpr glm::ivec2 GRID_SIZE = {50, 50};
 constexpr uint_fast32_t NUMBER_OF_ALIVE_CELLS = 30000;
 constexpr float CELL_SIZE = 0.5f;
 
@@ -155,21 +155,18 @@ World::Grid::getAttributeDescription() {
 
 std::vector<uint_fast32_t> World::Grid::setCellsAliveRandomly(
     uint_fast32_t numberOfCells) {
-  std::vector<uint_fast32_t> CellIDs;
-  CellIDs.reserve(numberOfCells);
+  const uint_fast32_t targetCount =
+      std::min<uint_fast32_t>(numberOfCells,
+                              static_cast<uint_fast32_t>(pointCount));
+
+  std::vector<uint_fast32_t> cellIds(pointCount);
+  std::iota(cellIds.begin(), cellIds.end(), 0);
 
   std::random_device random;
   std::mt19937 generate(random());
-  std::uniform_int_distribution<int> distribution(
-      0, static_cast<int>(pointCount) - 1);
+  std::shuffle(cellIds.begin(), cellIds.end(), generate);
 
-  while (CellIDs.size() < numberOfCells) {
-    int CellID = distribution(generate);
-    if (std::find(CellIDs.begin(), CellIDs.end(), CellID) == CellIDs.end())
-        [[likely]] {
-      CellIDs.push_back(CellID);
-    }
-  }
-  std::sort(CellIDs.begin(), CellIDs.end());
-  return CellIDs;
+  cellIds.resize(targetCount);
+  std::sort(cellIds.begin(), cellIds.end());
+  return cellIds;
 }

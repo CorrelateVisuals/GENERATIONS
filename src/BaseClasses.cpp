@@ -130,6 +130,10 @@ const bool CE::Device::isDeviceSuitable(const VkPhysicalDevice& physical,
 }
 
 void CE::Device::getMaxUsableSampleCount() {
+#ifdef __linux__
+  this->maxUsableSampleCount = VK_SAMPLE_COUNT_1_BIT;
+  return;
+#endif
   vkGetPhysicalDeviceProperties(this->physical, &this->properties);
   VkSampleCountFlags counts =
       this->properties.limits.framebufferColorSampleCounts &
@@ -625,19 +629,36 @@ CE::CommandBuffers::~CommandBuffers() {
 void CE::CommandBuffers::createPool(
     const Queues::FamilyIndices& familyIndices) {
   Log::text("{ cmd }", "Command Pool");
+  if (!Device::baseDevice) {
+    Log::text("{ cmd }", "Command Pool: baseDevice is null");
+  } else {
+    Log::text("{ cmd }", "Command Pool: device", Device::baseDevice->logical,
+              "@", &Device::baseDevice->logical);
+  }
+  Log::text("{ cmd }", "Command Pool: queue family",
+            familyIndices.graphicsAndComputeFamily.value());
 
   VkCommandPoolCreateInfo poolInfo{
       .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
       .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
       .queueFamilyIndex = familyIndices.graphicsAndComputeFamily.value()};
 
-  CE::VULKAN_RESULT(vkCreateCommandPool, Device::baseDevice->logical, &poolInfo,
-                    nullptr, &this->pool);
+  VkResult result =
+      vkCreateCommandPool(Device::baseDevice->logical, &poolInfo, nullptr,
+                          &this->pool);
+  Log::text("{ cmd }", "Command Pool created", result, this->pool, "@",
+            &this->pool);
+  if (result != VK_SUCCESS) {
+    throw std::runtime_error("!ERROR! vkCreateCommandPool failed!");
+  }
 }
 
 void CE::CommandBuffers::beginSingularCommands(const VkCommandPool& commandPool,
                                                const VkQueue& queue) {
   Log::text("{ 1.. }", "Begin Single Time CommandResources");
+  Log::text("{ 1.. }", "Single Time: device", Device::baseDevice->logical,
+            "@", &Device::baseDevice->logical);
+  Log::text("{ 1.. }", "Single Time: pool", commandPool, "queue", queue);
 
   VkCommandBufferAllocateInfo allocInfo{
       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
@@ -645,13 +666,17 @@ void CE::CommandBuffers::beginSingularCommands(const VkCommandPool& commandPool,
       .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
       .commandBufferCount = 1};
 
-  vkAllocateCommandBuffers(Device::baseDevice->logical, &allocInfo,
-                           &singularCommandBuffer);
+  VkResult allocResult =
+      vkAllocateCommandBuffers(Device::baseDevice->logical, &allocInfo,
+                               &singularCommandBuffer);
+  Log::text("{ 1.. }", "Single Time alloc result", allocResult,
+            singularCommandBuffer);
 
   VkCommandBufferBeginInfo beginInfo{
       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
       .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT};
-  vkBeginCommandBuffer(singularCommandBuffer, &beginInfo);
+  VkResult beginResult = vkBeginCommandBuffer(singularCommandBuffer, &beginInfo);
+  Log::text("{ 1.. }", "Single Time begin result", beginResult);
 
   return;
 }
@@ -659,29 +684,54 @@ void CE::CommandBuffers::beginSingularCommands(const VkCommandPool& commandPool,
 void CE::CommandBuffers::endSingularCommands(const VkCommandPool& commandPool,
                                              const VkQueue& queue) {
   Log::text("{ ..1 }", "End Single Time CommandResources");
+  Log::text("{ ..1 }", "Single Time: pool", commandPool, "queue", queue);
 
-  vkEndCommandBuffer(singularCommandBuffer);
+  VkResult endResult = vkEndCommandBuffer(singularCommandBuffer);
+  Log::text("{ ..1 }", "Single Time end result", endResult);
   VkSubmitInfo submitInfo{.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
                           .commandBufferCount = 1,
                           .pCommandBuffers = &singularCommandBuffer};
 
-  vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE);
-  vkQueueWaitIdle(queue);
+  VkResult submitResult = vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE);
+  Log::text("{ ..1 }", "Single Time submit result", submitResult);
+  VkResult waitResult = vkQueueWaitIdle(queue);
+  Log::text("{ ..1 }", "Single Time wait result", waitResult);
   vkFreeCommandBuffers(Device::baseDevice->logical, commandPool, 1,
                        &singularCommandBuffer);
+  Log::text("{ ..1 }", "Single Time freed", singularCommandBuffer);
 }
 
 void CE::CommandBuffers::createBuffers(
     std::array<VkCommandBuffer, MAX_FRAMES_IN_FLIGHT>& commandBuffers) const {
   Log::text("{ cmd }", "Command Buffers:", MAX_FRAMES_IN_FLIGHT);
+  if (!Device::baseDevice) {
+    Log::text("{ cmd }", "Command Buffers: baseDevice is null");
+  } else {
+    Log::text("{ cmd }", "Command Buffers: device", Device::baseDevice->logical,
+              "@", &Device::baseDevice->logical);
+  }
+  Log::text("{ cmd }", "Command Buffers: pool", this->pool, "@", &this->pool);
+  Log::text("{ cmd }", "Command Buffers: array", commandBuffers.data(),
+            "count", static_cast<uint32_t>(commandBuffers.size()));
   VkCommandBufferAllocateInfo allocateInfo{
       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
       .commandPool = this->pool,
       .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
       .commandBufferCount = static_cast<uint32_t>(commandBuffers.size())};
 
-  CE::VULKAN_RESULT(vkAllocateCommandBuffers, CE::Device::baseDevice->logical,
-                    &allocateInfo, commandBuffers.data());
+  VkResult result = vkAllocateCommandBuffers(CE::Device::baseDevice->logical,
+                                             &allocateInfo,
+                                             commandBuffers.data());
+  Log::text("{ cmd }", "Command Buffers alloc result", result);
+  for (size_t i = 0; i < commandBuffers.size(); ++i) {
+    Log::text("{ cmd }", "Command Buffer", static_cast<uint32_t>(i),
+              commandBuffers[i]);
+  }
+  if (result != VK_SUCCESS) {
+    throw std::runtime_error("!ERROR! vkAllocateCommandBuffers failed!");
+  }
+  Log::text("{ cmd }", "Command Buffers allocated",
+            static_cast<uint32_t>(commandBuffers.size()));
 }
 
 void CE::Device::destroyDevice() {

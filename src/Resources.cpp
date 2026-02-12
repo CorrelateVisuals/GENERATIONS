@@ -10,7 +10,7 @@ namespace {
 }
 
 Resources::Resources(VulkanMechanics& mechanics)
-    : commands{mechanics.queues.familyIndices},
+  : commands{mechanics.queues.familyIndices},
       commandInterface{commands.singularCommandBuffer, commands.pool,
                        mechanics.queues.graphics},
 
@@ -30,9 +30,9 @@ Resources::Resources(VulkanMechanics& mechanics)
                     world._grid.pointCount},
       sampler{descriptorInterface, commandInterface,
               Lib::path("assets/Avatar.PNG")},
-      storageImage{descriptorInterface, mechanics.swapchain.images}
-
-{
+        storageImage{descriptorInterface, mechanics.swapchain.images} {
+      Log::text(Log::Style::headerGuard);
+      Log::text("{ /// }", "constructing Resources (start)");
   Log::text(Log::Style::headerGuard);
   Log::text("{ /// }", "constructing Resources");
 
