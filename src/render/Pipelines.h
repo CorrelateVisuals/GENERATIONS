@@ -28,10 +28,10 @@ public:
 
   struct Render : public CE::RenderPass {
     Render(CE::Swapchain &swapchain,
-           const CE::Image &msaaImage,
-           const VkImageView &depthView) {
-      create(msaaImage.info.samples, swapchain.image_format);
-      create_framebuffers(swapchain, msaaImage.view, depthView);
+           const CE::Image &msaa_image,
+           const VkImageView &depth_view) {
+      create(msaa_image.info.samples, swapchain.image_format);
+      create_framebuffers(swapchain, msaa_image.view, depth_view);
     }
   };
 
