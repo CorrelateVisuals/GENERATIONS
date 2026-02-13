@@ -231,7 +231,16 @@ void CE::PipelinesConfiguration::createPipelines(VkRenderPass &renderPass,
       if (tesselationEnabled) {
         inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_PATCH_LIST;
         rasterization.polygonMode = VK_POLYGON_MODE_LINE;
-        rasterization.lineWidth = 5.0f;
+        rasterization.lineWidth = 2.0f;
+        if (pipelineName.find("WireFrame") != std::string::npos) {
+          rasterization.depthBiasEnable = VK_TRUE;
+          rasterization.depthBiasConstantFactor = -1.0f;
+          rasterization.depthBiasSlopeFactor = -1.0f;
+          rasterization.depthBiasClamp = 0.0f;
+
+          depthStencil.depthWriteEnable = VK_FALSE;
+          depthStencil.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
+        }
         colorBlendAttachment = CE::colorBlendAttachmentStateMultiply;
         pipelineInfo.pTessellationState = &tessellationStateInfo;
       }

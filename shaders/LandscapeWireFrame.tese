@@ -1,6 +1,6 @@
 #version 450
 
-layout(triangles, equal_spacing, cw) in;
+layout(triangles, fractional_odd_spacing, cw) in;
 
 layout (location = 0) in vec4 inColor[];
 
