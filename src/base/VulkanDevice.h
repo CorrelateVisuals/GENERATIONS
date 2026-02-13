@@ -14,7 +14,7 @@ namespace CE {
 class Swapchain;
 
 class Queues {
- public:
+public:
   VkQueue graphics{};
   VkQueue compute{};
   VkQueue present{};
@@ -31,12 +31,12 @@ class Queues {
 
   Queues() = default;
   virtual ~Queues() = default;
-  FamilyIndices findQueueFamilies(const VkPhysicalDevice& physicalDevice,
-                                  const VkSurfaceKHR& surface) const;
+  FamilyIndices findQueueFamilies(const VkPhysicalDevice &physicalDevice,
+                                  const VkSurfaceKHR &surface) const;
 };
 
 class InitializeVulkan {
- public:
+public:
   VkSurfaceKHR surface{};
   VkInstance instance{};
   ValidationLayers validation{};
@@ -44,50 +44,50 @@ class InitializeVulkan {
   InitializeVulkan();
   virtual ~InitializeVulkan();
 
- private:
+private:
   void createInstance();
-  void createSurface(GLFWwindow* window);
-  std::vector<const char*> getRequiredExtensions() const;
+  void createSurface(GLFWwindow *window);
+  std::vector<const char *> getRequiredExtensions() const;
 };
 
 class Device {
- public:
+public:
   VkPhysicalDevice physical{VK_NULL_HANDLE};
   VkPhysicalDeviceFeatures features{};
   VkSampleCountFlagBits maxUsableSampleCount{VK_SAMPLE_COUNT_1_BIT};
   VkDevice logical{VK_NULL_HANDLE};
 
-  static Device* baseDevice;
+  static Device *baseDevice;
 
   Device() = default;
-  virtual ~Device() { destroyDevice(); }
+  virtual ~Device() {
+    destroyDevice();
+  }
 
- protected:
-  void pickPhysicalDevice(const InitializeVulkan& initVulkan,
-                          Queues& queues,
-                          Swapchain& swapchain);
-  void createLogicalDevice(const InitializeVulkan& initVulkan, Queues& queues);
+protected:
+  void pickPhysicalDevice(const InitializeVulkan &initVulkan,
+                          Queues &queues,
+                          Swapchain &swapchain);
+  void createLogicalDevice(const InitializeVulkan &initVulkan, Queues &queues);
   void destroyDevice();
 
- private:
+private:
   VkPhysicalDeviceProperties properties{};
-  std::vector<const char*> extensions{VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+  std::vector<const char *> extensions{VK_KHR_SWAPCHAIN_EXTENSION_NAME};
   static std::vector<VkDevice> destroyedDevices;
 
-    std::vector<VkDeviceQueueCreateInfo> fillQueueCreateInfos(
-      const Queues& queues) const;
-    VkDeviceCreateInfo getDeviceCreateInfo(
-      const std::vector<VkDeviceQueueCreateInfo>& queueCreateInfos) const;
-  void setValidationLayers(const InitializeVulkan& initVulkan,
-                           VkDeviceCreateInfo& createInfo);
-    std::vector<VkPhysicalDevice> fillDevices(
-      const InitializeVulkan& initVulkan) const;
-    bool isDeviceSuitable(const VkPhysicalDevice& physical,
-              Queues& queues,
-              const InitializeVulkan& initVulkan,
-              Swapchain& swapchain);
+  std::vector<VkDeviceQueueCreateInfo> fillQueueCreateInfos(const Queues &queues) const;
+  VkDeviceCreateInfo
+  getDeviceCreateInfo(const std::vector<VkDeviceQueueCreateInfo> &queueCreateInfos) const;
+  void setValidationLayers(const InitializeVulkan &initVulkan,
+                           VkDeviceCreateInfo &createInfo);
+  std::vector<VkPhysicalDevice> fillDevices(const InitializeVulkan &initVulkan) const;
+  bool isDeviceSuitable(const VkPhysicalDevice &physical,
+                        Queues &queues,
+                        const InitializeVulkan &initVulkan,
+                        Swapchain &swapchain);
   void getMaxUsableSampleCount();
-    bool checkDeviceExtensionSupport(const VkPhysicalDevice& physical) const;
+  bool checkDeviceExtensionSupport(const VkPhysicalDevice &physical) const;
 };
 
-}  // namespace CE
+} // namespace CE

@@ -20,41 +20,38 @@ struct PushConstants {
   uint32_t size{};
   std::array<uint64_t, 32> data{};
 
-  PushConstants(VkShaderStageFlags stage,
-                uint32_t dataSize,
-                uint32_t dataOffset);
+  PushConstants(VkShaderStageFlags stage, uint32_t dataSize, uint32_t dataOffset);
   virtual ~PushConstants() = default;
-  void setData(const uint64_t& data);
+  void setData(const uint64_t &data);
 };
 
 class PipelineLayout {
- public:
+public:
   VkPipelineLayout layout{};
 
   PipelineLayout() = default;
   virtual ~PipelineLayout();
-  void createLayout(const VkDescriptorSetLayout& setLayout);
-  void createLayout(const VkDescriptorSetLayout& setLayout,
-                    const PushConstants& _pushConstants);
+  void createLayout(const VkDescriptorSetLayout &setLayout);
+  void createLayout(const VkDescriptorSetLayout &setLayout,
+                    const PushConstants &_pushConstants);
 };
 
 class RenderPass {
- public:
+public:
   VkRenderPass renderPass{};
 
   RenderPass() = default;
   virtual ~RenderPass();
-  void create(VkSampleCountFlagBits msaaImageSamples,
-              VkFormat swapchainImageFormat);
-  void createFramebuffers(CE::Swapchain& swapchain,
-                          const VkImageView& msaaView,
-                          const VkImageView& depthView) const;
+  void create(VkSampleCountFlagBits msaaImageSamples, VkFormat swapchainImageFormat);
+  void createFramebuffers(CE::Swapchain &swapchain,
+                          const VkImageView &msaaView,
+                          const VkImageView &depthView) const;
 };
 
 class PipelinesConfiguration {
- public:
-#define PIPELINE_OBJECTS \
-  VkPipeline pipeline{};   \
+public:
+#define PIPELINE_OBJECTS                                                                 \
+  VkPipeline pipeline{};                                                                 \
   std::vector<std::string> shaders{};
 
   struct Graphics {
@@ -74,27 +71,24 @@ class PipelinesConfiguration {
 
   PipelinesConfiguration() = default;
   virtual ~PipelinesConfiguration();
-  void createPipelines(VkRenderPass& renderPass,
-                       const VkPipelineLayout& graphicsLayout,
-                       const VkPipelineLayout& computeLayout,
-                       VkSampleCountFlagBits& msaaSamples);
-  const std::vector<std::string>& getPipelineShadersByName(
-      const std::string& name);
-  VkPipeline& getPipelineObjectByName(const std::string& name);
-  const std::array<uint32_t, 3>& getWorkGroupsByName(const std::string& name);
+  void createPipelines(VkRenderPass &renderPass,
+                       const VkPipelineLayout &graphicsLayout,
+                       const VkPipelineLayout &computeLayout,
+                       VkSampleCountFlagBits &msaaSamples);
+  const std::vector<std::string> &getPipelineShadersByName(const std::string &name);
+  VkPipeline &getPipelineObjectByName(const std::string &name);
+  const std::array<uint32_t, 3> &getWorkGroupsByName(const std::string &name);
 
- protected:
+protected:
   void compileShaders();
 
- private:
-  bool setShaderStages(
-      const std::string& pipelineName,
-      std::vector<VkPipelineShaderStageCreateInfo>& shaderStages);
-  std::vector<char> readShaderFile(const std::string& filename);
-  VkPipelineShaderStageCreateInfo createShaderModules(
-      VkShaderStageFlagBits shaderStage,
-      std::string shaderName);
+private:
+  bool setShaderStages(const std::string &pipelineName,
+                       std::vector<VkPipelineShaderStageCreateInfo> &shaderStages);
+  std::vector<char> readShaderFile(const std::string &filename);
+  VkPipelineShaderStageCreateInfo createShaderModules(VkShaderStageFlagBits shaderStage,
+                                                      std::string shaderName);
   void destroyShaderModules();
 };
 
-}  // namespace CE
+} // namespace CE

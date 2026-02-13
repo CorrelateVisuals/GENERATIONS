@@ -37,15 +37,28 @@ glfw3.lib
 
 ### Linux development
 Build management using CMake
-Go to **build** sub-directory:
+From the project root directory **GENERATIONS** run:
 ```bash
-  cmake ..
-  make -j
+cmake -S . -B build -Wno-dev --log-level=NOTICE
+cmake --build build --parallel (nproc)
 ```
 The excutable **CapitalEngine** is compiled in the **bin** sub-directory. De .spv files in **shaders** sub-directory.
 Executing: Go to the project root directory **GENERATIONS**:
 ```bash
 ./bin/CapitalEngine
+```
+
+### Code beautifier (Vulkan/C++)
+This repository includes a `.clang-format` tuned for Vulkan-heavy C++ readability.
+
+Format all source files from the project root:
+```bash
+find src -type f \( -name "*.cpp" -o -name "*.h" \) -print0 | xargs -0 clang-format -i
+```
+
+Format a single file:
+```bash
+clang-format -i src/render/Resources.cpp
 ```
 
 

@@ -9,35 +9,39 @@ void CE::ShaderAccess::CommandResources::recordComputeCommandBuffer(
     Resources& resources,
     Pipelines& pipelines,
     const uint32_t imageIndex) {
-    VkCommandBuffer commandBuffer = this->compute[imageIndex];
+  VkCommandBuffer commandBuffer = this->compute[imageIndex];
 
-    VkCommandBufferBeginInfo beginInfo{
-        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
+  VkCommandBufferBeginInfo beginInfo{};
+  beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+  beginInfo.pNext = nullptr;
+  beginInfo.flags = 0;
+  beginInfo.pInheritanceInfo = nullptr;
 
-    if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS) {
-        throw std::runtime_error(
-            "failed to begin recording compute command buffer!");
-    }
+  if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS) {
+    throw std::runtime_error(
+        "failed to begin recording compute command buffer!");
+  }
 
-    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
-        pipelines.config.getPipelineObjectByName("Engine"));
+  vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
+                    pipelines.config.getPipelineObjectByName("Engine"));
 
-    vkCmdBindDescriptorSets(
-        commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipelines.compute.layout,
-        0, 1, &resources.descriptorInterface.sets[imageIndex], 0, nullptr);
+  vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
+                          pipelines.compute.layout, 0, 1,
+                          &resources.descriptorInterface.sets[imageIndex], 0,
+                          nullptr);
 
-    resources.pushConstant.setData(resources.world._time.passedHours);
+  resources.pushConstant.setData(resources.world._time.passedHours);
 
-    vkCmdPushConstants(commandBuffer, pipelines.compute.layout,
-        resources.pushConstant.shaderStage,
-        resources.pushConstant.offset, resources.pushConstant.size,
-        resources.pushConstant.data.data());
+  vkCmdPushConstants(commandBuffer, pipelines.compute.layout,
+                     resources.pushConstant.shaderStage,
+                     resources.pushConstant.offset, resources.pushConstant.size,
+                     resources.pushConstant.data.data());
 
-    const std::array<uint32_t, 3>& workGroups =
-        pipelines.config.getWorkGroupsByName("Engine");
-    vkCmdDispatch(commandBuffer, workGroups[0], workGroups[0], workGroups[2]);
+  const std::array<uint32_t, 3>& workGroups =
+      pipelines.config.getWorkGroupsByName("Engine");
+  vkCmdDispatch(commandBuffer, workGroups[0], workGroups[0], workGroups[2]);
 
-    CE::VULKAN_RESULT(vkEndCommandBuffer, commandBuffer);
+  CE::VULKAN_RESULT(vkEndCommandBuffer, commandBuffer);
 }
 
 void CE::ShaderAccess::CommandResources::recordGraphicsCommandBuffer(
@@ -47,8 +51,11 @@ void CE::ShaderAccess::CommandResources::recordGraphicsCommandBuffer(
     const uint32_t imageIndex) {
     VkCommandBuffer commandBuffer = this->graphics[imageIndex];
 
-    VkCommandBufferBeginInfo beginInfo{
-        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
+    VkCommandBufferBeginInfo beginInfo{};
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    beginInfo.pNext = nullptr;
+    beginInfo.flags = 0;
+    beginInfo.pInheritanceInfo = nullptr;
 
     CE::VULKAN_RESULT(vkBeginCommandBuffer, commandBuffer, &beginInfo);
 

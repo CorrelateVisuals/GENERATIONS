@@ -10,17 +10,19 @@ Resources::Resources(VulkanMechanics &mechanics)
       commandInterface{commands.singularCommandBuffer, commands.pool,
                        mechanics.queues.graphics},
 
+  pushConstant{VK_SHADER_STAGE_COMPUTE_BIT, 128, 0},
+  world{commands.singularCommandBuffer, commands.pool,
+    mechanics.queues.graphics},
+
+  // Descriptors
+  descriptorInterface(),
+
       depthImage{CE_DEPTH_IMAGE, mechanics.swapchain.extent,
                  CE::Image::findDepthFormat()},
       msaaImage{CE_MULTISAMPLE_IMAGE, mechanics.swapchain.extent,
                 mechanics.swapchain.imageFormat},
 
-      pushConstant{VK_SHADER_STAGE_COMPUTE_BIT, 128, 0},
-      world{commands.singularCommandBuffer, commands.pool,
-            mechanics.queues.graphics},
-
-      // Descriptors
-      descriptorInterface(), uniform{descriptorInterface, world._ubo},
+  uniform{descriptorInterface, world._ubo},
       shaderStorage{descriptorInterface, commandInterface, world._grid.cells,
                     world._grid.pointCount},
       sampler{descriptorInterface, commandInterface,
@@ -81,16 +83,24 @@ void Resources::UniformBuffer::createBuffer() {
 
 void Resources::UniformBuffer::createDescriptorWrite(
     CE::DescriptorInterface &interface) {
-  VkDescriptorBufferInfo bufferInfo{
-      .buffer = buffer.buffer, .range = sizeof(World::UniformBufferObject)};
+  VkDescriptorBufferInfo bufferInfo{};
+  bufferInfo.buffer = buffer.buffer;
+  bufferInfo.offset = 0;
+  bufferInfo.range = sizeof(World::UniformBufferObject);
   info.currentFrame = bufferInfo;
 
-  VkWriteDescriptorSet descriptorWrite{
-      .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-      .dstBinding = setLayoutBinding.binding,
-      .descriptorCount = setLayoutBinding.descriptorCount,
-      .descriptorType = setLayoutBinding.descriptorType,
-      .pBufferInfo = &std::get<VkDescriptorBufferInfo>(info.currentFrame)};
+  VkWriteDescriptorSet descriptorWrite{};
+  descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+  descriptorWrite.pNext = nullptr;
+  descriptorWrite.dstSet = VK_NULL_HANDLE;
+  descriptorWrite.dstBinding = setLayoutBinding.binding;
+  descriptorWrite.dstArrayElement = 0;
+  descriptorWrite.descriptorCount = setLayoutBinding.descriptorCount;
+  descriptorWrite.descriptorType = setLayoutBinding.descriptorType;
+  descriptorWrite.pImageInfo = nullptr;
+  descriptorWrite.pBufferInfo =
+      &std::get<VkDescriptorBufferInfo>(info.currentFrame);
+  descriptorWrite.pTexelBufferView = nullptr;
 
   for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
     interface.descriptorWrites[i][myIndex] = descriptorWrite;
@@ -181,12 +191,18 @@ void Resources::StorageBuffer::createDescriptorWrite(
 
     !i ? info.currentFrame = bufferInfo : info.previousFrame = bufferInfo;
 
-    VkWriteDescriptorSet descriptorWrite{
-        .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-        .dstBinding = static_cast<uint32_t>(i ? 2 : 1),
-        .descriptorCount = setLayoutBinding.descriptorCount,
-        .descriptorType = setLayoutBinding.descriptorType,
-        .pBufferInfo = &std::get<VkDescriptorBufferInfo>(info.currentFrame)};
+    VkWriteDescriptorSet descriptorWrite{};
+    descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    descriptorWrite.pNext = nullptr;
+    descriptorWrite.dstSet = VK_NULL_HANDLE;
+    descriptorWrite.dstBinding = static_cast<uint32_t>(i ? 2 : 1);
+    descriptorWrite.dstArrayElement = 0;
+    descriptorWrite.descriptorCount = setLayoutBinding.descriptorCount;
+    descriptorWrite.descriptorType = setLayoutBinding.descriptorType;
+    descriptorWrite.pImageInfo = nullptr;
+    descriptorWrite.pBufferInfo =
+      &std::get<VkDescriptorBufferInfo>(info.currentFrame);
+    descriptorWrite.pTexelBufferView = nullptr;
 
     interface.descriptorWrites[i][myIndex] = descriptorWrite;
     descriptorWrite.dstBinding = static_cast<uint32_t>(i ? 1 : 2);
@@ -232,12 +248,18 @@ void Resources::ImageSampler::createDescriptorWrite(
                                       VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL};
   info.currentFrame = imageInfo;
 
-  VkWriteDescriptorSet descriptorWrite{
-      .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-      .dstBinding = setLayoutBinding.binding,
-      .descriptorCount = setLayoutBinding.descriptorCount,
-      .descriptorType = setLayoutBinding.descriptorType,
-      .pImageInfo = &std::get<VkDescriptorImageInfo>(info.currentFrame)};
+  VkWriteDescriptorSet descriptorWrite{};
+  descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+  descriptorWrite.pNext = nullptr;
+  descriptorWrite.dstSet = VK_NULL_HANDLE;
+  descriptorWrite.dstBinding = setLayoutBinding.binding;
+  descriptorWrite.dstArrayElement = 0;
+  descriptorWrite.descriptorCount = setLayoutBinding.descriptorCount;
+  descriptorWrite.descriptorType = setLayoutBinding.descriptorType;
+  descriptorWrite.pImageInfo =
+      &std::get<VkDescriptorImageInfo>(info.currentFrame);
+  descriptorWrite.pBufferInfo = nullptr;
+  descriptorWrite.pTexelBufferView = nullptr;
 
   for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
     interface.descriptorWrites[i][myIndex] = descriptorWrite;
@@ -273,13 +295,18 @@ void Resources::StorageImage::createDescriptorWrite(
 
     !i ? info.currentFrame = imageInfo : info.previousFrame = imageInfo;
 
-    VkWriteDescriptorSet descriptorWrite{
-        .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-        .dstBinding = setLayoutBinding.binding,
-        .descriptorCount = setLayoutBinding.descriptorCount,
-        .descriptorType = setLayoutBinding.descriptorType,
-        .pImageInfo = &std::get<VkDescriptorImageInfo>(
-            !i ? info.currentFrame : info.previousFrame)};
+    VkWriteDescriptorSet descriptorWrite{};
+    descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    descriptorWrite.pNext = nullptr;
+    descriptorWrite.dstSet = VK_NULL_HANDLE;
+    descriptorWrite.dstBinding = setLayoutBinding.binding;
+    descriptorWrite.dstArrayElement = 0;
+    descriptorWrite.descriptorCount = setLayoutBinding.descriptorCount;
+    descriptorWrite.descriptorType = setLayoutBinding.descriptorType;
+    descriptorWrite.pImageInfo = &std::get<VkDescriptorImageInfo>(
+      !i ? info.currentFrame : info.previousFrame);
+    descriptorWrite.pBufferInfo = nullptr;
+    descriptorWrite.pTexelBufferView = nullptr;
 
     interface.descriptorWrites[i][myIndex] = descriptorWrite;
   }

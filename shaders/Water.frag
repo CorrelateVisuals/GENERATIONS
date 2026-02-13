@@ -6,6 +6,8 @@ layout(location = 0) out vec4 outColor;
 
 void main() {
     vec4 color = inColor;
-    color.a = 0.5;
+    float depthFactor = clamp(gl_FragCoord.z, 0.0, 1.0);
+    color.rgb = mix(color.rgb * 1.05, color.rgb * 0.82, depthFactor);
+    color.a = mix(0.38, 0.62, depthFactor);
     outColor = color;
 }

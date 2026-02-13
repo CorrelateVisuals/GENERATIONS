@@ -34,6 +34,7 @@ template <class T, class... Ts>
 void text(const T& first, const Ts&... inputs);
 bool skipLogging(uint8_t logLevel, std::string icon);
 void measureElapsedTime();
+std::string function_name(const char* functionName);
 
 std::string getBufferUsageString(const VkBufferUsageFlags& usage);
 std::string getMemoryPropertyString(const VkMemoryPropertyFlags& properties);

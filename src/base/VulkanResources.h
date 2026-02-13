@@ -10,34 +10,34 @@
 namespace CE {
 
 class Buffer {
- public:
+public:
   VkBuffer buffer{};
   VkDeviceMemory memory{};
-  void* mapped{};
+  void *mapped{};
 
   Buffer() = default;
   virtual ~Buffer();
-  static void create(const VkDeviceSize& size,
-                     const VkBufferUsageFlags& usage,
-                     const VkMemoryPropertyFlags& properties,
-                     Buffer& buffer);
-  static void copy(const VkBuffer& srcBuffer,
-                   VkBuffer& dstBuffer,
+  static void create(const VkDeviceSize &size,
+                     const VkBufferUsageFlags &usage,
+                     const VkMemoryPropertyFlags &properties,
+                     Buffer &buffer);
+  static void copy(const VkBuffer &srcBuffer,
+                   VkBuffer &dstBuffer,
                    const VkDeviceSize size,
-                   VkCommandBuffer& commandBuffer,
-                   const VkCommandPool& commandPool,
-                   const VkQueue& queue);
-  static void copyToImage(const VkBuffer& buffer,
-                          VkImage& image,
+                   VkCommandBuffer &commandBuffer,
+                   const VkCommandPool &commandPool,
+                   const VkQueue &queue);
+  static void copyToImage(const VkBuffer &buffer,
+                          VkImage &image,
                           const uint32_t width,
                           const uint32_t height,
-                          VkCommandBuffer& commandBuffer,
-                          const VkCommandPool& commandPool,
-                          const VkQueue& queue);
+                          VkCommandBuffer &commandBuffer,
+                          const VkCommandPool &commandPool,
+                          const VkQueue &queue);
 };
 
 class Image {
- public:
+public:
   VkImage image{};
   VkDeviceMemory memory{};
   VkImageView view{};
@@ -61,46 +61,51 @@ class Image {
 
   Image() = default;
   Image(IMAGE_RESOURCE_TYPES image_type,
-        const VkExtent2D& extent,
+        const VkExtent2D &extent,
         const VkFormat format) {
     createResources(image_type, extent, format);
   }
-  Image(const std::string& texturePath) { path = texturePath; }
+  Image(const std::string &texturePath) {
+    path = texturePath;
+  }
 
-  virtual ~Image() { destroyVulkanImages(); };
+  virtual ~Image() {
+    destroyVulkanImages();
+  };
 
   void create(const uint32_t width,
               const uint32_t height,
               const VkSampleCountFlagBits numSamples,
               const VkFormat format,
               const VkImageTiling tiling,
-              const VkImageUsageFlags& usage,
-              const VkMemoryPropertyFlags& properties);
-  void recreate() { this->destroyVulkanImages(); };
+              const VkImageUsageFlags &usage,
+              const VkMemoryPropertyFlags &properties);
+  void recreate() {
+    this->destroyVulkanImages();
+  };
   void createView(const VkImageAspectFlags aspectFlags);
   void createSampler();
   void createResources(IMAGE_RESOURCE_TYPES imageType,
-                       const VkExtent2D& dimensions,
+                       const VkExtent2D &dimensions,
                        const VkFormat format);
-  void transitionLayout(const VkCommandBuffer& commandBuffer,
+  void transitionLayout(const VkCommandBuffer &commandBuffer,
                         const VkFormat format,
                         const VkImageLayout oldLayout,
                         const VkImageLayout newLayout);
-  void loadTexture(const std::string& imagePath,
+  void loadTexture(const std::string &imagePath,
                    const VkFormat format,
-                   VkCommandBuffer& commandBuffer,
-                   const VkCommandPool& commandPool,
-                   const VkQueue& queue);
+                   VkCommandBuffer &commandBuffer,
+                   const VkCommandPool &commandPool,
+                   const VkQueue &queue);
   static VkFormat findDepthFormat();
 
- protected:
-  static VkFormat findSupportedFormat(
-      const std::vector<VkFormat>& candidates,
-      const VkImageTiling tiling,
-      const VkFormatFeatureFlags& features);
+protected:
+  static VkFormat findSupportedFormat(const std::vector<VkFormat> &candidates,
+                                      const VkImageTiling tiling,
+                                      const VkFormatFeatureFlags &features);
 
- private:
+private:
   void destroyVulkanImages() const;
 };
 
-}  // namespace CE
+} // namespace CE

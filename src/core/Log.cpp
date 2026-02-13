@@ -1,6 +1,7 @@
 #include "Log.h"
 
 #include <chrono>
+#include <cctype>
 #include <filesystem>
 #include <string>
 
@@ -15,6 +16,31 @@ int Log::Style::columnCount = 14;
 int Log::Style::columnCountOffset = 4;
 
 std::string Log::previousTime;
+
+std::string Log::function_name(const char* functionName) {
+  if (!functionName) {
+    return "_unknown_function";
+  }
+
+  std::string formatted{"_"};
+  formatted.reserve(std::char_traits<char>::length(functionName) + 4);
+
+  for (size_t i = 0; functionName[i] != '\0'; ++i) {
+    const unsigned char current =
+        static_cast<unsigned char>(functionName[i]);
+    if (std::isupper(current)) {
+      if (i > 0 && functionName[i - 1] != '_') {
+        formatted.push_back('_');
+      }
+      formatted.push_back(
+          static_cast<char>(std::tolower(static_cast<unsigned char>(current))));
+    } else {
+      formatted.push_back(static_cast<char>(current));
+    }
+  }
+
+  return formatted;
+}
 
 void Log::measureElapsedTime() {
   static std::chrono::high_resolution_clock::time_point lastCall;

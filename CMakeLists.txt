@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.20)
 
 project(GENERATIONS VERSION 1.0)
 
+find_package(Python3 REQUIRED COMPONENTS Interpreter)
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -70,7 +72,14 @@ endif()
 
 add_custom_target(shaders ALL DEPENDS ${SPV_SHADERS})
 
+add_custom_target(architecture_check
+    COMMAND ${Python3_EXECUTABLE} ${PROJECT_SOURCE_DIR}/tools/check_folder_dependencies.py
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+    COMMENT "Checking folder dependency boundaries"
+)
+
 add_executable(CapitalEngine ${CAPITALENGINE_SOURCES} ${SHADERS})
+add_dependencies(CapitalEngine architecture_check)
 
 target_link_libraries(CapitalEngine glfw)
 target_link_libraries(CapitalEngine vulkan)

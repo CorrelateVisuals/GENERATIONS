@@ -24,6 +24,9 @@ constexpr float FIELD_OF_VIEW = 40.0f;
 constexpr float NEAR_CLIPPING = 0.1f;
 constexpr float FAR_CLIPPING = 1000.0f;
 constexpr glm::vec3 CAMERA_POSITION = {0.0f, 0.0f, 60.0f};
+constexpr float ARCBALL_TUMBLE_MULT = 0.9f;
+constexpr float ARCBALL_PAN_MULT = 0.85f;
+constexpr float ARCBALL_DOLLY_MULT = 0.8f;
 
 constexpr GEOMETRY_SHAPE cube = CE_CUBE;  
 constexpr GEOMETRY_SHAPE rectangle = CE_RECTANGLE;
@@ -54,7 +57,9 @@ World::World(VkCommandBuffer& commandBuffer,
   const float sceneRadius =
       std::sqrt(halfGridX * halfGridX + halfGridY * halfGridY);
   _camera.configureArcball(glm::vec3(0.0f, 0.0f, 0.0f), sceneRadius);
-  _camera.configureArcballMultipliers(0.9f, 0.85f, 0.8f);
+  _camera.configureArcballMultipliers(ARCBALL_TUMBLE_MULT,
+                                      ARCBALL_PAN_MULT,
+                                      ARCBALL_DOLLY_MULT);
 
   Log::text("{ wWw }", "constructing World");
 }

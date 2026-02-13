@@ -7,26 +7,23 @@
 CE::DescriptorInterface::~DescriptorInterface() {
   if (CE::Device::baseDevice) {
     if (this->pool != VK_NULL_HANDLE) {
-      vkDestroyDescriptorPool(CE::Device::baseDevice->logical, this->pool,
-                              nullptr);
+      vkDestroyDescriptorPool(CE::Device::baseDevice->logical, this->pool, nullptr);
       this->pool = VK_NULL_HANDLE;
     };
     if (this->setLayout != VK_NULL_HANDLE) {
-      vkDestroyDescriptorSetLayout(CE::Device::baseDevice->logical,
-                                   this->setLayout, nullptr);
+      vkDestroyDescriptorSetLayout(
+          CE::Device::baseDevice->logical, this->setLayout, nullptr);
       this->setLayout = VK_NULL_HANDLE;
     };
   }
 }
 
 void CE::DescriptorInterface::createSetLayout() {
-  Log::text("{ |=| }", "Descriptor Set Layout:", setLayoutBindings.size(),
-            "bindings");
-  for (const VkDescriptorSetLayoutBinding& item : setLayoutBindings) {
-    Log::text("{ ", item.binding, " }",
-              Log::getDescriptorTypeString(item.descriptorType));
-    Log::text(Log::Style::charLeader,
-              Log::getShaderStageString(item.stageFlags));
+  Log::text("{ |=| }", "Descriptor Set Layout:", setLayoutBindings.size(), "bindings");
+  for (const VkDescriptorSetLayoutBinding &item : setLayoutBindings) {
+    Log::text(
+        "{ ", item.binding, " }", Log::getDescriptorTypeString(item.descriptorType));
+    Log::text(Log::Style::charLeader, Log::getShaderStageString(item.stageFlags));
   }
 
   VkDescriptorSetLayoutCreateInfo layoutInfo{
@@ -35,23 +32,27 @@ void CE::DescriptorInterface::createSetLayout() {
       .pBindings = setLayoutBindings.data()};
 
   CE::VULKAN_RESULT(vkCreateDescriptorSetLayout,
-                    CE::Device::baseDevice->logical, &layoutInfo, nullptr,
+                    CE::Device::baseDevice->logical,
+                    &layoutInfo,
+                    nullptr,
                     &this->setLayout);
 }
 
 void CE::DescriptorInterface::createPool() {
   Log::text("{ |=| }", "Descriptor Pool");
   for (size_t i = 0; i < poolSizes.size(); i++) {
-    Log::text(Log::Style::charLeader,
-              Log::getDescriptorTypeString(poolSizes[i].type));
+    Log::text(Log::Style::charLeader, Log::getDescriptorTypeString(poolSizes[i].type));
   }
   VkDescriptorPoolCreateInfo poolInfo{
       .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
       .maxSets = MAX_FRAMES_IN_FLIGHT,
       .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
       .pPoolSizes = poolSizes.data()};
-  CE::VULKAN_RESULT(vkCreateDescriptorPool, CE::Device::baseDevice->logical,
-                    &poolInfo, nullptr, &this->pool);
+  CE::VULKAN_RESULT(vkCreateDescriptorPool,
+                    CE::Device::baseDevice->logical,
+                    &poolInfo,
+                    nullptr,
+                    &this->pool);
 }
 
 void CE::DescriptorInterface::allocateSets() {
@@ -61,8 +62,10 @@ void CE::DescriptorInterface::allocateSets() {
       .descriptorPool = pool,
       .descriptorSetCount = MAX_FRAMES_IN_FLIGHT,
       .pSetLayouts = layouts.data()};
-  CE::VULKAN_RESULT(vkAllocateDescriptorSets, CE::Device::baseDevice->logical,
-                    &allocateInfo, sets.data());
+  CE::VULKAN_RESULT(vkAllocateDescriptorSets,
+                    CE::Device::baseDevice->logical,
+                    &allocateInfo,
+                    sets.data());
 }
 
 void CE::DescriptorInterface::initialzeSets() {
@@ -76,12 +79,14 @@ void CE::DescriptorInterface::updateSets() {
   Log::text("{ |=| }", "Update Descriptor Sets");
 
   for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-    for (auto& descriptor : descriptorWrites[i]) {
+    for (auto &descriptor : descriptorWrites[i]) {
       descriptor.dstSet = this->sets[i];
     }
 
     vkUpdateDescriptorSets(CE::Device::baseDevice->logical,
                            static_cast<uint32_t>(descriptorWrites[i].size()),
-                           descriptorWrites[i].data(), 0, nullptr);
+                           descriptorWrites[i].data(),
+                           0,
+                           nullptr);
   }
 }

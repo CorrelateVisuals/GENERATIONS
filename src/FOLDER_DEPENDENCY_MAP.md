@@ -28,3 +28,7 @@
 - Removed stale top-level `src/*.h` and `src/*.cpp` modules into domain folders.
 - Removed unnecessary `app` includes from `platform` sources to keep layer direction clean.
 - Build/runtime validated after refactor.
+
+## Automated enforcement
+- Build now enforces these boundaries through `tools/check_folder_dependencies.py`.
+- Manual run: `python3 tools/check_folder_dependencies.py`

@@ -11,13 +11,12 @@
 namespace CE {
 
 class DescriptorInterface {
- public:
+public:
   size_t writeIndex{};
   std::array<VkDescriptorSet, MAX_FRAMES_IN_FLIGHT> sets{};
   VkDescriptorSetLayout setLayout{};
   std::array<VkDescriptorSetLayoutBinding, NUM_DESCRIPTORS> setLayoutBindings{};
-  std::array<std::array<VkWriteDescriptorSet, NUM_DESCRIPTORS>,
-             MAX_FRAMES_IN_FLIGHT>
+  std::array<std::array<VkWriteDescriptorSet, NUM_DESCRIPTORS>, MAX_FRAMES_IN_FLIGHT>
       descriptorWrites{};
   std::vector<VkDescriptorPoolSize> poolSizes{};
 
@@ -27,7 +26,7 @@ class DescriptorInterface {
   void initialzeSets();
   void updateSets();
 
- private:
+private:
   VkDescriptorPool pool;
 
   void createSetLayout();
@@ -36,11 +35,11 @@ class DescriptorInterface {
 };
 
 class Descriptor {
- public:
+public:
   Descriptor() = default;
-  virtual ~Descriptor() {};
+  virtual ~Descriptor(){};
 
- protected:
+protected:
   size_t myIndex{0};
   VkDescriptorPoolSize poolSize{};
   VkDescriptorSetLayoutBinding setLayoutBinding{};
@@ -50,4 +49,4 @@ class Descriptor {
   } info;
 };
 
-}  // namespace CE
+} // namespace CE

@@ -48,8 +48,17 @@ vec4 setColor() {
     color += vec4(0.6, 0.1, 0.1, 0.4) * blendBottomRight; 
 
     vec4 waterColor = vec4(0.0, 0.5, 0.8, 1.0);
-    float isBelowWater = step(worldPosition.z, waterThreshold);
-    color = mix(color, waterColor, isBelowWater);
+
+    const float shoreWidth = 0.6f;
+    float waterBlend = 1.0f - smoothstep(waterThreshold - shoreWidth,
+                                         waterThreshold + shoreWidth,
+                                         worldPosition.z);
+    color = mix(color, waterColor, waterBlend);
+
+    float shoreDistance = abs(worldPosition.z - waterThreshold);
+    float foam = 1.0f - smoothstep(0.0f, shoreWidth * 0.75f, shoreDistance);
+    vec4 foamColor = vec4(0.85f, 0.92f, 0.95f, 1.0f);
+    color = mix(color, foamColor, foam * waterBlend * 0.55f);
 
     return color;
 }
@@ -63,7 +72,7 @@ float gouraudShading(float brightness, float emit) {
 layout(location = 0) out vec4 fragColor;
 
 void main() {
-    vec4 color = setColor() * gouraudShading(1.0f, 1.0f); 
+    vec4 color = setColor() * gouraudShading(1.0f, 0.25f);
     fragColor = color;
     gl_Position = projection * viewPosition;
 }
