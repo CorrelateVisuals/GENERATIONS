@@ -2,8 +2,15 @@
 
 #include <chrono>
 #include <cctype>
+#include <cstdlib>
 #include <filesystem>
+#include <iomanip>
+#include <sstream>
 #include <string>
+
+#ifdef __linux__
+#include <unistd.h>
+#endif
 
 std::ofstream Log::logFile("log.txt");
 
@@ -16,6 +23,82 @@ int Log::Style::columnCount = 14;
 int Log::Style::columnCountOffset = 4;
 
 std::string Log::previousTime;
+std::string Log::previousLine;
+uint32_t Log::repeatedLineCount = 0;
+
+namespace {
+constexpr const char *RESET = "\033[0m";
+constexpr const char *DIM = "\033[2m";
+constexpr const char *CYAN = "\033[36m";
+constexpr const char *GREEN = "\033[32m";
+constexpr const char *YELLOW = "\033[33m";
+constexpr const char *RED = "\033[31m";
+constexpr const char *MAGENTA = "\033[35m";
+
+bool useColorOutput() {
+  static const bool enabled = [] {
+#ifdef __linux__
+    if (std::getenv("NO_COLOR")) {
+      return false;
+    }
+    const char *term = std::getenv("TERM");
+    if (!term || std::string(term) == "dumb") {
+      return false;
+    }
+    return isatty(fileno(stdout)) != 0;
+#else
+    return false;
+#endif
+  }();
+  return enabled;
+}
+
+std::string extractIconToken(const std::string &line) {
+  if (!line.empty() && line[0] == '{') {
+    const size_t close = line.find('}');
+    if (close != std::string::npos) {
+      return line.substr(0, close + 1);
+    }
+  }
+  return {};
+}
+
+const char *iconColor(const std::string &icon) {
+  if (icon == "{ !!! }") {
+    return RED;
+  }
+  if (icon == "{ PERF }" || icon == "{ TIME START }" || icon == "{ TIME INTERVAL }") {
+    return MAGENTA;
+  }
+  if (icon == "{ >>> }" || icon == "{ GPU }" || icon == "{ SWP }") {
+    return GREEN;
+  }
+  if (icon == "{ MEM }" || icon == "{ SYNC }") {
+    return CYAN;
+  }
+  if (icon == "{ ... }" || icon == "{ 1.. }" || icon == "{ ..1 }") {
+    return DIM;
+  }
+  return YELLOW;
+}
+
+std::string colorizeIcon(const std::string &line) {
+  if (!useColorOutput()) {
+    return line;
+  }
+
+  const std::string icon = extractIconToken(line);
+  if (icon.empty()) {
+    return line;
+  }
+
+  std::string colored = line;
+  colored.replace(0,
+                  icon.length(),
+                  std::string(iconColor(icon)) + icon + RESET);
+  return colored;
+}
+} // namespace
 
 std::string Log::function_name(const char *functionName) {
   if (!functionName) {
@@ -70,12 +153,13 @@ void Log::logTitle() {
 }
 
 void Log::logFooter() {
+  flushRepeatedLine();
   Log::measureElapsedTime();
   Log::text(Log::Style::headerGuard);
   Log::text("� Jakob Povel | Correlate Visuals �");
 }
 
-bool Log::skipLogging(uint8_t logLevel, std::string icon) {
+bool Log::skipLogging(uint8_t logLevel, const std::string &icon) {
   if (!logFile.is_open()) {
     std::cerr << "\n!ERROR! Could not open logFile for writing" << '\n';
     return false;
@@ -87,6 +171,52 @@ bool Log::skipLogging(uint8_t logLevel, std::string icon) {
     return true;
   }
   return false;
+}
+
+bool Log::gpu_trace_enabled() {
+  static const bool enabled = [] {
+    const char *value = std::getenv("CE_GPU_TRACE");
+    if (!value) {
+      return false;
+    }
+
+    const std::string raw(value);
+    if (raw == "1" || raw == "true" || raw == "TRUE" || raw == "on" ||
+        raw == "ON") {
+      return true;
+    }
+    return false;
+  }();
+
+  return enabled;
+}
+
+void Log::emitLine(const std::string &line) {
+  std::string currentTime = returnDateAndTime();
+  if (currentTime != previousTime) {
+    std::cout << ' ' << currentTime;
+    logFile << ' ' << currentTime;
+  } else {
+    std::string padding(
+        static_cast<size_t>(Style::columnCount) + Style::columnCountOffset, ' ');
+    std::cout << padding;
+    logFile << padding;
+  }
+
+  std::cout << ' ' << colorizeIcon(line) << '\n';
+  logFile << ' ' << line << '\n';
+  previousTime = currentTime;
+}
+
+void Log::flushRepeatedLine() {
+  if (repeatedLineCount == 0) {
+    return;
+  }
+
+  std::ostringstream summary;
+  summary << "{ REP } previous line repeated" << ' ' << repeatedLineCount << "x";
+  emitLine(summary.str());
+  repeatedLineCount = 0;
 }
 
 std::string Log::getBufferUsageString(const VkBufferUsageFlags &usage) {
@@ -291,14 +421,16 @@ std::string Log::getImageUsageString(const VkImageUsageFlags &usage) {
 std::string Log::returnDateAndTime() {
   auto now = std::chrono::system_clock::now();
   std::time_t nowC = std::chrono::system_clock::to_time_t(now);
+  char nowStr[20] = "---";
 
 #ifdef __linux__
-  char nowStr[20] = "---";
+  std::tm timeInfo{};
+  localtime_r(&nowC, &timeInfo);
+  strftime(nowStr, sizeof(nowStr), "%y.%m.%d %H:%M:%S", &timeInfo);
 #elif _WIN32
   std::tm timeInfo;
   gmtime_s(&timeInfo, &nowC);
-  char nowStr[20];
-  strftime(nowStr, 20, "%y.%m.%d %H:%M:%S", &timeInfo);
+  strftime(nowStr, sizeof(nowStr), "%y.%m.%d %H:%M:%S", &timeInfo);
 #else
 
 #endif

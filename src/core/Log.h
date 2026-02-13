@@ -3,7 +3,9 @@
 
 #include <fstream>
 #include <iostream>
+#include <sstream>
 #include <stdexcept>
+#include <type_traits>
 #include <unordered_map>
 #include <vector>
 
@@ -14,6 +16,8 @@ enum LogLevel { LOG_OFF = 0, LOG_MINIMIAL = 1, LOG_MODERATE = 2, LOG_DETAILED = 
 static uint8_t logLevel = LOG_DETAILED;
 extern std::ofstream logFile;
 extern std::string previousTime;
+extern std::string previousLine;
+extern uint32_t repeatedLineCount;
 
 struct Style {
   static std::string charLeader;
@@ -26,7 +30,10 @@ void logTitle();
 void logFooter();
 
 template <class T, class... Ts> void text(const T &first, const Ts &...inputs);
-bool skipLogging(uint8_t logLevel, std::string icon);
+bool skipLogging(uint8_t logLevel, const std::string &icon);
+void emitLine(const std::string &line);
+void flushRepeatedLine();
+bool gpu_trace_enabled();
 void measureElapsedTime();
 std::string function_name(const char *functionName);
 
@@ -38,47 +45,50 @@ std::string getSampleCountString(const VkSampleCountFlags &sampleCount);
 std::string getImageUsageString(const VkImageUsageFlags &usage);
 
 std::string returnDateAndTime();
+
+template <class T> std::string toString(const T &value) {
+  std::ostringstream oss;
+  oss << value;
+  return oss.str();
+}
+
 }; // namespace Log
 
 template <class T, class... Ts> void Log::text(const T &first, const Ts &...inputs) {
-  if (Log::skipLogging(logLevel, first)) {
+  const std::string firstAsString = Log::toString(first);
+  if (Log::skipLogging(logLevel, firstAsString)) {
     return;
   }
 
-  std::string currentTime = returnDateAndTime();
-  if (currentTime != previousTime) {
-    std::cout << ' ' << currentTime;
-    logFile << ' ' << currentTime;
-  } else {
-    std::string padding(
-        static_cast<size_t>(Style::columnCount) + Style::columnCountOffset, ' ');
-    std::cout << padding;
-    logFile << padding;
-  }
   if constexpr (std::is_same_v<T, std::vector<int>>) {
     static int elementCount = 0;
-    std::cout << ' ' << Style::charLeader << ' ';
-    logFile << ' ' << Style::charLeader << ' ';
+    std::ostringstream line;
+    line << Style::charLeader << ' ';
     for (const auto &element : first) {
       if (elementCount % Style::columnCount == 0 && elementCount != 0) {
-        std::string spaces(
-            static_cast<size_t>(Style::columnCount) + Style::columnCountOffset, ' ');
-        std::cout << '\n' << ' ' << spaces << Style::charLeader << ' ';
-        logFile << '\n' << ' ' << spaces << Style::charLeader << ' ';
+        Log::emitLine(line.str());
+        line.str("");
+        line.clear();
+        line << Style::charLeader << ' ';
         elementCount = 0;
       }
-      std::cout << element << ' ';
-      logFile << element << ' ';
+      line << element << ' ';
       elementCount++;
     }
-    std::cout << '\n';
-    logFile << '\n';
+    Log::emitLine(line.str());
   } else {
-    std::cout << ' ' << first;
-    logFile << ' ' << first;
-    ((std::cout << ' ' << inputs, logFile << ' ' << inputs), ...);
-    std::cout << '\n';
-    logFile << '\n';
+    std::ostringstream line;
+    line << first;
+    ((line << ' ' << inputs), ...);
+
+    const std::string currentLine = line.str();
+    if (currentLine == previousLine) {
+      repeatedLineCount++;
+      return;
+    }
+
+    Log::flushRepeatedLine();
+    Log::emitLine(currentLine);
+    previousLine = currentLine;
   }
-  previousTime = currentTime;
 }

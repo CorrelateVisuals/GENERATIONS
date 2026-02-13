@@ -13,19 +13,19 @@
 CE::RenderPass::~RenderPass() {
   Log::text("{ []< }", "destructing Render Pass");
   if (Device::base_device) {
-    vkDestroyRenderPass(Device::base_device->logical_device, this->renderPass, nullptr);
+    vkDestroyRenderPass(Device::base_device->logical_device, this->render_pass, nullptr);
   }
 }
 
-void CE::RenderPass::create(VkSampleCountFlagBits msaaImageSamples,
-                            VkFormat swapchainImageFormat) {
+void CE::RenderPass::create(VkSampleCountFlagBits msaa_image_samples,
+                            VkFormat swapchain_image_format) {
   Log::text("{ []< }", "Render Pass");
   Log::text(Log::Style::charLeader,
             "colorAttachment, depthAttachment, colorAttachmentResolve");
 
   VkAttachmentDescription colorAttachment{
-      .format = swapchainImageFormat,
-      .samples = msaaImageSamples,
+      .format = swapchain_image_format,
+      .samples = msaa_image_samples,
       .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
       .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
       .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
@@ -35,7 +35,7 @@ void CE::RenderPass::create(VkSampleCountFlagBits msaaImageSamples,
 
   VkAttachmentDescription depthAttachment{
       .format = CE::Image::find_depth_format(),
-      .samples = msaaImageSamples,
+      .samples = msaa_image_samples,
       .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
       .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
       .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
@@ -44,7 +44,7 @@ void CE::RenderPass::create(VkSampleCountFlagBits msaaImageSamples,
       .finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL};
 
   VkAttachmentDescription colorAttachmentResolve{
-      .format = swapchainImageFormat,
+      .format = swapchain_image_format,
       .samples = VK_SAMPLE_COUNT_1_BIT,
       .loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
       .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
@@ -82,7 +82,7 @@ void CE::RenderPass::create(VkSampleCountFlagBits msaaImageSamples,
   std::vector<VkAttachmentDescription> attachments = {
       colorAttachment, depthAttachment, colorAttachmentResolve};
 
-  VkRenderPassCreateInfo renderPassInfo{
+  VkRenderPassCreateInfo render_pass_info{
       .sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
       .attachmentCount = static_cast<uint32_t>(attachments.size()),
       .pAttachments = attachments.data(),
@@ -93,24 +93,26 @@ void CE::RenderPass::create(VkSampleCountFlagBits msaaImageSamples,
 
   CE::VULKAN_RESULT(vkCreateRenderPass,
                     Device::base_device->logical_device,
-                    &renderPassInfo,
+                    &render_pass_info,
                     nullptr,
-                    &this->renderPass);
+                    &this->render_pass);
 }
 
-void CE::RenderPass::createFramebuffers(CE::Swapchain &swapchain,
-                                        const VkImageView &msaaView,
-                                        const VkImageView &depthView) const {
+void CE::RenderPass::create_framebuffers(CE::Swapchain &swapchain,
+                                         const VkImageView &msaa_view,
+                                         const VkImageView &depth_view) const {
   Log::text("{ 101 }", "Frame Buffers:", swapchain.images.size());
 
   Log::text(Log::Style::charLeader,
             "attachments: msaaImage., depthImage, swapchain imageViews");
   for (uint_fast8_t i = 0; i < swapchain.images.size(); i++) {
-    std::array<VkImageView, 3> attachments{msaaView, depthView, swapchain.images[i].view};
+    std::array<VkImageView, 3> attachments{msaa_view,
+                         depth_view,
+                         swapchain.images[i].view};
 
     VkFramebufferCreateInfo framebufferInfo{
         .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
-        .renderPass = renderPass,
+        .renderPass = render_pass,
         .attachmentCount = static_cast<uint32_t>(attachments.size()),
         .pAttachments = attachments.data(),
         .width = swapchain.extent.width,
@@ -128,29 +130,29 @@ void CE::RenderPass::createFramebuffers(CE::Swapchain &swapchain,
 CE::PipelinesConfiguration::~PipelinesConfiguration() {
   if (Device::base_device) {
     Log::text(
-        "{ === }", "destructing", this->pipelineMap.size(), "Pipelines Configuration");
-    for (auto &pipeline : this->pipelineMap) {
-      VkPipeline &pipelineObject = getPipelineObjectByName(pipeline.first);
+        "{ === }", "destructing", this->pipeline_map.size(), "Pipelines Configuration");
+    for (auto &pipeline : this->pipeline_map) {
+      VkPipeline &pipelineObject = get_pipeline_object_by_name(pipeline.first);
       vkDestroyPipeline(Device::base_device->logical_device, pipelineObject, nullptr);
     }
   }
 }
 
-void CE::PipelinesConfiguration::createPipelines(VkRenderPass &renderPass,
-                                                 const VkPipelineLayout &graphicsLayout,
-                                                 const VkPipelineLayout &computeLayout,
-                                                 VkSampleCountFlagBits &msaaSamples) {
-  if (this->pipelineMap.empty()) {
+void CE::PipelinesConfiguration::create_pipelines(VkRenderPass &render_pass,
+                                                  const VkPipelineLayout &graphics_layout,
+                                                  const VkPipelineLayout &compute_layout,
+                                                  VkSampleCountFlagBits &msaa_samples) {
+  if (this->pipeline_map.empty()) {
     throw std::runtime_error("\n!ERROR! No pipeline configurations defined.");
   }
 
   const auto pipelinesStart = std::chrono::high_resolution_clock::now();
 
-  for (auto &entry : this->pipelineMap) {
+  for (auto &entry : this->pipeline_map) {
     const auto pipelineStart = std::chrono::high_resolution_clock::now();
     const std::string pipelineName = entry.first;
 
-    std::vector<std::string> shaders = getPipelineShadersByName(pipelineName);
+    std::vector<std::string> shaders = get_pipeline_shaders_by_name(pipelineName);
     if (shaders.empty()) {
       throw std::runtime_error("\n!ERROR! Pipeline has no shaders: " + pipelineName);
     }
@@ -162,13 +164,13 @@ void CE::PipelinesConfiguration::createPipelines(VkRenderPass &renderPass,
       std::variant<Graphics, Compute> &pipelineVariant = entry.second;
 
       std::vector<VkPipelineShaderStageCreateInfo> shaderStages{};
-      bool tesselationEnabled = setShaderStages(pipelineName, shaderStages);
+      bool tesselationEnabled = set_shader_stages(pipelineName, shaderStages);
 
       const auto &bindingDescription =
-          std::get<CE::PipelinesConfiguration::Graphics>(pipelineVariant).vertexBindings;
+            std::get<CE::PipelinesConfiguration::Graphics>(pipelineVariant).vertex_bindings;
       const auto &attributesDescription =
           std::get<CE::PipelinesConfiguration::Graphics>(pipelineVariant)
-              .vertexAttributes;
+              .vertex_attributes;
       uint32_t bindingsSize = static_cast<uint32_t>(bindingDescription.size());
       uint32_t attributeSize = static_cast<uint32_t>(attributesDescription.size());
 
@@ -198,7 +200,7 @@ void CE::PipelinesConfiguration::createPipelines(VkRenderPass &renderPass,
       VkPipelineRasterizationStateCreateInfo rasterization{CE::rasterizationCullBackBit};
 
       VkPipelineMultisampleStateCreateInfo multisampling{CE::multisampleStateDefault};
-      multisampling.rasterizationSamples = msaaSamples;
+      multisampling.rasterizationSamples = msaa_samples;
       VkPipelineDepthStencilStateCreateInfo depthStencil{CE::depthStencilStateDefault};
 
       static VkPipelineColorBlendAttachmentState colorBlendAttachment{
@@ -221,8 +223,8 @@ void CE::PipelinesConfiguration::createPipelines(VkRenderPass &renderPass,
           .pDepthStencilState = &depthStencil,
           .pColorBlendState = &colorBlend,
           .pDynamicState = &dynamic,
-          .layout = graphicsLayout,
-          .renderPass = renderPass,
+          .layout = graphics_layout,
+          .renderPass = render_pass,
           .subpass = 0,
           .basePipelineHandle = VK_NULL_HANDLE};
 
@@ -254,25 +256,26 @@ void CE::PipelinesConfiguration::createPipelines(VkRenderPass &renderPass,
                         1,
                         &pipelineInfo,
                         nullptr,
-                        &getPipelineObjectByName(pipelineName));
-      destroyShaderModules();
+                        &get_pipeline_object_by_name(pipelineName));
+      destroy_shader_modules();
     } else if (isCompute) {
       Log::text("{ === }", "Compute  Pipeline: ", pipelineName);
 
-      const std::array<uint32_t, 3> &workGroups = getWorkGroupsByName(pipelineName);
+        const std::array<uint32_t, 3> &workGroups =
+          get_work_groups_by_name(pipelineName);
       Log::text(Log::Style::charLeader,
                 "workgroups",
                 workGroups[0],
                 workGroups[1],
                 workGroups[2]);
 
-      VkPipelineShaderStageCreateInfo shaderStage{createShaderModules(
+        VkPipelineShaderStageCreateInfo shaderStage{create_shader_modules(
           VK_SHADER_STAGE_COMPUTE_BIT, pipelineName + shaders[0] + ".spv")};
 
       VkComputePipelineCreateInfo pipelineInfo{
           .sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
           .stage = shaderStage,
-          .layout = computeLayout};
+          .layout = compute_layout};
 
       CE::VULKAN_RESULT(vkCreateComputePipelines,
                         Device::base_device->logical_device,
@@ -280,8 +283,8 @@ void CE::PipelinesConfiguration::createPipelines(VkRenderPass &renderPass,
                         1,
                         &pipelineInfo,
                         nullptr,
-                        &getPipelineObjectByName(pipelineName));
-      destroyShaderModules();
+                        &get_pipeline_object_by_name(pipelineName));
+      destroy_shader_modules();
     }
 
     const auto pipelineEnd = std::chrono::high_resolution_clock::now();
@@ -300,10 +303,10 @@ void CE::PipelinesConfiguration::createPipelines(VkRenderPass &renderPass,
   Log::text("{ PERF }", "All pipelines created in", totalMs, "ms");
 }
 
-bool CE::PipelinesConfiguration::setShaderStages(
+bool CE::PipelinesConfiguration::set_shader_stages(
     const std::string &pipelineName,
     std::vector<VkPipelineShaderStageCreateInfo> &shaderStages) {
-  std::vector<std::string> shaders = getPipelineShadersByName(pipelineName);
+  std::vector<std::string> shaders = get_pipeline_shaders_by_name(pipelineName);
   std::string shaderName{};
   const std::array<std::string_view, 5> possibleStages = {"Vert", "Tesc", "Tese", "Frag"};
   const std::unordered_map<std::string_view, VkShaderStageFlagBits> shaderType = {
@@ -334,13 +337,13 @@ bool CE::PipelinesConfiguration::setShaderStages(
       tesselationEnabled =
           shaderStage == VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT ? true : false;
     }
-    shaderStages.push_back(createShaderModules(shaderStage, shaderName + ".spv"));
+    shaderStages.push_back(create_shader_modules(shaderStage, shaderName + ".spv"));
   }
   return tesselationEnabled;
 }
 
 std::vector<char>
-CE::PipelinesConfiguration::readShaderFile(const std::string &filename) {
+CE::PipelinesConfiguration::read_shader_file(const std::string &filename) {
   std::ifstream file(filename, std::ios::ate | std::ios::binary);
 
   if (!file.is_open()) {
@@ -358,12 +361,12 @@ CE::PipelinesConfiguration::readShaderFile(const std::string &filename) {
 }
 
 VkPipelineShaderStageCreateInfo
-CE::PipelinesConfiguration::createShaderModules(VkShaderStageFlagBits shaderStage,
-                                                std::string shaderName) {
+CE::PipelinesConfiguration::create_shader_modules(VkShaderStageFlagBits shaderStage,
+                                                  std::string shaderName) {
   Log::text(Log::Style::charLeader, "Shader Module", shaderName);
 
-  std::string shaderPath = this->shaderDir + shaderName;
-  auto shaderCode = readShaderFile(shaderPath);
+  std::string shaderPath = this->shader_dir + shaderName;
+  auto shaderCode = read_shader_file(shaderPath);
   VkShaderModule shaderModule{VK_NULL_HANDLE};
 
   VkShaderModuleCreateInfo createInfo{
@@ -377,7 +380,7 @@ CE::PipelinesConfiguration::createShaderModules(VkShaderStageFlagBits shaderStag
                     nullptr,
                     &shaderModule);
 
-  shaderModules.push_back(shaderModule);
+  shader_modules.push_back(shaderModule);
 
   VkPipelineShaderStageCreateInfo shaderStageInfo{
       .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
@@ -388,22 +391,22 @@ CE::PipelinesConfiguration::createShaderModules(VkShaderStageFlagBits shaderStag
   return shaderStageInfo;
 }
 
-void CE::PipelinesConfiguration::compileShaders() {
+void CE::PipelinesConfiguration::compile_shaders() {
   Log::text("{ GLSL }", "Compile Shaders");
   std::string systemCommand{};
   std::string shaderExtension{};
   std::string pipelineName{};
 
-  for (const auto &entry : this->pipelineMap) {
+  for (const auto &entry : this->pipeline_map) {
     pipelineName = entry.first;
-    std::vector<std::string> shaders = getPipelineShadersByName(pipelineName);
+    std::vector<std::string> shaders = get_pipeline_shaders_by_name(pipelineName);
     for (const auto &shader : shaders) {
       if (shader == "Comp" || shader == "Vert" || shader == "Tesc" || shader == "Tese" ||
           shader == "Frag") {
         shaderExtension = Lib::upperToLowerCase(shader);
         std::string shaderSourcePath =
-            this->shaderDir + pipelineName + "." + shaderExtension;
-        std::string shaderOutputPath = this->shaderDir + pipelineName + shader + ".spv";
+            this->shader_dir + pipelineName + "." + shaderExtension;
+          std::string shaderOutputPath = this->shader_dir + pipelineName + shader + ".spv";
         std::ifstream outputFile(shaderOutputPath);
         if (outputFile.good()) {
           continue;
@@ -415,8 +418,9 @@ void CE::PipelinesConfiguration::compileShaders() {
   }
 }
 
-VkPipeline &CE::PipelinesConfiguration::getPipelineObjectByName(const std::string &name) {
-  std::variant<Graphics, Compute> &variant = this->pipelineMap.at(name);
+VkPipeline &CE::PipelinesConfiguration::get_pipeline_object_by_name(
+    const std::string &name) {
+  std::variant<Graphics, Compute> &variant = this->pipeline_map.at(name);
   if (std::holds_alternative<Graphics>(variant)) {
     return std::get<Graphics>(variant).pipeline;
   } else {
@@ -424,18 +428,18 @@ VkPipeline &CE::PipelinesConfiguration::getPipelineObjectByName(const std::strin
   }
 }
 
-void CE::PipelinesConfiguration::destroyShaderModules() {
-  for (uint_fast8_t i = 0; i < this->shaderModules.size(); i++) {
+void CE::PipelinesConfiguration::destroy_shader_modules() {
+  for (uint_fast8_t i = 0; i < this->shader_modules.size(); i++) {
     vkDestroyShaderModule(Device::base_device->logical_device,
-                this->shaderModules[i],
+                          this->shader_modules[i],
                 nullptr);
   }
-  this->shaderModules.resize(0);
+  this->shader_modules.resize(0);
 }
 
 const std::vector<std::string> &
-CE::PipelinesConfiguration::getPipelineShadersByName(const std::string &name) {
-  std::variant<Graphics, Compute> &variant = this->pipelineMap.at(name);
+CE::PipelinesConfiguration::get_pipeline_shaders_by_name(const std::string &name) {
+  std::variant<Graphics, Compute> &variant = this->pipeline_map.at(name);
 
   if (std::holds_alternative<Graphics>(variant)) {
     return std::get<Graphics>(variant).shaders;
@@ -445,12 +449,12 @@ CE::PipelinesConfiguration::getPipelineShadersByName(const std::string &name) {
 }
 
 const std::array<uint32_t, 3> &
-CE::PipelinesConfiguration::getWorkGroupsByName(const std::string &name) {
-  std::variant<Graphics, Compute> &variant = this->pipelineMap.at(name);
-  return std::get<CE::PipelinesConfiguration::Compute>(variant).workGroups;
+CE::PipelinesConfiguration::get_work_groups_by_name(const std::string &name) {
+  std::variant<Graphics, Compute> &variant = this->pipeline_map.at(name);
+  return std::get<CE::PipelinesConfiguration::Compute>(variant).work_groups;
 };
 
-void CE::PipelineLayout::createLayout(const VkDescriptorSetLayout &setLayout) {
+void CE::PipelineLayout::create_layout(const VkDescriptorSetLayout &setLayout) {
   VkPipelineLayoutCreateInfo layout{CE::layoutDefault};
   layout.pSetLayouts = &setLayout;
   CE::VULKAN_RESULT(vkCreatePipelineLayout,
@@ -460,9 +464,9 @@ void CE::PipelineLayout::createLayout(const VkDescriptorSetLayout &setLayout) {
                     &this->layout);
 }
 
-void CE::PipelineLayout::createLayout(const VkDescriptorSetLayout &setLayout,
-                                      const PushConstants &_pushConstants) {
-  VkPushConstantRange constants{.stageFlags = _pushConstants.shaderStage,
+void CE::PipelineLayout::create_layout(const VkDescriptorSetLayout &setLayout,
+                                       const PushConstants &_pushConstants) {
+  VkPushConstantRange constants{.stageFlags = _pushConstants.shader_stage,
                                 .offset = _pushConstants.offset,
                                 .size = _pushConstants.size};
   VkPipelineLayoutCreateInfo layout{CE::layoutDefault};
@@ -485,7 +489,7 @@ CE::PipelineLayout::~PipelineLayout() {
 CE::PushConstants::PushConstants(VkShaderStageFlags stage,
                                  uint32_t dataSize,
                                  uint32_t dataOffset) {
-  shaderStage = stage;
+  shader_stage = stage;
 
   size = (dataSize % 4 == 0) ? dataSize : ((dataSize + 3) & ~3);
   if (size > 128) {
@@ -500,6 +504,6 @@ CE::PushConstants::PushConstants(VkShaderStageFlags stage,
   }
 }
 
-void CE::PushConstants::setData(const uint64_t &data) {
+void CE::PushConstants::set_data(const uint64_t &data) {
   this->data = {data};
 }

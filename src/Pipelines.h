@@ -16,14 +16,14 @@ class Pipelines {
 
   struct ComputeLayout : public CE::PipelineLayout {
     ComputeLayout(CE::DescriptorInterface& interface,
-                  CE::PushConstants& pushConstant) {
-      createLayout(interface.setLayout, pushConstant);
+                  CE::PushConstants& push_constant) {
+      create_layout(interface.setLayout, push_constant);
     }
   };
 
   struct GraphicsLayout : public CE::PipelineLayout {
     GraphicsLayout(CE::DescriptorInterface& interface) {
-      createLayout(interface.setLayout);
+      create_layout(interface.setLayout);
     }
   };
 
@@ -32,62 +32,62 @@ class Pipelines {
            const CE::Image& msaaImage,
            const VkImageView& depthView) {
       create(msaaImage.info.samples, swapchain.image_format);
-      createFramebuffers(swapchain, msaaImage.view, depthView);
+      create_framebuffers(swapchain, msaaImage.view, depthView);
     }
   };
 
   struct Configuration : public CE::PipelinesConfiguration {
-    Configuration(VkRenderPass& renderPass,
-                  const VkPipelineLayout& graphicsLayout,
-                  const VkPipelineLayout& computeLayout,
-                  VkSampleCountFlagBits& msaaSamples,
-                  const vec2_uint_fast16_t gridSize) {
-        pipelineMap.emplace("Engine",
+    Configuration(VkRenderPass& render_pass,
+                  const VkPipelineLayout& graphics_layout,
+                  const VkPipelineLayout& compute_layout,
+                  VkSampleCountFlagBits& msaa_samples,
+                  const vec2_uint_fast16_t grid_size) {
+        pipeline_map.emplace("Engine",
                   Compute{.shaders = {"Comp"},
-                      .workGroups = {
-                        static_cast<uint32_t>(gridSize.x + 31) /
+                      .work_groups = {
+                        static_cast<uint32_t>(grid_size.x + 31) /
                           32,
-                        static_cast<uint32_t>(gridSize.y + 31) /
+                        static_cast<uint32_t>(grid_size.y + 31) /
                           32,
                         1}});
-        pipelineMap.emplace(
+        pipeline_map.emplace(
           "Cells",
           Graphics{.shaders = {"Vert", "Frag"},
-               .vertexAttributes = World::Cell::getAttributeDescription(),
-               .vertexBindings = World::Cell::getBindingDescription()});
-        pipelineMap.emplace(
+               .vertex_attributes = World::Cell::getAttributeDescription(),
+               .vertex_bindings = World::Cell::getBindingDescription()});
+        pipeline_map.emplace(
           "Landscape",
           Graphics{.shaders = {"Vert", "Frag"},
-               .vertexAttributes = World::Grid::getAttributeDescription(),
-               .vertexBindings = World::Grid::getBindingDescription()});
-        pipelineMap.emplace(
+               .vertex_attributes = World::Grid::getAttributeDescription(),
+               .vertex_bindings = World::Grid::getBindingDescription()});
+        pipeline_map.emplace(
           "LandscapeWireFrame",
           Graphics{.shaders = {"LandscapeVert", "Tesc", "Tese",
                      "LandscapeFrag"},
-               .vertexAttributes = World::Grid::getAttributeDescription(),
-               .vertexBindings = World::Grid::getBindingDescription()});
-        pipelineMap.emplace(
+               .vertex_attributes = World::Grid::getAttributeDescription(),
+               .vertex_bindings = World::Grid::getBindingDescription()});
+        pipeline_map.emplace(
           "Texture",
           Graphics{.shaders = {"Vert", "Frag"},
-               .vertexAttributes = Shape::getAttributeDescription(),
-               .vertexBindings = Shape::getBindingDescription()});
-        pipelineMap.emplace(
+               .vertex_attributes = Shape::getAttributeDescription(),
+               .vertex_bindings = Shape::getBindingDescription()});
+        pipeline_map.emplace(
           "Water",
           Graphics{.shaders = {"Vert", "Frag"},
-               .vertexAttributes = Shape::getAttributeDescription(),
-               .vertexBindings = Shape::getBindingDescription()});
-        pipelineMap.emplace(
+               .vertex_attributes = Shape::getAttributeDescription(),
+               .vertex_bindings = Shape::getBindingDescription()});
+        pipeline_map.emplace(
           "PostFX",
           Compute{.shaders = {"Comp"},
-              .workGroups = {
+              .work_groups = {
                 static_cast<uint32_t>(Window::get().display.width + 7) /
                   8,
                 static_cast<uint32_t>(Window::get().display.height + 7) /
                   8,
                 1}});
 
-      compileShaders();
-      createPipelines(renderPass, graphicsLayout, computeLayout, msaaSamples);
+      compile_shaders();
+      create_pipelines(render_pass, graphics_layout, compute_layout, msaa_samples);
     }
   };
 

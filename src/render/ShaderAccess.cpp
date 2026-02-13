@@ -21,7 +21,7 @@ void CE::ShaderAccess::CommandResources::record_compute_command_buffer(
 
   vkCmdBindPipeline(commandBuffer,
                     VK_PIPELINE_BIND_POINT_COMPUTE,
-                    pipelines.config.getPipelineObjectByName("Engine"));
+                    pipelines.config.get_pipeline_object_by_name("Engine"));
 
   vkCmdBindDescriptorSets(commandBuffer,
                           VK_PIPELINE_BIND_POINT_COMPUTE,
@@ -32,17 +32,17 @@ void CE::ShaderAccess::CommandResources::record_compute_command_buffer(
                           0,
                           nullptr);
 
-  resources.pushConstant.setData(resources.world._time.passedHours);
+  resources.push_constant.set_data(resources.world._time.passedHours);
 
   vkCmdPushConstants(commandBuffer,
                      pipelines.compute.layout,
-                     resources.pushConstant.shaderStage,
-                     resources.pushConstant.offset,
-                     resources.pushConstant.size,
-                     resources.pushConstant.data.data());
+                     resources.push_constant.shader_stage,
+                     resources.push_constant.offset,
+                     resources.push_constant.size,
+                     resources.push_constant.data.data());
 
   const std::array<uint32_t, 3> &workGroups =
-      pipelines.config.getWorkGroupsByName("Engine");
+              pipelines.config.get_work_groups_by_name("Engine");
   vkCmdDispatch(commandBuffer, workGroups[0], workGroups[0], workGroups[2]);
 
   CE::VULKAN_RESULT(vkEndCommandBuffer, commandBuffer);
@@ -71,7 +71,7 @@ void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
   VkRenderPassBeginInfo renderPassInfo{
       .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
       .pNext = nullptr,
-      .renderPass = pipelines.render.renderPass,
+      .renderPass = pipelines.render.render_pass,
       .framebuffer = swapchain.framebuffers[image_index],
       .renderArea = {.offset = {0, 0}, .extent = swapchain.extent},
       .clearValueCount = static_cast<uint32_t>(clearValues.size()),
@@ -104,7 +104,7 @@ void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
                                       uint32_t indexCount) {
     vkCmdBindPipeline(commandBuffer,
                       VK_PIPELINE_BIND_POINT_GRAPHICS,
-                      pipelines.config.getPipelineObjectByName(pipelineName));
+                      pipelines.config.get_pipeline_object_by_name(pipelineName));
     VkBuffer vertexBuffers[] = {vertexBuffer};
     VkDeviceSize indexedOffsets[] = {0};
     vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, indexedOffsets);
@@ -115,7 +115,7 @@ void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
   // Pipeline 1
   vkCmdBindPipeline(commandBuffer,
                     VK_PIPELINE_BIND_POINT_GRAPHICS,
-                    pipelines.config.getPipelineObjectByName("Cells"));
+                    pipelines.config.get_pipeline_object_by_name("Cells"));
   VkDeviceSize offsets0[]{0, 0};
 
   VkBuffer currentShaderStorageBuffer[] = {resources.shaderStorage.bufferIn.buffer,
@@ -140,7 +140,7 @@ void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
   //   Landscape Wireframe
   vkCmdBindPipeline(commandBuffer,
                     VK_PIPELINE_BIND_POINT_GRAPHICS,
-                    pipelines.config.getPipelineObjectByName("LandscapeWireFrame"));
+                    pipelines.config.get_pipeline_object_by_name("LandscapeWireFrame"));
   vkCmdDrawIndexed(commandBuffer,
                    static_cast<uint32_t>(resources.world._grid.indices.size()),
                    1,
@@ -171,7 +171,7 @@ void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
 
   vkCmdBindPipeline(commandBuffer,
                     VK_PIPELINE_BIND_POINT_COMPUTE,
-                    pipelines.config.getPipelineObjectByName("PostFX"));
+                    pipelines.config.get_pipeline_object_by_name("PostFX"));
 
   vkCmdBindDescriptorSets(commandBuffer,
                           VK_PIPELINE_BIND_POINT_COMPUTE,
@@ -182,16 +182,16 @@ void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
                           0,
                           nullptr);
 
-  resources.pushConstant.setData(resources.world._time.passedHours);
+  resources.push_constant.set_data(resources.world._time.passedHours);
   vkCmdPushConstants(commandBuffer,
                      pipelines.compute.layout,
-                     resources.pushConstant.shaderStage,
-                     resources.pushConstant.offset,
-                     resources.pushConstant.size,
-                     resources.pushConstant.data.data());
+                     resources.push_constant.shader_stage,
+                     resources.push_constant.offset,
+                     resources.push_constant.size,
+                     resources.push_constant.data.data());
 
   const std::array<uint32_t, 3> &workGroups =
-      pipelines.config.getWorkGroupsByName("PostFX");
+              pipelines.config.get_work_groups_by_name("PostFX");
   vkCmdDispatch(commandBuffer, workGroups[0], workGroups[1], workGroups[2]);
 
   swapchain.images[image_index].transition_layout(commandBuffer,

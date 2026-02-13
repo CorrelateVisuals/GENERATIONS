@@ -84,7 +84,7 @@ public:
   CE::ShaderAccess::CommandResources
       commands;                          // virtual function to record command buffers
   CE::CommandInterface commandInterface; // interface for command buffers
-  CE::PushConstants pushConstant;
+  CE::PushConstants push_constant;
 
   // Scene
   World world; // World objects, light, _camera

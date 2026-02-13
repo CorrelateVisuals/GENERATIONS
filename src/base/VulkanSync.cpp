@@ -122,6 +122,16 @@ void CE::CommandBuffers::end_singular_commands(const VkCommandPool &command_pool
 
   VkResult submitResult = vkQueueSubmit(queue, 1, &submitInfo, uploadFence);
   Log::text("{ ..1 }", "Single Time submit result", submitResult);
+  if (Log::gpu_trace_enabled()) {
+    Log::text("{ QUE }",
+              "Queue submit",
+              "queue",
+              queue,
+              "cmd",
+              singular_command_buffer,
+              "fence",
+              uploadFence);
+  }
 
   VkResult waitResult =
       vkWaitForFences(Device::base_device->logical_device,
@@ -130,6 +140,9 @@ void CE::CommandBuffers::end_singular_commands(const VkCommandPool &command_pool
               VK_TRUE,
               UINT64_MAX);
   Log::text("{ ..1 }", "Single Time fence wait result", waitResult);
+  if (Log::gpu_trace_enabled()) {
+    Log::text("{ LCK }", "Fence wait complete", uploadFence, "result", waitResult);
+  }
 
   vkDestroyFence(Device::base_device->logical_device, uploadFence, nullptr);
 

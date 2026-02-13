@@ -124,6 +124,20 @@ void CE::Buffer::copy(const VkBuffer &srcBuffer,
                       const VkCommandPool &commandPool,
                       const VkQueue &queue) {
   Log::text("{ ... }", "copying", size, "bytes");
+  if (Log::gpu_trace_enabled()) {
+    Log::text("{ XFR }",
+              "Buffer copy",
+              "src",
+              srcBuffer,
+              "dst",
+              dstBuffer,
+              "bytes",
+              size,
+              "pool",
+              commandPool,
+              "queue",
+              queue);
+  }
 
   CE::CommandBuffers::begin_singular_commands(commandPool, queue);
   VkBufferCopy copyRegion{};
@@ -142,6 +156,22 @@ void CE::Buffer::copy_to_image(const VkBuffer &buffer,
                                const VkCommandPool &commandPool,
                                const VkQueue &queue) {
   Log::text("{ img }", "Buffer To Image", width, height);
+  if (Log::gpu_trace_enabled()) {
+    Log::text("{ XFR }",
+              "Buffer->Image",
+              "src",
+              buffer,
+              "dst",
+              image,
+              "extent",
+              width,
+              "x",
+              height,
+              "pool",
+              commandPool,
+              "queue",
+              queue);
+  }
 
   CE::CommandBuffers::begin_singular_commands(commandPool, queue);
   VkBufferImageCopy region{};
@@ -162,6 +192,18 @@ void CE::Buffer::copy_to_image(const VkBuffer &buffer,
 
 void CE::Image::destroy_vulkan_images() const {
   if (Device::base_device && this->memory) {
+    if (Log::gpu_trace_enabled()) {
+      Log::text("{ DST }",
+                "Destroy image resources",
+                "image",
+                this->image,
+                "view",
+                this->view,
+                "sampler",
+                this->sampler,
+                "memory",
+                this->memory);
+    }
     if (this->sampler != VK_NULL_HANDLE) {
       vkDestroySampler(Device::base_device->logical_device, this->sampler, nullptr);
     };
@@ -385,6 +427,9 @@ void CE::Image::load_texture(const std::string &imagePath,
                  stagingResources);
 
   void *data{};
+  if (Log::gpu_trace_enabled()) {
+    Log::text("{ MAP }", "Map texture staging memory", stagingResources.memory, imageSize);
+  }
   vkMapMemory(
       Device::base_device->logical_device,
       stagingResources.memory,
@@ -392,7 +437,13 @@ void CE::Image::load_texture(const std::string &imagePath,
       imageSize,
       0,
       &data);
+  if (Log::gpu_trace_enabled()) {
+    Log::text("{ WR }", "Write host->staging texture bytes", imageSize);
+  }
   memcpy(data, pixels, static_cast<size_t>(imageSize));
+  if (Log::gpu_trace_enabled()) {
+    Log::text("{ MAP }", "Unmap texture staging memory", stagingResources.memory);
+  }
   vkUnmapMemory(Device::base_device->logical_device, stagingResources.memory);
   stbi_image_free(pixels);
 

@@ -6,11 +6,11 @@
 #include "Resources.h"
 
 Pipelines::Pipelines(VulkanMechanics &mechanics, Resources &resources)
-    : compute{resources.descriptorInterface, resources.pushConstant},
+    : compute{resources.descriptorInterface, resources.push_constant},
       graphics{resources.descriptorInterface}, render{mechanics.swapchain,
                                                       resources.msaaImage,
                                                       resources.depthImage.view},
-      config{render.renderPass,
+      config{render.render_pass,
              graphics.layout,
              compute.layout,
              resources.msaaImage.info.samples,

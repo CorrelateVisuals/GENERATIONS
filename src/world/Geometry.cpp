@@ -150,6 +150,14 @@ Geometry::Geometry(GEOMETRY_SHAPE shape) {
   }();
 
   if (!modelName.empty()) {
+    if (Log::gpu_trace_enabled()) {
+      Log::text("{ mdl }",
+                "Selected model",
+                modelName,
+                "shape",
+                static_cast<uint32_t>(shape));
+    }
+
     bool loaded = false;
     try {
       loadModel(modelName, *this);
@@ -222,13 +230,22 @@ void Geometry::createVertexBuffer(VkCommandBuffer &commandBuffer,
                      stagingResources);
 
   void *data;
+  if (Log::gpu_trace_enabled()) {
+    Log::text("{ MAP }", "Map staging vertex memory", stagingResources.memory, bufferSize);
+  }
   vkMapMemory(CE::Device::base_device->logical_device,
               stagingResources.memory,
               0,
               bufferSize,
               0,
               &data);
+  if (Log::gpu_trace_enabled()) {
+    Log::text("{ WR }", "Write host->staging vertex bytes", bufferSize);
+  }
   memcpy(data, vertices.data(), (size_t)bufferSize);
+  if (Log::gpu_trace_enabled()) {
+    Log::text("{ MAP }", "Unmap staging vertex memory", stagingResources.memory);
+  }
   vkUnmapMemory(CE::Device::base_device->logical_device, stagingResources.memory);
 
   CE::Buffer::create(bufferSize,
@@ -258,13 +275,22 @@ void Geometry::createIndexBuffer(VkCommandBuffer &commandBuffer,
                      stagingResources);
 
   void *data;
+  if (Log::gpu_trace_enabled()) {
+    Log::text("{ MAP }", "Map staging index memory", stagingResources.memory, bufferSize);
+  }
   vkMapMemory(CE::Device::base_device->logical_device,
               stagingResources.memory,
               0,
               bufferSize,
               0,
               &data);
+  if (Log::gpu_trace_enabled()) {
+    Log::text("{ WR }", "Write host->staging index bytes", bufferSize);
+  }
   memcpy(data, indices.data(), (size_t)bufferSize);
+  if (Log::gpu_trace_enabled()) {
+    Log::text("{ MAP }", "Unmap staging index memory", stagingResources.memory);
+  }
   vkUnmapMemory(CE::Device::base_device->logical_device, stagingResources.memory);
 
   CE::Buffer::create(bufferSize,
@@ -283,6 +309,10 @@ void Geometry::createIndexBuffer(VkCommandBuffer &commandBuffer,
 void Geometry::loadModel(const std::string &modelName, Geometry &geometry) {
   std::string baseDir = Lib::path("assets/3D/");
   std::string modelPath = baseDir + modelName + ".obj";
+
+  if (Log::gpu_trace_enabled()) {
+    Log::text("{ mdl }", "Load model path", modelPath);
+  }
 
   if (!std::filesystem::exists(modelPath)) {
     throw std::runtime_error("Cannot open file [" + modelPath + "]");
@@ -308,6 +338,22 @@ void Geometry::loadModel(const std::string &modelName, Geometry &geometry) {
   if (!err.empty()) {
     std::cerr << err << '\n';
     return;
+  }
+
+  if (Log::gpu_trace_enabled()) {
+    Log::text("{ mdl }",
+              "Loaded model",
+              modelName,
+              "shapes",
+              shapes.size(),
+              "materials",
+              materials.size(),
+              "positions",
+              attrib.vertices.size() / 3,
+              "normals",
+              attrib.normals.size() / 3,
+              "uvs",
+              attrib.texcoords.size() / 2);
   }
 
   std::unordered_map<Vertex, uint32_t> tempUniqueVertices;
