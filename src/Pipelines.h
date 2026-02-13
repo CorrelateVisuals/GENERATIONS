@@ -41,35 +41,49 @@ class Pipelines {
                   const VkPipelineLayout& computeLayout,
                   VkSampleCountFlagBits& msaaSamples,
                   const vec2_uint_fast16_t gridSize) {
-      pipelineMap["Engine"] = Compute{
-          .shaders = {"Comp"},
-          .workGroups = {static_cast<uint32_t>(gridSize.x + 31) / 32,
-                         static_cast<uint32_t>(gridSize.y + 31) / 32, 1}};
-      pipelineMap["Cells"] =
+        pipelineMap.emplace("Engine",
+                  Compute{.shaders = {"Comp"},
+                      .workGroups = {
+                        static_cast<uint32_t>(gridSize.x + 31) /
+                          32,
+                        static_cast<uint32_t>(gridSize.y + 31) /
+                          32,
+                        1}});
+        pipelineMap.emplace(
+          "Cells",
           Graphics{.shaders = {"Vert", "Frag"},
-                   .vertexAttributes = World::Cell::getAttributeDescription(),
-                   .vertexBindings = World::Cell::getBindingDescription()};
-      pipelineMap["Landscape"] =
+               .vertexAttributes = World::Cell::getAttributeDescription(),
+               .vertexBindings = World::Cell::getBindingDescription()});
+        pipelineMap.emplace(
+          "Landscape",
           Graphics{.shaders = {"Vert", "Frag"},
-                   .vertexAttributes = World::Grid::getAttributeDescription(),
-                   .vertexBindings = World::Grid::getBindingDescription()};
-      pipelineMap["LandscapeWireFrame"] = Graphics{
-          .shaders = {"LandscapeVert", "Tesc", "Tese", "LandscapeFrag"},
-          .vertexAttributes = World::Grid::getAttributeDescription(),
-          .vertexBindings = World::Grid::getBindingDescription()};
-      pipelineMap["Texture"] =
+               .vertexAttributes = World::Grid::getAttributeDescription(),
+               .vertexBindings = World::Grid::getBindingDescription()});
+        pipelineMap.emplace(
+          "LandscapeWireFrame",
+          Graphics{.shaders = {"LandscapeVert", "Tesc", "Tese",
+                     "LandscapeFrag"},
+               .vertexAttributes = World::Grid::getAttributeDescription(),
+               .vertexBindings = World::Grid::getBindingDescription()});
+        pipelineMap.emplace(
+          "Texture",
           Graphics{.shaders = {"Vert", "Frag"},
-                   .vertexAttributes = Shape::getAttributeDescription(),
-                   .vertexBindings = Shape::getBindingDescription()};
-      pipelineMap["Water"] =
+               .vertexAttributes = Shape::getAttributeDescription(),
+               .vertexBindings = Shape::getBindingDescription()});
+        pipelineMap.emplace(
+          "Water",
           Graphics{.shaders = {"Vert", "Frag"},
-                   .vertexAttributes = Shape::getAttributeDescription(),
-                   .vertexBindings = Shape::getBindingDescription()};
-      pipelineMap["PostFX"] = Compute{
-          .shaders = {"Comp"},
-          .workGroups = {
-              static_cast<uint32_t>(Window::get().display.width + 7) / 8,
-              static_cast<uint32_t>(Window::get().display.height + 7) / 8, 1}};
+               .vertexAttributes = Shape::getAttributeDescription(),
+               .vertexBindings = Shape::getBindingDescription()});
+        pipelineMap.emplace(
+          "PostFX",
+          Compute{.shaders = {"Comp"},
+              .workGroups = {
+                static_cast<uint32_t>(Window::get().display.width + 7) /
+                  8,
+                static_cast<uint32_t>(Window::get().display.height + 7) /
+                  8,
+                1}});
 
       compileShaders();
       createPipelines(renderPass, graphicsLayout, computeLayout, msaaSamples);

@@ -38,7 +38,8 @@ class VulkanMechanics {
   };
 
   struct Swapchain : public CE::Swapchain {
-    Swapchain(const VkSurfaceKHR& surface, const CE::Queues& queues) {
+    Swapchain() = default;
+    void initialize(const VkSurfaceKHR& surface, const CE::Queues& queues) {
       create(surface, queues);
     }
     void recreate(const VkSurfaceKHR& surface,
@@ -48,7 +49,8 @@ class VulkanMechanics {
                   Resources& resources);
   };
 
+  Swapchain swapchainSupport;
   Device mainDevice;
-  SynchronizationObjects syncObjects;
   Swapchain swapchain;
+  SynchronizationObjects syncObjects;
 };

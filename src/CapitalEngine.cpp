@@ -3,7 +3,7 @@
 #include "Screenshot.h"
 
 CapitalEngine::CapitalEngine()
-    : pipelines(mechanics, resources), resources(mechanics, pipelines) {
+    : resources(mechanics), pipelines(mechanics, resources) {
   Log::text(Log::Style::headerGuard);
   Log::text("| CAPITAL Engine");
 }
@@ -30,7 +30,6 @@ void CapitalEngine::mainLoop() {
     Window::get().setMouse();
     resources.world._time.run();
 
-    vkDeviceWaitIdle(mechanics.mainDevice.logical);
     drawFrame();
 
     // Screenshot on F12 key press

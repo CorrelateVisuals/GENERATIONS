@@ -13,11 +13,10 @@
 #include <vector>
 
 class VulkanMechanics;
-class Pipelines;
 
 class Resources {
  public:
-  Resources(VulkanMechanics& mechanics, Pipelines& pipelines);
+  Resources(VulkanMechanics& mechanics);
   ~Resources();
 
   // struct CommandResources : public CE::CommandBuffers {

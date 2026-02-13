@@ -1,0 +1,6 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "./bin/CapitalEngine": true,
+        "cmake": true
+    }
+}

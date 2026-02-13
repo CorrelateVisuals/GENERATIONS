@@ -32,7 +32,13 @@ class Window {
 
   bool framebufferResized;
   GLFWwindow* window;
-  DisplayConfiguration display{"GENERATIONS", 3840, 1080};
+    DisplayConfiguration display{
+  #ifdef __linux__
+    "GENERATIONS", 1920, 1080
+  #else
+    "GENERATIONS", 3840, 1080
+  #endif
+    };
   Mouse mouse{0.18f, 0.5f};
 
   static Window& get() { return mainWindow; }

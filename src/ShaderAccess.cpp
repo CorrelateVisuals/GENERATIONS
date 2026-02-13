@@ -50,7 +50,7 @@ void CE::ShaderAccess::CommandResources::recordGraphicsCommandBuffer(
     CE::VULKAN_RESULT(vkBeginCommandBuffer, commandBuffer, &beginInfo);
 
     std::array<VkClearValue, 2> clearValues{
-        VkClearValue{.color = {{0.0f, 0.0f, 0.0f, 1.0f}}},
+        VkClearValue{.color = {{0.1f, 0.6f, 0.9f, 1.0f}}},
         VkClearValue{.depthStencil = {1.0f, 0}} };
 
     VkRenderPassBeginInfo renderPassInfo{
@@ -79,11 +79,24 @@ void CE::ShaderAccess::CommandResources::recordGraphicsCommandBuffer(
         commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelines.graphics.layout,
         0, 1, &resources.descriptorInterface.sets[imageIndex], 0, nullptr);
 
+    const auto bindAndDrawIndexed = [&](const char* pipelineName,
+                                        VkBuffer vertexBuffer,
+                                        VkBuffer indexBuffer,
+                                        uint32_t indexCount) {
+        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+            pipelines.config.getPipelineObjectByName(pipelineName));
+        VkBuffer vertexBuffers[] = { vertexBuffer };
+        VkDeviceSize indexedOffsets[] = { 0 };
+        vkCmdBindVertexBuffers(
+            commandBuffer, 0, 1, vertexBuffers, indexedOffsets);
+        vkCmdBindIndexBuffer(
+            commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+        vkCmdDrawIndexed(commandBuffer, indexCount, 1, 0, 0, 0);
+    };
+
     // Pipeline 1
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
         pipelines.config.getPipelineObjectByName("Cells"));
-    VkDeviceSize offsets[]{ 0 };
-
     VkDeviceSize offsets0[]{ 0, 0 };
 
     VkBuffer currentShaderStorageBuffer[] = {
@@ -99,15 +112,10 @@ void CE::ShaderAccess::CommandResources::recordGraphicsCommandBuffer(
         resources.world._grid.size.x * resources.world._grid.size.y, 0, 0);
 
     // Landscape
-    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-        pipelines.config.getPipelineObjectByName("Landscape"));
-    VkBuffer vertexBuffers1[] = { resources.world._grid.vertexBuffer.buffer };
-    vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers1, offsets);
-    vkCmdBindIndexBuffer(commandBuffer, resources.world._grid.indexBuffer.buffer,
-        0, VK_INDEX_TYPE_UINT32);
-    vkCmdDrawIndexed(commandBuffer,
-        static_cast<uint32_t>(resources.world._grid.indices.size()),
-        1, 0, 0, 0);
+    bindAndDrawIndexed(
+        "Landscape", resources.world._grid.vertexBuffer.buffer,
+        resources.world._grid.indexBuffer.buffer,
+        static_cast<uint32_t>(resources.world._grid.indices.size()));
 
     //   Landscape Wireframe
     vkCmdBindPipeline(
@@ -118,42 +126,33 @@ void CE::ShaderAccess::CommandResources::recordGraphicsCommandBuffer(
         1, 0, 0, 0);
 
     // Pipeline 3
-    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-        pipelines.config.getPipelineObjectByName("Water"));
-    VkBuffer vertexBuffers[] = { resources.world._rectangle.vertexBuffer.buffer };
-    vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
-    vkCmdBindIndexBuffer(commandBuffer,
-        resources.world._rectangle.indexBuffer.buffer, 0,
-        VK_INDEX_TYPE_UINT32);
-    vkCmdDrawIndexed(
-        commandBuffer,
-        static_cast<uint32_t>(resources.world._rectangle.indices.size()), 1, 0, 0,
-        0);
+    bindAndDrawIndexed(
+        "Water", resources.world._rectangle.vertexBuffer.buffer,
+        resources.world._rectangle.indexBuffer.buffer,
+        static_cast<uint32_t>(resources.world._rectangle.indices.size()));
 
     // Pipeline 4
-    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-        pipelines.config.getPipelineObjectByName("Texture"));
-    vkCmdDrawIndexed(
-        commandBuffer,
-        static_cast<uint32_t>(resources.world._rectangle.indices.size()), 1, 0, 0,
-        0);
+    bindAndDrawIndexed(
+        "Texture", resources.world._rectangle.vertexBuffer.buffer,
+        resources.world._rectangle.indexBuffer.buffer,
+        static_cast<uint32_t>(resources.world._rectangle.indices.size()));
     vkCmdEndRenderPass(commandBuffer);
 
     //       This is part of an image memory barrier (i.e., vkCmdPipelineBarrier
     //       with the VkImageMemoryBarrier parameter set)
 
     swapchain.images[imageIndex].transitionLayout(
-        commandBuffer, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+        commandBuffer, VK_FORMAT_R8G8B8A8_SRGB,
+        VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
         /* -> */ VK_IMAGE_LAYOUT_GENERAL);
-
-    // vkDeviceWaitIdle(_mainDevice.logical);
 
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
         pipelines.config.getPipelineObjectByName("PostFX"));
 
     vkCmdBindDescriptorSets(
-        commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipelines.compute.layout,
-        0, 1, &resources.descriptorInterface.sets[imageIndex], 0, nullptr);
+        commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
+        pipelines.compute.layout, 0, 1,
+        &resources.descriptorInterface.sets[imageIndex], 0, nullptr);
 
     resources.pushConstant.setData(resources.world._time.passedHours);
     vkCmdPushConstants(commandBuffer, pipelines.compute.layout,

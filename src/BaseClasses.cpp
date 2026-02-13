@@ -5,6 +5,7 @@
 #include "Library.h"
 
 #include <algorithm>
+#include <fstream>
 #include <set>
 
 CE::Device* CE::Device::baseDevice = nullptr;
@@ -624,19 +625,36 @@ CE::CommandBuffers::~CommandBuffers() {
 void CE::CommandBuffers::createPool(
     const Queues::FamilyIndices& familyIndices) {
   Log::text("{ cmd }", "Command Pool");
+  if (!Device::baseDevice) {
+    Log::text("{ cmd }", "Command Pool: baseDevice is null");
+  } else {
+    Log::text("{ cmd }", "Command Pool: device", Device::baseDevice->logical,
+              "@", &Device::baseDevice->logical);
+  }
+  Log::text("{ cmd }", "Command Pool: queue family",
+            familyIndices.graphicsAndComputeFamily.value());
 
   VkCommandPoolCreateInfo poolInfo{
       .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
       .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
       .queueFamilyIndex = familyIndices.graphicsAndComputeFamily.value()};
 
-  CE::VULKAN_RESULT(vkCreateCommandPool, Device::baseDevice->logical, &poolInfo,
-                    nullptr, &this->pool);
+  VkResult result =
+      vkCreateCommandPool(Device::baseDevice->logical, &poolInfo, nullptr,
+                          &this->pool);
+  Log::text("{ cmd }", "Command Pool created", result, this->pool, "@",
+            &this->pool);
+  if (result != VK_SUCCESS) {
+    throw std::runtime_error("!ERROR! vkCreateCommandPool failed!");
+  }
 }
 
 void CE::CommandBuffers::beginSingularCommands(const VkCommandPool& commandPool,
                                                const VkQueue& queue) {
   Log::text("{ 1.. }", "Begin Single Time CommandResources");
+  Log::text("{ 1.. }", "Single Time: device", Device::baseDevice->logical,
+            "@", &Device::baseDevice->logical);
+  Log::text("{ 1.. }", "Single Time: pool", commandPool, "queue", queue);
 
   VkCommandBufferAllocateInfo allocInfo{
       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
@@ -644,13 +662,17 @@ void CE::CommandBuffers::beginSingularCommands(const VkCommandPool& commandPool,
       .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
       .commandBufferCount = 1};
 
-  vkAllocateCommandBuffers(Device::baseDevice->logical, &allocInfo,
-                           &singularCommandBuffer);
+  VkResult allocResult =
+      vkAllocateCommandBuffers(Device::baseDevice->logical, &allocInfo,
+                               &singularCommandBuffer);
+  Log::text("{ 1.. }", "Single Time alloc result", allocResult,
+            singularCommandBuffer);
 
   VkCommandBufferBeginInfo beginInfo{
       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
       .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT};
-  vkBeginCommandBuffer(singularCommandBuffer, &beginInfo);
+  VkResult beginResult = vkBeginCommandBuffer(singularCommandBuffer, &beginInfo);
+  Log::text("{ 1.. }", "Single Time begin result", beginResult);
 
   return;
 }
@@ -658,29 +680,54 @@ void CE::CommandBuffers::beginSingularCommands(const VkCommandPool& commandPool,
 void CE::CommandBuffers::endSingularCommands(const VkCommandPool& commandPool,
                                              const VkQueue& queue) {
   Log::text("{ ..1 }", "End Single Time CommandResources");
+  Log::text("{ ..1 }", "Single Time: pool", commandPool, "queue", queue);
 
-  vkEndCommandBuffer(singularCommandBuffer);
+  VkResult endResult = vkEndCommandBuffer(singularCommandBuffer);
+  Log::text("{ ..1 }", "Single Time end result", endResult);
   VkSubmitInfo submitInfo{.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
                           .commandBufferCount = 1,
                           .pCommandBuffers = &singularCommandBuffer};
 
-  vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE);
-  vkQueueWaitIdle(queue);
+  VkResult submitResult = vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE);
+  Log::text("{ ..1 }", "Single Time submit result", submitResult);
+  VkResult waitResult = vkQueueWaitIdle(queue);
+  Log::text("{ ..1 }", "Single Time wait result", waitResult);
   vkFreeCommandBuffers(Device::baseDevice->logical, commandPool, 1,
                        &singularCommandBuffer);
+  Log::text("{ ..1 }", "Single Time freed", singularCommandBuffer);
 }
 
 void CE::CommandBuffers::createBuffers(
     std::array<VkCommandBuffer, MAX_FRAMES_IN_FLIGHT>& commandBuffers) const {
   Log::text("{ cmd }", "Command Buffers:", MAX_FRAMES_IN_FLIGHT);
+  if (!Device::baseDevice) {
+    Log::text("{ cmd }", "Command Buffers: baseDevice is null");
+  } else {
+    Log::text("{ cmd }", "Command Buffers: device", Device::baseDevice->logical,
+              "@", &Device::baseDevice->logical);
+  }
+  Log::text("{ cmd }", "Command Buffers: pool", this->pool, "@", &this->pool);
+  Log::text("{ cmd }", "Command Buffers: array", commandBuffers.data(),
+            "count", static_cast<uint32_t>(commandBuffers.size()));
   VkCommandBufferAllocateInfo allocateInfo{
       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
       .commandPool = this->pool,
       .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
       .commandBufferCount = static_cast<uint32_t>(commandBuffers.size())};
 
-  CE::VULKAN_RESULT(vkAllocateCommandBuffers, CE::Device::baseDevice->logical,
-                    &allocateInfo, commandBuffers.data());
+  VkResult result = vkAllocateCommandBuffers(CE::Device::baseDevice->logical,
+                                             &allocateInfo,
+                                             commandBuffers.data());
+  Log::text("{ cmd }", "Command Buffers alloc result", result);
+  for (size_t i = 0; i < commandBuffers.size(); ++i) {
+    Log::text("{ cmd }", "Command Buffer", static_cast<uint32_t>(i),
+              commandBuffers[i]);
+  }
+  if (result != VK_SUCCESS) {
+    throw std::runtime_error("!ERROR! vkAllocateCommandBuffers failed!");
+  }
+  Log::text("{ cmd }", "Command Buffers allocated",
+            static_cast<uint32_t>(commandBuffers.size()));
 }
 
 void CE::Device::destroyDevice() {
@@ -696,6 +743,10 @@ void CE::Device::destroyDevice() {
     extensions.clear();
     vkDestroyDevice(this->logical, nullptr);
     destroyedDevices.push_back(this->logical);
+    if (Device::baseDevice == this) {
+      Device::baseDevice = nullptr;
+    }
+    this->logical = VK_NULL_HANDLE;
   }
 }
 
@@ -1175,8 +1226,7 @@ void CE::PipelinesConfiguration::createPipelines(
 
     if (!isCompute) [[likely]] {
       Log::text("{ === }", "Graphics Pipeline: ", pipelineName);
-      std::variant<Graphics, Compute>& pipelineVariant =
-          this->pipelineMap[pipelineName];
+        std::variant<Graphics, Compute>& pipelineVariant = entry.second;
 
       std::vector<VkPipelineShaderStageCreateInfo> shaderStages{};
       bool tesselationEnabled = setShaderStages(pipelineName, shaderStages);
@@ -1376,9 +1426,16 @@ void CE::PipelinesConfiguration::compileShaders() {
       if (shader == "Comp" || shader == "Vert" || shader == "Tesc" ||
           shader == "Tese" || shader == "Frag") {
         shaderExtension = Lib::upperToLowerCase(shader);
-        systemCommand = Lib::path(this->shaderDir + pipelineName + "." +
-                                  shaderExtension + " -o " + this->shaderDir +
-                                  pipelineName + shader + ".spv");
+        std::string shaderSourcePath =
+            this->shaderDir + pipelineName + "." + shaderExtension;
+        std::string shaderOutputPath =
+            this->shaderDir + pipelineName + shader + ".spv";
+        std::ifstream outputFile(shaderOutputPath);
+        if (outputFile.good()) {
+          continue;
+        }
+        systemCommand =
+            Lib::path(shaderSourcePath + " -o " + shaderOutputPath);
         system(systemCommand.c_str());
       }
     }
@@ -1387,7 +1444,7 @@ void CE::PipelinesConfiguration::compileShaders() {
 
 VkPipeline& CE::PipelinesConfiguration::getPipelineObjectByName(
     const std::string& name) {
-  std::variant<Graphics, Compute>& variant = this->pipelineMap[name];
+  std::variant<Graphics, Compute>& variant = this->pipelineMap.at(name);
   if (std::holds_alternative<Graphics>(variant)) {
     return std::get<Graphics>(variant).pipeline;
   } else {
@@ -1405,7 +1462,7 @@ void CE::PipelinesConfiguration::destroyShaderModules() {
 
 const std::vector<std::string>&
 CE::PipelinesConfiguration::getPipelineShadersByName(const std::string& name) {
-  std::variant<Graphics, Compute>& variant = this->pipelineMap[name];
+  std::variant<Graphics, Compute>& variant = this->pipelineMap.at(name);
 
   if (std::holds_alternative<Graphics>(variant)) {
     return std::get<Graphics>(variant).shaders;
@@ -1416,7 +1473,7 @@ CE::PipelinesConfiguration::getPipelineShadersByName(const std::string& name) {
 
 const std::array<uint32_t, 3>& CE::PipelinesConfiguration::getWorkGroupsByName(
     const std::string& name) {
-  std::variant<Graphics, Compute>& variant = this->pipelineMap[name];
+  std::variant<Graphics, Compute>& variant = this->pipelineMap.at(name);
   return std::get<CE::PipelinesConfiguration::Compute>(variant).workGroups;
 };
 
