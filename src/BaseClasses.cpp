@@ -130,10 +130,6 @@ const bool CE::Device::isDeviceSuitable(const VkPhysicalDevice& physical,
 }
 
 void CE::Device::getMaxUsableSampleCount() {
-#ifdef __linux__
-  this->maxUsableSampleCount = VK_SAMPLE_COUNT_1_BIT;
-  return;
-#endif
   vkGetPhysicalDeviceProperties(this->physical, &this->properties);
   VkSampleCountFlags counts =
       this->properties.limits.framebufferColorSampleCounts &
