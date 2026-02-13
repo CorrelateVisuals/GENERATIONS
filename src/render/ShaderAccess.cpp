@@ -122,19 +122,19 @@ void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
                                               resources.shader_storage.buffer_out.buffer};
 
   VkBuffer vertex_buffers_0[] = {current_shader_storage_buffer[frame_index],
-                                 resources.world._cube.vertexBuffer.buffer};
+                                 resources.world._cube.vertex_buffer.buffer};
 
   vkCmdBindVertexBuffers(command_buffer, 0, 2, vertex_buffers_0, offsets_0);
   vkCmdDraw(command_buffer,
-            static_cast<uint32_t>(resources.world._cube.allVertices.size()),
+            static_cast<uint32_t>(resources.world._cube.all_vertices.size()),
             resources.world._grid.size.x * resources.world._grid.size.y,
             0,
             0);
 
   // Landscape
   bind_and_draw_indexed("Landscape",
-                        resources.world._grid.vertexBuffer.buffer,
-                        resources.world._grid.indexBuffer.buffer,
+                        resources.world._grid.vertex_buffer.buffer,
+                        resources.world._grid.index_buffer.buffer,
                         static_cast<uint32_t>(resources.world._grid.indices.size()));
 
   //   Landscape Wireframe
@@ -150,14 +150,14 @@ void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
 
   // Pipeline 3
   bind_and_draw_indexed("Water",
-                        resources.world._rectangle.vertexBuffer.buffer,
-                        resources.world._rectangle.indexBuffer.buffer,
+                        resources.world._rectangle.vertex_buffer.buffer,
+                        resources.world._rectangle.index_buffer.buffer,
                         static_cast<uint32_t>(resources.world._rectangle.indices.size()));
 
   // Pipeline 4
   bind_and_draw_indexed("Texture",
-                        resources.world._rectangle.vertexBuffer.buffer,
-                        resources.world._rectangle.indexBuffer.buffer,
+                        resources.world._rectangle.vertex_buffer.buffer,
+                        resources.world._rectangle.index_buffer.buffer,
                         static_cast<uint32_t>(resources.world._rectangle.indices.size()));
   vkCmdEndRenderPass(command_buffer);
 

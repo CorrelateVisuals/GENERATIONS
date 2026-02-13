@@ -59,23 +59,23 @@ class Pipelines {
           "Landscape",
           Graphics{.shaders = {"Vert", "Frag"},
                .vertex_attributes = World::Grid::getAttributeDescription(),
-               .vertex_bindings = World::Grid::getBindingDescription()});
+               .vertex_bindings = World::Grid::get_binding_description()});
         pipeline_map.emplace(
           "LandscapeWireFrame",
           Graphics{.shaders = {"LandscapeVert", "Tesc", "Tese",
                      "LandscapeFrag"},
                .vertex_attributes = World::Grid::getAttributeDescription(),
-               .vertex_bindings = World::Grid::getBindingDescription()});
+               .vertex_bindings = World::Grid::get_binding_description()});
         pipeline_map.emplace(
           "Texture",
           Graphics{.shaders = {"Vert", "Frag"},
-               .vertex_attributes = Shape::getAttributeDescription(),
-               .vertex_bindings = Shape::getBindingDescription()});
+               .vertex_attributes = Shape::get_attribute_description(),
+               .vertex_bindings = Shape::get_binding_description()});
         pipeline_map.emplace(
           "Water",
           Graphics{.shaders = {"Vert", "Frag"},
-               .vertex_attributes = Shape::getAttributeDescription(),
-               .vertex_bindings = Shape::getBindingDescription()});
+               .vertex_attributes = Shape::get_attribute_description(),
+               .vertex_bindings = Shape::get_binding_description()});
         pipeline_map.emplace(
           "PostFX",
           Compute{.shaders = {"Comp"},
