@@ -5,13 +5,16 @@
 #include "core/Log.h"
 #include "Resources.h"
 
-Pipelines::Pipelines(VulkanMechanics& mechanics, Resources& resources)
+Pipelines::Pipelines(VulkanMechanics &mechanics, Resources &resources)
     : compute{resources.descriptorInterface, resources.pushConstant},
-      graphics{ resources.descriptorInterface},
-      render{mechanics.swapchain, resources.msaaImage,
-             resources.depthImage.view},
-      config{render.renderPass, graphics.layout, compute.layout,
-             resources.msaaImage.info.samples, resources.world._grid.size} {
+      graphics{resources.descriptorInterface}, render{mechanics.swapchain,
+                                                      resources.msaaImage,
+                                                      resources.depthImage.view},
+      config{render.renderPass,
+             graphics.layout,
+             compute.layout,
+             resources.msaaImage.info.samples,
+             resources.world._grid.size} {
   Log::text("{ === }", "constructing Pipelines");
 }
 

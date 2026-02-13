@@ -8,7 +8,7 @@ int main() {
     CapitalEngine GENERATIONS;
     GENERATIONS.mainLoop();
 
-  } catch (const std::exception& e) {
+  } catch (const std::exception &e) {
     Log::text(e.what());
     return EXIT_FAILURE;
   } catch (...) {

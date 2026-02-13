@@ -7,243 +7,254 @@
 #include <set>
 #include <stdexcept>
 
-CE::Device *CE::Device::baseDevice = nullptr;
-std::vector<VkDevice> CE::Device::destroyedDevices;
+CE::Device *CE::Device::base_device = nullptr;
+std::vector<VkDevice> CE::Device::destroyed_devices;
 
-void CE::Device::createLogicalDevice(const InitializeVulkan &initVulkan, Queues &queues) {
+void CE::Device::create_logical_device(const InitializeVulkan &init_vulkan,
+                     Queues &queues) {
   Log::text("{ +++ }", "Logical Device");
 
-  std::vector<VkDeviceQueueCreateInfo> queueCreateInfos = fillQueueCreateInfos(queues);
-  VkDeviceCreateInfo createInfo = getDeviceCreateInfo(queueCreateInfos);
-  setValidationLayers(initVulkan, createInfo);
+  std::vector<VkDeviceQueueCreateInfo> queue_create_infos =
+      fill_queue_create_infos(queues);
+  VkDeviceCreateInfo create_info = get_device_create_info(queue_create_infos);
+  set_validation_layers(init_vulkan, create_info);
 
-  CE::VULKAN_RESULT(vkCreateDevice, this->physical, &createInfo, nullptr, &this->logical);
+  CE::VULKAN_RESULT(
+    vkCreateDevice, this->physical_device, &create_info, nullptr, &this->logical_device);
   Log::text(
-      "{ GPU }", Log::function_name(__func__), "Logical Device created", this->logical);
-  vkGetDeviceQueue(this->logical,
-                   queues.familyIndices.graphicsAndComputeFamily.value(),
+    "{ GPU }", Log::function_name(__func__), "Logical Device created", this->logical_device);
+  vkGetDeviceQueue(this->logical_device,
+           queues.family_indices.graphics_and_compute_family.value(),
                    0,
-                   &queues.graphics);
-  vkGetDeviceQueue(this->logical,
-                   queues.familyIndices.graphicsAndComputeFamily.value(),
+           &queues.graphics_queue);
+  vkGetDeviceQueue(this->logical_device,
+           queues.family_indices.graphics_and_compute_family.value(),
                    0,
-                   &queues.compute);
+           &queues.compute_queue);
   vkGetDeviceQueue(
-      this->logical, queues.familyIndices.presentFamily.value(), 0, &queues.present);
+    this->logical_device, queues.family_indices.present_family.value(), 0,
+    &queues.present_queue);
 
   Log::text(Log::Style::charLeader,
             "graphics/compute queue family",
-            queues.familyIndices.graphicsAndComputeFamily.value());
+      queues.family_indices.graphics_and_compute_family.value());
   Log::text(Log::Style::charLeader,
             "present queue family",
-            queues.familyIndices.presentFamily.value());
+      queues.family_indices.present_family.value());
   Log::text(Log::Style::charLeader,
             "queue handles",
-            queues.graphics,
-            queues.compute,
-            queues.present);
+      queues.graphics_queue,
+      queues.compute_queue,
+      queues.present_queue);
 }
 
-void CE::Device::pickPhysicalDevice(const InitializeVulkan &initVulkan,
-                                    Queues &queues,
-                                    Swapchain &swapchain) {
+void CE::Device::pick_physical_device(const InitializeVulkan &init_vulkan,
+                    Queues &queues,
+                    Swapchain &swapchain) {
   Log::text("{ ### }", "Physical Device");
-  std::vector<VkPhysicalDevice> devices = fillDevices(initVulkan);
+  std::vector<VkPhysicalDevice> devices = fill_devices(init_vulkan);
   Log::text("{ GPU }",
             Log::function_name(__func__),
             "Enumerated Vulkan physical devices",
             devices.size());
 
   for (const auto &device : devices) {
-    if (isDeviceSuitable(device, queues, initVulkan, swapchain)) {
-      this->physical = device;
-      getMaxUsableSampleCount();
+    if (is_device_suitable(device, queues, init_vulkan, swapchain)) {
+      this->physical_device = device;
+      get_max_usable_sample_count();
       Log::text(Log::Style::charLeader,
-                Log::getSampleCountString(this->maxUsableSampleCount));
-      Log::text(Log::Style::charLeader, "selected physical device", this->physical);
+                Log::getSampleCountString(this->max_usable_sample_count));
+      Log::text(
+          Log::Style::charLeader, "selected physical device", this->physical_device);
       break;
     }
   }
-  if (this->physical == VK_NULL_HANDLE) {
+  if (this->physical_device == VK_NULL_HANDLE) {
     throw std::runtime_error("\n!ERROR! failed to find a suitable GPU!");
   }
 }
 
 std::vector<VkDeviceQueueCreateInfo>
-CE::Device::fillQueueCreateInfos(const Queues &queues) const {
-  std::vector<VkDeviceQueueCreateInfo> queueCreateInfos{};
-  std::set<uint32_t> uniqueQueueFamilies = {
-      queues.familyIndices.graphicsAndComputeFamily.value(),
-      queues.familyIndices.presentFamily.value()};
+CE::Device::fill_queue_create_infos(const Queues &queues) const {
+  std::vector<VkDeviceQueueCreateInfo> queue_create_infos{};
+  std::set<uint32_t> unique_queue_families = {
+      queues.family_indices.graphics_and_compute_family.value(),
+      queues.family_indices.present_family.value()};
 
-  float queuePriority = 1.0f;
-  for (uint_fast8_t queueFamily : uniqueQueueFamilies) {
-    VkDeviceQueueCreateInfo queueCreateInfo{
+  float queue_priority = 1.0f;
+  for (uint_fast8_t queue_family : unique_queue_families) {
+    VkDeviceQueueCreateInfo queue_create_info{
         .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
-        .queueFamilyIndex = queueFamily,
+        .queueFamilyIndex = queue_family,
         .queueCount = 1,
-        .pQueuePriorities = &queuePriority};
-    queueCreateInfos.push_back(queueCreateInfo);
+        .pQueuePriorities = &queue_priority};
+    queue_create_infos.push_back(queue_create_info);
   }
-  return queueCreateInfos;
+  return queue_create_infos;
 }
 
-VkDeviceCreateInfo CE::Device::getDeviceCreateInfo(
-    const std::vector<VkDeviceQueueCreateInfo> &queueCreateInfos) const {
-  VkDeviceCreateInfo createInfo{
+VkDeviceCreateInfo CE::Device::get_device_create_info(
+    const std::vector<VkDeviceQueueCreateInfo> &queue_create_infos) const {
+  VkDeviceCreateInfo create_info{
       .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
-      .queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size()),
-      .pQueueCreateInfos = queueCreateInfos.data(),
+      .queueCreateInfoCount = static_cast<uint32_t>(queue_create_infos.size()),
+      .pQueueCreateInfos = queue_create_infos.data(),
       .enabledLayerCount = 0,
-      .enabledExtensionCount = static_cast<uint32_t>(this->extensions.size()),
-      .ppEnabledExtensionNames = this->extensions.data(),
+      .enabledExtensionCount = static_cast<uint32_t>(this->extensions_.size()),
+      .ppEnabledExtensionNames = this->extensions_.data(),
       .pEnabledFeatures = &this->features};
-  return createInfo;
+  return create_info;
 }
 
-void CE::Device::setValidationLayers(const InitializeVulkan &initVulkan,
-                                     VkDeviceCreateInfo &createInfo) {
-  if (initVulkan.validation.enableValidationLayers) {
-    createInfo.enabledLayerCount =
-        static_cast<uint32_t>(initVulkan.validation.validation.size());
-    createInfo.ppEnabledLayerNames = initVulkan.validation.validation.data();
+void CE::Device::set_validation_layers(const InitializeVulkan &init_vulkan,
+                                       VkDeviceCreateInfo &create_info) {
+  if (init_vulkan.validation.enableValidationLayers) {
+    create_info.enabledLayerCount =
+        static_cast<uint32_t>(init_vulkan.validation.validation.size());
+    create_info.ppEnabledLayerNames = init_vulkan.validation.validation.data();
   }
 }
 
 std::vector<VkPhysicalDevice>
-CE::Device::fillDevices(const InitializeVulkan &initVulkan) const {
-  uint32_t deviceCount(0);
-  vkEnumeratePhysicalDevices(initVulkan.instance, &deviceCount, nullptr);
+CE::Device::fill_devices(const InitializeVulkan &init_vulkan) const {
+  uint32_t device_count(0);
+  vkEnumeratePhysicalDevices(init_vulkan.instance, &device_count, nullptr);
 
-  if (deviceCount == 0) {
+  if (device_count == 0) {
     throw std::runtime_error("\n!ERROR! failed to find GPUs with Vulkan support!");
   }
 
-  std::vector<VkPhysicalDevice> devices(deviceCount);
-  vkEnumeratePhysicalDevices(initVulkan.instance, &deviceCount, devices.data());
+  std::vector<VkPhysicalDevice> devices(device_count);
+  vkEnumeratePhysicalDevices(init_vulkan.instance, &device_count, devices.data());
   return devices;
 }
 
-bool CE::Device::isDeviceSuitable(const VkPhysicalDevice &physical,
-                                  Queues &queues,
-                                  const InitializeVulkan &initVulkan,
-                                  Swapchain &swapchain) {
+bool CE::Device::is_device_suitable(const VkPhysicalDevice &physical_device,
+                                    Queues &queues,
+                                    const InitializeVulkan &init_vulkan,
+                                    Swapchain &swapchain) {
   Log::text(Log::Style::charLeader, "Is Device Suitable");
 
-  queues.familyIndices = queues.findQueueFamilies(physical, initVulkan.surface);
-  bool extensionsSupported = checkDeviceExtensionSupport(physical);
+  queues.family_indices =
+      queues.find_queue_families(physical_device, init_vulkan.surface);
+  bool extensions_supported = check_device_extension_support(physical_device);
 
-  bool swapchainAdequate = false;
-  if (extensionsSupported) {
-    Swapchain::SupportDetails swapchainSupport =
-        swapchain.checkSupport(physical, initVulkan.surface);
-    swapchainAdequate =
-        !swapchainSupport.formats.empty() && !swapchainSupport.presentModes.empty();
+  bool swapchain_adequate = false;
+  if (extensions_supported) {
+    Swapchain::SupportDetails swapchain_support =
+        swapchain.checkSupport(physical_device, init_vulkan.surface);
+    swapchain_adequate =
+        !swapchain_support.formats.empty() && !swapchain_support.presentModes.empty();
   }
   Log::text(Log::Style::charLeader,
             "queueComplete",
-            queues.familyIndices.isComplete(),
+            queues.family_indices.is_complete(),
             "extensions",
-            extensionsSupported,
+            extensions_supported,
             "swapchainAdequate",
-            swapchainAdequate);
-  return queues.familyIndices.isComplete() && extensionsSupported && swapchainAdequate;
+            swapchain_adequate);
+  return queues.family_indices.is_complete() && extensions_supported &&
+         swapchain_adequate;
 }
 
-void CE::Device::getMaxUsableSampleCount() {
-  vkGetPhysicalDeviceProperties(this->physical, &this->properties);
-  VkSampleCountFlags counts = this->properties.limits.framebufferColorSampleCounts &
-                              this->properties.limits.framebufferDepthSampleCounts;
+void CE::Device::get_max_usable_sample_count() {
+  vkGetPhysicalDeviceProperties(this->physical_device, &this->properties_);
+  VkSampleCountFlags counts = this->properties_.limits.framebufferColorSampleCounts &
+                              this->properties_.limits.framebufferDepthSampleCounts;
   for (uint_fast8_t i = VK_SAMPLE_COUNT_64_BIT; i >= VK_SAMPLE_COUNT_1_BIT; i >>= 1) {
     if (counts & i) {
-      this->maxUsableSampleCount = static_cast<VkSampleCountFlagBits>(i);
+      this->max_usable_sample_count = static_cast<VkSampleCountFlagBits>(i);
       return;
     } else {
-      this->maxUsableSampleCount = VK_SAMPLE_COUNT_1_BIT;
+      this->max_usable_sample_count = VK_SAMPLE_COUNT_1_BIT;
     }
   }
   return;
 }
 
-bool CE::Device::checkDeviceExtensionSupport(const VkPhysicalDevice &physical) const {
+bool CE::Device::check_device_extension_support(
+    const VkPhysicalDevice &physical_device) const {
   Log::text(Log::Style::charLeader, "Check Device Extension Support");
-  uint32_t extensionCount(0);
-  vkEnumerateDeviceExtensionProperties(physical, nullptr, &extensionCount, nullptr);
-
-  std::vector<VkExtensionProperties> availableExtensions(extensionCount);
+  uint32_t extension_count(0);
   vkEnumerateDeviceExtensionProperties(
-      physical, nullptr, &extensionCount, availableExtensions.data());
+      physical_device, nullptr, &extension_count, nullptr);
+
+  std::vector<VkExtensionProperties> available_extensions(extension_count);
+  vkEnumerateDeviceExtensionProperties(
+      physical_device, nullptr, &extension_count, available_extensions.data());
   Log::text(Log::Style::charLeader,
             "available extensions",
-            extensionCount,
+            extension_count,
             "required",
-            this->extensions.size());
+            this->extensions_.size());
 
-  std::set<std::string> requiredExtensions(this->extensions.begin(),
-                                           this->extensions.end());
+  std::set<std::string> required_extensions(this->extensions_.begin(),
+                                            this->extensions_.end());
 
-  for (const auto &extension : availableExtensions) {
-    requiredExtensions.erase(extension.extensionName);
+  for (const auto &extension : available_extensions) {
+    required_extensions.erase(extension.extensionName);
   }
-  if (!requiredExtensions.empty()) {
+  if (!required_extensions.empty()) {
     Log::text("{ GPU }",
               Log::function_name(__func__),
               "missing required device extensions",
-              requiredExtensions.size());
+              required_extensions.size());
   }
-  return requiredExtensions.empty();
+  return required_extensions.empty();
 }
 
-void CE::Device::destroyDevice() {
-  static bool isDeviceDestroyed = false;
-  for (const VkDevice &device : destroyedDevices) {
-    if (device == this->logical) {
-      isDeviceDestroyed = true;
+void CE::Device::destroy_device() {
+  static bool is_device_destroyed = false;
+  for (const VkDevice &device : destroyed_devices) {
+    if (device == this->logical_device) {
+      is_device_destroyed = true;
       break;
     }
   }
-  if (!isDeviceDestroyed) {
-    Log::text("{ +++ }", "Destroy Device", this->logical, "@", &this->logical);
-    extensions.clear();
-    vkDestroyDevice(this->logical, nullptr);
-    destroyedDevices.push_back(this->logical);
-    if (Device::baseDevice == this) {
-      Device::baseDevice = nullptr;
+  if (!is_device_destroyed) {
+    Log::text(
+        "{ +++ }", "Destroy Device", this->logical_device, "@", &this->logical_device);
+    extensions_.clear();
+    vkDestroyDevice(this->logical_device, nullptr);
+    destroyed_devices.push_back(this->logical_device);
+    if (Device::base_device == this) {
+      Device::base_device = nullptr;
     }
-    this->logical = VK_NULL_HANDLE;
+    this->logical_device = VK_NULL_HANDLE;
   }
 }
 
 CE::Queues::FamilyIndices
-CE::Queues::findQueueFamilies(const VkPhysicalDevice &physicalDevice,
+CE::Queues::find_queue_families(const VkPhysicalDevice &physical_device,
                               const VkSurfaceKHR &surface) const {
   Log::text(Log::Style::charLeader, "Find Queue Families");
 
   CE::Queues::FamilyIndices indices{};
-  uint32_t queueFamilyCount(0);
-  vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, nullptr);
-  std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+  uint32_t queue_family_count(0);
   vkGetPhysicalDeviceQueueFamilyProperties(
-      physicalDevice, &queueFamilyCount, queueFamilies.data());
+      physical_device, &queue_family_count, nullptr);
+  std::vector<VkQueueFamilyProperties> queue_families(queue_family_count);
+  vkGetPhysicalDeviceQueueFamilyProperties(
+      physical_device, &queue_family_count, queue_families.data());
 
   int i(0);
-  for (const auto &queueFamily : queueFamilies) {
-    if ((queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) &&
-        (queueFamily.queueFlags & VK_QUEUE_COMPUTE_BIT)) {
-      indices.graphicsAndComputeFamily = i;
+  for (const auto &queue_family : queue_families) {
+    if ((queue_family.queueFlags & VK_QUEUE_GRAPHICS_BIT) &&
+        (queue_family.queueFlags & VK_QUEUE_COMPUTE_BIT)) {
+      indices.graphics_and_compute_family = i;
     }
-    VkBool32 presentSupport = false;
-    vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, i, surface, &presentSupport);
-    if (presentSupport) {
-      indices.presentFamily = i;
+    VkBool32 present_support = false;
+    vkGetPhysicalDeviceSurfaceSupportKHR(physical_device, i, surface, &present_support);
+    if (present_support) {
+      indices.present_family = i;
     }
-    if (indices.isComplete()) {
+    if (indices.is_complete()) {
       Log::text(Log::Style::charLeader,
                 "selected queue families",
                 "gc",
-                indices.graphicsAndComputeFamily.value(),
+                indices.graphics_and_compute_family.value(),
                 "present",
-                indices.presentFamily.value());
+                indices.present_family.value());
       break;
     }
     i++;
@@ -253,9 +264,9 @@ CE::Queues::findQueueFamilies(const VkPhysicalDevice &physicalDevice,
 
 CE::InitializeVulkan::InitializeVulkan() {
   Log::text("{ VkI }", "constructing Initialize Vulkan");
-  createInstance();
+  create_instance();
   this->validation.setupDebugMessenger(this->instance);
-  createSurface(Window::get().window);
+  create_surface(Window::get().window);
 }
 
 CE::InitializeVulkan::~InitializeVulkan() {
@@ -268,64 +279,64 @@ CE::InitializeVulkan::~InitializeVulkan() {
   vkDestroyInstance(this->instance, nullptr);
 }
 
-void CE::InitializeVulkan::createInstance() {
+void CE::InitializeVulkan::create_instance() {
   Log::text("{ VkI }", "Vulkan Instance");
   if (this->validation.enableValidationLayers &&
       !this->validation.checkValidationLayerSupport()) {
     throw std::runtime_error("\n!ERROR! validation layers requested, but not available!");
   }
 
-  VkApplicationInfo appInfo{.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
-                            .pApplicationName = Window::get().display.title,
-                            .applicationVersion = VK_MAKE_VERSION(0, 0, 1),
-                            .pEngineName = "CAPITAL Engine",
-                            .engineVersion = VK_MAKE_VERSION(0, 0, 1),
-                            .apiVersion = VK_API_VERSION_1_3};
+  VkApplicationInfo app_info{.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
+                             .pApplicationName = Window::get().display.title,
+                             .applicationVersion = VK_MAKE_VERSION(0, 0, 1),
+                             .pEngineName = "CAPITAL Engine",
+                             .engineVersion = VK_MAKE_VERSION(0, 0, 1),
+                             .apiVersion = VK_API_VERSION_1_3};
   Log::text(Log::Style::charLeader,
-            appInfo.pApplicationName,
-            appInfo.applicationVersion,
+            app_info.pApplicationName,
+            app_info.applicationVersion,
             "-",
-            appInfo.pEngineName,
-            appInfo.engineVersion,
+            app_info.pEngineName,
+            app_info.engineVersion,
             "-",
             "Vulkan",
             1.3);
 
-  std::vector<const char *> extensions = getRequiredExtensions();
+  std::vector<const char *> extensions = get_required_extensions();
 
   VkInstanceCreateInfo createInfo{.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
                                   .pNext = nullptr,
-                                  .pApplicationInfo = &appInfo,
+                                  .pApplicationInfo = &app_info,
                                   .enabledLayerCount = 0,
                                   .enabledExtensionCount =
                                       static_cast<uint32_t>(extensions.size()),
                                   .ppEnabledExtensionNames = extensions.data()};
 
-  VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
+  VkDebugUtilsMessengerCreateInfoEXT debug_create_info{};
   if (this->validation.enableValidationLayers) {
     createInfo.enabledLayerCount =
         static_cast<uint32_t>(this->validation.validation.size());
     createInfo.ppEnabledLayerNames = this->validation.validation.data();
 
-    this->validation.populateDebugMessengerCreateInfo(debugCreateInfo);
-    createInfo.pNext = &debugCreateInfo;
+    this->validation.populateDebugMessengerCreateInfo(debug_create_info);
+    createInfo.pNext = &debug_create_info;
   }
   CE::VULKAN_RESULT(vkCreateInstance, &createInfo, nullptr, &this->instance);
 }
 
-void CE::InitializeVulkan::createSurface(GLFWwindow *window) {
+void CE::InitializeVulkan::create_surface(GLFWwindow *window) {
   Log::text("{ [ ] }", "Surface");
   CE::VULKAN_RESULT(
       glfwCreateWindowSurface, this->instance, window, nullptr, &this->surface);
 }
 
-std::vector<const char *> CE::InitializeVulkan::getRequiredExtensions() const {
-  uint32_t glfwExtensionCount(0);
-  const char **glfwExtensions;
-  glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+std::vector<const char *> CE::InitializeVulkan::get_required_extensions() const {
+  uint32_t glfw_extension_count(0);
+  const char **glfw_extensions;
+  glfw_extensions = glfwGetRequiredInstanceExtensions(&glfw_extension_count);
 
-  std::vector<const char *> extensions(glfwExtensions,
-                                       glfwExtensions + glfwExtensionCount);
+  std::vector<const char *> extensions(glfw_extensions,
+                                       glfw_extensions + glfw_extension_count);
   if (this->validation.enableValidationLayers) {
     extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
   }

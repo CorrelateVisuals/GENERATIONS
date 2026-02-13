@@ -4,17 +4,17 @@
 namespace CE {
 
 class ShaderAccess {
- public:
+public:
   struct CommandResources : public CE::CommandBuffers {
-    CommandResources(const CE::Queues::FamilyIndices& familyIndices);
-    void recordComputeCommandBuffer(Resources& resources,
-                                    Pipelines& pipelines,
+    CommandResources(const CE::Queues::FamilyIndices &familyIndices);
+    void recordComputeCommandBuffer(Resources &resources,
+                                    Pipelines &pipelines,
                                     const uint32_t frameIndex) override;
-    void recordGraphicsCommandBuffer(CE::Swapchain& swapchain,
-                                     Resources& resources,
-                                     Pipelines& pipelines,
+    void recordGraphicsCommandBuffer(CE::Swapchain &swapchain,
+                                     Resources &resources,
+                                     Pipelines &pipelines,
                                      const uint32_t frameIndex,
                                      const uint32_t imageIndex) override;
   };
 };
-}  // namespace CE
+} // namespace CE

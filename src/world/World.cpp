@@ -28,38 +28,31 @@ constexpr float ARCBALL_TUMBLE_MULT = 0.9f;
 constexpr float ARCBALL_PAN_MULT = 0.85f;
 constexpr float ARCBALL_DOLLY_MULT = 0.8f;
 
-constexpr GEOMETRY_SHAPE cube = CE_CUBE;  
+constexpr GEOMETRY_SHAPE cube = CE_CUBE;
 constexpr GEOMETRY_SHAPE rectangle = CE_RECTANGLE;
 constexpr GEOMETRY_SHAPE sphere = CE_SPHERE;
-}  // namespace
+} // namespace
 
-World::World(VkCommandBuffer& commandBuffer,
-             const VkCommandPool& commandPool,
-             const VkQueue& queue)
-    : _grid(GRID_SIZE,
-            NUMBER_OF_ALIVE_CELLS,
-            CELL_SIZE,
-            commandBuffer,
-            commandPool,
-            queue),
+World::World(VkCommandBuffer &commandBuffer,
+             const VkCommandPool &commandPool,
+             const VkQueue &queue)
+    : _grid(
+          GRID_SIZE, NUMBER_OF_ALIVE_CELLS, CELL_SIZE, commandBuffer, commandPool, queue),
       _rectangle(rectangle, true, commandBuffer, commandPool, queue),
       _cube(sphere, false, commandBuffer, commandPool, queue),
-      _ubo(LIGHT_POS, GRID_SIZE, WATER_THRESHOLD, CELL_SIZE),
-      _camera(ZOOM_SPEED,
-              PANNING_SPEED,
-              FIELD_OF_VIEW,
-              NEAR_CLIPPING,
-              FAR_CLIPPING,
-              CAMERA_POSITION),
+      _ubo(LIGHT_POS, GRID_SIZE, WATER_THRESHOLD, CELL_SIZE), _camera(ZOOM_SPEED,
+                                                                      PANNING_SPEED,
+                                                                      FIELD_OF_VIEW,
+                                                                      NEAR_CLIPPING,
+                                                                      FAR_CLIPPING,
+                                                                      CAMERA_POSITION),
       _time(TIMER_SPEED) {
   const float halfGridX = 0.5f * static_cast<float>(GRID_SIZE.x) * CELL_SIZE;
   const float halfGridY = 0.5f * static_cast<float>(GRID_SIZE.y) * CELL_SIZE;
-  const float sceneRadius =
-      std::sqrt(halfGridX * halfGridX + halfGridY * halfGridY);
+  const float sceneRadius = std::sqrt(halfGridX * halfGridX + halfGridY * halfGridY);
   _camera.configureArcball(glm::vec3(0.0f, 0.0f, 0.0f), sceneRadius);
-  _camera.configureArcballMultipliers(ARCBALL_TUMBLE_MULT,
-                                      ARCBALL_PAN_MULT,
-                                      ARCBALL_DOLLY_MULT);
+  _camera.configureArcballMultipliers(
+      ARCBALL_TUMBLE_MULT, ARCBALL_PAN_MULT, ARCBALL_DOLLY_MULT);
 
   Log::text("{ wWw }", "constructing World");
 }
@@ -68,39 +61,39 @@ World::~World() {
   Log::text("{ wWw }", "destructing World");
 }
 
-std::vector<VkVertexInputBindingDescription>
-World::Cell::getBindingDescription() {
+std::vector<VkVertexInputBindingDescription> World::Cell::getBindingDescription() {
   std::vector<VkVertexInputBindingDescription> description{
       {0, sizeof(Cell), VK_VERTEX_INPUT_RATE_INSTANCE},
       {1, sizeof(Shape::Vertex), VK_VERTEX_INPUT_RATE_VERTEX}};
   return description;
 }
 
-std::vector<VkVertexInputAttributeDescription>
-World::Cell::getAttributeDescription() {
+std::vector<VkVertexInputAttributeDescription> World::Cell::getAttributeDescription() {
   std::vector<VkVertexInputAttributeDescription> description{
-      {0, 0, VK_FORMAT_R32G32B32A32_SFLOAT,
+      {0,
+       0,
+       VK_FORMAT_R32G32B32A32_SFLOAT,
        static_cast<uint32_t>(offsetof(Cell, instancePosition))},
-      {1, 1, VK_FORMAT_R32G32B32A32_SFLOAT,
+      {1,
+       1,
+       VK_FORMAT_R32G32B32A32_SFLOAT,
        static_cast<uint32_t>(offsetof(Shape::Vertex, vertexPosition))},
-      {2, 1, VK_FORMAT_R32G32B32A32_SFLOAT,
+      {2,
+       1,
+       VK_FORMAT_R32G32B32A32_SFLOAT,
        static_cast<uint32_t>(offsetof(Shape::Vertex, normal))},
-      {3, 0, VK_FORMAT_R32G32B32A32_SFLOAT,
-       static_cast<uint32_t>(offsetof(Cell, color))},
-      {4, 0, VK_FORMAT_R32G32B32A32_SINT,
-       static_cast<uint32_t>(offsetof(Cell, states))}};
+      {3, 0, VK_FORMAT_R32G32B32A32_SFLOAT, static_cast<uint32_t>(offsetof(Cell, color))},
+      {4, 0, VK_FORMAT_R32G32B32A32_SINT, static_cast<uint32_t>(offsetof(Cell, states))}};
   return description;
 };
 
 World::Grid::Grid(vec2_uint_fast16_t gridSize,
                   uint_fast32_t aliveCells,
                   float cellSize,
-                  VkCommandBuffer& commandBuffer,
-                  const VkCommandPool& commandPool,
-                  const VkQueue& queue)
-    : size(gridSize),
-      initialAliveCells(aliveCells),
-      pointCount(size.x * size.y) {
+                  VkCommandBuffer &commandBuffer,
+                  const VkCommandPool &commandPool,
+                  const VkQueue &queue)
+    : size(gridSize), initialAliveCells(aliveCells), pointCount(size.x * size.y) {
   Terrain::Config terrainLayer1 = {.dimensions = size,
                                    .roughness = 0.4f,
                                    .octaves = 10,
@@ -126,8 +119,7 @@ World::Grid::Grid(vec2_uint_fast16_t gridSize,
   const float blendFactor = 0.5f;
 
   std::vector<bool> isAliveIndices(pointCount, false);
-  std::vector<uint_fast32_t> aliveCellIndices =
-      setCellsAliveRandomly(initialAliveCells);
+  std::vector<uint_fast32_t> aliveCellIndices = setCellsAliveRandomly(initialAliveCells);
   for (int aliveIndex : aliveCellIndices) {
     isAliveIndices[aliveIndex] = true;
   }
@@ -158,19 +150,19 @@ World::Grid::Grid(vec2_uint_fast16_t gridSize,
   createIndexBuffer(commandBuffer, commandPool, queue, indices);
 }
 
-std::vector<VkVertexInputAttributeDescription>
-World::Grid::getAttributeDescription() {
+std::vector<VkVertexInputAttributeDescription> World::Grid::getAttributeDescription() {
   std::vector<VkVertexInputAttributeDescription> attributes{
-      {0, 0, VK_FORMAT_R32G32B32_SFLOAT,
+      {0,
+       0,
+       VK_FORMAT_R32G32B32_SFLOAT,
        static_cast<uint32_t>(offsetof(Grid::Vertex, vertexPosition))}};
   return attributes;
 }
 
-std::vector<uint_fast32_t> World::Grid::setCellsAliveRandomly(
-    uint_fast32_t numberOfCells) {
+std::vector<uint_fast32_t>
+World::Grid::setCellsAliveRandomly(uint_fast32_t numberOfCells) {
   const uint_fast32_t targetCount =
-      std::min<uint_fast32_t>(numberOfCells,
-                              static_cast<uint_fast32_t>(pointCount));
+      std::min<uint_fast32_t>(numberOfCells, static_cast<uint_fast32_t>(pointCount));
 
   std::vector<uint_fast32_t> cellIds(pointCount);
   std::iota(cellIds.begin(), cellIds.end(), 0);

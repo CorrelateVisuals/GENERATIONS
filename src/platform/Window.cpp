@@ -24,16 +24,15 @@ Window::~Window() {
 void Window::initWindow() {
   glfwInit();
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-  window = glfwCreateWindow(display.width, display.height, display.title,
-                            nullptr, nullptr);
+  window =
+      glfwCreateWindow(display.width, display.height, display.title, nullptr, nullptr);
   glfwSetWindowUserPointer(window, this);
   glfwSetFramebufferSizeCallback(window, windowResize);
-  Log::text("{ [*] }", "Window initialized", display.width, "*",
-            display.height);
+  Log::text("{ [*] }", "Window initialized", display.width, "*", display.height);
 }
 
-void Window::windowResize(GLFWwindow* win, int width, int height) {
-  auto app = reinterpret_cast<Window*>(glfwGetWindowUserPointer(win));
+void Window::windowResize(GLFWwindow *win, int width, int height) {
+  auto app = reinterpret_cast<Window *>(glfwGetWindowUserPointer(win));
   app->framebufferResized = true;
   app->display.width = width;
   app->display.height = height;
@@ -62,9 +61,8 @@ bool Window::consumeScreenshotPressed() {
 void Window::setMouse() {
   int newState = GLFW_RELEASE;
   static int buttonType = -1;
-  const static std::vector<uint32_t> mouseButtonTypes{GLFW_MOUSE_BUTTON_LEFT,
-                                                      GLFW_MOUSE_BUTTON_RIGHT,
-                                                      GLFW_MOUSE_BUTTON_MIDDLE};
+  const static std::vector<uint32_t> mouseButtonTypes{
+      GLFW_MOUSE_BUTTON_LEFT, GLFW_MOUSE_BUTTON_RIGHT, GLFW_MOUSE_BUTTON_MIDDLE};
 
   for (const int mouseButtonType : mouseButtonTypes) {
     if (glfwGetMouseButton(window, mouseButtonType) == GLFW_PRESS) {
@@ -91,29 +89,28 @@ void Window::setMouse() {
     switch (oldState) {
       case GLFW_PRESS: {
         if (newState == GLFW_RELEASE) {
-          const std::unordered_map<int, std::string>::const_iterator&
-              buttonMapping = buttonMappings.find(buttonType);
+          const std::unordered_map<int, std::string>::const_iterator &buttonMapping =
+              buttonMappings.find(buttonType);
           if (buttonMapping != buttonMappings.end()) {
-            const std::string& message = buttonMapping->second;
+            const std::string &message = buttonMapping->second;
             mouse.buttonClick[buttonType].position = glm::vec2{x, y};
 
             Log::text(message + " clicked at",
-                      mouse.buttonClick[buttonType].position.x, ":",
+                      mouse.buttonClick[buttonType].position.x,
+                      ":",
                       mouse.buttonClick[buttonType].position.y);
           }
         } else {
           const float currentTime = static_cast<float>(glfwGetTime());
           const float timer = currentTime - pressTime;
           if (timer >= mouse.pressDelay) {
-            const std::unordered_map<int, std::string>::const_iterator&
-                buttonMapping = buttonMappings.find(buttonType);
+            const std::unordered_map<int, std::string>::const_iterator &buttonMapping =
+                buttonMappings.find(buttonType);
             if (buttonMapping != buttonMappings.end()) {
-              const std::string& message = buttonMapping->second;
+              const std::string &message = buttonMapping->second;
               glm::vec2 normalizedCoords =
-                  glm::vec2(x, y) * glm::vec2(2.0f, 2.0f) -
-                  glm::vec2(1.0f, 1.0f);
-              mouse.buttonDown[buttonType].position +=
-                  normalizedCoords * mouse.speed;
+                  glm::vec2(x, y) * glm::vec2(2.0f, 2.0f) - glm::vec2(1.0f, 1.0f);
+              mouse.buttonDown[buttonType].position += normalizedCoords * mouse.speed;
 
               // Log::text(message + " moved to",
               //              mouse.buttonDown[buttonType].position.x, ":",
@@ -124,8 +121,7 @@ void Window::setMouse() {
         break;
       }
       case GLFW_RELEASE: {
-        pressTime =
-            (newState == GLFW_PRESS) ? static_cast<float>(glfwGetTime()) : 0.0f;
+        pressTime = (newState == GLFW_PRESS) ? static_cast<float>(glfwGetTime()) : 0.0f;
         break;
       }
     }

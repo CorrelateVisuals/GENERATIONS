@@ -12,8 +12,8 @@
 
 CE::RenderPass::~RenderPass() {
   Log::text("{ []< }", "destructing Render Pass");
-  if (Device::baseDevice) {
-    vkDestroyRenderPass(Device::baseDevice->logical, this->renderPass, nullptr);
+  if (Device::base_device) {
+    vkDestroyRenderPass(Device::base_device->logical_device, this->renderPass, nullptr);
   }
 }
 
@@ -92,7 +92,7 @@ void CE::RenderPass::create(VkSampleCountFlagBits msaaImageSamples,
       .pDependencies = &dependency};
 
   CE::VULKAN_RESULT(vkCreateRenderPass,
-                    Device::baseDevice->logical,
+                    Device::base_device->logical_device,
                     &renderPassInfo,
                     nullptr,
                     &this->renderPass);
@@ -118,7 +118,7 @@ void CE::RenderPass::createFramebuffers(CE::Swapchain &swapchain,
         .layers = 1};
 
     CE::VULKAN_RESULT(vkCreateFramebuffer,
-                      CE::Device::baseDevice->logical,
+                      CE::Device::base_device->logical_device,
                       &framebufferInfo,
                       nullptr,
                       &swapchain.framebuffers[i]);
@@ -126,12 +126,12 @@ void CE::RenderPass::createFramebuffers(CE::Swapchain &swapchain,
 }
 
 CE::PipelinesConfiguration::~PipelinesConfiguration() {
-  if (Device::baseDevice) {
+  if (Device::base_device) {
     Log::text(
         "{ === }", "destructing", this->pipelineMap.size(), "Pipelines Configuration");
     for (auto &pipeline : this->pipelineMap) {
       VkPipeline &pipelineObject = getPipelineObjectByName(pipeline.first);
-      vkDestroyPipeline(Device::baseDevice->logical, pipelineObject, nullptr);
+      vkDestroyPipeline(Device::base_device->logical_device, pipelineObject, nullptr);
     }
   }
 }
@@ -249,7 +249,7 @@ void CE::PipelinesConfiguration::createPipelines(VkRenderPass &renderPass,
       }
 
       CE::VULKAN_RESULT(vkCreateGraphicsPipelines,
-                        Device::baseDevice->logical,
+                        Device::base_device->logical_device,
                         VK_NULL_HANDLE,
                         1,
                         &pipelineInfo,
@@ -275,7 +275,7 @@ void CE::PipelinesConfiguration::createPipelines(VkRenderPass &renderPass,
           .layout = computeLayout};
 
       CE::VULKAN_RESULT(vkCreateComputePipelines,
-                        Device::baseDevice->logical,
+                        Device::base_device->logical_device,
                         VK_NULL_HANDLE,
                         1,
                         &pipelineInfo,
@@ -372,7 +372,7 @@ CE::PipelinesConfiguration::createShaderModules(VkShaderStageFlagBits shaderStag
       .pCode = reinterpret_cast<const uint32_t *>(shaderCode.data())};
 
   CE::VULKAN_RESULT(vkCreateShaderModule,
-                    Device::baseDevice->logical,
+                    Device::base_device->logical_device,
                     &createInfo,
                     nullptr,
                     &shaderModule);
@@ -426,7 +426,9 @@ VkPipeline &CE::PipelinesConfiguration::getPipelineObjectByName(const std::strin
 
 void CE::PipelinesConfiguration::destroyShaderModules() {
   for (uint_fast8_t i = 0; i < this->shaderModules.size(); i++) {
-    vkDestroyShaderModule(Device::baseDevice->logical, this->shaderModules[i], nullptr);
+    vkDestroyShaderModule(Device::base_device->logical_device,
+                this->shaderModules[i],
+                nullptr);
   }
   this->shaderModules.resize(0);
 }
@@ -452,7 +454,7 @@ void CE::PipelineLayout::createLayout(const VkDescriptorSetLayout &setLayout) {
   VkPipelineLayoutCreateInfo layout{CE::layoutDefault};
   layout.pSetLayouts = &setLayout;
   CE::VULKAN_RESULT(vkCreatePipelineLayout,
-                    Device::baseDevice->logical,
+                    Device::base_device->logical_device,
                     &layout,
                     nullptr,
                     &this->layout);
@@ -468,15 +470,15 @@ void CE::PipelineLayout::createLayout(const VkDescriptorSetLayout &setLayout,
   layout.pushConstantRangeCount = _pushConstants.count;
   layout.pPushConstantRanges = &constants;
   CE::VULKAN_RESULT(vkCreatePipelineLayout,
-                    Device::baseDevice->logical,
+                    Device::base_device->logical_device,
                     &layout,
                     nullptr,
                     &this->layout);
 }
 
 CE::PipelineLayout::~PipelineLayout() {
-  if (Device::baseDevice) {
-    vkDestroyPipelineLayout(Device::baseDevice->logical, this->layout, nullptr);
+  if (Device::base_device) {
+    vkDestroyPipelineLayout(Device::base_device->logical_device, this->layout, nullptr);
   }
 }
 

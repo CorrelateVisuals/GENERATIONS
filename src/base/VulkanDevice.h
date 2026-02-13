@@ -15,24 +15,24 @@ class Swapchain;
 
 class Queues {
 public:
-  VkQueue graphics{};
-  VkQueue compute{};
-  VkQueue present{};
+  VkQueue graphics_queue{};
+  VkQueue compute_queue{};
+  VkQueue present_queue{};
 
   struct FamilyIndices {
-    std::optional<uint32_t> graphicsAndComputeFamily{};
-    std::optional<uint32_t> presentFamily{};
-    bool isComplete() const {
-      return graphicsAndComputeFamily.has_value() && presentFamily.has_value();
+    std::optional<uint32_t> graphics_and_compute_family{};
+    std::optional<uint32_t> present_family{};
+    bool is_complete() const {
+      return graphics_and_compute_family.has_value() && present_family.has_value();
     }
   };
 
-  FamilyIndices familyIndices{};
+  FamilyIndices family_indices{};
 
   Queues() = default;
   virtual ~Queues() = default;
-  FamilyIndices findQueueFamilies(const VkPhysicalDevice &physicalDevice,
-                                  const VkSurfaceKHR &surface) const;
+  FamilyIndices find_queue_families(const VkPhysicalDevice &physical_device,
+                                    const VkSurfaceKHR &surface) const;
 };
 
 class InitializeVulkan {
@@ -45,49 +45,50 @@ public:
   virtual ~InitializeVulkan();
 
 private:
-  void createInstance();
-  void createSurface(GLFWwindow *window);
-  std::vector<const char *> getRequiredExtensions() const;
+  void create_instance();
+  void create_surface(GLFWwindow *window);
+  std::vector<const char *> get_required_extensions() const;
 };
 
 class Device {
 public:
-  VkPhysicalDevice physical{VK_NULL_HANDLE};
+  VkPhysicalDevice physical_device{VK_NULL_HANDLE};
   VkPhysicalDeviceFeatures features{};
-  VkSampleCountFlagBits maxUsableSampleCount{VK_SAMPLE_COUNT_1_BIT};
-  VkDevice logical{VK_NULL_HANDLE};
+  VkSampleCountFlagBits max_usable_sample_count{VK_SAMPLE_COUNT_1_BIT};
+  VkDevice logical_device{VK_NULL_HANDLE};
 
-  static Device *baseDevice;
+  static Device *base_device;
 
   Device() = default;
   virtual ~Device() {
-    destroyDevice();
+    destroy_device();
   }
 
 protected:
-  void pickPhysicalDevice(const InitializeVulkan &initVulkan,
-                          Queues &queues,
-                          Swapchain &swapchain);
-  void createLogicalDevice(const InitializeVulkan &initVulkan, Queues &queues);
-  void destroyDevice();
+  void pick_physical_device(const InitializeVulkan &init_vulkan,
+                            Queues &queues,
+                            Swapchain &swapchain);
+  void create_logical_device(const InitializeVulkan &init_vulkan, Queues &queues);
+  void destroy_device();
 
 private:
-  VkPhysicalDeviceProperties properties{};
-  std::vector<const char *> extensions{VK_KHR_SWAPCHAIN_EXTENSION_NAME};
-  static std::vector<VkDevice> destroyedDevices;
+  VkPhysicalDeviceProperties properties_{};
+  std::vector<const char *> extensions_{VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+  static std::vector<VkDevice> destroyed_devices;
 
-  std::vector<VkDeviceQueueCreateInfo> fillQueueCreateInfos(const Queues &queues) const;
+  std::vector<VkDeviceQueueCreateInfo> fill_queue_create_infos(const Queues &queues) const;
   VkDeviceCreateInfo
-  getDeviceCreateInfo(const std::vector<VkDeviceQueueCreateInfo> &queueCreateInfos) const;
-  void setValidationLayers(const InitializeVulkan &initVulkan,
-                           VkDeviceCreateInfo &createInfo);
-  std::vector<VkPhysicalDevice> fillDevices(const InitializeVulkan &initVulkan) const;
-  bool isDeviceSuitable(const VkPhysicalDevice &physical,
-                        Queues &queues,
-                        const InitializeVulkan &initVulkan,
-                        Swapchain &swapchain);
-  void getMaxUsableSampleCount();
-  bool checkDeviceExtensionSupport(const VkPhysicalDevice &physical) const;
+  get_device_create_info(const std::vector<VkDeviceQueueCreateInfo> &queue_create_infos)
+      const;
+  void set_validation_layers(const InitializeVulkan &init_vulkan,
+                             VkDeviceCreateInfo &create_info);
+  std::vector<VkPhysicalDevice> fill_devices(const InitializeVulkan &init_vulkan) const;
+  bool is_device_suitable(const VkPhysicalDevice &physical_device,
+                          Queues &queues,
+                          const InitializeVulkan &init_vulkan,
+                          Swapchain &swapchain);
+  void get_max_usable_sample_count();
+  bool check_device_extension_support(const VkPhysicalDevice &physical_device) const;
 };
 
 } // namespace CE

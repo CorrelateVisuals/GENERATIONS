@@ -17,7 +17,7 @@ int Log::Style::columnCountOffset = 4;
 
 std::string Log::previousTime;
 
-std::string Log::function_name(const char* functionName) {
+std::string Log::function_name(const char *functionName) {
   if (!functionName) {
     return "_unknown_function";
   }
@@ -26,8 +26,7 @@ std::string Log::function_name(const char* functionName) {
   formatted.reserve(std::char_traits<char>::length(functionName) + 4);
 
   for (size_t i = 0; functionName[i] != '\0'; ++i) {
-    const unsigned char current =
-        static_cast<unsigned char>(functionName[i]);
+    const unsigned char current = static_cast<unsigned char>(functionName[i]);
     if (std::isupper(current)) {
       if (i > 0 && functionName[i - 1] != '_') {
         formatted.push_back('_');
@@ -55,9 +54,7 @@ void Log::measureElapsedTime() {
     Log::text("{ TIME START }", "0.0", "seconds");
   } else {
     double elapsedTime =
-        std::chrono::duration_cast<std::chrono::duration<double>>(now -
-                                                                  lastCall)
-            .count();
+        std::chrono::duration_cast<std::chrono::duration<double>>(now - lastCall).count();
     Log::text("{ TIME INTERVAL }", elapsedTime, "seconds");
     lastCall = now;
   }
@@ -65,8 +62,7 @@ void Log::measureElapsedTime() {
 
 void Log::logTitle() {
   Log::text(Log::Style::headerGuard);
-  Log::text("                 . - < < { ", "G E N E R A T I O N S",
-            " } > > - .");
+  Log::text("                 . - < < { ", "G E N E R A T I O N S", " } > > - .");
   Log::text(Log::Style::headerGuard);
   Log::measureElapsedTime();
 
@@ -85,15 +81,15 @@ bool Log::skipLogging(uint8_t logLevel, std::string icon) {
     return false;
   }
   if (logLevel == LOG_OFF ||
-      (logLevel == LOG_MINIMIAL && (icon == std::string("{ ... }") ||
-                                    icon == std::string(Style::charLeader))) ||
+      (logLevel == LOG_MINIMIAL &&
+       (icon == std::string("{ ... }") || icon == std::string(Style::charLeader))) ||
       (logLevel == LOG_MODERATE && icon == std::string(Style::charLeader))) {
     return true;
   }
   return false;
 }
 
-std::string Log::getBufferUsageString(const VkBufferUsageFlags& usage) {
+std::string Log::getBufferUsageString(const VkBufferUsageFlags &usage) {
   std::string result;
 
   if (usage & VK_BUFFER_USAGE_TRANSFER_SRC_BIT) {
@@ -132,12 +128,11 @@ std::string Log::getBufferUsageString(const VkBufferUsageFlags& usage) {
   return result;
 }
 
-std::string Log::getMemoryPropertyString(
-    const VkMemoryPropertyFlags& properties) {
+std::string Log::getMemoryPropertyString(const VkMemoryPropertyFlags &properties) {
   std::string result = "VkMemoryPropertyFlags: ";
-#define ADD_FLAG_CASE(flag)                \
-  if (properties & flag) {                 \
-    result += STRINGIFICATION(flag) " | "; \
+#define ADD_FLAG_CASE(flag)                                                              \
+  if (properties & flag) {                                                               \
+    result += STRINGIFICATION(flag) " | ";                                               \
   }
 
   ADD_FLAG_CASE(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
@@ -158,7 +153,7 @@ std::string Log::getMemoryPropertyString(
   return result;
 }
 
-std::string Log::getDescriptorTypeString(const VkDescriptorType& type) {
+std::string Log::getDescriptorTypeString(const VkDescriptorType &type) {
   switch (type) {
     case VK_DESCRIPTOR_TYPE_SAMPLER:
       return "VK_DESCRIPTOR_TYPE_SAMPLER";
@@ -199,11 +194,11 @@ std::string Log::getDescriptorTypeString(const VkDescriptorType& type) {
   }
 }
 
-std::string Log::getShaderStageString(const VkShaderStageFlags& flags) {
+std::string Log::getShaderStageString(const VkShaderStageFlags &flags) {
   std::string result = "VkShaderStageFlags: ";
-#define ADD_FLAG_CASE(flag)                \
-  if (flags & flag) {                      \
-    result += STRINGIFICATION(flag) " | "; \
+#define ADD_FLAG_CASE(flag)                                                              \
+  if (flags & flag) {                                                                    \
+    result += STRINGIFICATION(flag) " | ";                                               \
   }
 
   ADD_FLAG_CASE(VK_SHADER_STAGE_VERTEX_BIT);
@@ -240,11 +235,11 @@ std::string Log::getShaderStageString(const VkShaderStageFlags& flags) {
   return result;
 }
 
-std::string Log::getSampleCountString(const VkSampleCountFlags& sampleCount) {
+std::string Log::getSampleCountString(const VkSampleCountFlags &sampleCount) {
   std::string result = "VkSampleCountFlags: ";
-#define ADD_FLAG_CASE(flag)                \
-  if (sampleCount & flag) {                \
-    result += STRINGIFICATION(flag) " | "; \
+#define ADD_FLAG_CASE(flag)                                                              \
+  if (sampleCount & flag) {                                                              \
+    result += STRINGIFICATION(flag) " | ";                                               \
   }
 
   ADD_FLAG_CASE(VK_SAMPLE_COUNT_1_BIT);
@@ -264,11 +259,11 @@ std::string Log::getSampleCountString(const VkSampleCountFlags& sampleCount) {
   return result;
 }
 
-std::string Log::getImageUsageString(const VkImageUsageFlags& usage) {
+std::string Log::getImageUsageString(const VkImageUsageFlags &usage) {
   std::string result = "VkImageUsageFlags: ";
-#define ADD_FLAG_CASE(flag)                \
-  if (usage & flag) {                      \
-    result += STRINGIFICATION(flag) " | "; \
+#define ADD_FLAG_CASE(flag)                                                              \
+  if (usage & flag) {                                                                    \
+    result += STRINGIFICATION(flag) " | ";                                               \
   }
 
   ADD_FLAG_CASE(VK_IMAGE_USAGE_TRANSFER_SRC_BIT);

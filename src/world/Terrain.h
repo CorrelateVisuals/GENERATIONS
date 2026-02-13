@@ -3,7 +3,7 @@
 #include <vector>
 
 class Terrain {
- public:
+public:
   struct Config {
     vec2_uint_fast16_t dimensions;
     float roughness;
@@ -15,7 +15,7 @@ class Terrain {
     float heightOffset;
   } config;
 
-  Terrain(const Config& config);
+  Terrain(const Config &config);
   virtual ~Terrain() = default;
 
   std::vector<float> generatePerlinGrid();

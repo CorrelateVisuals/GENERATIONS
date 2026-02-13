@@ -4,13 +4,13 @@
 #include "render/Resources.h"
 
 class CapitalEngine {
- public:
+public:
   CapitalEngine();
   ~CapitalEngine();
 
   void mainLoop();
 
- private:
+private:
   VulkanMechanics mechanics;
   Resources resources;
   Pipelines pipelines;

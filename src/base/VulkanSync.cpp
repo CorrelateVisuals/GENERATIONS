@@ -9,34 +9,35 @@
 VkCommandBuffer CE::CommandBuffers::singularCommandBuffer = VK_NULL_HANDLE;
 
 CE::CommandBuffers::~CommandBuffers() {
-  if (Device::baseDevice && this->pool != VK_NULL_HANDLE) {
-    vkDestroyCommandPool(Device::baseDevice->logical, this->pool, nullptr);
+  if (Device::base_device && this->pool != VK_NULL_HANDLE) {
+    vkDestroyCommandPool(Device::base_device->logical_device, this->pool, nullptr);
   }
 };
 
-void CE::CommandBuffers::createPool(const Queues::FamilyIndices &familyIndices) {
+void CE::CommandBuffers::createPool(const Queues::FamilyIndices &family_indices) {
   Log::text("{ cmd }", "Command Pool");
-  if (!Device::baseDevice) {
-    Log::text("{ cmd }", "Command Pool: baseDevice is null");
+  if (!Device::base_device) {
+    Log::text("{ cmd }", "Command Pool: base_device is null");
   } else {
     Log::text("{ cmd }",
               "Command Pool: device",
-              Device::baseDevice->logical,
+              Device::base_device->logical_device,
               "@",
-              &Device::baseDevice->logical);
+              &Device::base_device->logical_device);
   }
   Log::text("{ cmd }",
             "Command Pool: queue family",
-            familyIndices.graphicsAndComputeFamily.value());
+            family_indices.graphics_and_compute_family.value());
 
   VkCommandPoolCreateInfo poolInfo{};
   poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
   poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT |
                    VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
-  poolInfo.queueFamilyIndex = familyIndices.graphicsAndComputeFamily.value();
+  poolInfo.queueFamilyIndex = family_indices.graphics_and_compute_family.value();
 
   VkResult result =
-      vkCreateCommandPool(Device::baseDevice->logical, &poolInfo, nullptr, &this->pool);
+        vkCreateCommandPool(
+          Device::base_device->logical_device, &poolInfo, nullptr, &this->pool);
   Log::text("{ cmd }", "Command Pool created", result, this->pool, "@", &this->pool);
   if (result != VK_SUCCESS) {
     throw std::runtime_error("!ERROR! vkCreateCommandPool failed!");
@@ -45,7 +46,7 @@ void CE::CommandBuffers::createPool(const Queues::FamilyIndices &familyIndices) 
 
 void CE::CommandBuffers::beginSingularCommands(const VkCommandPool &commandPool,
                                                const VkQueue &queue) {
-  if (!Device::baseDevice || Device::baseDevice->logical == VK_NULL_HANDLE) {
+  if (!Device::base_device || Device::base_device->logical_device == VK_NULL_HANDLE) {
     throw std::runtime_error(
         "\n!ERROR! beginSingularCommands called without valid device.");
   }
@@ -57,9 +58,9 @@ void CE::CommandBuffers::beginSingularCommands(const VkCommandPool &commandPool,
   Log::text("{ 1.. }", "Begin Single Time CommandResources");
   Log::text("{ 1.. }",
             "Single Time: device",
-            Device::baseDevice->logical,
+            Device::base_device->logical_device,
             "@",
-            &Device::baseDevice->logical);
+            &Device::base_device->logical_device);
   Log::text("{ 1.. }", "Single Time: pool", commandPool, "queue", queue);
 
   VkCommandBufferAllocateInfo allocInfo{
@@ -69,7 +70,7 @@ void CE::CommandBuffers::beginSingularCommands(const VkCommandPool &commandPool,
       .commandBufferCount = 1};
 
   VkResult allocResult = vkAllocateCommandBuffers(
-      Device::baseDevice->logical, &allocInfo, &singularCommandBuffer);
+      Device::base_device->logical_device, &allocInfo, &singularCommandBuffer);
   Log::text("{ 1.. }", "Single Time alloc result", allocResult, singularCommandBuffer);
 
   VkCommandBufferBeginInfo beginInfo{.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
@@ -83,7 +84,7 @@ void CE::CommandBuffers::beginSingularCommands(const VkCommandPool &commandPool,
 
 void CE::CommandBuffers::endSingularCommands(const VkCommandPool &commandPool,
                                              const VkQueue &queue) {
-  if (!Device::baseDevice || Device::baseDevice->logical == VK_NULL_HANDLE) {
+  if (!Device::base_device || Device::base_device->logical_device == VK_NULL_HANDLE) {
     throw std::runtime_error(
         "\n!ERROR! endSingularCommands called without valid device.");
   }
@@ -107,13 +108,14 @@ void CE::CommandBuffers::endSingularCommands(const VkCommandPool &commandPool,
 
   VkFence uploadFence = VK_NULL_HANDLE;
   VkResult fenceCreateResult =
-      vkCreateFence(Device::baseDevice->logical, &fenceInfo, nullptr, &uploadFence);
+        vkCreateFence(
+          Device::base_device->logical_device, &fenceInfo, nullptr, &uploadFence);
   Log::text("{ ..1 }",
             "Single Time fence create result",
             static_cast<int32_t>(fenceCreateResult));
   if (fenceCreateResult != VK_SUCCESS) {
     vkFreeCommandBuffers(
-        Device::baseDevice->logical, commandPool, 1, &singularCommandBuffer);
+        Device::base_device->logical_device, commandPool, 1, &singularCommandBuffer);
     throw std::runtime_error("!ERROR! vkCreateFence failed for single time submit!");
   }
 
@@ -121,27 +123,31 @@ void CE::CommandBuffers::endSingularCommands(const VkCommandPool &commandPool,
   Log::text("{ ..1 }", "Single Time submit result", submitResult);
 
   VkResult waitResult =
-      vkWaitForFences(Device::baseDevice->logical, 1, &uploadFence, VK_TRUE, UINT64_MAX);
+      vkWaitForFences(Device::base_device->logical_device,
+              1,
+              &uploadFence,
+              VK_TRUE,
+              UINT64_MAX);
   Log::text("{ ..1 }", "Single Time fence wait result", waitResult);
 
-  vkDestroyFence(Device::baseDevice->logical, uploadFence, nullptr);
+  vkDestroyFence(Device::base_device->logical_device, uploadFence, nullptr);
 
   vkFreeCommandBuffers(
-      Device::baseDevice->logical, commandPool, 1, &singularCommandBuffer);
+      Device::base_device->logical_device, commandPool, 1, &singularCommandBuffer);
   Log::text("{ ..1 }", "Single Time freed", singularCommandBuffer);
 }
 
 void CE::CommandBuffers::createBuffers(
     std::array<VkCommandBuffer, MAX_FRAMES_IN_FLIGHT> &commandBuffers) const {
   Log::text("{ cmd }", "Command Buffers:", MAX_FRAMES_IN_FLIGHT);
-  if (!Device::baseDevice) {
-    Log::text("{ cmd }", "Command Buffers: baseDevice is null");
+  if (!Device::base_device) {
+    Log::text("{ cmd }", "Command Buffers: base_device is null");
   } else {
     Log::text("{ cmd }",
               "Command Buffers: device",
-              Device::baseDevice->logical,
+              Device::base_device->logical_device,
               "@",
-              &Device::baseDevice->logical);
+              &Device::base_device->logical_device);
   }
   Log::text("{ cmd }", "Command Buffers: pool", this->pool, "@", &this->pool);
   Log::text("{ cmd }",
@@ -156,7 +162,7 @@ void CE::CommandBuffers::createBuffers(
       .commandBufferCount = static_cast<uint32_t>(commandBuffers.size())};
 
   VkResult result = vkAllocateCommandBuffers(
-      CE::Device::baseDevice->logical, &allocateInfo, commandBuffers.data());
+      CE::Device::base_device->logical_device, &allocateInfo, commandBuffers.data());
   Log::text("{ cmd }", "Command Buffers alloc result", result);
   for (size_t i = 0; i < commandBuffers.size(); ++i) {
     Log::text("{ cmd }", "Command Buffer", static_cast<uint32_t>(i), commandBuffers[i]);
@@ -285,16 +291,18 @@ CE::Swapchain::getImageCount(const Swapchain::SupportDetails &swapchainSupport) 
 }
 
 void CE::Swapchain::destroy() {
-  if (Device::baseDevice) {
+  if (Device::base_device) {
     Log::text("{ <-> }", "Destroy Swapchain");
 
     for (uint_fast8_t i = 0; i < this->framebuffers.size(); i++) {
-      vkDestroyFramebuffer(Device::baseDevice->logical, this->framebuffers[i], nullptr);
+        vkDestroyFramebuffer(
+          Device::base_device->logical_device, this->framebuffers[i], nullptr);
     }
     for (uint_fast8_t i = 0; i < this->images.size(); i++) {
-      vkDestroyImageView(Device::baseDevice->logical, this->images[i].view, nullptr);
+        vkDestroyImageView(
+          Device::base_device->logical_device, this->images[i].view, nullptr);
     }
-    vkDestroySwapchainKHR(Device::baseDevice->logical, this->swapchain, nullptr);
+    vkDestroySwapchainKHR(Device::base_device->logical_device, this->swapchain, nullptr);
   }
 }
 
@@ -308,7 +316,7 @@ void CE::Swapchain::recreate(const VkSurfaceKHR &surface,
     glfwWaitEvents();
   }
 
-  vkDeviceWaitIdle(Device::baseDevice->logical);
+  vkDeviceWaitIdle(Device::base_device->logical_device);
 
   destroy();
   create(surface, queues);
@@ -320,7 +328,7 @@ void CE::Swapchain::recreate(const VkSurfaceKHR &surface,
 void CE::Swapchain::create(const VkSurfaceKHR &surface, const Queues &queues) {
   Log::text("{ <-> }", "Swap Chain");
   Swapchain::SupportDetails swapchainSupport =
-      checkSupport(Device::baseDevice->physical, surface);
+      checkSupport(Device::base_device->physical_device, surface);
   VkSurfaceFormatKHR surfaceFormat = pickSurfaceFormat(swapchainSupport.formats);
   VkPresentModeKHR presentMode = pickPresentMode(swapchainSupport.presentModes);
   VkExtent2D extent = pickExtent(Window::get().window, supportDetails.capabilities);
@@ -346,23 +354,24 @@ void CE::Swapchain::create(const VkSurfaceKHR &surface, const Queues &queues) {
       .presentMode = presentMode,
       .clipped = VK_TRUE};
 
-  std::vector<uint32_t> queueFamilyIndices{
-      queues.familyIndices.graphicsAndComputeFamily.value(),
-      queues.familyIndices.presentFamily.value()};
+    std::vector<uint32_t> queue_family_indices{
+      queues.family_indices.graphics_and_compute_family.value(),
+      queues.family_indices.present_family.value()};
 
-  if (queues.familyIndices.graphicsAndComputeFamily !=
-      queues.familyIndices.presentFamily) {
+  if (queues.family_indices.graphics_and_compute_family !=
+      queues.family_indices.present_family) {
     createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
-    createInfo.queueFamilyIndexCount = static_cast<uint32_t>(queueFamilyIndices.size());
-    createInfo.pQueueFamilyIndices = queueFamilyIndices.data();
+    createInfo.queueFamilyIndexCount =
+        static_cast<uint32_t>(queue_family_indices.size());
+    createInfo.pQueueFamilyIndices = queue_family_indices.data();
     Log::text("{ SWP }",
               Log::function_name(__func__),
               "Sharing mode",
               "CONCURRENT",
               "gcFamily",
-              queueFamilyIndices[0],
+              queue_family_indices[0],
               "presentFamily",
-              queueFamilyIndices[1]);
+              queue_family_indices[1]);
   } else {
     createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
     Log::text("{ SWP }",
@@ -370,17 +379,17 @@ void CE::Swapchain::create(const VkSurfaceKHR &surface, const Queues &queues) {
               "Sharing mode",
               "EXCLUSIVE",
               "family",
-              queueFamilyIndices[0]);
+              queue_family_indices[0]);
   }
 
   CE::VULKAN_RESULT(vkCreateSwapchainKHR,
-                    Device::baseDevice->logical,
+                    Device::base_device->logical_device,
                     &createInfo,
                     nullptr,
                     &this->swapchain);
 
   vkGetSwapchainImagesKHR(
-      Device::baseDevice->logical, this->swapchain, &imageCount, nullptr);
+      Device::base_device->logical_device, this->swapchain, &imageCount, nullptr);
 
   if (imageCount > MAX_FRAMES_IN_FLIGHT) {
     Log::text("{ SWP }",
@@ -411,7 +420,10 @@ void CE::Swapchain::create(const VkSurfaceKHR &surface, const Queues &queues) {
 
   std::vector<VkImage> swapchainImages(imageCount);
   vkGetSwapchainImagesKHR(
-      Device::baseDevice->logical, this->swapchain, &imageCount, swapchainImages.data());
+      Device::base_device->logical_device,
+      this->swapchain,
+      &imageCount,
+      swapchainImages.data());
 
   for (uint_fast8_t i = 0; i < imageCount; i++) {
     this->images[i].image = swapchainImages[i];
@@ -430,27 +442,27 @@ void CE::SynchronizationObjects::create() {
 
   for (uint_fast8_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
     CE::VULKAN_RESULT(vkCreateSemaphore,
-                      Device::baseDevice->logical,
+                      Device::base_device->logical_device,
                       &semaphoreInfo,
                       nullptr,
                       &this->imageAvailableSemaphores[i]);
     CE::VULKAN_RESULT(vkCreateSemaphore,
-                      Device::baseDevice->logical,
+                      Device::base_device->logical_device,
                       &semaphoreInfo,
                       nullptr,
                       &this->renderFinishedSemaphores[i]);
     CE::VULKAN_RESULT(vkCreateFence,
-                      Device::baseDevice->logical,
+                      Device::base_device->logical_device,
                       &fenceInfo,
                       nullptr,
                       &this->graphicsInFlightFences[i]);
     CE::VULKAN_RESULT(vkCreateSemaphore,
-                      Device::baseDevice->logical,
+                      Device::base_device->logical_device,
                       &semaphoreInfo,
                       nullptr,
                       &this->computeFinishedSemaphores[i]);
     CE::VULKAN_RESULT(vkCreateFence,
-                      Device::baseDevice->logical,
+                      Device::base_device->logical_device,
                       &fenceInfo,
                       nullptr,
                       &this->computeInFlightFences[i]);
@@ -468,19 +480,29 @@ void CE::SynchronizationObjects::create() {
 }
 
 void CE::SynchronizationObjects::destroy() const {
-  if (Device::baseDevice) {
+  if (Device::base_device) {
     Log::text("{ ||| }", "Destroy Synchronization Objects");
     for (uint_fast8_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
       vkDestroySemaphore(
-          Device::baseDevice->logical, this->renderFinishedSemaphores[i], nullptr);
+          Device::base_device->logical_device,
+          this->renderFinishedSemaphores[i],
+          nullptr);
       vkDestroySemaphore(
-          Device::baseDevice->logical, this->imageAvailableSemaphores[i], nullptr);
+          Device::base_device->logical_device,
+          this->imageAvailableSemaphores[i],
+          nullptr);
       vkDestroySemaphore(
-          Device::baseDevice->logical, this->computeFinishedSemaphores[i], nullptr);
+          Device::base_device->logical_device,
+          this->computeFinishedSemaphores[i],
+          nullptr);
       vkDestroyFence(
-          Device::baseDevice->logical, this->graphicsInFlightFences[i], nullptr);
+          Device::base_device->logical_device,
+          this->graphicsInFlightFences[i],
+          nullptr);
       vkDestroyFence(
-          Device::baseDevice->logical, this->computeInFlightFences[i], nullptr);
+          Device::base_device->logical_device,
+          this->computeInFlightFences[i],
+          nullptr);
     };
   }
 }

@@ -9,19 +9,20 @@
 #include <cstring>
 #include <vector>
 
-void CE::Screenshot::capture(const VkImage& srcImage,
-                             const VkExtent2D& extent,
-                             const VkFormat& format,
-                             const VkCommandPool& commandPool,
-                             const VkQueue& queue,
-                             const std::string& filename) {
+void CE::Screenshot::capture(const VkImage &srcImage,
+                             const VkExtent2D &extent,
+                             const VkFormat &format,
+                             const VkCommandPool &commandPool,
+                             const VkQueue &queue,
+                             const std::string &filename) {
   Log::text("{ >>> }", "Screenshot:", filename);
 
   VkDeviceSize imageSize = static_cast<VkDeviceSize>(extent.width) *
                            static_cast<VkDeviceSize>(extent.height) *
                            static_cast<VkDeviceSize>(4);
   Buffer stagingBuffer{};
-  Buffer::create(imageSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+  Buffer::create(imageSize,
+                 VK_BUFFER_USAGE_TRANSFER_DST_BIT,
                  VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                      VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                  stagingBuffer);
@@ -32,13 +33,13 @@ void CE::Screenshot::capture(const VkImage& srcImage,
   Log::text(Log::Style::charLeader, "Screenshot saved successfully");
 }
 
-void CE::Screenshot::copyImageToBuffer(const VkImage& srcImage,
-                                       Buffer& dstBuffer,
-                                       const VkExtent2D& extent,
-                                       const VkCommandPool& commandPool,
-                                       const VkQueue& queue) {
+void CE::Screenshot::copyImageToBuffer(const VkImage &srcImage,
+                                       Buffer &dstBuffer,
+                                       const VkExtent2D &extent,
+                                       const VkCommandPool &commandPool,
+                                       const VkQueue &queue) {
   CommandBuffers::beginSingularCommands(commandPool, queue);
-  VkCommandBuffer& commandBuffer = CommandBuffers::singularCommandBuffer;
+  VkCommandBuffer &commandBuffer = CommandBuffers::singularCommandBuffer;
 
   VkImageMemoryBarrier barrier{};
   barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -55,9 +56,16 @@ void CE::Screenshot::copyImageToBuffer(const VkImage& srcImage,
   barrier.srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
   barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
 
-  vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT,
-                       VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0,
-                       nullptr, 1, &barrier);
+  vkCmdPipelineBarrier(commandBuffer,
+                       VK_PIPELINE_STAGE_TRANSFER_BIT,
+                       VK_PIPELINE_STAGE_TRANSFER_BIT,
+                       0,
+                       0,
+                       nullptr,
+                       0,
+                       nullptr,
+                       1,
+                       &barrier);
 
   VkBufferImageCopy region{};
   region.bufferOffset = 0;
@@ -70,45 +78,57 @@ void CE::Screenshot::copyImageToBuffer(const VkImage& srcImage,
   region.imageOffset = {0, 0, 0};
   region.imageExtent = {extent.width, extent.height, 1};
 
-  vkCmdCopyImageToBuffer(commandBuffer, srcImage,
+  vkCmdCopyImageToBuffer(commandBuffer,
+                         srcImage,
                          VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-                         dstBuffer.buffer, 1, &region);
+                         dstBuffer.buffer,
+                         1,
+                         &region);
 
   barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
   barrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
   barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
   barrier.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
 
-  vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT,
-                       VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0,
-                       nullptr, 1, &barrier);
+  vkCmdPipelineBarrier(commandBuffer,
+                       VK_PIPELINE_STAGE_TRANSFER_BIT,
+                       VK_PIPELINE_STAGE_TRANSFER_BIT,
+                       0,
+                       0,
+                       nullptr,
+                       0,
+                       nullptr,
+                       1,
+                       &barrier);
 
   CommandBuffers::endSingularCommands(commandPool, queue);
 }
 
-void CE::Screenshot::saveBufferToFile(const Buffer& buffer,
-                                      const VkExtent2D& extent,
-                                      const VkFormat& format,
-                                      const std::string& filename) {
-  void* data{};
-  vkMapMemory(Device::baseDevice->logical, buffer.memory, 0, VK_WHOLE_SIZE, 0,
-              &data);
+void CE::Screenshot::saveBufferToFile(const Buffer &buffer,
+                                      const VkExtent2D &extent,
+                                      const VkFormat &format,
+                                      const std::string &filename) {
+  void *data{};
+  vkMapMemory(
+      Device::base_device->logical_device, buffer.memory, 0, VK_WHOLE_SIZE, 0, &data);
 
   std::vector<uint8_t> pixels(extent.width * extent.height * 4);
   memcpy(pixels.data(), data, pixels.size());
 
-  if (format == VK_FORMAT_B8G8R8A8_UNORM ||
-      format == VK_FORMAT_B8G8R8A8_SRGB ||
+  if (format == VK_FORMAT_B8G8R8A8_UNORM || format == VK_FORMAT_B8G8R8A8_SRGB ||
       format == VK_FORMAT_B8G8R8A8_SNORM) {
     for (size_t i = 0; i < pixels.size(); i += 4) {
       std::swap(pixels[i], pixels[i + 2]);
     }
   }
 
-  vkUnmapMemory(Device::baseDevice->logical, buffer.memory);
+  vkUnmapMemory(Device::base_device->logical_device, buffer.memory);
 
-  if (!stbi_write_png(filename.c_str(), static_cast<int>(extent.width),
-                      static_cast<int>(extent.height), 4, pixels.data(),
+  if (!stbi_write_png(filename.c_str(),
+                      static_cast<int>(extent.width),
+                      static_cast<int>(extent.height),
+                      4,
+                      pixels.data(),
                       static_cast<int>(extent.width) * 4)) {
     throw std::runtime_error("Failed to write screenshot to file: " + filename);
   }

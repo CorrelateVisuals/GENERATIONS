@@ -7,10 +7,16 @@ Currently GENERATIONS is running ![Conway's Game of Life](https://en.wikipedia.o
 
 ### Expanding Functionality
 - Texture/Image reading and writing GPU & CPU
+    + feedback effect
+    + composite
 - Color picking/Render picking
+    + mouse click to select instanced object
 - Culling and level-of-detail (LOD)
+    + only render what has to be rendered
 - Integrating GUI (Dear ImGui)
+    + or other minimal interface
 - Arcball Camera
+    DONE
 
 [Development enviroment](https://vulkan-tutorial.com/Development_environment)
 

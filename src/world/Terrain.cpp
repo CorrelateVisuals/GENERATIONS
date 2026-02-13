@@ -6,7 +6,7 @@
 #include <cmath>
 #include <vector>
 
-Terrain::Terrain(const Config& config) : config(config) {}
+Terrain::Terrain(const Config &config) : config(config) {}
 
 std::vector<float> Terrain::generatePerlinGrid() {
   uint_fast16_t pointCount = config.dimensions.x * config.dimensions.y;
@@ -22,8 +22,7 @@ std::vector<float> Terrain::generatePerlinGrid() {
     float amplitude = config.amplitude;
 
     for (int octave = 0; octave < config.octaves; octave++) {
-      totalNoise +=
-          glm::perlin(scaledPosition * config.scale * frequency) * amplitude;
+      totalNoise += glm::perlin(scaledPosition * config.scale * frequency) * amplitude;
       frequency *= 2.0f;
       amplitude *= config.roughness;
     }

@@ -5,14 +5,14 @@
 #include <array>
 
 class Window {
- public:
-  Window(const Window&) = delete;
+public:
+  Window(const Window &) = delete;
 
   struct DisplayConfiguration {
-    DisplayConfiguration(const char* t, uint16_t w, uint16_t h)
+    DisplayConfiguration(const char *t, uint16_t w, uint16_t h)
         : title{t}, width{w}, height{h} {}
 
-    const char* title;
+    const char *title;
     uint16_t width;
     uint16_t height;
   };
@@ -31,23 +31,27 @@ class Window {
   };
 
   bool framebufferResized;
-  GLFWwindow* window;
-    DisplayConfiguration display{
-  #ifdef __linux__
-    "GENERATIONS", 1920, 1080
-  #else
-    "GENERATIONS", 3840, 1080
-  #endif
-    };
+  GLFWwindow *window;
+  DisplayConfiguration display{
+#ifdef __linux__
+      "GENERATIONS", 1920, 1080
+#else
+      "GENERATIONS", 3840, 1080
+#endif
+  };
   Mouse mouse{0.18f, 0.5f};
 
-  static Window& get() { return mainWindow; }
+  static Window &get() {
+    return mainWindow;
+  }
   void pollInput();
   void setMouse();
-  bool isEscapePressed() const { return escapePressed; }
+  bool isEscapePressed() const {
+    return escapePressed;
+  }
   bool consumeScreenshotPressed();
 
- private:
+private:
   bool escapePressed{false};
   bool screenshotKeyDown{false};
   bool screenshotPressed{false};
@@ -56,7 +60,7 @@ class Window {
   ~Window();
 
   void initWindow();
-  static void windowResize(GLFWwindow* win, int width, int height);
+  static void windowResize(GLFWwindow *win, int width, int height);
 
   static Window mainWindow;
 };

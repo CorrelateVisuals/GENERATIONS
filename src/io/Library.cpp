@@ -21,14 +21,13 @@ double Lib::lowFrequencyOscillator(double frequency) {
   using namespace std::chrono;
   static const auto start_time = high_resolution_clock::now();
   const auto time_elapsed =
-      duration_cast<milliseconds>(high_resolution_clock::now() - start_time)
-          .count();
+      duration_cast<milliseconds>(high_resolution_clock::now() - start_time).count();
   const double period = 1000.0 / frequency;
   const double angle = time_elapsed * frequency * 2 * std::numbers::pi / 1000.0;
   return 0.5 * (1 + std::sin(angle));
 }
 
-glm::vec2 Lib::smoothstep(const glm::vec2& xy) {
+glm::vec2 Lib::smoothstep(const glm::vec2 &xy) {
   constexpr float startInput = 0.0f;
   constexpr float endInput = 1.0f;
   constexpr float minIncrease = -0.1f;
@@ -40,8 +39,8 @@ glm::vec2 Lib::smoothstep(const glm::vec2& xy) {
   float smoothX = tX * tX * (3.0f - 2.0f * tX);
   float smoothY = tY * tY * (3.0f - 2.0f * tY);
 
-  glm::vec2 increase = glm::mix(glm::vec2(minIncrease), glm::vec2(maxIncrease),
-                                glm::vec2(smoothX, smoothY));
+  glm::vec2 increase = glm::mix(
+      glm::vec2(minIncrease), glm::vec2(maxIncrease), glm::vec2(smoothX, smoothY));
   return increase;
 }
 
@@ -56,10 +55,10 @@ std::string Lib::upperToLowerCase(std::string string) {
   return lowerCaseString;
 }
 
-std::string Lib::path(const std::string& linuxPath) {
+std::string Lib::path(const std::string &linuxPath) {
 #ifdef _WIN32
   std::string convertedWindowsPath = "..\\" + linuxPath;
-  for (char& c : convertedWindowsPath) {
+  for (char &c : convertedWindowsPath) {
     if (c == '/') {
       c = '\\';
     }
@@ -80,7 +79,7 @@ std::string Lib::ifShaderCompile(std::string shaderPath) {
 #ifdef _WIN32
     std::string glslangValidator = "glslangValidator.exe -V ";
 #else
-  std::string glslangValidator = "glslangValidator -V ";
+    std::string glslangValidator = "glslangValidator -V ";
 #endif
     shaderPath.insert(0, glslangValidator);
     return shaderPath;

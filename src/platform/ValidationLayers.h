@@ -5,12 +5,12 @@
 #include <vector>
 
 class ValidationLayers {
- public:
+public:
   ValidationLayers();
   ~ValidationLayers();
 
   VkDebugUtilsMessengerEXT debugMessenger;
-  const std::vector<const char*> validation;
+  const std::vector<const char *> validation;
 
 #ifdef NDEBUG
   const bool enableValidationLayers = false;
@@ -19,27 +19,26 @@ class ValidationLayers {
 #endif
 
   void setupDebugMessenger(VkInstance instance);
-  void populateDebugMessengerCreateInfo(
-      VkDebugUtilsMessengerCreateInfoEXT& createInfo);
+  void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo);
   bool checkValidationLayerSupport();
   void DestroyDebugUtilsMessengerEXT(VkInstance instance,
                                      VkDebugUtilsMessengerEXT debugMessenger,
-                                     const VkAllocationCallbacks* pAllocator);
+                                     const VkAllocationCallbacks *pAllocator);
 
- private:
-  void static logValidationMessage(const std::string& string,
-                                   const std::string& excludeError);
-  VkResult CreateDebugUtilsMessengerEXT(
-      VkInstance instance,
-      const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
-      const VkAllocationCallbacks* pAllocator,
-      VkDebugUtilsMessengerEXT* pDebugMessenger);
+private:
+  void static logValidationMessage(const std::string &string,
+                                   const std::string &excludeError);
+  VkResult
+  CreateDebugUtilsMessengerEXT(VkInstance instance,
+                               const VkDebugUtilsMessengerCreateInfoEXT *pCreateInfo,
+                               const VkAllocationCallbacks *pAllocator,
+                               VkDebugUtilsMessengerEXT *pDebugMessenger);
 
   static VKAPI_ATTR VkBool32 VKAPI_CALL
   debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
                 VkDebugUtilsMessageTypeFlagsEXT messageType,
-                const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-                void* pUserData) {
+                const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData,
+                void *pUserData) {
     const std::string debugMessage = pCallbackData->pMessage;
     logValidationMessage(debugMessage, "Epic Games");
     return VK_FALSE;

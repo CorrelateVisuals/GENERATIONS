@@ -11,10 +11,10 @@
 #include <vector>
 
 class World {
- public:
-  World(VkCommandBuffer& commandBuffer,
-        const VkCommandPool& commandPool,
-        const VkQueue& queue);
+public:
+  World(VkCommandBuffer &commandBuffer,
+        const VkCommandPool &commandPool,
+        const VkQueue &queue);
   ~World();
 
   struct alignas(16) Cell {
@@ -25,8 +25,7 @@ class World {
     glm::ivec4 states{};
 
     static std::vector<VkVertexInputBindingDescription> getBindingDescription();
-    static std::vector<VkVertexInputAttributeDescription>
-    getAttributeDescription();
+    static std::vector<VkVertexInputAttributeDescription> getAttributeDescription();
   };
 
   struct UniformBufferObject {
@@ -52,15 +51,13 @@ class World {
     Grid(vec2_uint_fast16_t gridSize,
          uint_fast32_t aliveCells,
          float cellSize,
-         VkCommandBuffer& commandBuffer,
-         const VkCommandPool& commandPool,
-         const VkQueue& queue);
-    static std::vector<VkVertexInputAttributeDescription>
-    getAttributeDescription();
+         VkCommandBuffer &commandBuffer,
+         const VkCommandPool &commandPool,
+         const VkQueue &queue);
+    static std::vector<VkVertexInputAttributeDescription> getAttributeDescription();
 
-   private:
-    std::vector<uint_fast32_t> setCellsAliveRandomly(
-        uint_fast32_t numberOfCells);
+  private:
+    std::vector<uint_fast32_t> setCellsAliveRandomly(uint_fast32_t numberOfCells);
   };
 
   Grid _grid;

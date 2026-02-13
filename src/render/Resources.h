@@ -18,8 +18,8 @@
 class VulkanMechanics;
 
 class Resources {
- public:
-  Resources(VulkanMechanics& mechanics);
+public:
+  Resources(VulkanMechanics &mechanics);
   ~Resources();
 
   // struct CommandResources : public CE::CommandBuffers {
@@ -34,63 +34,60 @@ class Resources {
   // };
 
   class UniformBuffer : public CE::Descriptor {
-   public:
-    UniformBuffer(CE::DescriptorInterface& interface,
-                  World::UniformBufferObject& u);
-    void update(World& world, const VkExtent2D extent);
+  public:
+    UniformBuffer(CE::DescriptorInterface &interface, World::UniformBufferObject &u);
+    void update(World &world, const VkExtent2D extent);
 
-   private:
+  private:
     CE::Buffer buffer;
-    World::UniformBufferObject& ubo;
+    World::UniformBufferObject &ubo;
     void createBuffer();
-    void createDescriptorWrite(CE::DescriptorInterface& interface);
+    void createDescriptorWrite(CE::DescriptorInterface &interface);
   };
 
   class StorageBuffer : public CE::Descriptor {
-   public:
+  public:
     CE::Buffer bufferIn;
     CE::Buffer bufferOut;
 
-    StorageBuffer(CE::DescriptorInterface& descriptorInterface,
-                  const CE::CommandInterface& commandInterface,
-                  const auto& object,
+    StorageBuffer(CE::DescriptorInterface &descriptorInterface,
+                  const CE::CommandInterface &commandInterface,
+                  const auto &object,
                   const size_t quantity);
 
-   private:
-    void create(const CE::CommandInterface& commandInterface,
-                const auto& object,
+  private:
+    void create(const CE::CommandInterface &commandInterface,
+                const auto &object,
                 const size_t quantity);
-    void createDescriptorWrite(CE::DescriptorInterface& interface,
-                               const size_t quantity);
+    void createDescriptorWrite(CE::DescriptorInterface &interface, const size_t quantity);
   };
 
   class ImageSampler : public CE::Descriptor {
-   public:
-    ImageSampler(CE::DescriptorInterface& interface,
-                 const CE::CommandInterface& commandInterface,
-                 const std::string& texturePath);
+  public:
+    ImageSampler(CE::DescriptorInterface &interface,
+                 const CE::CommandInterface &commandInterface,
+                 const std::string &texturePath);
 
-   private:
-    void createDescriptorWrite(CE::DescriptorInterface& interface);
+  private:
+    void createDescriptorWrite(CE::DescriptorInterface &interface);
     CE::Image textureImage;
   };
 
   class StorageImage : public CE::Descriptor {
-   public:
-    StorageImage(CE::DescriptorInterface& interface,
-                 std::array<CE::Image, MAX_FRAMES_IN_FLIGHT>& images);
-    void createDescriptorWrite(
-        CE::DescriptorInterface& interface,
-        std::array<CE::Image, MAX_FRAMES_IN_FLIGHT>& images);
+  public:
+    StorageImage(CE::DescriptorInterface &interface,
+                 std::array<CE::Image, MAX_FRAMES_IN_FLIGHT> &images);
+    void createDescriptorWrite(CE::DescriptorInterface &interface,
+                               std::array<CE::Image, MAX_FRAMES_IN_FLIGHT> &images);
   };
   // GPU Interface
   CE::ShaderAccess::CommandResources
-      commands;  // virtual function to record command buffers
-  CE::CommandInterface commandInterface;  // interface for command buffers
+      commands;                          // virtual function to record command buffers
+  CE::CommandInterface commandInterface; // interface for command buffers
   CE::PushConstants pushConstant;
 
   // Scene
-  World world;  // World objects, light, _camera
+  World world; // World objects, light, _camera
 
   CE::DescriptorInterface descriptorInterface;
 
@@ -99,10 +96,10 @@ class Resources {
   CE::Image msaaImage;
 
   // Descriptors
-  UniformBuffer uniform;        // UniformParameters world details
-  StorageBuffer shaderStorage;  // FeedbackLoop compute shader
+  UniformBuffer uniform;       // UniformParameters world details
+  StorageBuffer shaderStorage; // FeedbackLoop compute shader
 
   // Image Descriptors
-  ImageSampler sampler;       // Texture vertex shader
-  StorageImage storageImage;  //  PostFX compute shader
+  ImageSampler sampler;      // Texture vertex shader
+  StorageImage storageImage; //  PostFX compute shader
 };

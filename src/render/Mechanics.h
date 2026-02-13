@@ -6,7 +6,7 @@ class Pipelines;
 class Resources;
 
 class VulkanMechanics {
- public:
+public:
   VulkanMechanics();
   ~VulkanMechanics();
 
@@ -14,10 +14,10 @@ class VulkanMechanics {
   CE::Queues queues{};
 
   struct Device : public CE::Device {
-    Device(const CE::InitializeVulkan& initVulkan,
-           CE::Queues& queues,
-           CE::Swapchain& swapchain) {
-      CE::Device::baseDevice = this;
+    Device(const CE::InitializeVulkan &initVulkan,
+           CE::Queues &queues,
+           CE::Swapchain &swapchain) {
+      CE::Device::base_device = this;
 
       features.tessellationShader = VK_TRUE;
       features.sampleRateShading = VK_TRUE;
@@ -28,26 +28,30 @@ class VulkanMechanics {
       features.samplerAnisotropy = VK_TRUE;
       features.shaderInt64 = VK_TRUE;
 
-      pickPhysicalDevice(initVulkan, queues, swapchain);
-      createLogicalDevice(initVulkan, queues);
+      pick_physical_device(initVulkan, queues, swapchain);
+      create_logical_device(initVulkan, queues);
     };
-    ~Device() { destroyDevice(); }
+    ~Device() {
+      destroy_device();
+    }
   };
 
   struct SynchronizationObjects : public CE::SynchronizationObjects {
-    SynchronizationObjects() { create(); }
+    SynchronizationObjects() {
+      create();
+    }
   };
 
   struct Swapchain : public CE::Swapchain {
     Swapchain() = default;
-    void initialize(const VkSurfaceKHR& surface, const CE::Queues& queues) {
+    void initialize(const VkSurfaceKHR &surface, const CE::Queues &queues) {
       create(surface, queues);
     }
-    void recreate(const VkSurfaceKHR& surface,
-                  const CE::Queues& queues,
-                  SynchronizationObjects& syncObjects,
-                  Pipelines& pipelines,
-                  Resources& resources);
+    void recreate(const VkSurfaceKHR &surface,
+                  const CE::Queues &queues,
+                  SynchronizationObjects &syncObjects,
+                  Pipelines &pipelines,
+                  Resources &resources);
   };
 
   Swapchain swapchainSupport;

@@ -13,7 +13,7 @@
 namespace {
 constexpr glm::vec3 STANDARD_ORIENTATION{90.0f, 180.0f, 0.0f};
 
-void fillFallbackQuad(Geometry& geometry) {
+void fillFallbackQuad(Geometry &geometry) {
   geometry.allVertices.clear();
   geometry.uniqueVertices.clear();
   geometry.indices.clear();
@@ -48,7 +48,7 @@ void fillFallbackQuad(Geometry& geometry) {
   geometry.allVertices = {v0, v2, v1, v0, v3, v2};
 }
 
-void fillFallbackSphere(Geometry& geometry,
+void fillFallbackSphere(Geometry &geometry,
                         const uint32_t stacks = 16,
                         const uint32_t slices = 32,
                         const float radius = 0.5f) {
@@ -61,8 +61,7 @@ void fillFallbackSphere(Geometry& geometry,
     const float phi = v * glm::pi<float>();
 
     for (uint32_t slice = 0; slice <= slices; ++slice) {
-      const float u =
-          static_cast<float>(slice) / static_cast<float>(slices);
+      const float u = static_cast<float>(slice) / static_cast<float>(slices);
       const float theta = u * glm::two_pi<float>();
 
       const float x = std::sin(phi) * std::cos(theta);
@@ -99,7 +98,7 @@ void fillFallbackSphere(Geometry& geometry,
     geometry.allVertices.push_back(geometry.uniqueVertices[index]);
   }
 }
-}  // namespace
+} // namespace
 
 std::vector<VkVertexInputBindingDescription> Vertex::getBindingDescription() {
   std::vector<VkVertexInputBindingDescription> binding{
@@ -107,21 +106,22 @@ std::vector<VkVertexInputBindingDescription> Vertex::getBindingDescription() {
   return binding;
 }
 
-std::vector<VkVertexInputAttributeDescription>
-Vertex::getAttributeDescription() {
+std::vector<VkVertexInputAttributeDescription> Vertex::getAttributeDescription() {
   std::vector<VkVertexInputAttributeDescription> attributes{
-      {0, 0, VK_FORMAT_R32G32B32_SFLOAT,
+      {0,
+       0,
+       VK_FORMAT_R32G32B32_SFLOAT,
        static_cast<uint32_t>(offsetof(Vertex, vertexPosition))},
-      {1, 0, VK_FORMAT_R32G32B32_SFLOAT,
-       static_cast<uint32_t>(offsetof(Vertex, color))},
-      {2, 0, VK_FORMAT_R32G32_SFLOAT,
+      {1, 0, VK_FORMAT_R32G32B32_SFLOAT, static_cast<uint32_t>(offsetof(Vertex, color))},
+      {2,
+       0,
+       VK_FORMAT_R32G32_SFLOAT,
        static_cast<uint32_t>(offsetof(Vertex, textureCoordinates))}};
   return attributes;
 }
 
-template <>
-struct std::hash<Vertex> {
-  size_t operator()(const Vertex& vertex) const {
+template <> struct std::hash<Vertex> {
+  size_t operator()(const Vertex &vertex) const {
     return ((std::hash<glm::vec3>()(vertex.instancePosition) ^
              (std::hash<glm::vec3>()(vertex.vertexPosition) << 1) ^
              (std::hash<glm::vec3>()(vertex.normal) << 2) ^
@@ -140,9 +140,9 @@ Geometry::Geometry(GEOMETRY_SHAPE shape) {
       case CE_SPHERE:
         return "Sphere";
       case CE_SPHERE_HR:
-          return "SphereHR";
+        return "SphereHR";
       case CE_TORUS:
-          return "Torus";
+        return "Torus";
 
       default:
         throw std::invalid_argument("Invalid geometry shape");
@@ -154,7 +154,7 @@ Geometry::Geometry(GEOMETRY_SHAPE shape) {
     try {
       loadModel(modelName, *this);
       loaded = true;
-    } catch (const std::exception& ex) {
+    } catch (const std::exception &ex) {
       Log::text("{ !!! }", "Model load failed:", modelName, ex.what());
     }
 
@@ -167,20 +167,20 @@ Geometry::Geometry(GEOMETRY_SHAPE shape) {
       }
     }
 
-    transformModel(allVertices, ORIENTATION_ORDER{CE_ROTATE_SCALE_TRANSLATE},
-                   STANDARD_ORIENTATION);
-    transformModel(uniqueVertices, ORIENTATION_ORDER{CE_ROTATE_SCALE_TRANSLATE},
+    transformModel(
+        allVertices, ORIENTATION_ORDER{CE_ROTATE_SCALE_TRANSLATE}, STANDARD_ORIENTATION);
+    transformModel(uniqueVertices,
+                   ORIENTATION_ORDER{CE_ROTATE_SCALE_TRANSLATE},
                    STANDARD_ORIENTATION);
   }
 }
 
-void Geometry::addVertexPosition(const glm::vec3& position) {
+void Geometry::addVertexPosition(const glm::vec3 &position) {
   uniqueVertices.push_back({glm::vec3(0.0f), position});
 }
 
-std::vector<uint32_t> Geometry::createGridPolygons(
-    const std::vector<uint32_t>& vertices,
-    uint32_t gridWidth) {
+std::vector<uint32_t> Geometry::createGridPolygons(const std::vector<uint32_t> &vertices,
+                                                   uint32_t gridWidth) {
   std::vector<uint32_t> result;
 
   uint32_t numRows = static_cast<uint32_t>(vertices.size()) / gridWidth;
@@ -208,61 +208,79 @@ std::vector<uint32_t> Geometry::createGridPolygons(
   return result;
 }
 
-void Geometry::createVertexBuffer(VkCommandBuffer& commandBuffer,
-                                  const VkCommandPool& commandPool,
-                                  const VkQueue& queue,
-                                  const std::vector<Vertex>& vertices) {
+void Geometry::createVertexBuffer(VkCommandBuffer &commandBuffer,
+                                  const VkCommandPool &commandPool,
+                                  const VkQueue &queue,
+                                  const std::vector<Vertex> &vertices) {
   CE::Buffer stagingResources;
   VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
 
-  CE::Buffer::create(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+  CE::Buffer::create(bufferSize,
+                     VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                          VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                      stagingResources);
 
-  void* data;
-  vkMapMemory(CE::Device::baseDevice->logical, stagingResources.memory, 0,
-              bufferSize, 0, &data);
+  void *data;
+  vkMapMemory(CE::Device::base_device->logical_device,
+              stagingResources.memory,
+              0,
+              bufferSize,
+              0,
+              &data);
   memcpy(data, vertices.data(), (size_t)bufferSize);
-  vkUnmapMemory(CE::Device::baseDevice->logical, stagingResources.memory);
+  vkUnmapMemory(CE::Device::base_device->logical_device, stagingResources.memory);
 
-  CE::Buffer::create(
-      bufferSize,
-      VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, this->vertexBuffer);
+  CE::Buffer::create(bufferSize,
+                     VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+                     VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                     this->vertexBuffer);
 
-  CE::Buffer::copy(stagingResources.buffer, this->vertexBuffer.buffer,
-                   bufferSize, commandBuffer, commandPool, queue);
+  CE::Buffer::copy(stagingResources.buffer,
+                   this->vertexBuffer.buffer,
+                   bufferSize,
+                   commandBuffer,
+                   commandPool,
+                   queue);
 }
 
-void Geometry::createIndexBuffer(VkCommandBuffer& commandBuffer,
-                                 const VkCommandPool& commandPool,
-                                 const VkQueue& queue,
-                                 const std::vector<uint32_t>& indices) {
+void Geometry::createIndexBuffer(VkCommandBuffer &commandBuffer,
+                                 const VkCommandPool &commandPool,
+                                 const VkQueue &queue,
+                                 const std::vector<uint32_t> &indices) {
   CE::Buffer stagingResources;
   VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
 
-  CE::Buffer::create(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+  CE::Buffer::create(bufferSize,
+                     VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                          VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                      stagingResources);
 
-  void* data;
-  vkMapMemory(CE::Device::baseDevice->logical, stagingResources.memory, 0,
-              bufferSize, 0, &data);
+  void *data;
+  vkMapMemory(CE::Device::base_device->logical_device,
+              stagingResources.memory,
+              0,
+              bufferSize,
+              0,
+              &data);
   memcpy(data, indices.data(), (size_t)bufferSize);
-  vkUnmapMemory(CE::Device::baseDevice->logical, stagingResources.memory);
+  vkUnmapMemory(CE::Device::base_device->logical_device, stagingResources.memory);
 
-  CE::Buffer::create(
-      bufferSize,
-      VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, this->indexBuffer);
+  CE::Buffer::create(bufferSize,
+                     VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+                     VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                     this->indexBuffer);
 
-  CE::Buffer::copy(stagingResources.buffer, this->indexBuffer.buffer,
-                   bufferSize, commandBuffer, commandPool, queue);
+  CE::Buffer::copy(stagingResources.buffer,
+                   this->indexBuffer.buffer,
+                   bufferSize,
+                   commandBuffer,
+                   commandPool,
+                   queue);
 }
 
-void Geometry::loadModel(const std::string& modelName, Geometry& geometry) {
+void Geometry::loadModel(const std::string &modelName, Geometry &geometry) {
   std::string baseDir = Lib::path("assets/3D/");
   std::string modelPath = baseDir + modelName + ".obj";
 
@@ -275,8 +293,13 @@ void Geometry::loadModel(const std::string& modelName, Geometry& geometry) {
   std::vector<tinyobj::material_t> materials;
   std::string warn, err;
 
-  if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err,
-                        modelPath.c_str(), baseDir.c_str())) {
+  if (!tinyobj::LoadObj(&attrib,
+                        &shapes,
+                        &materials,
+                        &warn,
+                        &err,
+                        modelPath.c_str(),
+                        baseDir.c_str())) {
     throw std::runtime_error(warn + err);
   }
   if (!warn.empty()) {
@@ -289,8 +312,8 @@ void Geometry::loadModel(const std::string& modelName, Geometry& geometry) {
 
   std::unordered_map<Vertex, uint32_t> tempUniqueVertices;
 
-  for (const auto& shape : shapes) {
-    for (const auto& index : shape.mesh.indices) {
+  for (const auto &shape : shapes) {
+    for (const auto &index : shape.mesh.indices) {
       Vertex vertex{};
 
       vertex.vertexPosition = {attrib.vertices[3 * index.vertex_index + 0],
@@ -298,8 +321,7 @@ void Geometry::loadModel(const std::string& modelName, Geometry& geometry) {
                                attrib.vertices[3 * index.vertex_index + 2]};
 
       if (index.normal_index >= 0 &&
-          static_cast<size_t>(3 * index.normal_index + 2) <
-              attrib.normals.size()) {
+          static_cast<size_t>(3 * index.normal_index + 2) < attrib.normals.size()) {
         vertex.normal = {attrib.normals[3 * index.normal_index + 0],
                          attrib.normals[3 * index.normal_index + 1],
                          attrib.normals[3 * index.normal_index + 2]};
@@ -308,11 +330,10 @@ void Geometry::loadModel(const std::string& modelName, Geometry& geometry) {
       }
 
       if (index.texcoord_index >= 0 &&
-          static_cast<size_t>(2 * index.texcoord_index + 1) <
-              attrib.texcoords.size()) {
-        vertex.textureCoordinates = {
-            attrib.texcoords[2 * index.texcoord_index + 0],
-            1.0f - attrib.texcoords[2 * index.texcoord_index + 1]};
+          static_cast<size_t>(2 * index.texcoord_index + 1) < attrib.texcoords.size()) {
+        vertex.textureCoordinates = {attrib.texcoords[2 * index.texcoord_index + 0],
+                                     1.0f -
+                                         attrib.texcoords[2 * index.texcoord_index + 1]};
       } else {
         vertex.textureCoordinates = {0.0f, 0.0f};
       }
@@ -330,10 +351,10 @@ void Geometry::loadModel(const std::string& modelName, Geometry& geometry) {
   }
 }
 
-void Geometry::transformModel(std::vector<Vertex>& vertices,
+void Geometry::transformModel(std::vector<Vertex> &vertices,
                               ORIENTATION_ORDER order,
-                              const glm::vec3& degrees,
-                              const glm::vec3& translationDistance,
+                              const glm::vec3 &degrees,
+                              const glm::vec3 &translationDistance,
                               float scale) {
   float angleX = glm::radians(degrees.x);
   float angleY = glm::radians(degrees.y);
@@ -344,7 +365,7 @@ void Geometry::transformModel(std::vector<Vertex>& vertices,
       glm::rotate(glm::mat4(1.0f), angleY, glm::vec3(0.0f, 1.0f, 0.0f)) *
       glm::rotate(glm::mat4(1.0f), angleZ, glm::vec3(0.0f, 0.0f, 1.0f));
 
-  for (auto& vertex : vertices) {
+  for (auto &vertex : vertices) {
     switch (order) {
       case ORIENTATION_ORDER::CE_ROTATE_SCALE_TRANSLATE:
         vertex.vertexPosition =
@@ -352,8 +373,7 @@ void Geometry::transformModel(std::vector<Vertex>& vertices,
         vertex.vertexPosition *= scale;
         vertex.vertexPosition = vertex.vertexPosition + translationDistance;
 
-        vertex.normal =
-            glm::vec3(rotationMatrix * glm::vec4(vertex.normal, 1.0f));
+        vertex.normal = glm::vec3(rotationMatrix * glm::vec4(vertex.normal, 1.0f));
         break;
       case ORIENTATION_ORDER::CE_ROTATE_TRANSLATE_SCALE:
         vertex.vertexPosition =
@@ -361,8 +381,7 @@ void Geometry::transformModel(std::vector<Vertex>& vertices,
         vertex.vertexPosition = vertex.vertexPosition + translationDistance;
         vertex.vertexPosition *= scale;
 
-        vertex.normal =
-            glm::vec3(rotationMatrix * glm::vec4(vertex.normal, 1.0f));
+        vertex.normal = glm::vec3(rotationMatrix * glm::vec4(vertex.normal, 1.0f));
         break;
     }
   }
@@ -371,9 +390,9 @@ void Geometry::transformModel(std::vector<Vertex>& vertices,
 
 Shape::Shape(GEOMETRY_SHAPE shape,
              bool hasIndices,
-             VkCommandBuffer& commandBuffer,
-             const VkCommandPool& commandPool,
-             const VkQueue& queue)
+             VkCommandBuffer &commandBuffer,
+             const VkCommandPool &commandPool,
+             const VkQueue &queue)
     : Geometry(shape) {
   if (hasIndices) {
     createVertexBuffer(commandBuffer, commandPool, queue, uniqueVertices);

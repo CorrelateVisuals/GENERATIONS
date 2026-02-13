@@ -14,7 +14,8 @@
 uint32_t CE::findMemoryType(const uint32_t typeFilter,
                             const VkMemoryPropertyFlags properties) {
   VkPhysicalDeviceMemoryProperties memProperties{};
-  vkGetPhysicalDeviceMemoryProperties(Device::baseDevice->physical, &memProperties);
+  vkGetPhysicalDeviceMemoryProperties(Device::base_device->physical_device,
+                                      &memProperties);
 
   Log::text("{ MEM }",
             Log::function_name(__func__),
@@ -39,13 +40,13 @@ uint32_t CE::findMemoryType(const uint32_t typeFilter,
 }
 
 CE::Buffer::~Buffer() {
-  if (Device::baseDevice) {
+  if (Device::base_device) {
     if (this->buffer != VK_NULL_HANDLE) {
-      vkDestroyBuffer(Device::baseDevice->logical, this->buffer, nullptr);
+      vkDestroyBuffer(Device::base_device->logical_device, this->buffer, nullptr);
       this->buffer = VK_NULL_HANDLE;
     }
     if (this->memory != VK_NULL_HANDLE) {
-      vkFreeMemory(Device::baseDevice->logical, this->memory, nullptr);
+      vkFreeMemory(Device::base_device->logical_device, this->memory, nullptr);
       this->memory = VK_NULL_HANDLE;
     }
   }
@@ -69,11 +70,15 @@ void CE::Buffer::create(const VkDeviceSize &size,
   Log::text(Log::Style::charLeader, size, "bytes");
 
   CE::VULKAN_RESULT(
-      vkCreateBuffer, Device::baseDevice->logical, &bufferInfo, nullptr, &buffer.buffer);
+      vkCreateBuffer,
+      Device::base_device->logical_device,
+      &bufferInfo,
+      nullptr,
+      &buffer.buffer);
 
   VkMemoryRequirements memRequirements{};
   vkGetBufferMemoryRequirements(
-      Device::baseDevice->logical, buffer.buffer, &memRequirements);
+      Device::base_device->logical_device, buffer.buffer, &memRequirements);
   Log::text("{ MEM }", Log::function_name(__func__), "Buffer Memory Requirements");
   Log::text(Log::Style::charLeader,
             "requested",
@@ -104,11 +109,12 @@ void CE::Buffer::create(const VkDeviceSize &size,
             allocateInfo.memoryTypeIndex);
 
   CE::VULKAN_RESULT(vkAllocateMemory,
-                    Device::baseDevice->logical,
+                    Device::base_device->logical_device,
                     &allocateInfo,
                     nullptr,
                     &buffer.memory);
-  vkBindBufferMemory(Device::baseDevice->logical, buffer.buffer, buffer.memory, 0);
+  vkBindBufferMemory(
+      Device::base_device->logical_device, buffer.buffer, buffer.memory, 0);
 }
 
 void CE::Buffer::copy(const VkBuffer &srcBuffer,
@@ -155,18 +161,18 @@ void CE::Buffer::copyToImage(const VkBuffer &buffer,
 }
 
 void CE::Image::destroyVulkanImages() const {
-  if (Device::baseDevice && this->memory) {
+  if (Device::base_device && this->memory) {
     if (this->sampler != VK_NULL_HANDLE) {
-      vkDestroySampler(Device::baseDevice->logical, this->sampler, nullptr);
+      vkDestroySampler(Device::base_device->logical_device, this->sampler, nullptr);
     };
     if (this->view != VK_NULL_HANDLE) {
-      vkDestroyImageView(Device::baseDevice->logical, this->view, nullptr);
+      vkDestroyImageView(Device::base_device->logical_device, this->view, nullptr);
     };
     if (this->image != VK_NULL_HANDLE) {
-      vkDestroyImage(Device::baseDevice->logical, this->image, nullptr);
+      vkDestroyImage(Device::base_device->logical_device, this->image, nullptr);
     };
     if (this->memory != VK_NULL_HANDLE) {
-      vkFreeMemory(Device::baseDevice->logical, this->memory, nullptr);
+      vkFreeMemory(Device::base_device->logical_device, this->memory, nullptr);
     };
   };
 }
@@ -192,11 +198,15 @@ void CE::Image::create(const uint32_t width,
   info.usage = usage;
 
   CE::VULKAN_RESULT(
-      vkCreateImage, Device::baseDevice->logical, &this->info, nullptr, &this->image);
+      vkCreateImage,
+      Device::base_device->logical_device,
+      &this->info,
+      nullptr,
+      &this->image);
 
   VkMemoryRequirements memRequirements{};
   vkGetImageMemoryRequirements(
-      Device::baseDevice->logical, this->image, &memRequirements);
+      Device::base_device->logical_device, this->image, &memRequirements);
   Log::text("{ MEM }", Log::function_name(__func__), "Image Memory Requirements");
   Log::text(Log::Style::charLeader,
             "extent",
@@ -229,11 +239,14 @@ void CE::Image::create(const uint32_t width,
             allocateInfo.memoryTypeIndex);
 
   CE::VULKAN_RESULT(vkAllocateMemory,
-                    Device::baseDevice->logical,
+                    Device::base_device->logical_device,
                     &allocateInfo,
                     nullptr,
                     &this->memory);
-  vkBindImageMemory(Device::baseDevice->logical, this->image, this->memory, 0);
+  vkBindImageMemory(Device::base_device->logical_device,
+                    this->image,
+                    this->memory,
+                    0);
 }
 
 void CE::Image::createView(const VkImageAspectFlags aspectFlags) {
@@ -254,7 +267,11 @@ void CE::Image::createView(const VkImageAspectFlags aspectFlags) {
   viewInfo.subresourceRange.layerCount = 1;
 
   CE::VULKAN_RESULT(
-      vkCreateImageView, Device::baseDevice->logical, &viewInfo, nullptr, &this->view);
+      vkCreateImageView,
+      Device::base_device->logical_device,
+      &viewInfo,
+      nullptr,
+      &this->view);
   return;
 }
 
@@ -369,9 +386,14 @@ void CE::Image::loadTexture(const std::string &imagePath,
 
   void *data{};
   vkMapMemory(
-      Device::baseDevice->logical, stagingResources.memory, 0, imageSize, 0, &data);
+      Device::base_device->logical_device,
+      stagingResources.memory,
+      0,
+      imageSize,
+      0,
+      &data);
   memcpy(data, pixels, static_cast<size_t>(imageSize));
-  vkUnmapMemory(Device::baseDevice->logical, stagingResources.memory);
+  vkUnmapMemory(Device::base_device->logical_device, stagingResources.memory);
   stbi_image_free(pixels);
 
   this->create(texWidth,
@@ -417,7 +439,9 @@ VkFormat CE::Image::findSupportedFormat(const std::vector<VkFormat> &candidates,
                                         const VkFormatFeatureFlags &features) {
   for (VkFormat format : candidates) {
     VkFormatProperties props{};
-    vkGetPhysicalDeviceFormatProperties(Device::baseDevice->physical, format, &props);
+    vkGetPhysicalDeviceFormatProperties(Device::base_device->physical_device,
+                      format,
+                      &props);
 
     if (tiling == VK_IMAGE_TILING_LINEAR &&
         (props.linearTilingFeatures & features) == features) {
@@ -458,7 +482,7 @@ void CE::Image::createResources(IMAGE_RESOURCE_TYPES imageType,
 
   this->create(dimensions.width,
                dimensions.height,
-               Device::baseDevice->maxUsableSampleCount,
+               Device::base_device->max_usable_sample_count,
                format,
                VK_IMAGE_TILING_OPTIMAL,
                usage,
@@ -469,7 +493,7 @@ void CE::Image::createResources(IMAGE_RESOURCE_TYPES imageType,
 void CE::Image::createSampler() {
   Log::text("{ img }", "Texture Sampler");
   VkPhysicalDeviceProperties properties;
-  vkGetPhysicalDeviceProperties(Device::baseDevice->physical, &properties);
+  vkGetPhysicalDeviceProperties(Device::base_device->physical_device, &properties);
 
   VkSamplerCreateInfo samplerInfo{};
   samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
@@ -492,7 +516,7 @@ void CE::Image::createSampler() {
   samplerInfo.unnormalizedCoordinates = VK_FALSE;
 
   if (vkCreateSampler(
-          Device::baseDevice->logical, &samplerInfo, nullptr, &this->sampler) !=
+          Device::base_device->logical_device, &samplerInfo, nullptr, &this->sampler) !=
       VK_SUCCESS) {
     throw std::runtime_error("failed to create texture sampler!");
   }
