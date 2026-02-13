@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  # GENERATIONS with NVIDIA GPU support
+  generations-nvidia:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: generations:latest-nvidia
+    container_name: generations-nvidia
+    environment:
+      - DISPLAY=${DISPLAY:-:0}
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - ./assets:/app/assets:ro
+    devices:
+      - /dev/dri:/dev/dri
+    runtime: nvidia
+    network_mode: host
+    profiles:
+      - nvidia
+
+  # GENERATIONS with generic GPU support (AMD/Intel/Mesa)
+  generations-mesa:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: generations:latest-mesa
+    container_name: generations-mesa
+    environment:
+      - DISPLAY=${DISPLAY:-:0}
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - ./assets:/app/assets:ro
+    devices:
+      - /dev/dri:/dev/dri
+    network_mode: host
+    profiles:
+      - mesa
+      - default
+
+  # GENERATIONS for Raspberry Pi (ARM64)
+  generations-arm64:
+    build:
+      context: .
+      dockerfile: Dockerfile.arm64
+    image: generations:latest-arm64
+    container_name: generations-arm64
+    environment:
+      - DISPLAY=${DISPLAY:-:0}
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - ./assets:/app/assets:ro
+    devices:
+      - /dev/dri:/dev/dri
+      - /dev/vchiq:/dev/vchiq  # Raspberry Pi VideoCore
+    network_mode: host
+    profiles:
+      - arm64
+      - raspberry-pi

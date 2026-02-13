@@ -20,6 +20,30 @@ Currently GENERATIONS is running ![Conway's Game of Life](https://en.wikipedia.o
 
 [Development enviroment](https://vulkan-tutorial.com/Development_environment)
 
+## Running with Docker
+
+**Quick Start** - Run GENERATIONS with GPU/Vulkan support in Docker:
+
+```bash
+# Allow X11 connections
+xhost +local:docker
+
+# For AMD/Intel/Mesa GPU
+docker-compose --profile mesa up --build
+
+# For NVIDIA GPU
+docker-compose --profile nvidia up --build
+
+# For Raspberry Pi
+docker-compose --profile raspberry-pi up --build
+```
+
+See [DOCKER.md](DOCKER.md) for complete Docker setup instructions, including:
+- Platform-specific installation guides
+- GPU driver setup (NVIDIA, AMD, Intel, Raspberry Pi)
+- Troubleshooting and optimization tips
+- Security considerations
+
 ## Dependencies
 You will need glslangValidator installed and added to your systempaths. So that it can be ran from the command line.
 

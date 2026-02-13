@@ -1,0 +1,61 @@
+# Git files
+.git
+.gitignore
+.gitattributes
+.github
+
+# IDE files
+.vscode
+.vs
+*.user
+*.suo
+*.vcxproj
+*.vcxproj.filters
+*.sln
+
+# Build artifacts
+build/
+bin/CapitalEngine
+x64/
+*.o
+*.obj
+*.exe
+*.out
+*.app
+*.spv
+
+# Compiled libraries
+*.so
+*.dylib
+*.dll
+*.a
+*.lib
+*.lai
+*.la
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+compile_commands.json
+
+# Documentation
+*.md
+!DOCKER.md
+
+# Logs
+*.log
+log.txt
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.swp
+*~
+
+# Screenshots
+screenshot/

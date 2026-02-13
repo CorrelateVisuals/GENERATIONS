@@ -1,0 +1,66 @@
+# Dockerfile for GENERATIONS on ARM64/Raspberry Pi with Vulkan support
+# Optimized for Raspberry Pi 4/5 with VideoCore GPU
+
+FROM arm64v8/ubuntu:22.04 as builder
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install build dependencies for ARM64
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    cmake \
+    git \
+    wget \
+    python3 \
+    python3-pip \
+    libglfw3-dev \
+    libglm-dev \
+    vulkan-tools \
+    libvulkan-dev \
+    vulkan-validationlayers \
+    spirv-tools \
+    glslang-tools \
+    libxrandr-dev \
+    libxinerama-dev \
+    libxcursor-dev \
+    libxi-dev \
+    libx11-dev \
+    mesa-vulkan-drivers \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+COPY . .
+
+# Build with optimizations for ARM
+RUN cmake -S . -B build \
+    -DCMAKE_BUILD_TYPE=Release \
+    -Wno-dev \
+    --log-level=NOTICE && \
+    cmake --build build --parallel $(nproc)
+
+# Runtime stage
+FROM arm64v8/ubuntu:22.04 as runtime
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y \
+    libglfw3 \
+    libvulkan1 \
+    vulkan-tools \
+    libx11-6 \
+    libxrandr2 \
+    libxinerama1 \
+    libxcursor1 \
+    libxi6 \
+    mesa-vulkan-drivers \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+COPY --from=builder /app/bin/CapitalEngine /app/bin/
+COPY --from=builder /app/shaders/*.spv /app/shaders/
+COPY --from=builder /app/assets /app/assets
+
+ENV DISPLAY=:0
+
+CMD ["/app/bin/CapitalEngine"]
