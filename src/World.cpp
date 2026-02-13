@@ -10,7 +10,7 @@
 
 namespace {
 constexpr glm::ivec2 GRID_SIZE = {50, 50};
-constexpr uint_fast32_t NUMBER_OF_ALIVE_CELLS = 30000;
+constexpr uint_fast32_t NUMBER_OF_ALIVE_CELLS = 200;
 constexpr float CELL_SIZE = 0.5f;
 
 constexpr float TIMER_SPEED = 25.0f;
