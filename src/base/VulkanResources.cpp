@@ -9,6 +9,7 @@
 
 #include <cstring>
 #include <stdexcept>
+#include <unordered_set>
 
 uint32_t CE::findMemoryType(const uint32_t typeFilter,
                             const VkMemoryPropertyFlags properties) {
@@ -211,8 +212,18 @@ void CE::Image::transitionLayout(const VkCommandBuffer& commandBuffer,
                                  const VkFormat format,
                                  const VkImageLayout oldLayout,
                                  const VkImageLayout newLayout) {
-  Log::text("{ SYNC }", "Image Layout Transition", oldLayout, "->",
-            newLayout, "format", format);
+  const std::string transitionKey =
+      std::to_string(static_cast<uint32_t>(format)) + ":" +
+      std::to_string(static_cast<uint32_t>(oldLayout)) + "->" +
+      std::to_string(static_cast<uint32_t>(newLayout));
+  static std::unordered_set<std::string> loggedTransitions{};
+  const bool shouldLogTransition =
+      loggedTransitions.insert(transitionKey).second;
+
+  if (shouldLogTransition) {
+    Log::text("{ SYNC }", "Image Layout Transition", oldLayout, "->",
+              newLayout, "format", format);
+  }
 
   VkImageMemoryBarrier barrier{.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
                                .oldLayout = oldLayout,
@@ -255,10 +266,12 @@ void CE::Image::transitionLayout(const VkCommandBuffer& commandBuffer,
         VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
   }
 
-  Log::text(Log::Style::charLeader, "srcAccess", barrier.srcAccessMask,
-            "dstAccess", barrier.dstAccessMask);
-  Log::text(Log::Style::charLeader, "srcStage", sourceStage, "dstStage",
-            destinationStage);
+  if (shouldLogTransition) {
+    Log::text(Log::Style::charLeader, "srcAccess", barrier.srcAccessMask,
+              "dstAccess", barrier.dstAccessMask);
+    Log::text(Log::Style::charLeader, "srcStage", sourceStage, "dstStage",
+              destinationStage);
+  }
 
   vkCmdPipelineBarrier(commandBuffer, sourceStage, destinationStage, 0, 0,
                        nullptr, 0, nullptr, 1, &barrier);

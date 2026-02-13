@@ -54,6 +54,7 @@ World::World(VkCommandBuffer& commandBuffer,
   const float sceneRadius =
       std::sqrt(halfGridX * halfGridX + halfGridY * halfGridY);
   _camera.configureArcball(glm::vec3(0.0f, 0.0f, 0.0f), sceneRadius);
+  _camera.configureArcballMultipliers(0.9f, 0.85f, 0.8f);
 
   Log::text("{ wWw }", "constructing World");
 }

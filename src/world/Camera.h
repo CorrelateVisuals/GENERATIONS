@@ -32,6 +32,10 @@ class Camera {
         arcballRotateSpeed(1.4f),
         arcballPanSpeed(pan),
         arcballZoomSpeed(zoom),
+        arcballTumbleMult(1.0f),
+        arcballPanMult(1.0f),
+        arcballDollyMult(1.0f),
+        arcballHorizonLock(true),
         arcballUseConfiguredTarget(false),
         arcballCursorInitialized(false),
         arcballLeftWasDown(false),
@@ -42,6 +46,9 @@ class Camera {
   Mode getMode() const { return mode; }
   void toggleMode();
   void configureArcball(const glm::vec3& target, float sceneRadius);
+  void configureArcballMultipliers(float tumble, float pan, float dolly);
+  void setArcballHorizonLock(bool enabled) { arcballHorizonLock = enabled; }
+  bool getArcballHorizonLock() const { return arcballHorizonLock; }
 
   glm::mat4 setModel();
   glm::mat4 setView();
@@ -72,6 +79,10 @@ class Camera {
   float arcballRotateSpeed;
   float arcballPanSpeed;
   float arcballZoomSpeed;
+  float arcballTumbleMult;
+  float arcballPanMult;
+  float arcballDollyMult;
+  bool arcballHorizonLock;
   bool arcballUseConfiguredTarget;
   bool arcballCursorInitialized;
   bool arcballLeftWasDown;

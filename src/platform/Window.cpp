@@ -1,7 +1,6 @@
 #include "Window.h"
 
 #include "core/Log.h"
-#include "app/CapitalEngine.h"
 
 #include <unordered_map>
 #include <vector>

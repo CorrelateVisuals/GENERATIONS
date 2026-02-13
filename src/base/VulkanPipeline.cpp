@@ -248,6 +248,11 @@ void CE::PipelinesConfiguration::createPipelines(
     } else if (isCompute) {
       Log::text("{ === }", "Compute  Pipeline: ", pipelineName);
 
+      const std::array<uint32_t, 3>& workGroups =
+        getWorkGroupsByName(pipelineName);
+      Log::text(Log::Style::charLeader, "workgroups", workGroups[0],
+          workGroups[1], workGroups[2]);
+
       VkPipelineShaderStageCreateInfo shaderStage{createShaderModules(
           VK_SHADER_STAGE_COMPUTE_BIT, pipelineName + shaders[0] + ".spv")};
 

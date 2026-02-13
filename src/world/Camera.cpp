@@ -26,6 +26,14 @@ void Camera::configureArcball(const glm::vec3& target, float sceneRadius) {
                                  arcballMaxDistance);
 }
 
+void Camera::configureArcballMultipliers(float tumble,
+                                         float pan,
+                                         float dolly) {
+    arcballTumbleMult = std::max(tumble, 0.01f);
+    arcballPanMult = std::max(pan, 0.01f);
+    arcballDollyMult = std::max(dolly, 0.01f);
+}
+
 void Camera::toggleMode() {
     if (mode == Mode::Panning) {
         syncArcballFromCurrentView(arcballUseConfiguredTarget);
@@ -109,8 +117,10 @@ void Camera::applyArcballMode(const glm::vec2& previousCursor,
 
         if (dragMagnitude > deadZone) {
             const float response = glm::smoothstep(deadZone, 0.06f, dragMagnitude);
-            const float yawAngle = -normalizedDelta.x * arcballRotateSpeed * response;
-            const float pitchAngle = normalizedDelta.y * arcballRotateSpeed * response;
+            const float yawAngle = -normalizedDelta.x * arcballRotateSpeed *
+                                   arcballTumbleMult * response;
+            const float pitchAngle = normalizedDelta.y * arcballRotateSpeed *
+                                     arcballTumbleMult * response;
 
             glm::vec3 orbitOffset = position - arcballTarget;
             const glm::quat yawRotation = glm::angleAxis(yawAngle, worldUp);
@@ -143,7 +153,7 @@ void Camera::applyArcballMode(const glm::vec2& previousCursor,
         const float viewScale =
             (2.0f * arcballDistance * std::tan(glm::radians(fieldOfView) * 0.5f)) /
             safeHeight;
-        const float panScale = viewScale * arcballPanSpeed * 0.5f;
+        const float panScale = viewScale * arcballPanSpeed * 0.5f * arcballPanMult;
         const glm::vec3 translation =
             (-cursorDelta.x * panScale) * viewRight +
             (-cursorDelta.y * panScale) * viewUp;
@@ -152,7 +162,7 @@ void Camera::applyArcballMode(const glm::vec2& previousCursor,
     }
 
     if (middlePressed) {
-        arcballDistance += cursorDelta.y * arcballZoomSpeed * 0.1f;
+        arcballDistance += cursorDelta.y * arcballZoomSpeed * 0.1f * arcballDollyMult;
         arcballDistance = std::clamp(arcballDistance, arcballMinDistance,
                                      arcballMaxDistance);
         position = arcballTarget - viewFront * arcballDistance;
@@ -163,12 +173,17 @@ void Camera::applyArcballMode(const glm::vec2& previousCursor,
     }
 
     front = glm::normalize(arcballTarget - position);
-    viewRight = glm::cross(front, worldUp);
-    if (glm::length2(viewRight) > 1e-10f) {
-        viewRight = glm::normalize(viewRight);
-        up = glm::normalize(glm::cross(viewRight, front));
+    if (arcballHorizonLock) {
+        viewRight = glm::cross(front, worldUp);
+        if (glm::length2(viewRight) > 1e-10f) {
+            viewRight = glm::normalize(viewRight);
+            up = glm::normalize(glm::cross(viewRight, front));
+        } else {
+            up = viewUp;
+        }
     } else {
-        up = viewUp;
+        viewRight = glm::normalize(glm::cross(front, viewUp));
+        up = glm::normalize(glm::cross(viewRight, front));
     }
     arcballDistance = glm::length(arcballTarget - position);
 }
@@ -181,12 +196,22 @@ void Camera::update() {
     static bool run = false;
 
     static bool cameraToggleDown = false;
+    static bool horizonToggleDown = false;
     const bool toggleDown =
             glfwGetKey(Window::get().window, GLFW_KEY_C) == GLFW_PRESS;
     if (toggleDown && !cameraToggleDown) {
         toggleMode();
     }
     cameraToggleDown = toggleDown;
+
+    const bool horizonDown =
+            glfwGetKey(Window::get().window, GLFW_KEY_V) == GLFW_PRESS;
+    if (horizonDown && !horizonToggleDown) {
+        arcballHorizonLock = !arcballHorizonLock;
+        Log::text("{ Cam }", arcballHorizonLock ? "Horizon Lock: On"
+                                                : "Horizon Lock: Off");
+    }
+    horizonToggleDown = horizonDown;
 
     for (uint_fast8_t i = 0; i < 3; ++i) {
         buttonDelta[i] = Window::get().mouse.buttonDown[i].position -

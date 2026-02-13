@@ -2,7 +2,6 @@
 #include "Pipelines.h"
 #include "Resources.h"
 #include "base/VulkanUtils.h"
-#include "core/Log.h"
 
 #include <stdexcept>
 
@@ -11,9 +10,6 @@ void CE::ShaderAccess::CommandResources::recordComputeCommandBuffer(
     Pipelines& pipelines,
     const uint32_t imageIndex) {
     VkCommandBuffer commandBuffer = this->compute[imageIndex];
-
-    Log::text("{ CMP }", "Record Compute Command Buffer", "frame",
-              imageIndex, "cmd", commandBuffer);
 
     VkCommandBufferBeginInfo beginInfo{
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
@@ -39,8 +35,6 @@ void CE::ShaderAccess::CommandResources::recordComputeCommandBuffer(
 
     const std::array<uint32_t, 3>& workGroups =
         pipelines.config.getWorkGroupsByName("Engine");
-    Log::text(Log::Style::charLeader, "Engine workgroups", workGroups[0],
-              workGroups[1], workGroups[2]);
     vkCmdDispatch(commandBuffer, workGroups[0], workGroups[0], workGroups[2]);
 
     CE::VULKAN_RESULT(vkEndCommandBuffer, commandBuffer);
@@ -52,9 +46,6 @@ void CE::ShaderAccess::CommandResources::recordGraphicsCommandBuffer(
     Pipelines& pipelines,
     const uint32_t imageIndex) {
     VkCommandBuffer commandBuffer = this->graphics[imageIndex];
-
-    Log::text("{ GFX }", "Record Graphics Command Buffer", "frame",
-              imageIndex, "cmd", commandBuffer);
 
     VkCommandBufferBeginInfo beginInfo{
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
@@ -174,8 +165,6 @@ void CE::ShaderAccess::CommandResources::recordGraphicsCommandBuffer(
 
     const std::array<uint32_t, 3>& workGroups =
         pipelines.config.getWorkGroupsByName("PostFX");
-    Log::text(Log::Style::charLeader, "PostFX workgroups", workGroups[0],
-              workGroups[1], workGroups[2]);
     vkCmdDispatch(commandBuffer, workGroups[0], workGroups[1], workGroups[2]);
 
     swapchain.images[imageIndex].transitionLayout(
