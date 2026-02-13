@@ -7,6 +7,8 @@
 
 #include <algorithm>
 #include <cstring>
+#include <thread>
+#include <utility>
 #include <vector>
 
 void CE::Screenshot::capture(const VkImage &srcImage,
@@ -30,7 +32,7 @@ void CE::Screenshot::capture(const VkImage &srcImage,
   copyImageToBuffer(srcImage, stagingBuffer, extent, commandPool, queue);
   saveBufferToFile(stagingBuffer, extent, format, filename);
 
-  Log::text(Log::Style::charLeader, "Screenshot saved successfully");
+  Log::text(Log::Style::charLeader, "Screenshot queued for disk write");
 }
 
 void CE::Screenshot::copyImageToBuffer(const VkImage &srcImage,
@@ -124,12 +126,13 @@ void CE::Screenshot::saveBufferToFile(const Buffer &buffer,
 
   vkUnmapMemory(Device::base_device->logical_device, buffer.memory);
 
-  if (!stbi_write_png(filename.c_str(),
-                      static_cast<int>(extent.width),
-                      static_cast<int>(extent.height),
-                      4,
-                      pixels.data(),
-                      static_cast<int>(extent.width) * 4)) {
-    throw std::runtime_error("Failed to write screenshot to file: " + filename);
-  }
+  const int width = static_cast<int>(extent.width);
+  const int height = static_cast<int>(extent.height);
+  const int stride = width * 4;
+
+  std::thread([filename, width, height, stride, pixels = std::move(pixels)]() mutable {
+    if (!stbi_write_png(filename.c_str(), width, height, 4, pixels.data(), stride)) {
+      std::cerr << "Failed to write screenshot to file: " << filename << '\n';
+    }
+  }).detach();
 }

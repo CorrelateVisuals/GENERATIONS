@@ -7,10 +7,10 @@
 
 Window Window::mainWindow;
 
-Window::Window() : window{nullptr}, framebufferResized{false} {
+Window::Window() : framebuffer_resized{false}, window{nullptr} {
   Log::logTitle();
   Log::text("{ [-] }", "constructing Window");
-  initWindow();
+  init_window();
 }
 
 Window::~Window() {
@@ -21,44 +21,44 @@ Window::~Window() {
   glfwTerminate();
 }
 
-void Window::initWindow() {
+void Window::init_window() {
   glfwInit();
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
   window =
       glfwCreateWindow(display.width, display.height, display.title, nullptr, nullptr);
   glfwSetWindowUserPointer(window, this);
-  glfwSetFramebufferSizeCallback(window, windowResize);
+  glfwSetFramebufferSizeCallback(window, window_resize);
   Log::text("{ [*] }", "Window initialized", display.width, "*", display.height);
 }
 
-void Window::windowResize(GLFWwindow *win, int width, int height) {
+void Window::window_resize(GLFWwindow *win, int width, int height) {
   auto app = reinterpret_cast<Window *>(glfwGetWindowUserPointer(win));
-  app->framebufferResized = true;
+  app->framebuffer_resized = true;
   app->display.width = width;
   app->display.height = height;
   Log::text("{ [*] }", "Window resized to", width, "*", height);
 }
 
-void Window::pollInput() {
+void Window::poll_input() {
   glfwPollEvents();
-  setMouse();
+  set_mouse();
 
-  escapePressed = glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS;
+  escape_pressed = glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS;
 
   const bool f12Down = glfwGetKey(window, GLFW_KEY_F12) == GLFW_PRESS;
-  screenshotPressed = f12Down && !screenshotKeyDown;
-  screenshotKeyDown = f12Down;
+  screenshot_pressed = f12Down && !screenshot_key_down;
+  screenshot_key_down = f12Down;
 }
 
-bool Window::consumeScreenshotPressed() {
-  if (!screenshotPressed) {
+bool Window::consume_screenshot_pressed() {
+  if (!screenshot_pressed) {
     return false;
   }
-  screenshotPressed = false;
+  screenshot_pressed = false;
   return true;
 }
 
-void Window::setMouse() {
+void Window::set_mouse() {
   int newState = GLFW_RELEASE;
   static int buttonType = -1;
   const static std::vector<uint32_t> mouseButtonTypes{

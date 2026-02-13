@@ -30,7 +30,7 @@ public:
     std::array<Button, 3> previousButtonDown{};
   };
 
-  bool framebufferResized;
+  bool framebuffer_resized;
   GLFWwindow *window;
   DisplayConfiguration display{
 #ifdef __linux__
@@ -44,23 +44,23 @@ public:
   static Window &get() {
     return mainWindow;
   }
-  void pollInput();
-  void setMouse();
-  bool isEscapePressed() const {
-    return escapePressed;
+  void poll_input();
+  void set_mouse();
+  bool is_escape_pressed() const {
+    return escape_pressed;
   }
-  bool consumeScreenshotPressed();
+  bool consume_screenshot_pressed();
 
 private:
-  bool escapePressed{false};
-  bool screenshotKeyDown{false};
-  bool screenshotPressed{false};
+  bool escape_pressed{false};
+  bool screenshot_key_down{false};
+  bool screenshot_pressed{false};
 
   Window();
   ~Window();
 
-  void initWindow();
-  static void windowResize(GLFWwindow *win, int width, int height);
+  void init_window();
+  static void window_resize(GLFWwindow *win, int width, int height);
 
   static Window mainWindow;
 };

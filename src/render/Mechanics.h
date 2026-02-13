@@ -10,11 +10,11 @@ public:
   VulkanMechanics();
   ~VulkanMechanics();
 
-  CE::InitializeVulkan initVulkan{};
+  CE::InitializeVulkan init_vulkan{};
   CE::Queues queues{};
 
   struct Device : public CE::Device {
-    Device(const CE::InitializeVulkan &initVulkan,
+    Device(const CE::InitializeVulkan &init_vulkan,
            CE::Queues &queues,
            CE::Swapchain &swapchain) {
       CE::Device::base_device = this;
@@ -28,8 +28,8 @@ public:
       features.samplerAnisotropy = VK_TRUE;
       features.shaderInt64 = VK_TRUE;
 
-      pick_physical_device(initVulkan, queues, swapchain);
-      create_logical_device(initVulkan, queues);
+      pick_physical_device(init_vulkan, queues, swapchain);
+      create_logical_device(init_vulkan, queues);
     };
     ~Device() {
       destroy_device();
@@ -49,13 +49,13 @@ public:
     }
     void recreate(const VkSurfaceKHR &surface,
                   const CE::Queues &queues,
-                  SynchronizationObjects &syncObjects,
+                  SynchronizationObjects &sync_objects,
                   Pipelines &pipelines,
                   Resources &resources);
   };
 
-  Swapchain swapchainSupport;
-  Device mainDevice;
+  Swapchain swapchain_support;
+  Device main_device;
   Swapchain swapchain;
-  SynchronizationObjects syncObjects;
+  SynchronizationObjects sync_objects;
 };

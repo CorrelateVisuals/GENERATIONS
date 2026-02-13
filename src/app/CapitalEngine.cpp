@@ -6,6 +6,7 @@
 
 #include <array>
 #include <chrono>
+#include <cstdlib>
 #include <filesystem>
 #include <iomanip>
 #include <sstream>
@@ -29,59 +30,68 @@ CapitalEngine::~CapitalEngine() {
   glfwTerminate();
 }
 
-void CapitalEngine::mainLoop() {
+void CapitalEngine::main_loop() {
   Log::text(Log::Style::headerGuard);
   Log::text("{ Main Loop }");
   Log::measureElapsedTime();
 
-  bool firstLoopScreenshotCaptured = false;
+  const bool startupScreenshotEnabled = [] {
+    const char *env = std::getenv("CE_STARTUP_SCREENSHOT");
+    if (!env) {
+      return false;
+    }
+    const std::string value(env);
+    return value == "1" || value == "true" || value == "TRUE" || value == "on" ||
+           value == "ON";
+  }();
+  bool firstLoopScreenshotCaptured = !startupScreenshotEnabled;
   const auto startupScreenshotReadyAt =
       std::chrono::steady_clock::now() + std::chrono::seconds(1);
   Window &mainWindow = Window::get();
 
   while (!glfwWindowShouldClose(mainWindow.window)) {
-    mainWindow.pollInput();
+    mainWindow.poll_input();
     resources.world._time.run();
 
-    drawFrame();
+    draw_frame();
 
     if (!firstLoopScreenshotCaptured &&
         std::chrono::steady_clock::now() >= startupScreenshotReadyAt) {
       firstLoopScreenshotCaptured = true;
       Log::text("{ >>> }", "Main loop startup screenshot capture");
-      takeScreenshot();
+      take_screenshot();
     }
 
-    if (mainWindow.consumeScreenshotPressed()) {
+    if (mainWindow.consume_screenshot_pressed()) {
       Log::text("{ >>> }", "F12 pressed - capturing screenshot");
-      takeScreenshot();
+      take_screenshot();
     }
 
-    if (mainWindow.isEscapePressed()) {
+    if (mainWindow.is_escape_pressed()) {
       break;
     }
   }
-  vkDeviceWaitIdle(mechanics.mainDevice.logical_device);
+  vkDeviceWaitIdle(mechanics.main_device.logical_device);
 
   Log::measureElapsedTime();
   Log::text(Log::Style::headerGuard);
 }
 
-void CapitalEngine::drawFrame() {
-  const uint32_t frameIndex = mechanics.syncObjects.current_frame;
+void CapitalEngine::draw_frame() {
+  const uint32_t frameIndex = mechanics.sync_objects.current_frame;
 
   // Compute submission
-  vkWaitForFences(mechanics.mainDevice.logical_device,
+  vkWaitForFences(mechanics.main_device.logical_device,
                   1,
-                  &mechanics.syncObjects.compute_in_flight_fences[frameIndex],
+                  &mechanics.sync_objects.compute_in_flight_fences[frameIndex],
                   VK_TRUE,
                   UINT64_MAX);
 
   resources.uniform.update(resources.world, mechanics.swapchain.extent);
 
-  vkResetFences(mechanics.mainDevice.logical_device,
+  vkResetFences(mechanics.main_device.logical_device,
                 1,
-                &mechanics.syncObjects.compute_in_flight_fences[frameIndex]);
+                &mechanics.sync_objects.compute_in_flight_fences[frameIndex]);
 
   vkResetCommandBuffer(resources.commands.compute[frameIndex], 0);
   resources.commands.record_compute_command_buffer(resources, pipelines, frameIndex);
@@ -95,34 +105,34 @@ void CapitalEngine::drawFrame() {
       .commandBufferCount = 1,
       .pCommandBuffers = &resources.commands.compute[frameIndex],
       .signalSemaphoreCount = 1,
-      .pSignalSemaphores = &mechanics.syncObjects.compute_finished_semaphores[frameIndex]};
+      .pSignalSemaphores = &mechanics.sync_objects.compute_finished_semaphores[frameIndex]};
 
   CE::vulkan_result(vkQueueSubmit,
                     mechanics.queues.compute_queue,
                     SINGLE_OBJECT_COUNT,
                     &computeSubmitInfo,
-                    mechanics.syncObjects.compute_in_flight_fences[frameIndex]);
+                    mechanics.sync_objects.compute_in_flight_fences[frameIndex]);
 
   // Graphics submission
-  vkWaitForFences(mechanics.mainDevice.logical_device,
+  vkWaitForFences(mechanics.main_device.logical_device,
                   1,
-                  &mechanics.syncObjects.graphics_in_flight_fences[frameIndex],
+                  &mechanics.sync_objects.graphics_in_flight_fences[frameIndex],
                   VK_TRUE,
                   UINT64_MAX);
 
   uint32_t imageIndex;
   VkResult result =
-      vkAcquireNextImageKHR(mechanics.mainDevice.logical_device,
+      vkAcquireNextImageKHR(mechanics.main_device.logical_device,
                             mechanics.swapchain.swapchain,
                             UINT64_MAX,
-                            mechanics.syncObjects.image_available_semaphores[frameIndex],
+                mechanics.sync_objects.image_available_semaphores[frameIndex],
                             VK_NULL_HANDLE,
                             &imageIndex);
 
   if (result == VK_ERROR_OUT_OF_DATE_KHR) {
-    mechanics.swapchain.recreate(mechanics.initVulkan.surface,
+    mechanics.swapchain.recreate(mechanics.init_vulkan.surface,
                                  mechanics.queues,
-                                 mechanics.syncObjects,
+                   mechanics.sync_objects,
                                  pipelines,
                                  resources);
     return;
@@ -130,9 +140,9 @@ void CapitalEngine::drawFrame() {
     throw std::runtime_error("\n!ERROR! failed to acquire swap chain image!");
   }
 
-  vkResetFences(mechanics.mainDevice.logical_device,
+  vkResetFences(mechanics.main_device.logical_device,
                 1,
-                &mechanics.syncObjects.graphics_in_flight_fences[frameIndex]);
+                &mechanics.sync_objects.graphics_in_flight_fences[frameIndex]);
 
   vkResetCommandBuffer(resources.commands.graphics[frameIndex], 0);
 
@@ -140,8 +150,8 @@ void CapitalEngine::drawFrame() {
       mechanics.swapchain, resources, pipelines, frameIndex, imageIndex);
 
   const std::array<VkSemaphore, GRAPHICS_WAIT_COUNT> waitSemaphores{
-      mechanics.syncObjects.compute_finished_semaphores[frameIndex],
-      mechanics.syncObjects.image_available_semaphores[frameIndex]};
+      mechanics.sync_objects.compute_finished_semaphores[frameIndex],
+      mechanics.sync_objects.image_available_semaphores[frameIndex]};
   const std::array<VkPipelineStageFlags, GRAPHICS_WAIT_COUNT> waitStages{
       VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
 
@@ -154,13 +164,13 @@ void CapitalEngine::drawFrame() {
       .commandBufferCount = SINGLE_OBJECT_COUNT,
       .pCommandBuffers = &resources.commands.graphics[frameIndex],
       .signalSemaphoreCount = SINGLE_OBJECT_COUNT,
-      .pSignalSemaphores = &mechanics.syncObjects.render_finished_semaphores[frameIndex]};
+      .pSignalSemaphores = &mechanics.sync_objects.render_finished_semaphores[frameIndex]};
 
   CE::vulkan_result(vkQueueSubmit,
                     mechanics.queues.graphics_queue,
                     SINGLE_OBJECT_COUNT,
                     &graphicsSubmitInfo,
-                    mechanics.syncObjects.graphics_in_flight_fences[frameIndex]);
+                    mechanics.sync_objects.graphics_in_flight_fences[frameIndex]);
 
   const VkSwapchainKHR swapchain = mechanics.swapchain.swapchain;
 
@@ -168,7 +178,7 @@ void CapitalEngine::drawFrame() {
       .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
       .pNext = nullptr,
       .waitSemaphoreCount = SINGLE_OBJECT_COUNT,
-      .pWaitSemaphores = &mechanics.syncObjects.render_finished_semaphores[frameIndex],
+      .pWaitSemaphores = &mechanics.sync_objects.render_finished_semaphores[frameIndex],
       .swapchainCount = SINGLE_OBJECT_COUNT,
       .pSwapchains = &swapchain,
       .pImageIndices = &imageIndex,
@@ -177,25 +187,30 @@ void CapitalEngine::drawFrame() {
   result = vkQueuePresentKHR(mechanics.queues.present_queue, &presentInfo);
 
   if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR ||
-      Window::get().framebufferResized) {
-    Window::get().framebufferResized = false;
-    mechanics.swapchain.recreate(mechanics.initVulkan.surface,
+      Window::get().framebuffer_resized) {
+    Window::get().framebuffer_resized = false;
+    mechanics.swapchain.recreate(mechanics.init_vulkan.surface,
                                  mechanics.queues,
-                                 mechanics.syncObjects,
+                   mechanics.sync_objects,
                                  pipelines,
                                  resources);
   } else if (result != VK_SUCCESS) {
     throw std::runtime_error("\n!ERROR! failed to present swap chain image!");
   }
 
-  lastPresentedImageIndex = imageIndex;
+  last_presented_image_index = imageIndex;
+  last_submitted_frame_index = frameIndex;
 
-    mechanics.syncObjects.current_frame =
-      (mechanics.syncObjects.current_frame + 1) % MAX_FRAMES_IN_FLIGHT;
+    mechanics.sync_objects.current_frame =
+      (mechanics.sync_objects.current_frame + 1) % MAX_FRAMES_IN_FLIGHT;
 }
 
-void CapitalEngine::takeScreenshot() {
-  vkQueueWaitIdle(mechanics.queues.graphics_queue);
+void CapitalEngine::take_screenshot() {
+  vkWaitForFences(mechanics.main_device.logical_device,
+                  1,
+                  &mechanics.sync_objects.graphics_in_flight_fences[last_submitted_frame_index],
+                  VK_TRUE,
+                  UINT64_MAX);
 
   std::filesystem::create_directories("screenshot");
 
@@ -213,7 +228,7 @@ void CapitalEngine::takeScreenshot() {
               << ".png";
   const std::string filename = nameBuilder.str();
 
-  CE::Screenshot::capture(mechanics.swapchain.images[lastPresentedImageIndex].image,
+  CE::Screenshot::capture(mechanics.swapchain.images[last_presented_image_index].image,
                           mechanics.swapchain.extent,
                           mechanics.swapchain.image_format,
                           resources.commands.pool,

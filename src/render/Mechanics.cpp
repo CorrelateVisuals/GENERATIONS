@@ -6,9 +6,9 @@
 #include "render/Resources.h"
 
 VulkanMechanics::VulkanMechanics()
-    : initVulkan{}, queues{}, swapchainSupport{},
-      mainDevice{initVulkan, queues, swapchainSupport}, swapchain{}, syncObjects{} {
-  swapchain.initialize(initVulkan.surface, queues);
+    : init_vulkan{}, queues{}, swapchain_support{},
+      main_device{init_vulkan, queues, swapchain_support}, swapchain{}, sync_objects{} {
+  swapchain.initialize(init_vulkan.surface, queues);
   Log::text("{ Vk. }", "constructing Vulkan Mechanics");
   Log::text(Log::Style::headerGuard);
 }
@@ -19,10 +19,10 @@ VulkanMechanics::~VulkanMechanics() {
 
 void VulkanMechanics::Swapchain::recreate(const VkSurfaceKHR &surface,
                                           const CE::Queues &queues,
-                                          SynchronizationObjects &syncObjects,
+                                          SynchronizationObjects &sync_objects,
                                           Pipelines &pipelines,
                                           Resources &resources) {
-  CE::Swapchain::recreate(surface, queues, syncObjects);
+  CE::Swapchain::recreate(surface, queues, sync_objects);
     resources.msaa_image.create_resources(CE_MULTISAMPLE_IMAGE, extent, image_format);
     resources.depth_image.create_resources(
       CE_DEPTH_IMAGE, extent, CE::Image::find_depth_format());

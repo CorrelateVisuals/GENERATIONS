@@ -8,15 +8,16 @@ public:
   CapitalEngine();
   ~CapitalEngine();
 
-  void mainLoop();
+  void main_loop();
 
 private:
   VulkanMechanics mechanics;
   Resources resources;
   Pipelines pipelines;
 
-  uint32_t lastPresentedImageIndex{0};
+  uint32_t last_presented_image_index{0};
+  uint32_t last_submitted_frame_index{0};
 
-  void drawFrame();
-  void takeScreenshot();
+  void draw_frame();
+  void take_screenshot();
 };
