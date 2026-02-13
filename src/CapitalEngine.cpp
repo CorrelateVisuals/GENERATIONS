@@ -10,6 +10,7 @@
 
 namespace {
 constexpr size_t GRAPHICS_WAIT_COUNT = 2;
+constexpr uint32_t SINGLE_OBJECT_COUNT = 1;
 }
 
 CapitalEngine::CapitalEngine()
@@ -84,6 +85,10 @@ void CapitalEngine::drawFrame() {
 
   VkSubmitInfo computeSubmitInfo{
       .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+      .pNext = nullptr,
+      .waitSemaphoreCount = 0,
+      .pWaitSemaphores = nullptr,
+      .pWaitDstStageMask = nullptr,
       .commandBufferCount = 1,
       .pCommandBuffers =
           &resources.commands.compute[mechanics.syncObjects.currentFrame],
@@ -93,7 +98,8 @@ void CapitalEngine::drawFrame() {
                .computeFinishedSemaphores[mechanics.syncObjects.currentFrame]};
 
   CE::VULKAN_RESULT(
-      vkQueueSubmit, mechanics.queues.compute, 1, &computeSubmitInfo,
+      vkQueueSubmit, mechanics.queues.compute, SINGLE_OBJECT_COUNT,
+      &computeSubmitInfo,
       mechanics.syncObjects
           .computeInFlightFences[mechanics.syncObjects.currentFrame]);
 
@@ -142,33 +148,37 @@ void CapitalEngine::drawFrame() {
 
   VkSubmitInfo graphicsSubmitInfo{
       .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-    .waitSemaphoreCount = static_cast<uint32_t>(waitSemaphores.size()),
+      .pNext = nullptr,
+      .waitSemaphoreCount = static_cast<uint32_t>(waitSemaphores.size()),
       .pWaitSemaphores = waitSemaphores.data(),
       .pWaitDstStageMask = waitStages.data(),
-      .commandBufferCount = 1,
+      .commandBufferCount = SINGLE_OBJECT_COUNT,
       .pCommandBuffers =
           &resources.commands.graphics[mechanics.syncObjects.currentFrame],
-      .signalSemaphoreCount = 1,
+      .signalSemaphoreCount = SINGLE_OBJECT_COUNT,
       .pSignalSemaphores =
           &mechanics.syncObjects
                .renderFinishedSemaphores[mechanics.syncObjects.currentFrame]};
 
   CE::VULKAN_RESULT(
-      vkQueueSubmit, mechanics.queues.graphics, 1, &graphicsSubmitInfo,
+      vkQueueSubmit, mechanics.queues.graphics, SINGLE_OBJECT_COUNT,
+      &graphicsSubmitInfo,
       mechanics.syncObjects
           .graphicsInFlightFences[mechanics.syncObjects.currentFrame]);
 
-    const VkSwapchainKHR swapchain = mechanics.swapchain.swapchain;
+  const VkSwapchainKHR swapchain = mechanics.swapchain.swapchain;
 
   VkPresentInfoKHR presentInfo{
       .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
-      .waitSemaphoreCount = 1,
+      .pNext = nullptr,
+      .waitSemaphoreCount = SINGLE_OBJECT_COUNT,
       .pWaitSemaphores =
           &mechanics.syncObjects
                .renderFinishedSemaphores[mechanics.syncObjects.currentFrame],
-      .swapchainCount = 1,
+      .swapchainCount = SINGLE_OBJECT_COUNT,
       .pSwapchains = &swapchain,
-      .pImageIndices = &imageIndex};
+      .pImageIndices = &imageIndex,
+      .pResults = nullptr};
 
   result = vkQueuePresentKHR(mechanics.queues.present, &presentInfo);
 
@@ -188,7 +198,7 @@ void CapitalEngine::drawFrame() {
 }
 
 void CapitalEngine::takeScreenshot() {
-    vkDeviceWaitIdle(mechanics.mainDevice.logical);
+    vkQueueWaitIdle(mechanics.queues.graphics);
 
     std::filesystem::create_directories("screenshot");
 

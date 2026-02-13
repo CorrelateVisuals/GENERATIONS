@@ -5,6 +5,7 @@
 #include "Library.h"
 
 #include <algorithm>
+#include <chrono>
 #include <fstream>
 #include <set>
 
@@ -53,7 +54,7 @@ void CE::Device::pickPhysicalDevice(const InitializeVulkan& initVulkan,
   }
 }
 
-const std::vector<VkDeviceQueueCreateInfo> CE::Device::fillQueueCreateInfos(
+std::vector<VkDeviceQueueCreateInfo> CE::Device::fillQueueCreateInfos(
     const Queues& queues) const {
   std::vector<VkDeviceQueueCreateInfo> queueCreateInfos{};
   std::set<uint32_t> uniqueQueueFamilies = {
@@ -72,7 +73,7 @@ const std::vector<VkDeviceQueueCreateInfo> CE::Device::fillQueueCreateInfos(
   return queueCreateInfos;
 }
 
-const VkDeviceCreateInfo CE::Device::getDeviceCreateInfo(
+VkDeviceCreateInfo CE::Device::getDeviceCreateInfo(
     const std::vector<VkDeviceQueueCreateInfo>& queueCreateInfos) const {
   VkDeviceCreateInfo createInfo{
       .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
@@ -94,7 +95,7 @@ void CE::Device::setValidationLayers(const InitializeVulkan& initVulkan,
   }
 }
 
-const std::vector<VkPhysicalDevice> CE::Device::fillDevices(
+std::vector<VkPhysicalDevice> CE::Device::fillDevices(
     const InitializeVulkan& initVulkan) const {
   uint32_t deviceCount(0);
   vkEnumeratePhysicalDevices(initVulkan.instance, &deviceCount, nullptr);
@@ -109,10 +110,10 @@ const std::vector<VkPhysicalDevice> CE::Device::fillDevices(
   return devices;
 }
 
-const bool CE::Device::isDeviceSuitable(const VkPhysicalDevice& physical,
-                                        Queues& queues,
-                                        const InitializeVulkan& initVulkan,
-                                        Swapchain& swapchain) {
+bool CE::Device::isDeviceSuitable(const VkPhysicalDevice& physical,
+                                  Queues& queues,
+                                  const InitializeVulkan& initVulkan,
+                                  Swapchain& swapchain) {
   Log::text(Log::Style::charLeader, "Is Device Suitable");
 
   queues.familyIndices = queues.findQueueFamilies(physical, initVulkan.surface);
@@ -146,8 +147,8 @@ void CE::Device::getMaxUsableSampleCount() {
   return;
 }
 
-const bool CE::Device::checkDeviceExtensionSupport(
-    const VkPhysicalDevice& physical) const {
+bool CE::Device::checkDeviceExtensionSupport(
+  const VkPhysicalDevice& physical) const {
   Log::text(Log::Style::charLeader, "Check Device Extension Support");
   uint32_t extensionCount(0);
   vkEnumerateDeviceExtensionProperties(physical, nullptr, &extensionCount,
@@ -166,8 +167,8 @@ const bool CE::Device::checkDeviceExtensionSupport(
   return requiredExtensions.empty();
 }
 
-const uint32_t CE::findMemoryType(const uint32_t typeFilter,
-                                  const VkMemoryPropertyFlags properties) {
+uint32_t CE::findMemoryType(const uint32_t typeFilter,
+                            const VkMemoryPropertyFlags properties) {
   VkPhysicalDeviceMemoryProperties memProperties{};
   vkGetPhysicalDeviceMemoryProperties(Device::baseDevice->physical,
                                       &memProperties);
@@ -448,14 +449,14 @@ void CE::Image::loadTexture(const std::string& imagePath,
   CommandBuffers::endSingularCommands(commandPool, queue);
 }
 
-const VkFormat CE::Image::findDepthFormat() {
+VkFormat CE::Image::findDepthFormat() {
   return findSupportedFormat(
       {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT,
        VK_FORMAT_D24_UNORM_S8_UINT},
       VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
 }
 
-const VkFormat CE::Image::findSupportedFormat(
+VkFormat CE::Image::findSupportedFormat(
     const std::vector<VkFormat>& candidates,
     const VkImageTiling tiling,
     const VkFormatFeatureFlags& features) {
@@ -651,6 +652,15 @@ void CE::CommandBuffers::createPool(
 
 void CE::CommandBuffers::beginSingularCommands(const VkCommandPool& commandPool,
                                                const VkQueue& queue) {
+  if (!Device::baseDevice || Device::baseDevice->logical == VK_NULL_HANDLE) {
+    throw std::runtime_error(
+        "\n!ERROR! beginSingularCommands called without valid device.");
+  }
+  if (commandPool == VK_NULL_HANDLE || queue == VK_NULL_HANDLE) {
+    throw std::runtime_error(
+        "\n!ERROR! beginSingularCommands called with null pool or queue.");
+  }
+
   Log::text("{ 1.. }", "Begin Single Time CommandResources");
   Log::text("{ 1.. }", "Single Time: device", Device::baseDevice->logical,
             "@", &Device::baseDevice->logical);
@@ -679,6 +689,16 @@ void CE::CommandBuffers::beginSingularCommands(const VkCommandPool& commandPool,
 
 void CE::CommandBuffers::endSingularCommands(const VkCommandPool& commandPool,
                                              const VkQueue& queue) {
+  if (!Device::baseDevice || Device::baseDevice->logical == VK_NULL_HANDLE) {
+    throw std::runtime_error(
+        "\n!ERROR! endSingularCommands called without valid device.");
+  }
+  if (commandPool == VK_NULL_HANDLE || queue == VK_NULL_HANDLE ||
+      singularCommandBuffer == VK_NULL_HANDLE) {
+    throw std::runtime_error(
+        "\n!ERROR! endSingularCommands called with invalid state.");
+  }
+
   Log::text("{ ..1 }", "End Single Time CommandResources");
   Log::text("{ ..1 }", "Single Time: pool", commandPool, "queue", queue);
 
@@ -750,7 +770,7 @@ void CE::Device::destroyDevice() {
   }
 }
 
-const CE::Swapchain::SupportDetails CE::Swapchain::checkSupport(
+CE::Swapchain::SupportDetails CE::Swapchain::checkSupport(
     const VkPhysicalDevice& physicalDevice,
     const VkSurfaceKHR& surface) {
   Log::text(Log::Style::charLeader, "Query Swap Chain Support");
@@ -780,7 +800,7 @@ const CE::Swapchain::SupportDetails CE::Swapchain::checkSupport(
   }
 }
 
-const VkSurfaceFormatKHR CE::Swapchain::pickSurfaceFormat(
+VkSurfaceFormatKHR CE::Swapchain::pickSurfaceFormat(
     const std::vector<VkSurfaceFormatKHR>& availableFormats) const {
   Log::text(Log::Style::charLeader, "Choose Swap Surface Format");
 
@@ -793,7 +813,7 @@ const VkSurfaceFormatKHR CE::Swapchain::pickSurfaceFormat(
   return availableFormats[0];
 }
 
-const VkPresentModeKHR CE::Swapchain::pickPresentMode(
+VkPresentModeKHR CE::Swapchain::pickPresentMode(
     const std::vector<VkPresentModeKHR>& availablePresentModes) const {
   Log::text(Log::Style::charLeader, "Choose Swap Present Mode");
   for (const auto& availablePresentMode : availablePresentModes) {
@@ -804,7 +824,7 @@ const VkPresentModeKHR CE::Swapchain::pickPresentMode(
   return VK_PRESENT_MODE_MAILBOX_KHR;
 }
 
-const VkExtent2D CE::Swapchain::pickExtent(
+VkExtent2D CE::Swapchain::pickExtent(
     GLFWwindow* window,
     const VkSurfaceCapabilitiesKHR& capabilities) const {
   Log::text(Log::Style::charLeader, "Choose Swap Extent");
@@ -829,8 +849,8 @@ const VkExtent2D CE::Swapchain::pickExtent(
   }
 }
 
-const uint32_t CE::Swapchain::getImageCount(
-    const Swapchain::SupportDetails& swapchainSupport) const {
+uint32_t CE::Swapchain::getImageCount(
+  const Swapchain::SupportDetails& swapchainSupport) const {
   uint32_t imageCount = swapchainSupport.capabilities.minImageCount;
   if (swapchainSupport.capabilities.maxImageCount > 0 &&
       imageCount > swapchainSupport.capabilities.maxImageCount) {
@@ -937,7 +957,7 @@ void CE::Swapchain::create(const VkSurfaceKHR& surface, const Queues& queues) {
   };
 }
 
-const CE::Queues::FamilyIndices CE::Queues::findQueueFamilies(
+CE::Queues::FamilyIndices CE::Queues::findQueueFamilies(
     const VkPhysicalDevice& physicalDevice,
     const VkSurfaceKHR& surface) const {
   Log::text(Log::Style::charLeader, "Find Queue Families");
@@ -1218,10 +1238,22 @@ void CE::PipelinesConfiguration::createPipelines(
     const VkPipelineLayout& graphicsLayout,
     const VkPipelineLayout& computeLayout,
     VkSampleCountFlagBits& msaaSamples) {
+  if (this->pipelineMap.empty()) {
+    throw std::runtime_error("\n!ERROR! No pipeline configurations defined.");
+  }
+
+  const auto pipelinesStart = std::chrono::high_resolution_clock::now();
+
   for (auto& entry : this->pipelineMap) {
+    const auto pipelineStart = std::chrono::high_resolution_clock::now();
     const std::string pipelineName = entry.first;
 
     std::vector<std::string> shaders = getPipelineShadersByName(pipelineName);
+    if (shaders.empty()) {
+      throw std::runtime_error("\n!ERROR! Pipeline has no shaders: " +
+                               pipelineName);
+    }
+
     bool isCompute =
         std::find(shaders.begin(), shaders.end(), "Comp") != shaders.end();
 
@@ -1241,6 +1273,12 @@ void CE::PipelinesConfiguration::createPipelines(
       uint32_t bindingsSize = static_cast<uint32_t>(bindingDescription.size());
       uint32_t attributeSize =
           static_cast<uint32_t>(attributesDescription.size());
+
+      if (bindingsSize == 0 || attributeSize == 0) {
+        throw std::runtime_error("\n!ERROR! Graphics pipeline has empty vertex "
+                                 "bindings or attributes: " +
+                                 pipelineName);
+      }
 
       for (const auto& item : bindingDescription) {
         Log::text(Log::Style::charLeader, "binding:", item.binding,
@@ -1323,7 +1361,21 @@ void CE::PipelinesConfiguration::createPipelines(
                         &getPipelineObjectByName(pipelineName));
       destroyShaderModules();
     }
+
+    const auto pipelineEnd = std::chrono::high_resolution_clock::now();
+    const double pipelineMs =
+        std::chrono::duration_cast<std::chrono::duration<double, std::milli>>(
+            pipelineEnd - pipelineStart)
+            .count();
+    Log::text("{ PERF }", "Pipeline create", pipelineName, pipelineMs, "ms");
   }
+
+  const auto pipelinesEnd = std::chrono::high_resolution_clock::now();
+  const double totalMs =
+      std::chrono::duration_cast<std::chrono::duration<double, std::milli>>(
+          pipelinesEnd - pipelinesStart)
+          .count();
+  Log::text("{ PERF }", "All pipelines created in", totalMs, "ms");
 }
 
 bool CE::PipelinesConfiguration::setShaderStages(
