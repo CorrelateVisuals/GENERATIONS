@@ -16,4 +16,5 @@ class CapitalEngine {
   Pipelines pipelines;
 
   void drawFrame();
+  void takeScreenshot();
 };

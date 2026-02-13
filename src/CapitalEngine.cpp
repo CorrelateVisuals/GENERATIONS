@@ -1,5 +1,6 @@
 #include "CapitalEngine.h"
 #include "Window.h"
+#include "Screenshot.h"
 
 CapitalEngine::CapitalEngine()
     : pipelines(mechanics, resources), resources(mechanics, pipelines) {
@@ -21,6 +22,8 @@ void CapitalEngine::mainLoop() {
   Log::text("{ Main Loop }");
   Log::measureElapsedTime();
 
+  bool screenshotKeyPressed = false;
+
   while (!glfwWindowShouldClose(Window::get().window)) {
     glfwPollEvents();
 
@@ -29,6 +32,16 @@ void CapitalEngine::mainLoop() {
 
     vkDeviceWaitIdle(mechanics.mainDevice.logical);
     drawFrame();
+
+    // Screenshot on F12 key press
+    if (glfwGetKey(Window::get().window, GLFW_KEY_F12) == GLFW_PRESS) {
+      if (!screenshotKeyPressed) {
+        screenshotKeyPressed = true;
+        takeScreenshot();
+      }
+    } else {
+      screenshotKeyPressed = false;
+    }
 
     if (glfwGetKey(Window::get().window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
       break;
@@ -161,4 +174,18 @@ void CapitalEngine::drawFrame() {
 
   mechanics.syncObjects.currentFrame =
       (mechanics.syncObjects.currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+}
+
+void CapitalEngine::takeScreenshot() {
+  // Wait for device to be idle to ensure frame is complete
+  vkDeviceWaitIdle(mechanics.mainDevice.logical);
+
+  uint32_t currentFrame = mechanics.syncObjects.currentFrame;
+  CE::Screenshot::capture(
+      mechanics.swapchain.images[currentFrame].image,
+      mechanics.swapchain.extent,
+      mechanics.swapchain.imageFormat,
+      resources.commands.pool,
+      mechanics.queues.graphics,
+      "screenshot.png");
 }
