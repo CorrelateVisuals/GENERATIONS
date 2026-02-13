@@ -1,5 +1,8 @@
 #!/bin/bash
 # Test script to verify Docker build and basic functionality
+#
+# If you get a "permission denied" error, make this script executable:
+#   chmod +x test-docker.sh
 
 set -e
 

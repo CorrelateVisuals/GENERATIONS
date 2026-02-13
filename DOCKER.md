@@ -137,6 +137,10 @@ docker run --rm -it \
 
 ### Raspberry Pi
 
+**For detailed Raspberry Pi instructions, see [RASPBERRY_PI.md](RASPBERRY_PI.md)**
+
+Quick setup:
+
 1. **Install Docker on Raspberry Pi OS:**
    ```bash
    curl -fsSL https://get.docker.com -o get-docker.sh

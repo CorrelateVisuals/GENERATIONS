@@ -1,6 +1,9 @@
 #!/bin/bash
 # Helper script to run GENERATIONS in Docker with GPU support
 # Usage: ./run-docker.sh [nvidia|mesa|raspberry-pi]
+#
+# If you get a "permission denied" error, make this script executable:
+#   chmod +x run-docker.sh
 
 set -e
 

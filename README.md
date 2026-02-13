@@ -49,6 +49,8 @@ See [DOCKER.md](DOCKER.md) for complete Docker setup instructions, including:
 - Troubleshooting and optimization tips
 - Security considerations
 
+For Raspberry Pi users, see the dedicated [RASPBERRY_PI.md](RASPBERRY_PI.md) guide.
+
 ## Dependencies
 You will need glslangValidator installed and added to your systempaths. So that it can be ran from the command line.
 
