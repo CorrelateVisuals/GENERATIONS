@@ -1,0 +1,106 @@
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                    SCREENSHOT FUNCTIONALITY - INTEGRATION                     ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ APPLICATION FLOW WITH SCREENSHOT INTEGRATION                                │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+  ┌──────────────────┐
+  │   Main Loop      │
+  │  (mainLoop())    │
+  └────────┬─────────┘
+           │
+           ├─► Poll Events (GLFW)
+           │
+           ├─► Check for F12 key press ◄─── NEW INTEGRATION
+           │   │
+           │   └─► If pressed (debounced)
+           │       └─► Call takeScreenshot()
+           │           │
+           │           ├─► Wait for device idle
+           │           ├─► Get current swapchain image
+           │           └─► CE::Screenshot::capture()
+           │               │
+           │               ├─► Create staging buffer
+           │               ├─► Copy image to buffer
+           │               ├─► Convert BGRA → RGBA
+           │               └─► Write to screenshot.png ✓
+           │
+           ├─► Render Frame (drawFrame())
+           │
+           └─► Check for ESC key (exit)
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ WHAT THE SCREENSHOT CAPTURES                                                │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Based on assets/GenerationsCapture.PNG, the screenshot captures:
+
+  ┌─────────────────────────────────────────────────────────┐
+  │ GENERATIONS Window (3840x1080)                          │
+  ├─────────────────────────────────────────────────────────┤
+  │                                                         │
+  │  ░░░░░▓▓▓▓▓██████░░░░░▓▓▓▓▓██████░░░░░▓▓▓▓▓  ← 3D      │
+  │  ░░░░░▓▓▓▓▓██████░░░░░▓▓▓▓▓██████░░░░░▓▓▓▓▓    Tessel- │
+  │  ░░░░░▓▓▓▓▓██████░░░░░▓▓▓▓▓██████░░░░░▓▓▓▓▓    lated   │
+  │  ░░░░░▓▓▓▓▓██████░░░░░▓▓▓▓▓██████░░░░░▓▓▓▓▓    Conway's│
+  │  ░░░░░▓▓▓▓▓██████░░░░░▓▓▓▓▓██████░░░░░▓▓▓▓▓    Game of │
+  │  ░░░░░▓▓▓▓▓██████░░░░░▓▓▓▓▓██████░░░░░▓▓▓▓▓    Life    │
+  │                                                         │
+  │  Colors: Green → Blue → Yellow gradient                │
+  │  Live cells create wave-like 3D surface patterns       │
+  │                                                         │
+  └─────────────────────────────────────────────────────────┘
+
+  Features Captured:
+  ✓ Real-time simulation state
+  ✓ Dynamic color gradients
+  ✓ 3D geometry tessellation
+  ✓ Full resolution (native window size)
+  ✓ RGBA color format (PNG compatible)
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ USAGE INSTRUCTIONS                                                          │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+1. Build the application:
+   $ cd build && cmake .. && make -j
+
+2. Run GENERATIONS:
+   $ cd .. && ./bin/CapitalEngine
+
+3. Take a screenshot:
+   → Press F12 at any time during the simulation
+
+4. Find your screenshot:
+   → screenshot.png in the project root directory
+
+Console output when screenshot is taken:
+  { >>> } Screenshot: screenshot.png
+  { ... } Screenshot saved successfully
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ TECHNICAL IMPLEMENTATION                                                    │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Files Modified:
+  • src/CapitalEngine.h    - Added takeScreenshot() method
+  • src/CapitalEngine.cpp  - Integrated F12 key binding & screenshot logic
+
+Components Used:
+  • CE::Screenshot::capture()     - Screenshot utility class
+  • CE::Buffer                    - Staging buffer for GPU→CPU transfer
+  • CE::CommandBuffers            - Vulkan command execution
+  • stb_image_write              - PNG file writing
+
+Key Features:
+  ✓ Debounced key input (prevents multiple captures)
+  ✓ Device synchronization (ensures frame completion)
+  ✓ Automatic BGRA→RGBA conversion
+  ✓ RAII memory management (no leaks)
+  ✓ Minimal performance impact
+
