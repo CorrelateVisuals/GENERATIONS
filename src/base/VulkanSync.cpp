@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <limits>
 
-VkCommandBuffer CE::CommandBuffers::singularCommandBuffer = VK_NULL_HANDLE;
+VkCommandBuffer CE::CommandBuffers::singular_command_buffer = VK_NULL_HANDLE;
 
 CE::CommandBuffers::~CommandBuffers() {
   if (Device::base_device && this->pool != VK_NULL_HANDLE) {
@@ -14,7 +14,7 @@ CE::CommandBuffers::~CommandBuffers() {
   }
 };
 
-void CE::CommandBuffers::createPool(const Queues::FamilyIndices &family_indices) {
+void CE::CommandBuffers::create_pool(const Queues::FamilyIndices &family_indices) {
   Log::text("{ cmd }", "Command Pool");
   if (!Device::base_device) {
     Log::text("{ cmd }", "Command Pool: base_device is null");
@@ -44,13 +44,13 @@ void CE::CommandBuffers::createPool(const Queues::FamilyIndices &family_indices)
   }
 }
 
-void CE::CommandBuffers::beginSingularCommands(const VkCommandPool &commandPool,
-                                               const VkQueue &queue) {
+void CE::CommandBuffers::begin_singular_commands(const VkCommandPool &command_pool,
+                                                 const VkQueue &queue) {
   if (!Device::base_device || Device::base_device->logical_device == VK_NULL_HANDLE) {
     throw std::runtime_error(
         "\n!ERROR! beginSingularCommands called without valid device.");
   }
-  if (commandPool == VK_NULL_HANDLE || queue == VK_NULL_HANDLE) {
+  if (command_pool == VK_NULL_HANDLE || queue == VK_NULL_HANDLE) {
     throw std::runtime_error(
         "\n!ERROR! beginSingularCommands called with null pool or queue.");
   }
@@ -61,47 +61,48 @@ void CE::CommandBuffers::beginSingularCommands(const VkCommandPool &commandPool,
             Device::base_device->logical_device,
             "@",
             &Device::base_device->logical_device);
-  Log::text("{ 1.. }", "Single Time: pool", commandPool, "queue", queue);
+  Log::text("{ 1.. }", "Single Time: pool", command_pool, "queue", queue);
 
   VkCommandBufferAllocateInfo allocInfo{
       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-      .commandPool = commandPool,
+      .commandPool = command_pool,
       .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
       .commandBufferCount = 1};
 
   VkResult allocResult = vkAllocateCommandBuffers(
-      Device::base_device->logical_device, &allocInfo, &singularCommandBuffer);
-  Log::text("{ 1.. }", "Single Time alloc result", allocResult, singularCommandBuffer);
+        Device::base_device->logical_device, &allocInfo, &singular_command_buffer);
+      Log::text(
+        "{ 1.. }", "Single Time alloc result", allocResult, singular_command_buffer);
 
   VkCommandBufferBeginInfo beginInfo{.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
                                      .flags =
                                          VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT};
-  VkResult beginResult = vkBeginCommandBuffer(singularCommandBuffer, &beginInfo);
+  VkResult beginResult = vkBeginCommandBuffer(singular_command_buffer, &beginInfo);
   Log::text("{ 1.. }", "Single Time begin result", beginResult);
 
   return;
 }
 
-void CE::CommandBuffers::endSingularCommands(const VkCommandPool &commandPool,
-                                             const VkQueue &queue) {
+void CE::CommandBuffers::end_singular_commands(const VkCommandPool &command_pool,
+                                               const VkQueue &queue) {
   if (!Device::base_device || Device::base_device->logical_device == VK_NULL_HANDLE) {
     throw std::runtime_error(
         "\n!ERROR! endSingularCommands called without valid device.");
   }
-  if (commandPool == VK_NULL_HANDLE || queue == VK_NULL_HANDLE ||
-      singularCommandBuffer == VK_NULL_HANDLE) {
+    if (command_pool == VK_NULL_HANDLE || queue == VK_NULL_HANDLE ||
+      singular_command_buffer == VK_NULL_HANDLE) {
     throw std::runtime_error("\n!ERROR! endSingularCommands called with invalid state.");
   }
 
   Log::text("{ ..1 }", "End Single Time CommandResources");
-  Log::text("{ ..1 }", "Single Time: pool", commandPool, "queue", queue);
+  Log::text("{ ..1 }", "Single Time: pool", command_pool, "queue", queue);
 
-  VkResult endResult = vkEndCommandBuffer(singularCommandBuffer);
+  VkResult endResult = vkEndCommandBuffer(singular_command_buffer);
   Log::text("{ ..1 }", "Single Time end result", endResult);
   VkSubmitInfo submitInfo{};
   submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
   submitInfo.commandBufferCount = 1;
-  submitInfo.pCommandBuffers = &singularCommandBuffer;
+  submitInfo.pCommandBuffers = &singular_command_buffer;
 
   VkFenceCreateInfo fenceInfo{};
   fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
@@ -115,7 +116,7 @@ void CE::CommandBuffers::endSingularCommands(const VkCommandPool &commandPool,
             static_cast<int32_t>(fenceCreateResult));
   if (fenceCreateResult != VK_SUCCESS) {
     vkFreeCommandBuffers(
-        Device::base_device->logical_device, commandPool, 1, &singularCommandBuffer);
+        Device::base_device->logical_device, command_pool, 1, &singular_command_buffer);
     throw std::runtime_error("!ERROR! vkCreateFence failed for single time submit!");
   }
 
@@ -133,12 +134,12 @@ void CE::CommandBuffers::endSingularCommands(const VkCommandPool &commandPool,
   vkDestroyFence(Device::base_device->logical_device, uploadFence, nullptr);
 
   vkFreeCommandBuffers(
-      Device::base_device->logical_device, commandPool, 1, &singularCommandBuffer);
-  Log::text("{ ..1 }", "Single Time freed", singularCommandBuffer);
+      Device::base_device->logical_device, command_pool, 1, &singular_command_buffer);
+  Log::text("{ ..1 }", "Single Time freed", singular_command_buffer);
 }
 
-void CE::CommandBuffers::createBuffers(
-    std::array<VkCommandBuffer, MAX_FRAMES_IN_FLIGHT> &commandBuffers) const {
+void CE::CommandBuffers::create_buffers(
+    std::array<VkCommandBuffer, MAX_FRAMES_IN_FLIGHT> &command_buffers) const {
   Log::text("{ cmd }", "Command Buffers:", MAX_FRAMES_IN_FLIGHT);
   if (!Device::base_device) {
     Log::text("{ cmd }", "Command Buffers: base_device is null");
@@ -152,51 +153,52 @@ void CE::CommandBuffers::createBuffers(
   Log::text("{ cmd }", "Command Buffers: pool", this->pool, "@", &this->pool);
   Log::text("{ cmd }",
             "Command Buffers: array",
-            commandBuffers.data(),
+            command_buffers.data(),
             "count",
-            static_cast<uint32_t>(commandBuffers.size()));
+            static_cast<uint32_t>(command_buffers.size()));
   VkCommandBufferAllocateInfo allocateInfo{
       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
       .commandPool = this->pool,
       .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-      .commandBufferCount = static_cast<uint32_t>(commandBuffers.size())};
+      .commandBufferCount = static_cast<uint32_t>(command_buffers.size())};
 
   VkResult result = vkAllocateCommandBuffers(
-      CE::Device::base_device->logical_device, &allocateInfo, commandBuffers.data());
+      CE::Device::base_device->logical_device, &allocateInfo, command_buffers.data());
   Log::text("{ cmd }", "Command Buffers alloc result", result);
-  for (size_t i = 0; i < commandBuffers.size(); ++i) {
-    Log::text("{ cmd }", "Command Buffer", static_cast<uint32_t>(i), commandBuffers[i]);
+  for (size_t i = 0; i < command_buffers.size(); ++i) {
+    Log::text(
+        "{ cmd }", "Command Buffer", static_cast<uint32_t>(i), command_buffers[i]);
   }
   if (result != VK_SUCCESS) {
     throw std::runtime_error("!ERROR! vkAllocateCommandBuffers failed!");
   }
   Log::text("{ cmd }",
             "Command Buffers allocated",
-            static_cast<uint32_t>(commandBuffers.size()));
+            static_cast<uint32_t>(command_buffers.size()));
 }
 
 CE::Swapchain::SupportDetails
-CE::Swapchain::checkSupport(const VkPhysicalDevice &physicalDevice,
-                            const VkSurfaceKHR &surface) {
+CE::Swapchain::check_support(const VkPhysicalDevice &physical_device,
+                             const VkSurfaceKHR &surface) {
   Log::text(Log::Style::charLeader, "Query Swap Chain Support");
   {
     Swapchain::SupportDetails details{};
     vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
-        physicalDevice, surface, &details.capabilities);
+        physical_device, surface, &details.capabilities);
     uint32_t formatCount(0);
-    vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &formatCount, nullptr);
+    vkGetPhysicalDeviceSurfaceFormatsKHR(physical_device, surface, &formatCount, nullptr);
     if (formatCount != 0) {
       details.formats.resize(formatCount);
-      vkGetPhysicalDeviceSurfaceFormatsKHR(
-          physicalDevice, surface, &formatCount, details.formats.data());
+        vkGetPhysicalDeviceSurfaceFormatsKHR(
+          physical_device, surface, &formatCount, details.formats.data());
     }
     uint32_t presentModeCount(0);
     vkGetPhysicalDeviceSurfacePresentModesKHR(
-        physicalDevice, surface, &presentModeCount, nullptr);
+      physical_device, surface, &presentModeCount, nullptr);
     if (presentModeCount != 0) {
-      details.presentModes.resize(presentModeCount);
+        details.present_modes.resize(presentModeCount);
       vkGetPhysicalDeviceSurfacePresentModesKHR(
-          physicalDevice, surface, &presentModeCount, details.presentModes.data());
+          physical_device, surface, &presentModeCount, details.present_modes.data());
     }
 
     Log::text("{ SWP }",
@@ -205,51 +207,51 @@ CE::Swapchain::checkSupport(const VkPhysicalDevice &physicalDevice,
               "formats",
               details.formats.size(),
               "presentModes",
-              details.presentModes.size());
+              details.present_modes.size());
     Log::text(Log::Style::charLeader,
               "capabilities min/max imageCount",
               details.capabilities.minImageCount,
               "/",
               details.capabilities.maxImageCount);
 
-    this->supportDetails = details;
+    this->support_details = details;
     return details;
   }
 }
 
-VkSurfaceFormatKHR CE::Swapchain::pickSurfaceFormat(
-    const std::vector<VkSurfaceFormatKHR> &availableFormats) const {
+VkSurfaceFormatKHR CE::Swapchain::pick_surface_format(
+    const std::vector<VkSurfaceFormatKHR> &available_formats) const {
   Log::text(Log::Style::charLeader, "Choose Swap Surface Format");
 
-  for (const auto &availableFormat : availableFormats) {
-    if (availableFormat.format == VK_FORMAT_R8G8B8A8_SRGB &&
-        availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
-      return availableFormat;
+  for (const auto &available_format : available_formats) {
+    if (available_format.format == VK_FORMAT_R8G8B8A8_SRGB &&
+        available_format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
+      return available_format;
     }
   }
-  return availableFormats[0];
+  return available_formats[0];
 }
 
-VkPresentModeKHR CE::Swapchain::pickPresentMode(
-    const std::vector<VkPresentModeKHR> &availablePresentModes) const {
+VkPresentModeKHR CE::Swapchain::pick_present_mode(
+    const std::vector<VkPresentModeKHR> &available_present_modes) const {
   Log::text(Log::Style::charLeader, "Choose Swap Present Mode");
-  for (const auto &availablePresentMode : availablePresentModes) {
-    if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
-      return availablePresentMode;
+  for (const auto &available_present_mode : available_present_modes) {
+    if (available_present_mode == VK_PRESENT_MODE_MAILBOX_KHR) {
+      return available_present_mode;
     }
   }
 
-  for (const auto &availablePresentMode : availablePresentModes) {
-    if (availablePresentMode == VK_PRESENT_MODE_IMMEDIATE_KHR) {
-      return availablePresentMode;
+  for (const auto &available_present_mode : available_present_modes) {
+    if (available_present_mode == VK_PRESENT_MODE_IMMEDIATE_KHR) {
+      return available_present_mode;
     }
   }
 
   return VK_PRESENT_MODE_FIFO_KHR;
 }
 
-VkExtent2D CE::Swapchain::pickExtent(GLFWwindow *window,
-                                     const VkSurfaceCapabilitiesKHR &capabilities) const {
+VkExtent2D CE::Swapchain::pick_extent(GLFWwindow *window,
+                                      const VkSurfaceCapabilitiesKHR &capabilities) const {
   Log::text(Log::Style::charLeader, "Choose Swap Extent");
 
   if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
@@ -271,16 +273,16 @@ VkExtent2D CE::Swapchain::pickExtent(GLFWwindow *window,
 }
 
 uint32_t
-CE::Swapchain::getImageCount(const Swapchain::SupportDetails &swapchainSupport) const {
-  uint32_t imageCount = swapchainSupport.capabilities.minImageCount + 1;
+CE::Swapchain::get_image_count(const Swapchain::SupportDetails &swapchain_support) const {
+  uint32_t imageCount = swapchain_support.capabilities.minImageCount + 1;
 
   if (imageCount > MAX_FRAMES_IN_FLIGHT) {
     imageCount = MAX_FRAMES_IN_FLIGHT;
   }
 
-  if (swapchainSupport.capabilities.maxImageCount > 0 &&
-      imageCount > swapchainSupport.capabilities.maxImageCount) {
-    imageCount = swapchainSupport.capabilities.maxImageCount;
+  if (swapchain_support.capabilities.maxImageCount > 0 &&
+      imageCount > swapchain_support.capabilities.maxImageCount) {
+    imageCount = swapchain_support.capabilities.maxImageCount;
   }
 
   if (imageCount == 0) {
@@ -308,7 +310,7 @@ void CE::Swapchain::destroy() {
 
 void CE::Swapchain::recreate(const VkSurfaceKHR &surface,
                              const Queues &queues,
-                             SynchronizationObjects &syncObjects) {
+                             SynchronizationObjects &sync_objects) {
   int width(0), height(0);
   glfwGetFramebufferSize(Window::get().window, &width, &height);
   while (width == 0 || height == 0) {
@@ -322,18 +324,18 @@ void CE::Swapchain::recreate(const VkSurfaceKHR &surface,
   create(surface, queues);
 
   uint32_t reset = 1;
-  syncObjects.currentFrame = reset;
+  sync_objects.current_frame = reset;
 }
 
 void CE::Swapchain::create(const VkSurfaceKHR &surface, const Queues &queues) {
   Log::text("{ <-> }", "Swap Chain");
   Swapchain::SupportDetails swapchainSupport =
-      checkSupport(Device::base_device->physical_device, surface);
-  VkSurfaceFormatKHR surfaceFormat = pickSurfaceFormat(swapchainSupport.formats);
-  VkPresentModeKHR presentMode = pickPresentMode(swapchainSupport.presentModes);
-  VkExtent2D extent = pickExtent(Window::get().window, supportDetails.capabilities);
+      check_support(Device::base_device->physical_device, surface);
+  VkSurfaceFormatKHR surfaceFormat = pick_surface_format(swapchainSupport.formats);
+  VkPresentModeKHR presentMode = pick_present_mode(swapchainSupport.present_modes);
+  VkExtent2D extent = pick_extent(Window::get().window, support_details.capabilities);
 
-  uint32_t imageCount = getImageCount(swapchainSupport);
+  uint32_t imageCount = get_image_count(swapchainSupport);
   Log::text("{ SWP }",
             Log::function_name(__func__),
             "Requested swapchain imageCount",
@@ -415,7 +417,7 @@ void CE::Swapchain::create(const VkSurfaceKHR &surface, const Queues &queues) {
             "images",
             imageCount);
 
-  this->imageFormat = surfaceFormat.format;
+  this->image_format = surfaceFormat.format;
   this->extent = extent;
 
   std::vector<VkImage> swapchainImages(imageCount);
@@ -427,7 +429,7 @@ void CE::Swapchain::create(const VkSurfaceKHR &surface, const Queues &queues) {
 
   for (uint_fast8_t i = 0; i < imageCount; i++) {
     this->images[i].image = swapchainImages[i];
-    this->images[i].info.format = this->imageFormat;
+    this->images[i].info.format = this->image_format;
     this->images[i].createView(VK_IMAGE_ASPECT_COLOR_BIT);
   };
 }
@@ -445,37 +447,37 @@ void CE::SynchronizationObjects::create() {
                       Device::base_device->logical_device,
                       &semaphoreInfo,
                       nullptr,
-                      &this->imageAvailableSemaphores[i]);
+                      &this->image_available_semaphores[i]);
     CE::VULKAN_RESULT(vkCreateSemaphore,
                       Device::base_device->logical_device,
                       &semaphoreInfo,
                       nullptr,
-                      &this->renderFinishedSemaphores[i]);
+                      &this->render_finished_semaphores[i]);
     CE::VULKAN_RESULT(vkCreateFence,
                       Device::base_device->logical_device,
                       &fenceInfo,
                       nullptr,
-                      &this->graphicsInFlightFences[i]);
+                      &this->graphics_in_flight_fences[i]);
     CE::VULKAN_RESULT(vkCreateSemaphore,
                       Device::base_device->logical_device,
                       &semaphoreInfo,
                       nullptr,
-                      &this->computeFinishedSemaphores[i]);
+                      &this->compute_finished_semaphores[i]);
     CE::VULKAN_RESULT(vkCreateFence,
                       Device::base_device->logical_device,
                       &fenceInfo,
                       nullptr,
-                      &this->computeInFlightFences[i]);
+                      &this->compute_in_flight_fences[i]);
 
     Log::text(Log::Style::charLeader,
               "frame",
               i,
               "sync handles",
-              this->imageAvailableSemaphores[i],
-              this->computeFinishedSemaphores[i],
-              this->renderFinishedSemaphores[i],
-              this->computeInFlightFences[i],
-              this->graphicsInFlightFences[i]);
+              this->image_available_semaphores[i],
+              this->compute_finished_semaphores[i],
+              this->render_finished_semaphores[i],
+              this->compute_in_flight_fences[i],
+              this->graphics_in_flight_fences[i]);
   }
 }
 
@@ -485,23 +487,23 @@ void CE::SynchronizationObjects::destroy() const {
     for (uint_fast8_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
       vkDestroySemaphore(
           Device::base_device->logical_device,
-          this->renderFinishedSemaphores[i],
+          this->render_finished_semaphores[i],
           nullptr);
       vkDestroySemaphore(
           Device::base_device->logical_device,
-          this->imageAvailableSemaphores[i],
+          this->image_available_semaphores[i],
           nullptr);
       vkDestroySemaphore(
           Device::base_device->logical_device,
-          this->computeFinishedSemaphores[i],
+          this->compute_finished_semaphores[i],
           nullptr);
       vkDestroyFence(
           Device::base_device->logical_device,
-          this->graphicsInFlightFences[i],
+          this->graphics_in_flight_fences[i],
           nullptr);
       vkDestroyFence(
           Device::base_device->logical_device,
-          this->computeInFlightFences[i],
+          this->compute_in_flight_fences[i],
           nullptr);
     };
   }

@@ -21,37 +21,40 @@ public:
   VkCommandPool pool{};
   std::array<VkCommandBuffer, MAX_FRAMES_IN_FLIGHT> graphics{};
   std::array<VkCommandBuffer, MAX_FRAMES_IN_FLIGHT> compute{};
-  static VkCommandBuffer singularCommandBuffer;
+  static VkCommandBuffer singular_command_buffer;
 
   CommandBuffers() = default;
   virtual ~CommandBuffers();
-  static void beginSingularCommands(const VkCommandPool &commandPool,
+  static void begin_singular_commands(const VkCommandPool &command_pool,
                                     const VkQueue &queue);
-  static void endSingularCommands(const VkCommandPool &commandPool, const VkQueue &queue);
-  virtual void recordComputeCommandBuffer(Resources &resources,
-                                          Pipelines &pipelines,
-                                          const uint32_t frameIndex) = 0;
-  virtual void recordGraphicsCommandBuffer(Swapchain &swapchain,
-                                           Resources &resources,
-                                           Pipelines &pipelines,
-                                           const uint32_t frameIndex,
-                                           const uint32_t imageIndex) = 0;
+  static void end_singular_commands(const VkCommandPool &command_pool,
+                                    const VkQueue &queue);
+  virtual void record_compute_command_buffer(Resources &resources,
+                                             Pipelines &pipelines,
+                                             const uint32_t frame_index) = 0;
+  virtual void record_graphics_command_buffer(Swapchain &swapchain,
+                                              Resources &resources,
+                                              Pipelines &pipelines,
+                                              const uint32_t frame_index,
+                                              const uint32_t image_index) = 0;
 
 protected:
-  void createPool(const Queues::FamilyIndices &familyIndices);
-  void
-  createBuffers(std::array<VkCommandBuffer, MAX_FRAMES_IN_FLIGHT> &commandBuffers) const;
+  void create_pool(const Queues::FamilyIndices &family_indices);
+  void create_buffers(
+      std::array<VkCommandBuffer, MAX_FRAMES_IN_FLIGHT> &command_buffers) const;
 };
 
 struct CommandInterface {
-  VkCommandBuffer &commandBuffer;
-  const VkCommandPool &commandPool;
+  VkCommandBuffer &command_buffer;
+  const VkCommandPool &command_pool;
   const VkQueue &queue;
 
-  CommandInterface(VkCommandBuffer &commandBufferRef,
-                   const VkCommandPool &commandPoolRef,
-                   const VkQueue &queueRef)
-      : commandBuffer(commandBufferRef), commandPool(commandPoolRef), queue(queueRef) {}
+  CommandInterface(VkCommandBuffer &command_buffer_ref,
+                   const VkCommandPool &command_pool_ref,
+                   const VkQueue &queue_ref)
+      : command_buffer(command_buffer_ref),
+        command_pool(command_pool_ref),
+        queue(queue_ref) {}
 };
 
 class SynchronizationObjects {
@@ -61,12 +64,12 @@ public:
     destroy();
   };
 
-  std::array<VkSemaphore, MAX_FRAMES_IN_FLIGHT> imageAvailableSemaphores{};
-  std::array<VkSemaphore, MAX_FRAMES_IN_FLIGHT> renderFinishedSemaphores{};
-  std::array<VkSemaphore, MAX_FRAMES_IN_FLIGHT> computeFinishedSemaphores{};
-  std::array<VkFence, MAX_FRAMES_IN_FLIGHT> graphicsInFlightFences{};
-  std::array<VkFence, MAX_FRAMES_IN_FLIGHT> computeInFlightFences{};
-  uint32_t currentFrame = 0;
+  std::array<VkSemaphore, MAX_FRAMES_IN_FLIGHT> image_available_semaphores{};
+  std::array<VkSemaphore, MAX_FRAMES_IN_FLIGHT> render_finished_semaphores{};
+  std::array<VkSemaphore, MAX_FRAMES_IN_FLIGHT> compute_finished_semaphores{};
+  std::array<VkFence, MAX_FRAMES_IN_FLIGHT> graphics_in_flight_fences{};
+  std::array<VkFence, MAX_FRAMES_IN_FLIGHT> compute_in_flight_fences{};
+  uint32_t current_frame = 0;
 
 protected:
   void create();
@@ -79,38 +82,38 @@ class Swapchain {
 public:
   VkSwapchainKHR swapchain{};
   VkExtent2D extent{};
-  VkFormat imageFormat{};
+  VkFormat image_format{};
   std::array<CE::Image, MAX_FRAMES_IN_FLIGHT> images{};
   std::array<VkFramebuffer, MAX_FRAMES_IN_FLIGHT> framebuffers{};
 
   struct SupportDetails {
     VkSurfaceCapabilitiesKHR capabilities{};
     std::vector<VkSurfaceFormatKHR> formats{};
-    std::vector<VkPresentModeKHR> presentModes{};
-  } supportDetails{};
+    std::vector<VkPresentModeKHR> present_modes{};
+  } support_details{};
 
   Swapchain() = default;
   virtual ~Swapchain() {
     destroy();
   };
-  SupportDetails checkSupport(const VkPhysicalDevice &physicalDevice,
-                              const VkSurfaceKHR &surface);
+  SupportDetails check_support(const VkPhysicalDevice &physical_device,
+                               const VkSurfaceKHR &surface);
 
 protected:
   void create(const VkSurfaceKHR &surface, const Queues &queues);
   void recreate(const VkSurfaceKHR &surface,
                 const Queues &queues,
-                SynchronizationObjects &syncObjects);
+                SynchronizationObjects &sync_objects);
 
 private:
   void destroy();
   VkSurfaceFormatKHR
-  pickSurfaceFormat(const std::vector<VkSurfaceFormatKHR> &availableFormats) const;
-  VkPresentModeKHR
-  pickPresentMode(const std::vector<VkPresentModeKHR> &availablePresentModes) const;
-  VkExtent2D pickExtent(GLFWwindow *window,
+  pick_surface_format(const std::vector<VkSurfaceFormatKHR> &available_formats) const;
+  VkPresentModeKHR pick_present_mode(
+      const std::vector<VkPresentModeKHR> &available_present_modes) const;
+  VkExtent2D pick_extent(GLFWwindow *window,
                         const VkSurfaceCapabilitiesKHR &capabilities) const;
-  uint32_t getImageCount(const Swapchain::SupportDetails &swapchainSupport) const;
+  uint32_t get_image_count(const Swapchain::SupportDetails &swapchain_support) const;
 };
 
 } // namespace CE

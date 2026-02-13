@@ -68,12 +68,12 @@ void CapitalEngine::mainLoop() {
 }
 
 void CapitalEngine::drawFrame() {
-  const uint32_t frameIndex = mechanics.syncObjects.currentFrame;
+  const uint32_t frameIndex = mechanics.syncObjects.current_frame;
 
   // Compute submission
   vkWaitForFences(mechanics.mainDevice.logical_device,
                   1,
-                  &mechanics.syncObjects.computeInFlightFences[frameIndex],
+                  &mechanics.syncObjects.compute_in_flight_fences[frameIndex],
                   VK_TRUE,
                   UINT64_MAX);
 
@@ -81,10 +81,10 @@ void CapitalEngine::drawFrame() {
 
   vkResetFences(mechanics.mainDevice.logical_device,
                 1,
-                &mechanics.syncObjects.computeInFlightFences[frameIndex]);
+                &mechanics.syncObjects.compute_in_flight_fences[frameIndex]);
 
   vkResetCommandBuffer(resources.commands.compute[frameIndex], 0);
-  resources.commands.recordComputeCommandBuffer(resources, pipelines, frameIndex);
+  resources.commands.record_compute_command_buffer(resources, pipelines, frameIndex);
 
   VkSubmitInfo computeSubmitInfo{
       .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
@@ -95,18 +95,18 @@ void CapitalEngine::drawFrame() {
       .commandBufferCount = 1,
       .pCommandBuffers = &resources.commands.compute[frameIndex],
       .signalSemaphoreCount = 1,
-      .pSignalSemaphores = &mechanics.syncObjects.computeFinishedSemaphores[frameIndex]};
+      .pSignalSemaphores = &mechanics.syncObjects.compute_finished_semaphores[frameIndex]};
 
   CE::VULKAN_RESULT(vkQueueSubmit,
                     mechanics.queues.compute_queue,
                     SINGLE_OBJECT_COUNT,
                     &computeSubmitInfo,
-                    mechanics.syncObjects.computeInFlightFences[frameIndex]);
+                    mechanics.syncObjects.compute_in_flight_fences[frameIndex]);
 
   // Graphics submission
   vkWaitForFences(mechanics.mainDevice.logical_device,
                   1,
-                  &mechanics.syncObjects.graphicsInFlightFences[frameIndex],
+                  &mechanics.syncObjects.graphics_in_flight_fences[frameIndex],
                   VK_TRUE,
                   UINT64_MAX);
 
@@ -115,7 +115,7 @@ void CapitalEngine::drawFrame() {
       vkAcquireNextImageKHR(mechanics.mainDevice.logical_device,
                             mechanics.swapchain.swapchain,
                             UINT64_MAX,
-                            mechanics.syncObjects.imageAvailableSemaphores[frameIndex],
+                            mechanics.syncObjects.image_available_semaphores[frameIndex],
                             VK_NULL_HANDLE,
                             &imageIndex);
 
@@ -132,16 +132,16 @@ void CapitalEngine::drawFrame() {
 
   vkResetFences(mechanics.mainDevice.logical_device,
                 1,
-                &mechanics.syncObjects.graphicsInFlightFences[frameIndex]);
+                &mechanics.syncObjects.graphics_in_flight_fences[frameIndex]);
 
   vkResetCommandBuffer(resources.commands.graphics[frameIndex], 0);
 
-  resources.commands.recordGraphicsCommandBuffer(
+    resources.commands.record_graphics_command_buffer(
       mechanics.swapchain, resources, pipelines, frameIndex, imageIndex);
 
   const std::array<VkSemaphore, GRAPHICS_WAIT_COUNT> waitSemaphores{
-      mechanics.syncObjects.computeFinishedSemaphores[frameIndex],
-      mechanics.syncObjects.imageAvailableSemaphores[frameIndex]};
+      mechanics.syncObjects.compute_finished_semaphores[frameIndex],
+      mechanics.syncObjects.image_available_semaphores[frameIndex]};
   const std::array<VkPipelineStageFlags, GRAPHICS_WAIT_COUNT> waitStages{
       VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
 
@@ -154,13 +154,13 @@ void CapitalEngine::drawFrame() {
       .commandBufferCount = SINGLE_OBJECT_COUNT,
       .pCommandBuffers = &resources.commands.graphics[frameIndex],
       .signalSemaphoreCount = SINGLE_OBJECT_COUNT,
-      .pSignalSemaphores = &mechanics.syncObjects.renderFinishedSemaphores[frameIndex]};
+      .pSignalSemaphores = &mechanics.syncObjects.render_finished_semaphores[frameIndex]};
 
   CE::VULKAN_RESULT(vkQueueSubmit,
                     mechanics.queues.graphics_queue,
                     SINGLE_OBJECT_COUNT,
                     &graphicsSubmitInfo,
-                    mechanics.syncObjects.graphicsInFlightFences[frameIndex]);
+                    mechanics.syncObjects.graphics_in_flight_fences[frameIndex]);
 
   const VkSwapchainKHR swapchain = mechanics.swapchain.swapchain;
 
@@ -168,7 +168,7 @@ void CapitalEngine::drawFrame() {
       .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
       .pNext = nullptr,
       .waitSemaphoreCount = SINGLE_OBJECT_COUNT,
-      .pWaitSemaphores = &mechanics.syncObjects.renderFinishedSemaphores[frameIndex],
+      .pWaitSemaphores = &mechanics.syncObjects.render_finished_semaphores[frameIndex],
       .swapchainCount = SINGLE_OBJECT_COUNT,
       .pSwapchains = &swapchain,
       .pImageIndices = &imageIndex,
@@ -190,8 +190,8 @@ void CapitalEngine::drawFrame() {
 
   lastPresentedImageIndex = imageIndex;
 
-  mechanics.syncObjects.currentFrame =
-      (mechanics.syncObjects.currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+    mechanics.syncObjects.current_frame =
+      (mechanics.syncObjects.current_frame + 1) % MAX_FRAMES_IN_FLIGHT;
 }
 
 void CapitalEngine::takeScreenshot() {
@@ -215,7 +215,7 @@ void CapitalEngine::takeScreenshot() {
 
   CE::Screenshot::capture(mechanics.swapchain.images[lastPresentedImageIndex].image,
                           mechanics.swapchain.extent,
-                          mechanics.swapchain.imageFormat,
+                          mechanics.swapchain.image_format,
                           resources.commands.pool,
                           mechanics.queues.graphics_queue,
                           filename);

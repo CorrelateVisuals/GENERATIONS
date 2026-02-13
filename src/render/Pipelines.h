@@ -30,7 +30,7 @@ public:
     Render(CE::Swapchain &swapchain,
            const CE::Image &msaaImage,
            const VkImageView &depthView) {
-      create(msaaImage.info.samples, swapchain.imageFormat);
+      create(msaaImage.info.samples, swapchain.image_format);
       createFramebuffers(swapchain, msaaImage.view, depthView);
     }
   };

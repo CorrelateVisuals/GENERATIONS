@@ -142,9 +142,10 @@ bool CE::Device::is_device_suitable(const VkPhysicalDevice &physical_device,
   bool swapchain_adequate = false;
   if (extensions_supported) {
     Swapchain::SupportDetails swapchain_support =
-        swapchain.checkSupport(physical_device, init_vulkan.surface);
+      swapchain.check_support(physical_device, init_vulkan.surface);
     swapchain_adequate =
-        !swapchain_support.formats.empty() && !swapchain_support.presentModes.empty();
+      !swapchain_support.formats.empty() &&
+      !swapchain_support.present_modes.empty();
   }
   Log::text(Log::Style::charLeader,
             "queueComplete",

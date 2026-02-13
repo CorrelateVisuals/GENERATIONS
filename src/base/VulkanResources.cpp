@@ -125,13 +125,13 @@ void CE::Buffer::copy(const VkBuffer &srcBuffer,
                       const VkQueue &queue) {
   Log::text("{ ... }", "copying", size, "bytes");
 
-  CE::CommandBuffers::beginSingularCommands(commandPool, queue);
+  CE::CommandBuffers::begin_singular_commands(commandPool, queue);
   VkBufferCopy copyRegion{};
   copyRegion.srcOffset = 0;
   copyRegion.dstOffset = 0;
   copyRegion.size = size;
   vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
-  CE::CommandBuffers::endSingularCommands(commandPool, queue);
+  CE::CommandBuffers::end_singular_commands(commandPool, queue);
 }
 
 void CE::Buffer::copyToImage(const VkBuffer &buffer,
@@ -143,7 +143,7 @@ void CE::Buffer::copyToImage(const VkBuffer &buffer,
                              const VkQueue &queue) {
   Log::text("{ img }", "Buffer To Image", width, height);
 
-  CE::CommandBuffers::beginSingularCommands(commandPool, queue);
+  CE::CommandBuffers::begin_singular_commands(commandPool, queue);
   VkBufferImageCopy region{};
   region.bufferOffset = 0;
   region.bufferRowLength = 0;
@@ -157,7 +157,7 @@ void CE::Buffer::copyToImage(const VkBuffer &buffer,
 
   vkCmdCopyBufferToImage(
       commandBuffer, buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
-  CE::CommandBuffers::endSingularCommands(commandPool, queue);
+  CE::CommandBuffers::end_singular_commands(commandPool, queue);
 }
 
 void CE::Image::destroyVulkanImages() const {
@@ -404,12 +404,12 @@ void CE::Image::loadTexture(const std::string &imagePath,
                VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-  CommandBuffers::beginSingularCommands(commandPool, queue);
+  CommandBuffers::begin_singular_commands(commandPool, queue);
   this->transitionLayout(commandBuffer,
                          VK_FORMAT_R8G8B8A8_SRGB,
                          VK_IMAGE_LAYOUT_UNDEFINED,
                          VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-  CommandBuffers::endSingularCommands(commandPool, queue);
+  CommandBuffers::end_singular_commands(commandPool, queue);
 
   Buffer::copyToImage(stagingResources.buffer,
                       this->image,
@@ -419,12 +419,12 @@ void CE::Image::loadTexture(const std::string &imagePath,
                       commandPool,
                       queue);
 
-  CommandBuffers::beginSingularCommands(commandPool, queue);
+  CommandBuffers::begin_singular_commands(commandPool, queue);
   this->transitionLayout(commandBuffer,
                          VK_FORMAT_R8G8B8A8_SRGB,
                          VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                          VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-  CommandBuffers::endSingularCommands(commandPool, queue);
+  CommandBuffers::end_singular_commands(commandPool, queue);
 }
 
 VkFormat CE::Image::findDepthFormat() {

@@ -8,12 +8,12 @@
 Resources::Resources(VulkanMechanics &mechanics)
     : commands{mechanics.queues.family_indices},
       commandInterface{
-          commands.singularCommandBuffer,
+          commands.singular_command_buffer,
           commands.pool,
           mechanics.queues.graphics_queue},
 
       pushConstant{VK_SHADER_STAGE_COMPUTE_BIT, 128, 0},
-      world{commands.singularCommandBuffer,
+      world{commands.singular_command_buffer,
         commands.pool,
         mechanics.queues.graphics_queue},
 
@@ -24,7 +24,7 @@ Resources::Resources(VulkanMechanics &mechanics)
           CE_DEPTH_IMAGE, mechanics.swapchain.extent, CE::Image::findDepthFormat()},
       msaaImage{CE_MULTISAMPLE_IMAGE,
                 mechanics.swapchain.extent,
-                mechanics.swapchain.imageFormat},
+            mechanics.swapchain.image_format},
 
       uniform{descriptorInterface, world._ubo}, shaderStorage{descriptorInterface,
                                                               commandInterface,
@@ -46,9 +46,9 @@ Resources::~Resources() {
 
 CE::ShaderAccess::CommandResources::CommandResources(
     const CE::Queues::FamilyIndices &family_indices) {
-  createPool(family_indices);
-  createBuffers(graphics);
-  createBuffers(compute);
+  create_pool(family_indices);
+  create_buffers(graphics);
+  create_buffers(compute);
 }
 
 Resources::UniformBuffer::UniformBuffer(CE::DescriptorInterface &interface,
@@ -184,8 +184,8 @@ void Resources::StorageBuffer::create(const CE::CommandInterface &commandInterfa
   CE::Buffer::copy(stagingResources.buffer,
                    bufferIn.buffer,
                    bufferSize,
-                   commandInterface.commandBuffer,
-                   commandInterface.commandPool,
+                   commandInterface.command_buffer,
+                   commandInterface.command_pool,
                    commandInterface.queue);
 
   CE::Buffer::create(static_cast<VkDeviceSize>(bufferSize),
@@ -197,8 +197,8 @@ void Resources::StorageBuffer::create(const CE::CommandInterface &commandInterfa
   CE::Buffer::copy(stagingResources.buffer,
                    bufferOut.buffer,
                    bufferSize,
-                   commandInterface.commandBuffer,
-                   commandInterface.commandPool,
+                   commandInterface.command_buffer,
+                   commandInterface.command_pool,
                    commandInterface.queue);
 }
 
@@ -249,8 +249,8 @@ Resources::ImageSampler::ImageSampler(CE::DescriptorInterface &interface,
 
   textureImage.loadTexture(textureImage.path,
                            VK_FORMAT_R8G8B8A8_SRGB,
-                           commandInterface.commandBuffer,
-                           commandInterface.commandPool,
+                           commandInterface.command_buffer,
+                           commandInterface.command_pool,
                            commandInterface.queue);
   textureImage.createView(VK_IMAGE_ASPECT_COLOR_BIT);
   textureImage.createSampler();

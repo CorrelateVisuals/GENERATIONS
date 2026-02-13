@@ -38,8 +38,8 @@ void CE::Screenshot::copyImageToBuffer(const VkImage &srcImage,
                                        const VkExtent2D &extent,
                                        const VkCommandPool &commandPool,
                                        const VkQueue &queue) {
-  CommandBuffers::beginSingularCommands(commandPool, queue);
-  VkCommandBuffer &commandBuffer = CommandBuffers::singularCommandBuffer;
+  CommandBuffers::begin_singular_commands(commandPool, queue);
+  VkCommandBuffer &commandBuffer = CommandBuffers::singular_command_buffer;
 
   VkImageMemoryBarrier barrier{};
   barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -101,7 +101,7 @@ void CE::Screenshot::copyImageToBuffer(const VkImage &srcImage,
                        1,
                        &barrier);
 
-  CommandBuffers::endSingularCommands(commandPool, queue);
+  CommandBuffers::end_singular_commands(commandPool, queue);
 }
 
 void CE::Screenshot::saveBufferToFile(const Buffer &buffer,

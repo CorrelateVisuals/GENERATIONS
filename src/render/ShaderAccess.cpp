@@ -5,9 +5,9 @@
 
 #include <stdexcept>
 
-void CE::ShaderAccess::CommandResources::recordComputeCommandBuffer(
-    Resources &resources, Pipelines &pipelines, const uint32_t frameIndex) {
-  VkCommandBuffer commandBuffer = this->compute[frameIndex];
+void CE::ShaderAccess::CommandResources::record_compute_command_buffer(
+    Resources &resources, Pipelines &pipelines, const uint32_t frame_index) {
+  VkCommandBuffer commandBuffer = this->compute[frame_index];
 
   VkCommandBufferBeginInfo beginInfo{};
   beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -28,7 +28,7 @@ void CE::ShaderAccess::CommandResources::recordComputeCommandBuffer(
                           pipelines.compute.layout,
                           0,
                           1,
-                          &resources.descriptorInterface.sets[frameIndex],
+                          &resources.descriptorInterface.sets[frame_index],
                           0,
                           nullptr);
 
@@ -48,13 +48,13 @@ void CE::ShaderAccess::CommandResources::recordComputeCommandBuffer(
   CE::VULKAN_RESULT(vkEndCommandBuffer, commandBuffer);
 }
 
-void CE::ShaderAccess::CommandResources::recordGraphicsCommandBuffer(
+void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
     CE::Swapchain &swapchain,
     Resources &resources,
     Pipelines &pipelines,
-    const uint32_t frameIndex,
-    const uint32_t imageIndex) {
-  VkCommandBuffer commandBuffer = this->graphics[frameIndex];
+    const uint32_t frame_index,
+    const uint32_t image_index) {
+  VkCommandBuffer commandBuffer = this->graphics[frame_index];
 
   VkCommandBufferBeginInfo beginInfo{};
   beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -72,7 +72,7 @@ void CE::ShaderAccess::CommandResources::recordGraphicsCommandBuffer(
       .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
       .pNext = nullptr,
       .renderPass = pipelines.render.renderPass,
-      .framebuffer = swapchain.framebuffers[imageIndex],
+      .framebuffer = swapchain.framebuffers[image_index],
       .renderArea = {.offset = {0, 0}, .extent = swapchain.extent},
       .clearValueCount = static_cast<uint32_t>(clearValues.size()),
       .pClearValues = clearValues.data()};
@@ -94,7 +94,7 @@ void CE::ShaderAccess::CommandResources::recordGraphicsCommandBuffer(
                           pipelines.graphics.layout,
                           0,
                           1,
-                          &resources.descriptorInterface.sets[frameIndex],
+                          &resources.descriptorInterface.sets[frame_index],
                           0,
                           nullptr);
 
@@ -121,7 +121,7 @@ void CE::ShaderAccess::CommandResources::recordGraphicsCommandBuffer(
   VkBuffer currentShaderStorageBuffer[] = {resources.shaderStorage.bufferIn.buffer,
                                            resources.shaderStorage.bufferOut.buffer};
 
-  VkBuffer vertexBuffers0[] = {currentShaderStorageBuffer[frameIndex],
+  VkBuffer vertexBuffers0[] = {currentShaderStorageBuffer[frame_index],
                                resources.world._cube.vertexBuffer.buffer};
 
   vkCmdBindVertexBuffers(commandBuffer, 0, 2, vertexBuffers0, offsets0);
@@ -164,10 +164,10 @@ void CE::ShaderAccess::CommandResources::recordGraphicsCommandBuffer(
   //       This is part of an image memory barrier (i.e., vkCmdPipelineBarrier
   //       with the VkImageMemoryBarrier parameter set)
 
-  swapchain.images[imageIndex].transitionLayout(commandBuffer,
-                                                VK_FORMAT_R8G8B8A8_SRGB,
-                                                VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
-                                                /* -> */ VK_IMAGE_LAYOUT_GENERAL);
+  swapchain.images[image_index].transitionLayout(commandBuffer,
+                                                 VK_FORMAT_R8G8B8A8_SRGB,
+                                                 VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+                                                 /* -> */ VK_IMAGE_LAYOUT_GENERAL);
 
   vkCmdBindPipeline(commandBuffer,
                     VK_PIPELINE_BIND_POINT_COMPUTE,
@@ -178,7 +178,7 @@ void CE::ShaderAccess::CommandResources::recordGraphicsCommandBuffer(
                           pipelines.compute.layout,
                           0,
                           1,
-                          &resources.descriptorInterface.sets[frameIndex],
+                          &resources.descriptorInterface.sets[frame_index],
                           0,
                           nullptr);
 
@@ -194,10 +194,10 @@ void CE::ShaderAccess::CommandResources::recordGraphicsCommandBuffer(
       pipelines.config.getWorkGroupsByName("PostFX");
   vkCmdDispatch(commandBuffer, workGroups[0], workGroups[1], workGroups[2]);
 
-  swapchain.images[imageIndex].transitionLayout(commandBuffer,
-                                                VK_FORMAT_R8G8B8A8_SRGB,
-                                                VK_IMAGE_LAYOUT_GENERAL,
-                                                /* -> */ VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+  swapchain.images[image_index].transitionLayout(commandBuffer,
+                                                 VK_FORMAT_R8G8B8A8_SRGB,
+                                                 VK_IMAGE_LAYOUT_GENERAL,
+                                                 /* -> */ VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
   CE::VULKAN_RESULT(vkEndCommandBuffer, commandBuffer);
 }
