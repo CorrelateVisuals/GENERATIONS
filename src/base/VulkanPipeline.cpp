@@ -1,9 +1,14 @@
-#include "../BaseClasses.h"
+#include "VulkanPipeline.h"
+#include "VulkanPipelinePresets.h"
+#include "VulkanUtils.h"
+
 #include "../Library.h"
+#include "../Log.h"
 
 #include <algorithm>
 #include <chrono>
 #include <fstream>
+#include <stdexcept>
 
 CE::RenderPass::~RenderPass() {
   Log::text("{ []< }", "destructing Render Pass");

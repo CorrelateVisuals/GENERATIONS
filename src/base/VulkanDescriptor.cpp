@@ -1,14 +1,19 @@
-#include "../BaseClasses.h"
+#include "VulkanDescriptor.h"
+#include "VulkanDevice.h"
+#include "VulkanUtils.h"
+
+#include "../Log.h"
 
 CE::DescriptorInterface::~DescriptorInterface() {
-  if (Device::baseDevice) {
+  if (CE::Device::baseDevice) {
     if (this->pool != VK_NULL_HANDLE) {
-      vkDestroyDescriptorPool(Device::baseDevice->logical, this->pool, nullptr);
+      vkDestroyDescriptorPool(CE::Device::baseDevice->logical, this->pool,
+                              nullptr);
       this->pool = VK_NULL_HANDLE;
     };
     if (this->setLayout != VK_NULL_HANDLE) {
-      vkDestroyDescriptorSetLayout(Device::baseDevice->logical, this->setLayout,
-                                   nullptr);
+      vkDestroyDescriptorSetLayout(CE::Device::baseDevice->logical,
+                                   this->setLayout, nullptr);
       this->setLayout = VK_NULL_HANDLE;
     };
   }
@@ -45,7 +50,7 @@ void CE::DescriptorInterface::createPool() {
       .maxSets = MAX_FRAMES_IN_FLIGHT,
       .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
       .pPoolSizes = poolSizes.data()};
-  CE::VULKAN_RESULT(vkCreateDescriptorPool, Device::baseDevice->logical,
+  CE::VULKAN_RESULT(vkCreateDescriptorPool, CE::Device::baseDevice->logical,
                     &poolInfo, nullptr, &this->pool);
 }
 
@@ -56,7 +61,7 @@ void CE::DescriptorInterface::allocateSets() {
       .descriptorPool = pool,
       .descriptorSetCount = MAX_FRAMES_IN_FLIGHT,
       .pSetLayouts = layouts.data()};
-  CE::VULKAN_RESULT(vkAllocateDescriptorSets, Device::baseDevice->logical,
+  CE::VULKAN_RESULT(vkAllocateDescriptorSets, CE::Device::baseDevice->logical,
                     &allocateInfo, sets.data());
 }
 

@@ -1,4 +1,7 @@
-#include "../BaseClasses.h"
+#include "VulkanSync.h"
+#include "VulkanUtils.h"
+
+#include "../Log.h"
 
 #include <algorithm>
 #include <limits>

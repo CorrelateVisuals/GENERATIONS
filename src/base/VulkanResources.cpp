@@ -1,7 +1,14 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
-#include "../BaseClasses.h"
+#include "VulkanResources.h"
+#include "VulkanSync.h"
+#include "VulkanUtils.h"
+
+#include "../Log.h"
+
+#include <cstring>
+#include <stdexcept>
 
 uint32_t CE::findMemoryType(const uint32_t typeFilter,
                             const VkMemoryPropertyFlags properties) {
