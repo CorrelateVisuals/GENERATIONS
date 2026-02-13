@@ -176,21 +176,21 @@
     <ClCompile Include="base\VulkanPipeline.cpp" />
     <ClCompile Include="base\VulkanResources.cpp" />
     <ClCompile Include="base\VulkanSync.cpp" />
-    <ClCompile Include="Camera.cpp" />
-    <ClCompile Include="CapitalEngine.cpp" />
-    <ClCompile Include="Geometry.cpp" />
+    <ClCompile Include="world\Camera.cpp" />
+    <ClCompile Include="app\CapitalEngine.cpp" />
+    <ClCompile Include="world\Geometry.cpp" />
     <ClCompile Include="core\Log.cpp" />
-    <ClCompile Include="Library.cpp" />
-    <ClCompile Include="main.cpp" />
+    <ClCompile Include="io\Library.cpp" />
+    <ClCompile Include="app\main.cpp" />
     <ClCompile Include="render\Resources.cpp" />
     <ClCompile Include="render\Pipelines.cpp" />
-    <ClCompile Include="Mechanics.cpp" />
+    <ClCompile Include="render\Mechanics.cpp" />
     <ClCompile Include="render\ShaderAccess.cpp" />
-    <ClCompile Include="Terrain.cpp" />
+    <ClCompile Include="world\Terrain.cpp" />
     <ClCompile Include="core\Timer.cpp" />
     <ClCompile Include="platform\ValidationLayers.cpp" />
     <ClCompile Include="platform\Window.cpp" />
-    <ClCompile Include="World.cpp" />
+    <ClCompile Include="world\World.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="base\VulkanCore.h" />
@@ -201,20 +201,20 @@
     <ClInclude Include="base\VulkanResources.h" />
     <ClInclude Include="base\VulkanSync.h" />
     <ClInclude Include="base\VulkanUtils.h" />
-    <ClInclude Include="Camera.h" />
-    <ClInclude Include="Geometry.h" />
+    <ClInclude Include="world\Camera.h" />
+    <ClInclude Include="world\Geometry.h" />
     <ClInclude Include="core\Log.h" />
-    <ClInclude Include="CapitalEngine.h" />
-    <ClInclude Include="Library.h" />
+    <ClInclude Include="app\CapitalEngine.h" />
+    <ClInclude Include="io\Library.h" />
     <ClInclude Include="render\Resources.h" />
     <ClInclude Include="render\Pipelines.h" />
-    <ClInclude Include="Mechanics.h" />
+    <ClInclude Include="render\Mechanics.h" />
     <ClInclude Include="render\ShaderAccess.h" />
-    <ClInclude Include="Terrain.h" />
+    <ClInclude Include="world\Terrain.h" />
     <ClInclude Include="core\Timer.h" />
     <ClInclude Include="platform\ValidationLayers.h" />
     <ClInclude Include="platform\Window.h" />
-    <ClInclude Include="World.h" />
+    <ClInclude Include="world\World.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

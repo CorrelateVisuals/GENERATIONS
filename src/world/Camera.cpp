@@ -96,33 +96,42 @@ void Camera::applyArcballMode(const glm::vec2& previousCursor,
                               const bool middlePressed,
                               const float viewportWidth,
                               const float viewportHeight) {
+    const glm::vec3 worldUp = glm::vec3(0.0f, -1.0f, 0.0f);
     const float safeHeight = std::max(viewportHeight, 1.0f);
+    const float safeWidth = std::max(viewportWidth, 1.0f);
+    const float safeMinAxis = std::max(std::min(safeWidth, safeHeight), 1.0f);
     const glm::vec2 cursorDelta = currentCursor - previousCursor;
 
     if (leftPressed) {
-        const glm::vec3 from = mapCursorToArcball(previousCursor, viewportWidth,
-                                                  viewportHeight);
-        const glm::vec3 to = mapCursorToArcball(currentCursor, viewportWidth,
-                                                viewportHeight);
+        const glm::vec2 normalizedDelta = cursorDelta / safeMinAxis;
+        const float dragMagnitude = glm::length(normalizedDelta);
+        const float deadZone = 0.0008f;
 
-        const float dotValue = std::clamp(glm::dot(from, to), -1.0f, 1.0f);
-        const float angle = std::acos(dotValue);
-        const glm::vec3 axisCamera = glm::cross(from, to);
+        if (dragMagnitude > deadZone) {
+            const float response = glm::smoothstep(deadZone, 0.06f, dragMagnitude);
+            const float yawAngle = -normalizedDelta.x * arcballRotateSpeed * response;
+            const float pitchAngle = normalizedDelta.y * arcballRotateSpeed * response;
 
-        if (glm::length2(axisCamera) > 1e-9f && angle > 1e-5f) {
-            const glm::vec3 forward = glm::normalize(arcballTarget - position);
-            const glm::vec3 worldUp = glm::vec3(0.0f, -1.0f, 0.0f);
-            const glm::vec3 right = glm::normalize(glm::cross(forward, worldUp));
-            const glm::vec3 upAxis = glm::normalize(glm::cross(right, forward));
+            glm::vec3 orbitOffset = position - arcballTarget;
+            const glm::quat yawRotation = glm::angleAxis(yawAngle, worldUp);
+            orbitOffset = yawRotation * orbitOffset;
 
-            const glm::vec3 axisWorld = glm::normalize(
-                axisCamera.x * right - axisCamera.y * upAxis + axisCamera.z * (-forward));
+            const glm::vec3 frontAfterYaw = glm::normalize(-orbitOffset);
+            glm::vec3 rightAxis = glm::cross(frontAfterYaw, worldUp);
+            if (glm::length2(rightAxis) > 1e-10f) {
+                rightAxis = glm::normalize(rightAxis);
 
-            const glm::quat rotation = glm::angleAxis(angle * arcballRotateSpeed, axisWorld);
-            glm::vec3 offset = position - arcballTarget;
-            offset = rotation * offset;
-            position = arcballTarget + offset;
-            up = glm::normalize(rotation * up);
+                const glm::quat pitchRotation = glm::angleAxis(pitchAngle, rightAxis);
+                const glm::vec3 pitchedOffset = pitchRotation * orbitOffset;
+                const glm::vec3 pitchedFront = glm::normalize(-pitchedOffset);
+
+                const float poleLimit = 0.985f;
+                if (std::abs(glm::dot(pitchedFront, worldUp)) < poleLimit) {
+                    orbitOffset = pitchedOffset;
+                }
+            }
+
+            position = arcballTarget + orbitOffset;
         }
     }
 
@@ -154,8 +163,13 @@ void Camera::applyArcballMode(const glm::vec2& previousCursor,
     }
 
     front = glm::normalize(arcballTarget - position);
-    viewRight = glm::normalize(glm::cross(front, viewUp));
-    up = glm::normalize(glm::cross(viewRight, front));
+    viewRight = glm::cross(front, worldUp);
+    if (glm::length2(viewRight) > 1e-10f) {
+        viewRight = glm::normalize(viewRight);
+        up = glm::normalize(glm::cross(viewRight, front));
+    } else {
+        up = viewUp;
+    }
     arcballDistance = glm::length(arcballTarget - position);
 }
 

@@ -2,7 +2,7 @@
 #include "vulkan/vulkan.h"
 
 #include "ShaderAccess.h"
-#include "World.h"
+#include "world/World.h"
 #include "base/VulkanDescriptor.h"
 #include "base/VulkanPipeline.h"
 #include "base/VulkanResources.h"

@@ -15,10 +15,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
+    <ClCompile Include="app\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CapitalEngine.cpp">
+    <ClCompile Include="app\CapitalEngine.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="platform\Window.cpp">
@@ -27,22 +27,22 @@
     <ClCompile Include="core\Log.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Mechanics.cpp">
+    <ClCompile Include="render\Mechanics.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="World.cpp">
+    <ClCompile Include="world\World.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="render\Pipelines.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Library.cpp">
+    <ClCompile Include="io\Library.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="render\Resources.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Terrain.cpp">
+    <ClCompile Include="world\Terrain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="core\Timer.cpp">
@@ -51,7 +51,7 @@
     <ClCompile Include="platform\ValidationLayers.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Geometry.cpp">
+    <ClCompile Include="world\Geometry.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="base\VulkanDescriptor.cpp">
@@ -69,7 +69,7 @@
     <ClCompile Include="base\VulkanSync.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Camera.cpp">
+    <ClCompile Include="world\Camera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="render\ShaderAccess.cpp">
@@ -77,7 +77,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="CapitalEngine.h">
+    <ClInclude Include="app\CapitalEngine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="platform\Window.h">
@@ -86,22 +86,22 @@
     <ClInclude Include="core\Log.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Mechanics.h">
+    <ClInclude Include="render\Mechanics.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="World.h">
+    <ClInclude Include="world\World.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="render\Pipelines.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Library.h">
+    <ClInclude Include="io\Library.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="render\Resources.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Terrain.h">
+    <ClInclude Include="world\Terrain.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="core\Timer.h">
@@ -110,7 +110,7 @@
     <ClInclude Include="platform\ValidationLayers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Geometry.h">
+    <ClInclude Include="world\Geometry.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="base\VulkanCore.h">
@@ -137,7 +137,7 @@
     <ClInclude Include="base\VulkanUtils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Camera.h">
+    <ClInclude Include="world\Camera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="render\ShaderAccess.h">

@@ -1,5 +1,4 @@
 #include "World.h"
-#include "CapitalEngine.h"
 #include "Geometry.h"
 #include "Terrain.h"
 #include "core/Log.h"

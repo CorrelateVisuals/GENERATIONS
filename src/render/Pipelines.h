@@ -1,9 +1,9 @@
 #pragma once
 #include <glm/glm.hpp>
 
-#include "Library.h"
+#include "io/Library.h"
 #include "platform/Window.h"
-#include "World.h"
+#include "world/World.h"
 #include "base/VulkanPipeline.h"
 
 class VulkanMechanics;
