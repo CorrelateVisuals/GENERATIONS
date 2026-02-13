@@ -25,7 +25,12 @@ Currently GENERATIONS is running ![Conway's Game of Life](https://en.wikipedia.o
 **Quick Start** - Run GENERATIONS with GPU/Vulkan support in Docker:
 
 ```bash
-# Allow X11 connections
+# Using the helper script (recommended)
+./run-docker.sh mesa        # For AMD/Intel/Mesa GPU
+./run-docker.sh nvidia      # For NVIDIA GPU
+./run-docker.sh raspberry-pi # For Raspberry Pi
+
+# Or use docker-compose directly
 xhost +local:docker
 
 # For AMD/Intel/Mesa GPU

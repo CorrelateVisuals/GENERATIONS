@@ -10,7 +10,26 @@ This document describes how to run GENERATIONS in Docker with GPU/Vulkan support
 
 ## Quick Start
 
-### For Systems with AMD/Intel/Mesa GPU
+### Using the Helper Script (Recommended)
+
+The easiest way to run GENERATIONS in Docker:
+
+```bash
+# For AMD/Intel/Mesa GPU
+./run-docker.sh mesa
+
+# For NVIDIA GPU
+./run-docker.sh nvidia
+
+# For Raspberry Pi
+./run-docker.sh raspberry-pi
+```
+
+### Manual Docker Compose
+
+Alternatively, use docker-compose directly:
+
+#### For Systems with AMD/Intel/Mesa GPU
 
 ```bash
 # Allow X11 connections from Docker
@@ -20,7 +39,7 @@ xhost +local:docker
 docker-compose --profile mesa up --build
 ```
 
-### For Systems with NVIDIA GPU
+#### For Systems with NVIDIA GPU
 
 ```bash
 # Allow X11 connections from Docker
@@ -30,7 +49,7 @@ xhost +local:docker
 docker-compose --profile nvidia up --build
 ```
 
-### For Raspberry Pi (ARM64)
+#### For Raspberry Pi (ARM64)
 
 ```bash
 # Allow X11 connections from Docker
