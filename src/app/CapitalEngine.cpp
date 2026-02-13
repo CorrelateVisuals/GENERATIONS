@@ -35,8 +35,10 @@ void CapitalEngine::mainLoop() {
   Log::text("{ Main Loop }");
   Log::measureElapsedTime();
 
-    bool firstLoopScreenshotCaptured = false;
-    Window& mainWindow = Window::get();
+        bool firstLoopScreenshotCaptured = false;
+        const auto startupScreenshotReadyAt =
+                std::chrono::steady_clock::now() + std::chrono::seconds(1);
+        Window& mainWindow = Window::get();
 
     while (!glfwWindowShouldClose(mainWindow.window)) {
         mainWindow.pollInput();
@@ -44,7 +46,8 @@ void CapitalEngine::mainLoop() {
 
     drawFrame();
 
-        if (!firstLoopScreenshotCaptured) {
+        if (!firstLoopScreenshotCaptured &&
+            std::chrono::steady_clock::now() >= startupScreenshotReadyAt) {
             firstLoopScreenshotCaptured = true;
             Log::text("{ >>> }", "Main loop startup screenshot capture");
             takeScreenshot();
@@ -67,23 +70,22 @@ void CapitalEngine::mainLoop() {
 }
 
 void CapitalEngine::drawFrame() {
+    const uint32_t frameIndex = mechanics.syncObjects.currentFrame;
+
   // Compute submission
   vkWaitForFences(
       mechanics.mainDevice.logical, 1,
-      &mechanics.syncObjects
-           .computeInFlightFences[mechanics.syncObjects.currentFrame],
+            &mechanics.syncObjects.computeInFlightFences[frameIndex],
       VK_TRUE, UINT64_MAX);
 
   resources.uniform.update(resources.world, mechanics.swapchain.extent);
 
   vkResetFences(
       mechanics.mainDevice.logical, 1,
-      &mechanics.syncObjects
-           .computeInFlightFences[mechanics.syncObjects.currentFrame]);
+      &mechanics.syncObjects.computeInFlightFences[frameIndex]);
 
-  vkResetCommandBuffer(
-      resources.commands.compute[mechanics.syncObjects.currentFrame], 0);
-  resources.commands.recordComputeCommandBuffer(resources, pipelines, mechanics.syncObjects.currentFrame);
+  vkResetCommandBuffer(resources.commands.compute[frameIndex], 0);
+  resources.commands.recordComputeCommandBuffer(resources, pipelines, frameIndex);
 
   VkSubmitInfo computeSubmitInfo{
       .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
@@ -92,31 +94,25 @@ void CapitalEngine::drawFrame() {
       .pWaitSemaphores = nullptr,
       .pWaitDstStageMask = nullptr,
       .commandBufferCount = 1,
-      .pCommandBuffers =
-          &resources.commands.compute[mechanics.syncObjects.currentFrame],
+      .pCommandBuffers = &resources.commands.compute[frameIndex],
       .signalSemaphoreCount = 1,
-      .pSignalSemaphores =
-          &mechanics.syncObjects
-               .computeFinishedSemaphores[mechanics.syncObjects.currentFrame]};
+      .pSignalSemaphores = &mechanics.syncObjects.computeFinishedSemaphores[frameIndex]};
 
   CE::VULKAN_RESULT(
       vkQueueSubmit, mechanics.queues.compute, SINGLE_OBJECT_COUNT,
       &computeSubmitInfo,
-      mechanics.syncObjects
-          .computeInFlightFences[mechanics.syncObjects.currentFrame]);
+      mechanics.syncObjects.computeInFlightFences[frameIndex]);
 
   // Graphics submission
   vkWaitForFences(
       mechanics.mainDevice.logical, 1,
-      &mechanics.syncObjects
-           .graphicsInFlightFences[mechanics.syncObjects.currentFrame],
+      &mechanics.syncObjects.graphicsInFlightFences[frameIndex],
       VK_TRUE, UINT64_MAX);
 
   uint32_t imageIndex;
   VkResult result = vkAcquireNextImageKHR(
       mechanics.mainDevice.logical, mechanics.swapchain.swapchain, UINT64_MAX,
-      mechanics.syncObjects
-          .imageAvailableSemaphores[mechanics.syncObjects.currentFrame],
+      mechanics.syncObjects.imageAvailableSemaphores[frameIndex],
       VK_NULL_HANDLE, &imageIndex);
 
   if (result == VK_ERROR_OUT_OF_DATE_KHR) {
@@ -129,21 +125,16 @@ void CapitalEngine::drawFrame() {
 
   vkResetFences(
       mechanics.mainDevice.logical, 1,
-      &mechanics.syncObjects
-           .graphicsInFlightFences[mechanics.syncObjects.currentFrame]);
+      &mechanics.syncObjects.graphicsInFlightFences[frameIndex]);
 
-  vkResetCommandBuffer(
-      resources.commands.graphics[mechanics.syncObjects.currentFrame], 0);
+  vkResetCommandBuffer(resources.commands.graphics[frameIndex], 0);
 
   resources.commands.recordGraphicsCommandBuffer(
-      mechanics.swapchain, resources, pipelines,
-      mechanics.syncObjects.currentFrame);
+      mechanics.swapchain, resources, pipelines, frameIndex, imageIndex);
 
   const std::array<VkSemaphore, GRAPHICS_WAIT_COUNT> waitSemaphores{
-      mechanics.syncObjects
-          .computeFinishedSemaphores[mechanics.syncObjects.currentFrame],
-      mechanics.syncObjects
-          .imageAvailableSemaphores[mechanics.syncObjects.currentFrame]};
+      mechanics.syncObjects.computeFinishedSemaphores[frameIndex],
+      mechanics.syncObjects.imageAvailableSemaphores[frameIndex]};
   const std::array<VkPipelineStageFlags, GRAPHICS_WAIT_COUNT> waitStages{
       VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
       VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
@@ -155,18 +146,14 @@ void CapitalEngine::drawFrame() {
       .pWaitSemaphores = waitSemaphores.data(),
       .pWaitDstStageMask = waitStages.data(),
       .commandBufferCount = SINGLE_OBJECT_COUNT,
-      .pCommandBuffers =
-          &resources.commands.graphics[mechanics.syncObjects.currentFrame],
+      .pCommandBuffers = &resources.commands.graphics[frameIndex],
       .signalSemaphoreCount = SINGLE_OBJECT_COUNT,
-      .pSignalSemaphores =
-          &mechanics.syncObjects
-               .renderFinishedSemaphores[mechanics.syncObjects.currentFrame]};
+      .pSignalSemaphores = &mechanics.syncObjects.renderFinishedSemaphores[frameIndex]};
 
   CE::VULKAN_RESULT(
       vkQueueSubmit, mechanics.queues.graphics, SINGLE_OBJECT_COUNT,
       &graphicsSubmitInfo,
-      mechanics.syncObjects
-          .graphicsInFlightFences[mechanics.syncObjects.currentFrame]);
+      mechanics.syncObjects.graphicsInFlightFences[frameIndex]);
 
   const VkSwapchainKHR swapchain = mechanics.swapchain.swapchain;
 
@@ -174,9 +161,7 @@ void CapitalEngine::drawFrame() {
       .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
       .pNext = nullptr,
       .waitSemaphoreCount = SINGLE_OBJECT_COUNT,
-      .pWaitSemaphores =
-          &mechanics.syncObjects
-               .renderFinishedSemaphores[mechanics.syncObjects.currentFrame],
+      .pWaitSemaphores = &mechanics.syncObjects.renderFinishedSemaphores[frameIndex],
       .swapchainCount = SINGLE_OBJECT_COUNT,
       .pSwapchains = &swapchain,
       .pImageIndices = &imageIndex,

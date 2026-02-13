@@ -29,10 +29,11 @@ void CE::CommandBuffers::createPool(const Queues::FamilyIndices &familyIndices) 
             "Command Pool: queue family",
             familyIndices.graphicsAndComputeFamily.value());
 
-  VkCommandPoolCreateInfo poolInfo{
-      .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
-      .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
-      .queueFamilyIndex = familyIndices.graphicsAndComputeFamily.value()};
+  VkCommandPoolCreateInfo poolInfo{};
+  poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+  poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT |
+                   VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
+  poolInfo.queueFamilyIndex = familyIndices.graphicsAndComputeFamily.value();
 
   VkResult result =
       vkCreateCommandPool(Device::baseDevice->logical, &poolInfo, nullptr, &this->pool);
@@ -96,14 +97,35 @@ void CE::CommandBuffers::endSingularCommands(const VkCommandPool &commandPool,
 
   VkResult endResult = vkEndCommandBuffer(singularCommandBuffer);
   Log::text("{ ..1 }", "Single Time end result", endResult);
-  VkSubmitInfo submitInfo{.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-                          .commandBufferCount = 1,
-                          .pCommandBuffers = &singularCommandBuffer};
+  VkSubmitInfo submitInfo{};
+  submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+  submitInfo.commandBufferCount = 1;
+  submitInfo.pCommandBuffers = &singularCommandBuffer;
 
-  VkResult submitResult = vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE);
+  VkFenceCreateInfo fenceInfo{};
+  fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+
+  VkFence uploadFence = VK_NULL_HANDLE;
+  VkResult fenceCreateResult =
+      vkCreateFence(Device::baseDevice->logical, &fenceInfo, nullptr, &uploadFence);
+  Log::text("{ ..1 }",
+            "Single Time fence create result",
+            static_cast<int32_t>(fenceCreateResult));
+  if (fenceCreateResult != VK_SUCCESS) {
+    vkFreeCommandBuffers(
+        Device::baseDevice->logical, commandPool, 1, &singularCommandBuffer);
+    throw std::runtime_error("!ERROR! vkCreateFence failed for single time submit!");
+  }
+
+  VkResult submitResult = vkQueueSubmit(queue, 1, &submitInfo, uploadFence);
   Log::text("{ ..1 }", "Single Time submit result", submitResult);
-  VkResult waitResult = vkQueueWaitIdle(queue);
-  Log::text("{ ..1 }", "Single Time wait result", waitResult);
+
+  VkResult waitResult =
+      vkWaitForFences(Device::baseDevice->logical, 1, &uploadFence, VK_TRUE, UINT64_MAX);
+  Log::text("{ ..1 }", "Single Time fence wait result", waitResult);
+
+  vkDestroyFence(Device::baseDevice->logical, uploadFence, nullptr);
+
   vkFreeCommandBuffers(
       Device::baseDevice->logical, commandPool, 1, &singularCommandBuffer);
   Log::text("{ ..1 }", "Single Time freed", singularCommandBuffer);
@@ -206,11 +228,18 @@ VkPresentModeKHR CE::Swapchain::pickPresentMode(
     const std::vector<VkPresentModeKHR> &availablePresentModes) const {
   Log::text(Log::Style::charLeader, "Choose Swap Present Mode");
   for (const auto &availablePresentMode : availablePresentModes) {
-    if (availablePresentMode == VK_PRESENT_MODE_FIFO_KHR) {
+    if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
       return availablePresentMode;
     }
   }
-  return VK_PRESENT_MODE_MAILBOX_KHR;
+
+  for (const auto &availablePresentMode : availablePresentModes) {
+    if (availablePresentMode == VK_PRESENT_MODE_IMMEDIATE_KHR) {
+      return availablePresentMode;
+    }
+  }
+
+  return VK_PRESENT_MODE_FIFO_KHR;
 }
 
 VkExtent2D CE::Swapchain::pickExtent(GLFWwindow *window,
@@ -237,11 +266,21 @@ VkExtent2D CE::Swapchain::pickExtent(GLFWwindow *window,
 
 uint32_t
 CE::Swapchain::getImageCount(const Swapchain::SupportDetails &swapchainSupport) const {
-  uint32_t imageCount = swapchainSupport.capabilities.minImageCount;
+  uint32_t imageCount = swapchainSupport.capabilities.minImageCount + 1;
+
+  if (imageCount > MAX_FRAMES_IN_FLIGHT) {
+    imageCount = MAX_FRAMES_IN_FLIGHT;
+  }
+
   if (swapchainSupport.capabilities.maxImageCount > 0 &&
       imageCount > swapchainSupport.capabilities.maxImageCount) {
     imageCount = swapchainSupport.capabilities.maxImageCount;
   }
+
+  if (imageCount == 0) {
+    imageCount = 1;
+  }
+
   return imageCount;
 }
 
@@ -343,6 +382,16 @@ void CE::Swapchain::create(const VkSurfaceKHR &surface, const Queues &queues) {
   vkGetSwapchainImagesKHR(
       Device::baseDevice->logical, this->swapchain, &imageCount, nullptr);
 
+  if (imageCount > MAX_FRAMES_IN_FLIGHT) {
+    Log::text("{ SWP }",
+              Log::function_name(__func__),
+              "Clamping runtime swapchain images to MAX_FRAMES_IN_FLIGHT",
+              imageCount,
+              "->",
+              MAX_FRAMES_IN_FLIGHT);
+    imageCount = MAX_FRAMES_IN_FLIGHT;
+  }
+
   Log::text("{ SWP }",
             Log::function_name(__func__),
             "Swapchain created",
@@ -360,7 +409,7 @@ void CE::Swapchain::create(const VkSurfaceKHR &surface, const Queues &queues) {
   this->imageFormat = surfaceFormat.format;
   this->extent = extent;
 
-  std::vector<VkImage> swapchainImages(MAX_FRAMES_IN_FLIGHT);
+  std::vector<VkImage> swapchainImages(imageCount);
   vkGetSwapchainImagesKHR(
       Device::baseDevice->logical, this->swapchain, &imageCount, swapchainImages.data());
 

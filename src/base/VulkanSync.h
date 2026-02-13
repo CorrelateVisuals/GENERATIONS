@@ -30,10 +30,11 @@ public:
   static void endSingularCommands(const VkCommandPool &commandPool, const VkQueue &queue);
   virtual void recordComputeCommandBuffer(Resources &resources,
                                           Pipelines &pipelines,
-                                          const uint32_t imageIndex) = 0;
+                                          const uint32_t frameIndex) = 0;
   virtual void recordGraphicsCommandBuffer(Swapchain &swapchain,
                                            Resources &resources,
                                            Pipelines &pipelines,
+                                           const uint32_t frameIndex,
                                            const uint32_t imageIndex) = 0;
 
 protected:

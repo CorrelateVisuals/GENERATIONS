@@ -18,62 +18,65 @@ mat4 view = ubo.view;
 mat4 projection = ubo.projection;
 float waterThreshold = ubo.waterThreshold;
 
-vec3 getNormal(){   
-    int vertexPerFace = 3;      
-    int faceIndex = gl_VertexIndex / vertexPerFace;
-    vec3 v0 = inPosition.xyz * vertexPerFace;
-    vec3 v1 = inPosition.xyz * vertexPerFace + 1;
-    vec3 v2 = inPosition.xyz * vertexPerFace + 2;
-    vec3 normal = normalize(cross(v1 - v0, v2 - v0));
-    return normal; 
-}
-
 vec4 worldPosition = model * inPosition;
 vec4 viewPosition =  view * worldPosition;
-vec3 worldNormal =   mat3(model) * getNormal();
+vec3 worldNormal = normalize(mat3(model) * vec3(0.0, 0.0, 1.0));
+
+float quantize(float value, float levels) {
+    return floor(value * levels + 0.5f) / levels;
+}
+
+vec3 pixelTerrainPalette(float heightRelativeToWater) {
+    vec3 sand   = vec3(0.72f, 0.66f, 0.50f);
+    vec3 grassA = vec3(0.46f, 0.58f, 0.41f);
+    vec3 grassB = vec3(0.34f, 0.47f, 0.36f);
+    vec3 rock   = vec3(0.43f, 0.42f, 0.44f);
+    vec3 snow   = vec3(0.80f, 0.82f, 0.84f);
+
+    float h = clamp((heightRelativeToWater + 0.8f) / 7.0f, 0.0f, 1.0f);
+    h = quantize(h, 6.0f);
+
+    if (h < 0.12f) {
+        return sand;
+    }
+    if (h < 0.42f) {
+        return mix(grassA, grassB, quantize(h * 2.5f, 3.0f));
+    }
+    if (h < 0.74f) {
+        return mix(grassB, rock, quantize((h - 0.42f) / 0.32f, 4.0f));
+    }
+    return mix(rock, snow, quantize((h - 0.74f) / 0.26f, 3.0f));
+}
 
 vec4 setColor() {
-    vec2 normalizedPosition = (worldPosition.xy + gridXY.xy * 0.5) / gridXY.xy;
-    vec2 invNormalizedPosition = vec2(1.0) - normalizedPosition;
-
-    float blendTopLeft = max(invNormalizedPosition.x + invNormalizedPosition.y - 0.7, 0.0);
-    float blendTopRight = max(normalizedPosition.x + invNormalizedPosition.y - 0.7, 0.0);
-    float blendBottomLeft = max(invNormalizedPosition.x + normalizedPosition.y - 0.7, 0.0);
-    float blendBottomRight = max(normalizedPosition.x + normalizedPosition.y - 0.7, 0.0);
-    
-    vec4 color = vec4(0.0f);
-    color += vec4(0.6, 0.3, 0.0, 0.3) * blendTopRight;       
-    color += vec4(0.2, 0.7, 0.2, 0.4) * blendTopLeft;     
-    color += vec4(0.0, 0.8, 0.4, 0.5) * blendBottomLeft;   
-    color += vec4(0.6, 0.1, 0.1, 0.4) * blendBottomRight; 
-
-    vec4 waterColor = vec4(0.0, 0.5, 0.8, 1.0);
-
     const float shoreWidth = 0.6f;
-    float waterBlend = 1.0f - smoothstep(waterThreshold - shoreWidth,
-                                         waterThreshold + shoreWidth,
-                                         worldPosition.z);
-    color = mix(color, waterColor, waterBlend);
+    float heightFromWater = worldPosition.z - waterThreshold;
 
-    float shoreDistance = abs(worldPosition.z - waterThreshold);
-    float foam = 1.0f - smoothstep(0.0f, shoreWidth * 0.75f, shoreDistance);
-    vec4 foamColor = vec4(0.85f, 0.92f, 0.95f, 1.0f);
-    color = mix(color, foamColor, foam * waterBlend * 0.55f);
+    vec3 land = pixelTerrainPalette(heightFromWater);
 
-    return color;
+    vec3 deepWater = vec3(0.15f, 0.24f, 0.29f);
+    vec3 shallowWater = vec3(0.24f, 0.33f, 0.37f);
+    float depthToShore = clamp((-heightFromWater + shoreWidth) / (shoreWidth * 2.0f), 0.0f, 1.0f);
+    vec3 water = mix(shallowWater, deepWater, quantize(depthToShore, 5.0f));
+
+    float waterBlend = (1.0f - smoothstep(-shoreWidth, shoreWidth, heightFromWater)) * 0.72f;
+    vec3 color = mix(land, water, waterBlend);
+
+    float foam = 1.0f - smoothstep(0.0f, shoreWidth * 0.7f, abs(heightFromWater));
+    color = mix(color, vec3(0.83f, 0.86f, 0.89f), foam * waterBlend * 0.28f);
+
+    return vec4(color, 1.0f);
 }
 
-float gouraudShading(float brightness, float emit) {
-    vec3 lightDirection = normalize(light.rgb - worldPosition.xyz);
-    float diffuseIntensity = max(dot(worldNormal, lightDirection), emit);
-    return diffuseIntensity * brightness;
-}
-
-layout(location = 0) out vec4 fragColor;
+layout(location = 0) out vec3 outWorldPos;
+layout(location = 1) out vec3 outWorldNormal;
+layout(location = 2) out vec3 outAlbedo;
 
 void main() {
-    vec4 color = setColor() * gouraudShading(1.0f, 0.25f);
-    fragColor = color;
+    vec4 color = setColor();
+    outWorldPos = worldPosition.xyz;
+    outWorldNormal = worldNormal;
+    outAlbedo = color.rgb;
     gl_Position = projection * viewPosition;
 }
 

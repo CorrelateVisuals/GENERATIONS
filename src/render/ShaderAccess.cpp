@@ -8,8 +8,8 @@
 void CE::ShaderAccess::CommandResources::recordComputeCommandBuffer(
     Resources& resources,
     Pipelines& pipelines,
-    const uint32_t imageIndex) {
-  VkCommandBuffer commandBuffer = this->compute[imageIndex];
+        const uint32_t frameIndex) {
+    VkCommandBuffer commandBuffer = this->compute[frameIndex];
 
   VkCommandBufferBeginInfo beginInfo{};
   beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -27,7 +27,7 @@ void CE::ShaderAccess::CommandResources::recordComputeCommandBuffer(
 
   vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
                           pipelines.compute.layout, 0, 1,
-                          &resources.descriptorInterface.sets[imageIndex], 0,
+                          &resources.descriptorInterface.sets[frameIndex], 0,
                           nullptr);
 
   resources.pushConstant.setData(resources.world._time.passedHours);
@@ -48,8 +48,9 @@ void CE::ShaderAccess::CommandResources::recordGraphicsCommandBuffer(
     CE::Swapchain& swapchain,
     Resources& resources,
     Pipelines& pipelines,
+    const uint32_t frameIndex,
     const uint32_t imageIndex) {
-    VkCommandBuffer commandBuffer = this->graphics[imageIndex];
+    VkCommandBuffer commandBuffer = this->graphics[frameIndex];
 
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -60,7 +61,7 @@ void CE::ShaderAccess::CommandResources::recordGraphicsCommandBuffer(
     CE::VULKAN_RESULT(vkBeginCommandBuffer, commandBuffer, &beginInfo);
 
     std::array<VkClearValue, 2> clearValues{
-        VkClearValue{.color = {{0.1f, 0.6f, 0.9f, 1.0f}}},
+        VkClearValue{.color = {{0.46f, 0.55f, 0.62f, 1.0f}}},
         VkClearValue{.depthStencil = {1.0f, 0}} };
 
     VkRenderPassBeginInfo renderPassInfo{
@@ -87,7 +88,7 @@ void CE::ShaderAccess::CommandResources::recordGraphicsCommandBuffer(
 
     vkCmdBindDescriptorSets(
         commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelines.graphics.layout,
-        0, 1, &resources.descriptorInterface.sets[imageIndex], 0, nullptr);
+        0, 1, &resources.descriptorInterface.sets[frameIndex], 0, nullptr);
 
     const auto bindAndDrawIndexed = [&](const char* pipelineName,
                                         VkBuffer vertexBuffer,
@@ -113,7 +114,7 @@ void CE::ShaderAccess::CommandResources::recordGraphicsCommandBuffer(
         resources.shaderStorage.bufferIn.buffer,
         resources.shaderStorage.bufferOut.buffer };
 
-    VkBuffer vertexBuffers0[] = { currentShaderStorageBuffer[imageIndex],
+    VkBuffer vertexBuffers0[] = { currentShaderStorageBuffer[frameIndex],
                                  resources.world._cube.vertexBuffer.buffer };
 
     vkCmdBindVertexBuffers(commandBuffer, 0, 2, vertexBuffers0, offsets0);
@@ -162,7 +163,7 @@ void CE::ShaderAccess::CommandResources::recordGraphicsCommandBuffer(
     vkCmdBindDescriptorSets(
         commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
         pipelines.compute.layout, 0, 1,
-        &resources.descriptorInterface.sets[imageIndex], 0, nullptr);
+        &resources.descriptorInterface.sets[frameIndex], 0, nullptr);
 
     resources.pushConstant.setData(resources.world._time.passedHours);
     vkCmdPushConstants(commandBuffer, pipelines.compute.layout,

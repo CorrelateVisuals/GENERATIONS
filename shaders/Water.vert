@@ -20,14 +20,18 @@ mat4 view = ubo.view;
 mat4 projection = ubo.projection;
 float waterThreshold = ubo.waterThreshold;
 
-vec4 position = vec4( vec2(inPosition.xy * (gridXY.xy / 2)), inPosition.z, 1.0f);
+float waterSurfaceOffset = max(0.08f, ubo.cellSize * 0.9f);
+vec2 gridSpan = max(vec2(gridXY) - vec2(1.0f), vec2(1.0f));
+vec2 terrainMin = -0.5f * gridSpan;
+vec2 terrainXY = terrainMin + vec2(inTexCoord.x, 1.0f - inTexCoord.y) * gridSpan;
+vec4 position = vec4(terrainXY, waterThreshold + waterSurfaceOffset, 1.0f);
 vec4 worldPosition = model * position;
 vec4 viewPosition = view * worldPosition;
 
 layout(location = 0) out vec4 fragColor;
 
 void main() {
-    fragColor = vec4(0.0f, 0.2f, 1.0f, 1.0f);
+    fragColor = vec4(0.14f, 0.23f, 0.28f, 1.0f);
     gl_Position = projection * viewPosition;
 }
 
