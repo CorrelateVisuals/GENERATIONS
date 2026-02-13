@@ -896,7 +896,8 @@ void CE::Swapchain::create(const VkSurfaceKHR& surface, const Queues& queues) {
       .imageExtent = extent,
       .imageArrayLayers = 1,
       .imageUsage =
-          VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_STORAGE_BIT,
+          VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_STORAGE_BIT |
+          VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
       .preTransform = swapchainSupport.capabilities.currentTransform,
       .compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
       .presentMode = presentMode,

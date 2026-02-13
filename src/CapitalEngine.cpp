@@ -1,4 +1,5 @@
 #include "CapitalEngine.h"
+#include "Screenshot.h"
 #include "Window.h"
 
 CapitalEngine::CapitalEngine()
@@ -21,6 +22,8 @@ void CapitalEngine::mainLoop() {
   Log::text("{ Main Loop }");
   Log::measureElapsedTime();
 
+    bool screenshotKeyPressed = false;
+
   while (!glfwWindowShouldClose(Window::get().window)) {
     glfwPollEvents();
 
@@ -28,6 +31,16 @@ void CapitalEngine::mainLoop() {
     resources.world._time.run();
 
     drawFrame();
+
+        if (glfwGetKey(Window::get().window, GLFW_KEY_F12) == GLFW_PRESS) {
+            if (!screenshotKeyPressed) {
+                screenshotKeyPressed = true;
+                Log::text("{ >>> }", "F12 pressed - capturing screenshot");
+                takeScreenshot();
+            }
+        } else {
+            screenshotKeyPressed = false;
+        }
 
     if (glfwGetKey(Window::get().window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
       break;
@@ -158,6 +171,20 @@ void CapitalEngine::drawFrame() {
     throw std::runtime_error("\n!ERROR! failed to present swap chain image!");
   }
 
+    lastPresentedImageIndex = imageIndex;
+
   mechanics.syncObjects.currentFrame =
       (mechanics.syncObjects.currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+}
+
+void CapitalEngine::takeScreenshot() {
+    vkDeviceWaitIdle(mechanics.mainDevice.logical);
+
+    CE::Screenshot::capture(
+            mechanics.swapchain.images[lastPresentedImageIndex].image,
+            mechanics.swapchain.extent,
+            mechanics.swapchain.imageFormat,
+            resources.commands.pool,
+            mechanics.queues.graphics,
+            "screenshot.png");
 }
