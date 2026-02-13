@@ -15,6 +15,8 @@ class CapitalEngine {
   Resources resources;
   Pipelines pipelines;
 
+  uint32_t lastPresentedImageIndex{0};
+
   void drawFrame();
   void takeScreenshot();
 };

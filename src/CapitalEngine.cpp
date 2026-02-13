@@ -172,6 +172,9 @@ void CapitalEngine::drawFrame() {
     throw std::runtime_error("\n!ERROR! failed to present swap chain image!");
   }
 
+  // Store the image index that was just presented for screenshot capture
+  lastPresentedImageIndex = imageIndex;
+
   mechanics.syncObjects.currentFrame =
       (mechanics.syncObjects.currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 }
@@ -180,9 +183,9 @@ void CapitalEngine::takeScreenshot() {
   // Wait for device to be idle to ensure frame is complete
   vkDeviceWaitIdle(mechanics.mainDevice.logical);
 
-  uint32_t currentFrame = mechanics.syncObjects.currentFrame;
+  // Use the last presented image index
   CE::Screenshot::capture(
-      mechanics.swapchain.images[currentFrame].image,
+      mechanics.swapchain.images[lastPresentedImageIndex].image,
       mechanics.swapchain.extent,
       mechanics.swapchain.imageFormat,
       resources.commands.pool,
