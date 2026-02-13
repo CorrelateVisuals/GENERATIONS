@@ -34,7 +34,7 @@ void CE::RenderPass::create(VkSampleCountFlagBits msaaImageSamples,
       .finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL};
 
   VkAttachmentDescription depthAttachment{
-      .format = CE::Image::findDepthFormat(),
+      .format = CE::Image::find_depth_format(),
       .samples = msaaImageSamples,
       .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
       .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,

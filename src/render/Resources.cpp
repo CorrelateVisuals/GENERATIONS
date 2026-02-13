@@ -21,7 +21,9 @@ Resources::Resources(VulkanMechanics &mechanics)
       descriptorInterface(),
 
       depthImage{
-          CE_DEPTH_IMAGE, mechanics.swapchain.extent, CE::Image::findDepthFormat()},
+          CE_DEPTH_IMAGE,
+          mechanics.swapchain.extent,
+          CE::Image::find_depth_format()},
       msaaImage{CE_MULTISAMPLE_IMAGE,
                 mechanics.swapchain.extent,
             mechanics.swapchain.image_format},
@@ -247,13 +249,13 @@ Resources::ImageSampler::ImageSampler(CE::DescriptorInterface &interface,
   poolSize.descriptorCount = MAX_FRAMES_IN_FLIGHT;
   interface.poolSizes.push_back(poolSize);
 
-  textureImage.loadTexture(textureImage.path,
-                           VK_FORMAT_R8G8B8A8_SRGB,
-                           commandInterface.command_buffer,
-                           commandInterface.command_pool,
-                           commandInterface.queue);
-  textureImage.createView(VK_IMAGE_ASPECT_COLOR_BIT);
-  textureImage.createSampler();
+  textureImage.load_texture(textureImage.path,
+                            VK_FORMAT_R8G8B8A8_SRGB,
+                            commandInterface.command_buffer,
+                            commandInterface.command_pool,
+                            commandInterface.queue);
+  textureImage.create_view(VK_IMAGE_ASPECT_COLOR_BIT);
+  textureImage.create_sampler();
 
   createDescriptorWrite(interface);
 }

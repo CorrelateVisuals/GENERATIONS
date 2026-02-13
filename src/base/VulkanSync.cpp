@@ -430,7 +430,7 @@ void CE::Swapchain::create(const VkSurfaceKHR &surface, const Queues &queues) {
   for (uint_fast8_t i = 0; i < imageCount; i++) {
     this->images[i].image = swapchainImages[i];
     this->images[i].info.format = this->image_format;
-    this->images[i].createView(VK_IMAGE_ASPECT_COLOR_BIT);
+    this->images[i].create_view(VK_IMAGE_ASPECT_COLOR_BIT);
   };
 }
 

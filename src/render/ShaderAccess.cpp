@@ -164,10 +164,10 @@ void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
   //       This is part of an image memory barrier (i.e., vkCmdPipelineBarrier
   //       with the VkImageMemoryBarrier parameter set)
 
-  swapchain.images[image_index].transitionLayout(commandBuffer,
-                                                 VK_FORMAT_R8G8B8A8_SRGB,
-                                                 VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
-                                                 /* -> */ VK_IMAGE_LAYOUT_GENERAL);
+  swapchain.images[image_index].transition_layout(commandBuffer,
+                                                  VK_FORMAT_R8G8B8A8_SRGB,
+                                                  VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+                                                  /* -> */ VK_IMAGE_LAYOUT_GENERAL);
 
   vkCmdBindPipeline(commandBuffer,
                     VK_PIPELINE_BIND_POINT_COMPUTE,
@@ -194,10 +194,10 @@ void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
       pipelines.config.getWorkGroupsByName("PostFX");
   vkCmdDispatch(commandBuffer, workGroups[0], workGroups[1], workGroups[2]);
 
-  swapchain.images[image_index].transitionLayout(commandBuffer,
-                                                 VK_FORMAT_R8G8B8A8_SRGB,
-                                                 VK_IMAGE_LAYOUT_GENERAL,
-                                                 /* -> */ VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+  swapchain.images[image_index].transition_layout(commandBuffer,
+                                                  VK_FORMAT_R8G8B8A8_SRGB,
+                                                  VK_IMAGE_LAYOUT_GENERAL,
+                                                  /* -> */ VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
   CE::VULKAN_RESULT(vkEndCommandBuffer, commandBuffer);
 }

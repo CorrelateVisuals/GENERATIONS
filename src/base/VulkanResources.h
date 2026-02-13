@@ -27,13 +27,13 @@ public:
                    VkCommandBuffer &commandBuffer,
                    const VkCommandPool &commandPool,
                    const VkQueue &queue);
-  static void copyToImage(const VkBuffer &buffer,
-                          VkImage &image,
-                          const uint32_t width,
-                          const uint32_t height,
-                          VkCommandBuffer &commandBuffer,
-                          const VkCommandPool &commandPool,
-                          const VkQueue &queue);
+  static void copy_to_image(const VkBuffer &buffer,
+                            VkImage &image,
+                            const uint32_t width,
+                            const uint32_t height,
+                            VkCommandBuffer &commandBuffer,
+                            const VkCommandPool &commandPool,
+                            const VkQueue &queue);
 };
 
 class Image {
@@ -63,14 +63,14 @@ public:
   Image(IMAGE_RESOURCE_TYPES image_type,
         const VkExtent2D &extent,
         const VkFormat format) {
-    createResources(image_type, extent, format);
+    create_resources(image_type, extent, format);
   }
   Image(const std::string &texturePath) {
     path = texturePath;
   }
 
   virtual ~Image() {
-    destroyVulkanImages();
+    destroy_vulkan_images();
   };
 
   void create(const uint32_t width,
@@ -81,31 +81,31 @@ public:
               const VkImageUsageFlags &usage,
               const VkMemoryPropertyFlags &properties);
   void recreate() {
-    this->destroyVulkanImages();
+    this->destroy_vulkan_images();
   };
-  void createView(const VkImageAspectFlags aspectFlags);
-  void createSampler();
-  void createResources(IMAGE_RESOURCE_TYPES imageType,
-                       const VkExtent2D &dimensions,
-                       const VkFormat format);
-  void transitionLayout(const VkCommandBuffer &commandBuffer,
-                        const VkFormat format,
-                        const VkImageLayout oldLayout,
-                        const VkImageLayout newLayout);
-  void loadTexture(const std::string &imagePath,
-                   const VkFormat format,
-                   VkCommandBuffer &commandBuffer,
-                   const VkCommandPool &commandPool,
-                   const VkQueue &queue);
-  static VkFormat findDepthFormat();
+  void create_view(const VkImageAspectFlags aspect_flags);
+  void create_sampler();
+  void create_resources(IMAGE_RESOURCE_TYPES image_type,
+                        const VkExtent2D &dimensions,
+                        const VkFormat format);
+  void transition_layout(const VkCommandBuffer &command_buffer,
+                         const VkFormat format,
+                         const VkImageLayout old_layout,
+                         const VkImageLayout new_layout);
+  void load_texture(const std::string &image_path,
+                    const VkFormat format,
+                    VkCommandBuffer &command_buffer,
+                    const VkCommandPool &command_pool,
+                    const VkQueue &queue);
+  static VkFormat find_depth_format();
 
 protected:
-  static VkFormat findSupportedFormat(const std::vector<VkFormat> &candidates,
-                                      const VkImageTiling tiling,
-                                      const VkFormatFeatureFlags &features);
+  static VkFormat find_supported_format(const std::vector<VkFormat> &candidates,
+                                        const VkImageTiling tiling,
+                                        const VkFormatFeatureFlags &features);
 
 private:
-  void destroyVulkanImages() const;
+  void destroy_vulkan_images() const;
 };
 
 } // namespace CE

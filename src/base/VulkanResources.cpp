@@ -134,13 +134,13 @@ void CE::Buffer::copy(const VkBuffer &srcBuffer,
   CE::CommandBuffers::end_singular_commands(commandPool, queue);
 }
 
-void CE::Buffer::copyToImage(const VkBuffer &buffer,
-                             VkImage &image,
-                             const uint32_t width,
-                             const uint32_t height,
-                             VkCommandBuffer &commandBuffer,
-                             const VkCommandPool &commandPool,
-                             const VkQueue &queue) {
+void CE::Buffer::copy_to_image(const VkBuffer &buffer,
+                               VkImage &image,
+                               const uint32_t width,
+                               const uint32_t height,
+                               VkCommandBuffer &commandBuffer,
+                               const VkCommandPool &commandPool,
+                               const VkQueue &queue) {
   Log::text("{ img }", "Buffer To Image", width, height);
 
   CE::CommandBuffers::begin_singular_commands(commandPool, queue);
@@ -160,7 +160,7 @@ void CE::Buffer::copyToImage(const VkBuffer &buffer,
   CE::CommandBuffers::end_singular_commands(commandPool, queue);
 }
 
-void CE::Image::destroyVulkanImages() const {
+void CE::Image::destroy_vulkan_images() const {
   if (Device::base_device && this->memory) {
     if (this->sampler != VK_NULL_HANDLE) {
       vkDestroySampler(Device::base_device->logical_device, this->sampler, nullptr);
@@ -249,7 +249,7 @@ void CE::Image::create(const uint32_t width,
                     0);
 }
 
-void CE::Image::createView(const VkImageAspectFlags aspectFlags) {
+void CE::Image::create_view(const VkImageAspectFlags aspectFlags) {
   Log::text(Log::Style::charLeader, "Image View");
 
   VkImageViewCreateInfo viewInfo{};
@@ -275,10 +275,10 @@ void CE::Image::createView(const VkImageAspectFlags aspectFlags) {
   return;
 }
 
-void CE::Image::transitionLayout(const VkCommandBuffer &commandBuffer,
-                                 const VkFormat format,
-                                 const VkImageLayout oldLayout,
-                                 const VkImageLayout newLayout) {
+void CE::Image::transition_layout(const VkCommandBuffer &commandBuffer,
+                                  const VkFormat format,
+                                  const VkImageLayout oldLayout,
+                                  const VkImageLayout newLayout) {
   const std::string transition_key = std::to_string(static_cast<uint32_t>(format)) + ":" +
                                      std::to_string(static_cast<uint32_t>(oldLayout)) +
                                      "->" +
@@ -358,11 +358,11 @@ void CE::Image::transitionLayout(const VkCommandBuffer &commandBuffer,
                        &barrier);
 }
 
-void CE::Image::loadTexture(const std::string &imagePath,
-                            const VkFormat format,
-                            VkCommandBuffer &commandBuffer,
-                            const VkCommandPool &commandPool,
-                            const VkQueue &queue) {
+void CE::Image::load_texture(const std::string &imagePath,
+                             const VkFormat format,
+                             VkCommandBuffer &commandBuffer,
+                             const VkCommandPool &commandPool,
+                             const VkQueue &queue) {
   Log::text("{ img }", "Image Texture: ", imagePath);
 
   int texWidth(0), texHeight(0), texChannels(0), rgba(4);
@@ -405,38 +405,38 @@ void CE::Image::loadTexture(const std::string &imagePath,
                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
   CommandBuffers::begin_singular_commands(commandPool, queue);
-  this->transitionLayout(commandBuffer,
-                         VK_FORMAT_R8G8B8A8_SRGB,
-                         VK_IMAGE_LAYOUT_UNDEFINED,
-                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+  this->transition_layout(commandBuffer,
+                          VK_FORMAT_R8G8B8A8_SRGB,
+                          VK_IMAGE_LAYOUT_UNDEFINED,
+                          VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
   CommandBuffers::end_singular_commands(commandPool, queue);
 
-  Buffer::copyToImage(stagingResources.buffer,
-                      this->image,
-                      static_cast<uint32_t>(texWidth),
-                      static_cast<uint32_t>(texHeight),
-                      commandBuffer,
-                      commandPool,
-                      queue);
+  Buffer::copy_to_image(stagingResources.buffer,
+                        this->image,
+                        static_cast<uint32_t>(texWidth),
+                        static_cast<uint32_t>(texHeight),
+                        commandBuffer,
+                        commandPool,
+                        queue);
 
   CommandBuffers::begin_singular_commands(commandPool, queue);
-  this->transitionLayout(commandBuffer,
-                         VK_FORMAT_R8G8B8A8_SRGB,
-                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                         VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+  this->transition_layout(commandBuffer,
+                          VK_FORMAT_R8G8B8A8_SRGB,
+                          VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                          VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
   CommandBuffers::end_singular_commands(commandPool, queue);
 }
 
-VkFormat CE::Image::findDepthFormat() {
-  return findSupportedFormat(
+VkFormat CE::Image::find_depth_format() {
+  return find_supported_format(
       {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT},
       VK_IMAGE_TILING_OPTIMAL,
       VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
 }
 
-VkFormat CE::Image::findSupportedFormat(const std::vector<VkFormat> &candidates,
-                                        const VkImageTiling tiling,
-                                        const VkFormatFeatureFlags &features) {
+VkFormat CE::Image::find_supported_format(const std::vector<VkFormat> &candidates,
+                                          const VkImageTiling tiling,
+                                          const VkFormatFeatureFlags &features) {
   for (VkFormat format : candidates) {
     VkFormatProperties props{};
     vkGetPhysicalDeviceFormatProperties(Device::base_device->physical_device,
@@ -454,11 +454,11 @@ VkFormat CE::Image::findSupportedFormat(const std::vector<VkFormat> &candidates,
   throw std::runtime_error("\n!ERROR! failed to find supported format!");
 }
 
-void CE::Image::createResources(IMAGE_RESOURCE_TYPES imageType,
-                                const VkExtent2D &dimensions,
-                                const VkFormat format) {
+void CE::Image::create_resources(IMAGE_RESOURCE_TYPES imageType,
+                                 const VkExtent2D &dimensions,
+                                 const VkFormat format) {
   Log::text("{ []< }", "Color Resources ");
-  this->destroyVulkanImages();
+  this->destroy_vulkan_images();
 
   VkImageUsageFlags usage = 0;
   VkImageAspectFlags aspect = 0;
@@ -487,10 +487,10 @@ void CE::Image::createResources(IMAGE_RESOURCE_TYPES imageType,
                VK_IMAGE_TILING_OPTIMAL,
                usage,
                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-  this->createView(aspect);
+  this->create_view(aspect);
 }
 
-void CE::Image::createSampler() {
+void CE::Image::create_sampler() {
   Log::text("{ img }", "Texture Sampler");
   VkPhysicalDeviceProperties properties;
   vkGetPhysicalDeviceProperties(Device::base_device->physical_device, &properties);
