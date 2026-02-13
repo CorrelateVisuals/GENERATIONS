@@ -42,9 +42,16 @@ class Window {
   Mouse mouse{0.18f, 0.5f};
 
   static Window& get() { return mainWindow; }
+  void pollInput();
   void setMouse();
+  bool isEscapePressed() const { return escapePressed; }
+  bool consumeScreenshotPressed();
 
  private:
+  bool escapePressed{false};
+  bool screenshotKeyDown{false};
+  bool screenshotPressed{false};
+
   Window();
   ~Window();
 

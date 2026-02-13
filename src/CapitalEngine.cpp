@@ -2,6 +2,11 @@
 #include "Screenshot.h"
 #include "Window.h"
 
+#include <chrono>
+#include <filesystem>
+#include <iomanip>
+#include <sstream>
+
 CapitalEngine::CapitalEngine()
     : resources(mechanics), pipelines(mechanics, resources) {
   Log::text(Log::Style::headerGuard);
@@ -22,27 +27,27 @@ void CapitalEngine::mainLoop() {
   Log::text("{ Main Loop }");
   Log::measureElapsedTime();
 
-    bool screenshotKeyPressed = false;
+    bool firstLoopScreenshotCaptured = false;
+    Window& mainWindow = Window::get();
 
-  while (!glfwWindowShouldClose(Window::get().window)) {
-    glfwPollEvents();
-
-    Window::get().setMouse();
+    while (!glfwWindowShouldClose(mainWindow.window)) {
+        mainWindow.pollInput();
     resources.world._time.run();
 
     drawFrame();
 
-        if (glfwGetKey(Window::get().window, GLFW_KEY_F12) == GLFW_PRESS) {
-            if (!screenshotKeyPressed) {
-                screenshotKeyPressed = true;
-                Log::text("{ >>> }", "F12 pressed - capturing screenshot");
-                takeScreenshot();
-            }
-        } else {
-            screenshotKeyPressed = false;
+        if (!firstLoopScreenshotCaptured) {
+            firstLoopScreenshotCaptured = true;
+            Log::text("{ >>> }", "Main loop startup screenshot capture");
+            takeScreenshot();
         }
 
-    if (glfwGetKey(Window::get().window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+        if (mainWindow.consumeScreenshotPressed()) {
+            Log::text("{ >>> }", "F12 pressed - capturing screenshot");
+            takeScreenshot();
+        }
+
+        if (mainWindow.isEscapePressed()) {
       break;
     }
   }
@@ -180,11 +185,27 @@ void CapitalEngine::drawFrame() {
 void CapitalEngine::takeScreenshot() {
     vkDeviceWaitIdle(mechanics.mainDevice.logical);
 
+    std::filesystem::create_directories("screenshot");
+
+    const std::time_t timestamp = std::chrono::system_clock::to_time_t(
+            std::chrono::system_clock::now());
+    std::tm timeInfo{};
+#ifdef __linux__
+    localtime_r(&timestamp, &timeInfo);
+#else
+    localtime_s(&timeInfo, &timestamp);
+#endif
+
+    std::ostringstream nameBuilder;
+    nameBuilder << "screenshot/screenshot_" << std::put_time(&timeInfo, "%Y%m%d_%H%M%S")
+                            << ".png";
+    const std::string filename = nameBuilder.str();
+
     CE::Screenshot::capture(
             mechanics.swapchain.images[lastPresentedImageIndex].image,
             mechanics.swapchain.extent,
             mechanics.swapchain.imageFormat,
             resources.commands.pool,
             mechanics.queues.graphics,
-            "screenshot.png");
+            filename);
 }

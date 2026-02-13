@@ -2,6 +2,7 @@
 #include "CapitalEngine.h"
 
 #include <unordered_map>
+#include <vector>
 
 Window Window::mainWindow;
 
@@ -36,6 +37,25 @@ void Window::windowResize(GLFWwindow* win, int width, int height) {
   app->display.width = width;
   app->display.height = height;
   Log::text("{ [*] }", "Window resized to", width, "*", height);
+}
+
+void Window::pollInput() {
+  glfwPollEvents();
+  setMouse();
+
+  escapePressed = glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS;
+
+  const bool f12Down = glfwGetKey(window, GLFW_KEY_F12) == GLFW_PRESS;
+  screenshotPressed = f12Down && !screenshotKeyDown;
+  screenshotKeyDown = f12Down;
+}
+
+bool Window::consumeScreenshotPressed() {
+  if (!screenshotPressed) {
+    return false;
+  }
+  screenshotPressed = false;
+  return true;
 }
 
 void Window::setMouse() {

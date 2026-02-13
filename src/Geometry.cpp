@@ -4,6 +4,9 @@
 #include "Geometry.h"
 #include "Library.h"
 
+#include <filesystem>
+#include <glm/gtc/constants.hpp>
+
 namespace {
 constexpr glm::vec3 STANDARD_ORIENTATION{90.0f, 180.0f, 0.0f};
 
@@ -40,6 +43,58 @@ void fillFallbackQuad(Geometry& geometry) {
   geometry.indices = {0, 2, 1, 0, 3, 2};
 
   geometry.allVertices = {v0, v2, v1, v0, v3, v2};
+}
+
+void fillFallbackSphere(Geometry& geometry,
+                        const uint32_t stacks = 16,
+                        const uint32_t slices = 32,
+                        const float radius = 0.5f) {
+  geometry.allVertices.clear();
+  geometry.uniqueVertices.clear();
+  geometry.indices.clear();
+
+  for (uint32_t stack = 0; stack <= stacks; ++stack) {
+    const float v = static_cast<float>(stack) / static_cast<float>(stacks);
+    const float phi = v * glm::pi<float>();
+
+    for (uint32_t slice = 0; slice <= slices; ++slice) {
+      const float u =
+          static_cast<float>(slice) / static_cast<float>(slices);
+      const float theta = u * glm::two_pi<float>();
+
+      const float x = std::sin(phi) * std::cos(theta);
+      const float y = std::cos(phi);
+      const float z = std::sin(phi) * std::sin(theta);
+
+      Vertex vertex{};
+      vertex.vertexPosition = glm::vec3{x, y, z} * radius;
+      vertex.normal = glm::normalize(glm::vec3{x, y, z});
+      vertex.color = {1.0f, 1.0f, 1.0f};
+      vertex.textureCoordinates = {u, 1.0f - v};
+      geometry.uniqueVertices.push_back(vertex);
+    }
+  }
+
+  const uint32_t ringVertexCount = slices + 1;
+  for (uint32_t stack = 0; stack < stacks; ++stack) {
+    for (uint32_t slice = 0; slice < slices; ++slice) {
+      const uint32_t first = stack * ringVertexCount + slice;
+      const uint32_t second = first + ringVertexCount;
+
+      geometry.indices.push_back(first);
+      geometry.indices.push_back(second);
+      geometry.indices.push_back(first + 1);
+
+      geometry.indices.push_back(first + 1);
+      geometry.indices.push_back(second);
+      geometry.indices.push_back(second + 1);
+    }
+  }
+
+  geometry.allVertices.reserve(geometry.indices.size());
+  for (const uint32_t index : geometry.indices) {
+    geometry.allVertices.push_back(geometry.uniqueVertices[index]);
+  }
 }
 }  // namespace
 
@@ -84,7 +139,7 @@ Geometry::Geometry(GEOMETRY_SHAPE shape) {
       case CE_SPHERE_HR:
           return "SphereHR";
       case CE_TORUS:
-          return "SphereHR";
+          return "Torus";
 
       default:
         throw std::invalid_argument("Invalid geometry shape");
@@ -101,7 +156,12 @@ Geometry::Geometry(GEOMETRY_SHAPE shape) {
     }
 
     if (!loaded) {
-      fillFallbackQuad(*this);
+      if (shape == CE_SPHERE || shape == CE_SPHERE_HR) {
+        Log::text("{ !!! }", "Using procedural sphere fallback for", modelName);
+        fillFallbackSphere(*this);
+      } else {
+        fillFallbackQuad(*this);
+      }
     }
 
     transformModel(allVertices, ORIENTATION_ORDER{CE_ROTATE_SCALE_TRANSLATE},
@@ -203,6 +263,10 @@ void Geometry::loadModel(const std::string& modelName, Geometry& geometry) {
   std::string baseDir = Lib::path("assets/3D/");
   std::string modelPath = baseDir + modelName + ".obj";
 
+  if (!std::filesystem::exists(modelPath)) {
+    throw std::runtime_error("Cannot open file [" + modelPath + "]");
+  }
+
   tinyobj::attrib_t attrib;
   std::vector<tinyobj::shape_t> shapes;
   std::vector<tinyobj::material_t> materials;
@@ -230,13 +294,25 @@ void Geometry::loadModel(const std::string& modelName, Geometry& geometry) {
                                attrib.vertices[3 * index.vertex_index + 1],
                                attrib.vertices[3 * index.vertex_index + 2]};
 
-      vertex.normal = {attrib.normals[3 * index.normal_index + 0],
-                       attrib.normals[3 * index.normal_index + 1],
-                       attrib.normals[3 * index.normal_index + 2]};
+      if (index.normal_index >= 0 &&
+          static_cast<size_t>(3 * index.normal_index + 2) <
+              attrib.normals.size()) {
+        vertex.normal = {attrib.normals[3 * index.normal_index + 0],
+                         attrib.normals[3 * index.normal_index + 1],
+                         attrib.normals[3 * index.normal_index + 2]};
+      } else {
+        vertex.normal = {0.0f, 1.0f, 0.0f};
+      }
 
-      vertex.textureCoordinates = {
-          attrib.texcoords[2 * index.texcoord_index + 0],
-          1.0f - attrib.texcoords[2 * index.texcoord_index + 1]};
+      if (index.texcoord_index >= 0 &&
+          static_cast<size_t>(2 * index.texcoord_index + 1) <
+              attrib.texcoords.size()) {
+        vertex.textureCoordinates = {
+            attrib.texcoords[2 * index.texcoord_index + 0],
+            1.0f - attrib.texcoords[2 * index.texcoord_index + 1]};
+      } else {
+        vertex.textureCoordinates = {0.0f, 0.0f};
+      }
 
       vertex.color = {1.0f, 1.0f, 1.0f};
 
