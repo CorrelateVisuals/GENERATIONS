@@ -26,18 +26,18 @@ enum GEOMETRY_SHAPE {
 
 class Vertex {
 public:
-  glm::vec3 instancePosition{};
-  glm::vec3 vertexPosition{};
+  glm::vec3 instance_position{};
+  glm::vec3 vertex_position{};
   glm::vec3 normal{};
   glm::vec3 color{};
-  glm::vec2 textureCoordinates{};
+  glm::vec2 texture_coordinates{};
 
-  static std::vector<VkVertexInputBindingDescription> getBindingDescription();
-  static std::vector<VkVertexInputAttributeDescription> getAttributeDescription();
+  static std::vector<VkVertexInputBindingDescription> get_binding_description();
+  static std::vector<VkVertexInputAttributeDescription> get_attribute_description();
 
   bool operator==(const Vertex &other) const {
-    return vertexPosition == other.vertexPosition && color == other.color &&
-           textureCoordinates == other.textureCoordinates && normal == other.normal;
+    return vertex_position == other.vertex_position && color == other.color &&
+           texture_coordinates == other.texture_coordinates && normal == other.normal;
   }
 };
 
@@ -46,42 +46,42 @@ public:
   Geometry() = default;
   Geometry(GEOMETRY_SHAPE shape);
   virtual ~Geometry() = default;
-  std::vector<Vertex> allVertices{};
-  std::vector<Vertex> uniqueVertices{};
+  std::vector<Vertex> all_vertices{};
+  std::vector<Vertex> unique_vertices{};
   std::vector<uint32_t> indices{};
 
-  CE::Buffer vertexBuffer;
-  CE::Buffer indexBuffer;
+  CE::Buffer vertex_buffer;
+  CE::Buffer index_buffer;
 
-  void addVertexPosition(const glm::vec3 &position);
-  static std::vector<uint32_t> createGridPolygons(const std::vector<uint32_t> &vertices,
-                                                  uint32_t gridWidth);
+  void add_vertex_position(const glm::vec3 &position);
+  static std::vector<uint32_t> create_grid_polygons(const std::vector<uint32_t> &vertices,
+                                                    uint32_t grid_width);
 
 protected:
-  void createVertexBuffer(VkCommandBuffer &commandBuffer,
-                          const VkCommandPool &commandPool,
+  void create_vertex_buffer(VkCommandBuffer &command_buffer,
+                            const VkCommandPool &command_pool,
                           const VkQueue &queue,
                           const std::vector<Vertex> &vertices);
 
-  void createIndexBuffer(VkCommandBuffer &commandBuffer,
-                         const VkCommandPool &commandPool,
+  void create_index_buffer(VkCommandBuffer &command_buffer,
+                           const VkCommandPool &command_pool,
                          const VkQueue &queue,
                          const std::vector<uint32_t> &indices);
 
 private:
-  void loadModel(const std::string &modelName, Geometry &geometry);
-  void transformModel(std::vector<Vertex> &vertices,
+  void load_model(const std::string &model_name, Geometry &geometry);
+  void transform_model(std::vector<Vertex> &vertices,
                       ORIENTATION_ORDER order,
                       const glm::vec3 &degrees = glm::vec3(0.0f),
-                      const glm::vec3 &translationDistance = glm::vec3(0.0f),
+                      const glm::vec3 &translation_distance = glm::vec3(0.0f),
                       float scale = 1.0f);
 };
 
 class Shape : public Geometry {
 public:
   Shape(GEOMETRY_SHAPE shape,
-        bool hasIndices,
-        VkCommandBuffer &commandBuffer,
-        const VkCommandPool &commandPool,
+  bool has_indices,
+  VkCommandBuffer &command_buffer,
+  const VkCommandPool &command_pool,
         const VkQueue &queue);
 };

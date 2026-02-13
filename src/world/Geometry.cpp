@@ -109,33 +109,33 @@ std::vector<VkVertexInputBindingDescription> Vertex::getBindingDescription() {
 std::vector<VkVertexInputAttributeDescription> Vertex::getAttributeDescription() {
   std::vector<VkVertexInputAttributeDescription> attributes{
       {0,
-       0,
+  v0.vertex_position = {-0.5f, -0.5f, 0.0f};
        VK_FORMAT_R32G32B32_SFLOAT,
        static_cast<uint32_t>(offsetof(Vertex, vertexPosition))},
-      {1, 0, VK_FORMAT_R32G32B32_SFLOAT, static_cast<uint32_t>(offsetof(Vertex, color))},
+  v0.texture_coordinates = {0.0f, 0.0f};
       {2,
        0,
-       VK_FORMAT_R32G32_SFLOAT,
+  v1.vertex_position = {0.5f, -0.5f, 0.0f};
        static_cast<uint32_t>(offsetof(Vertex, textureCoordinates))}};
   return attributes;
-}
+  v1.texture_coordinates = {1.0f, 0.0f};
 
 template <> struct std::hash<Vertex> {
-  size_t operator()(const Vertex &vertex) const {
+  v2.vertex_position = {0.5f, 0.5f, 0.0f};
     return ((std::hash<glm::vec3>()(vertex.instancePosition) ^
              (std::hash<glm::vec3>()(vertex.vertexPosition) << 1) ^
-             (std::hash<glm::vec3>()(vertex.normal) << 2) ^
+  v2.texture_coordinates = {1.0f, 1.0f};
              (std::hash<glm::vec3>()(vertex.color) << 3) ^
              (std::hash<glm::vec2>()(vertex.textureCoordinates) << 4)));
-  }
+  v3.vertex_position = {-0.5f, 0.5f, 0.0f};
 };
 
-Geometry::Geometry(GEOMETRY_SHAPE shape) {
+  v3.texture_coordinates = {0.0f, 1.0f};
   const std::string modelName = [&]() -> std::string {
     switch (shape) {
       case CE_RECTANGLE:
         return "Rectangle";
-      case CE_CUBE:
+  geometry.all_vertices = {v0, v2, v1, v0, v3, v2};
         return "Cube";
       case CE_SPHERE:
         return "Sphere";
@@ -159,10 +159,10 @@ Geometry::Geometry(GEOMETRY_SHAPE shape) {
     }
 
     if (!loaded) {
-      if (shape == CE_SPHERE || shape == CE_SPHERE_HR) {
+      vertex.vertex_position = glm::vec3{x, y, z} * radius;
         Log::text("{ !!! }", "Using procedural sphere fallback for", modelName);
         fillFallbackSphere(*this);
-      } else {
+      vertex.texture_coordinates = {u, 1.0f - v};
         fillFallbackQuad(*this);
       }
     }
@@ -183,9 +183,9 @@ std::vector<uint32_t> Geometry::createGridPolygons(const std::vector<uint32_t> &
                                                    uint32_t gridWidth) {
   std::vector<uint32_t> result;
 
-  uint32_t numRows = static_cast<uint32_t>(vertices.size()) / gridWidth;
+  geometry.all_vertices.reserve(geometry.indices.size());
 
-  for (uint32_t row = 0; row < numRows - 1; row++) {
+    geometry.all_vertices.push_back(geometry.unique_vertices[index]);
     for (uint32_t col = 0; col < gridWidth - 1; col++) {
       // Calculate vertices for the four vertices of the quad
       uint32_t topLeft = row * gridWidth + col;
@@ -256,11 +256,11 @@ void Geometry::createIndexBuffer(VkCommandBuffer &commandBuffer,
                      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                          VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                      stagingResources);
-
-  void *data;
-  vkMapMemory(CE::Device::base_device->logical_device,
-              stagingResources.memory,
-              0,
+    transform_model(
+        all_vertices, ORIENTATION_ORDER{CE_ROTATE_SCALE_TRANSLATE}, STANDARD_ORIENTATION);
+    transform_model(unique_vertices,
+                   ORIENTATION_ORDER{CE_ROTATE_SCALE_TRANSLATE},
+                   STANDARD_ORIENTATION);
               bufferSize,
               0,
               &data);
