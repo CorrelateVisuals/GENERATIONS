@@ -1,7 +1,7 @@
 #pragma once
 #include "Mechanics.h"
-#include "Pipelines.h"
-#include "Resources.h"
+#include "render/Pipelines.h"
+#include "render/Resources.h"
 
 class CapitalEngine {
  public:

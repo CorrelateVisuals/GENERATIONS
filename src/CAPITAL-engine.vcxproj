@@ -182,10 +182,10 @@
     <ClCompile Include="core\Log.cpp" />
     <ClCompile Include="Library.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Resources.cpp" />
-    <ClCompile Include="Pipelines.cpp" />
+    <ClCompile Include="render\Resources.cpp" />
+    <ClCompile Include="render\Pipelines.cpp" />
     <ClCompile Include="Mechanics.cpp" />
-    <ClCompile Include="ShaderAccess.cpp" />
+    <ClCompile Include="render\ShaderAccess.cpp" />
     <ClCompile Include="Terrain.cpp" />
     <ClCompile Include="core\Timer.cpp" />
     <ClCompile Include="platform\ValidationLayers.cpp" />
@@ -206,10 +206,10 @@
     <ClInclude Include="core\Log.h" />
     <ClInclude Include="CapitalEngine.h" />
     <ClInclude Include="Library.h" />
-    <ClInclude Include="Resources.h" />
-    <ClInclude Include="Pipelines.h" />
+    <ClInclude Include="render\Resources.h" />
+    <ClInclude Include="render\Pipelines.h" />
     <ClInclude Include="Mechanics.h" />
-    <ClInclude Include="ShaderAccess.h" />
+    <ClInclude Include="render\ShaderAccess.h" />
     <ClInclude Include="Terrain.h" />
     <ClInclude Include="core\Timer.h" />
     <ClInclude Include="platform\ValidationLayers.h" />

@@ -116,7 +116,7 @@ void Camera::applyArcballMode(const glm::vec2& previousCursor,
             const glm::vec3 upAxis = glm::normalize(glm::cross(right, forward));
 
             const glm::vec3 axisWorld = glm::normalize(
-                axisCamera.x * right + axisCamera.y * upAxis + axisCamera.z * (-forward));
+                axisCamera.x * right - axisCamera.y * upAxis + axisCamera.z * (-forward));
 
             const glm::quat rotation = glm::angleAxis(angle * arcballRotateSpeed, axisWorld);
             glm::vec3 offset = position - arcballTarget;

@@ -2,8 +2,8 @@
 
 #include "Mechanics.h"
 #include "core/Log.h"
-#include "Pipelines.h"
-#include "Resources.h"
+#include "render/Pipelines.h"
+#include "render/Resources.h"
 
 VulkanMechanics::VulkanMechanics()
     : initVulkan{},
