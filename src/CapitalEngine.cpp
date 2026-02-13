@@ -2,6 +2,7 @@
 #include "Screenshot.h"
 #include "Window.h"
 
+#include <array>
 #include <chrono>
 #include <filesystem>
 #include <iomanip>
@@ -126,18 +127,18 @@ void CapitalEngine::drawFrame() {
       mechanics.swapchain, resources, pipelines,
       mechanics.syncObjects.currentFrame);
 
-  std::vector<VkSemaphore> waitSemaphores{
+  const std::array<VkSemaphore, 2> waitSemaphores{
       mechanics.syncObjects
           .computeFinishedSemaphores[mechanics.syncObjects.currentFrame],
       mechanics.syncObjects
           .imageAvailableSemaphores[mechanics.syncObjects.currentFrame]};
-  std::vector<VkPipelineStageFlags> waitStages{
+  const std::array<VkPipelineStageFlags, 2> waitStages{
       VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
       VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
 
   VkSubmitInfo graphicsSubmitInfo{
       .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-      .waitSemaphoreCount = static_cast<uint32_t>(waitSemaphores.size()),
+    .waitSemaphoreCount = static_cast<uint32_t>(waitSemaphores.size()),
       .pWaitSemaphores = waitSemaphores.data(),
       .pWaitDstStageMask = waitStages.data(),
       .commandBufferCount = 1,
@@ -153,7 +154,7 @@ void CapitalEngine::drawFrame() {
       mechanics.syncObjects
           .graphicsInFlightFences[mechanics.syncObjects.currentFrame]);
 
-  std::vector<VkSwapchainKHR> swapchains{mechanics.swapchain.swapchain};
+    const VkSwapchainKHR swapchain = mechanics.swapchain.swapchain;
 
   VkPresentInfoKHR presentInfo{
       .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
@@ -162,7 +163,7 @@ void CapitalEngine::drawFrame() {
           &mechanics.syncObjects
                .renderFinishedSemaphores[mechanics.syncObjects.currentFrame],
       .swapchainCount = 1,
-      .pSwapchains = swapchains.data(),
+      .pSwapchains = &swapchain,
       .pImageIndices = &imageIndex};
 
   result = vkQueuePresentKHR(mechanics.queues.present, &presentInfo);

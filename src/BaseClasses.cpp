@@ -1225,9 +1225,9 @@ void CE::PipelinesConfiguration::createPipelines(
     bool isCompute =
         std::find(shaders.begin(), shaders.end(), "Comp") != shaders.end();
 
-    if (!isCompute) [[likely]] {
+    if (!isCompute) {
       Log::text("{ === }", "Graphics Pipeline: ", pipelineName);
-        std::variant<Graphics, Compute>& pipelineVariant = entry.second;
+      std::variant<Graphics, Compute>& pipelineVariant = entry.second;
 
       std::vector<VkPipelineShaderStageCreateInfo> shaderStages{};
       bool tesselationEnabled = setShaderStages(pipelineName, shaderStages);
