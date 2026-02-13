@@ -17,13 +17,13 @@ class Pipelines {
   struct ComputeLayout : public CE::PipelineLayout {
     ComputeLayout(CE::DescriptorInterface& interface,
                   CE::PushConstants& push_constant) {
-      create_layout(interface.setLayout, push_constant);
+      create_layout(interface.set_layout, push_constant);
     }
   };
 
   struct GraphicsLayout : public CE::PipelineLayout {
     GraphicsLayout(CE::DescriptorInterface& interface) {
-      create_layout(interface.setLayout);
+      create_layout(interface.set_layout);
     }
   };
 

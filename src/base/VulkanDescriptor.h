@@ -12,26 +12,26 @@ namespace CE {
 
 class DescriptorInterface {
 public:
-  size_t writeIndex{};
+  size_t write_index{};
   std::array<VkDescriptorSet, MAX_FRAMES_IN_FLIGHT> sets{};
-  VkDescriptorSetLayout setLayout{};
-  std::array<VkDescriptorSetLayoutBinding, NUM_DESCRIPTORS> setLayoutBindings{};
+  VkDescriptorSetLayout set_layout{};
+  std::array<VkDescriptorSetLayoutBinding, NUM_DESCRIPTORS> set_layout_bindings{};
   std::array<std::array<VkWriteDescriptorSet, NUM_DESCRIPTORS>, MAX_FRAMES_IN_FLIGHT>
-      descriptorWrites{};
-  std::vector<VkDescriptorPoolSize> poolSizes{};
+      descriptor_writes{};
+  std::vector<VkDescriptorPoolSize> pool_sizes{};
 
   DescriptorInterface() = default;
   virtual ~DescriptorInterface();
 
-  void initialzeSets();
-  void updateSets();
+  void initialize_sets();
+  void update_sets();
 
 private:
   VkDescriptorPool pool;
 
-  void createSetLayout();
-  void createPool();
-  void allocateSets();
+  void create_set_layout();
+  void create_pool();
+  void allocate_sets();
 };
 
 class Descriptor {
@@ -40,12 +40,12 @@ public:
   virtual ~Descriptor(){};
 
 protected:
-  size_t myIndex{0};
-  VkDescriptorPoolSize poolSize{};
-  VkDescriptorSetLayoutBinding setLayoutBinding{};
+  size_t my_index{0};
+  VkDescriptorPoolSize pool_size{};
+  VkDescriptorSetLayoutBinding set_layout_binding{};
   struct DescriptorInformation {
-    std::variant<VkDescriptorBufferInfo, VkDescriptorImageInfo> previousFrame{};
-    std::variant<VkDescriptorBufferInfo, VkDescriptorImageInfo> currentFrame{};
+    std::variant<VkDescriptorBufferInfo, VkDescriptorImageInfo> previous_frame{};
+    std::variant<VkDescriptorBufferInfo, VkDescriptorImageInfo> current_frame{};
   } info;
 };
 
