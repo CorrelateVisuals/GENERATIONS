@@ -8,6 +8,10 @@
 #include <iomanip>
 #include <sstream>
 
+namespace {
+constexpr size_t GRAPHICS_WAIT_COUNT = 2;
+}
+
 CapitalEngine::CapitalEngine()
     : resources(mechanics), pipelines(mechanics, resources) {
   Log::text(Log::Style::headerGuard);
@@ -127,12 +131,12 @@ void CapitalEngine::drawFrame() {
       mechanics.swapchain, resources, pipelines,
       mechanics.syncObjects.currentFrame);
 
-  const std::array<VkSemaphore, 2> waitSemaphores{
+  const std::array<VkSemaphore, GRAPHICS_WAIT_COUNT> waitSemaphores{
       mechanics.syncObjects
           .computeFinishedSemaphores[mechanics.syncObjects.currentFrame],
       mechanics.syncObjects
           .imageAvailableSemaphores[mechanics.syncObjects.currentFrame]};
-  const std::array<VkPipelineStageFlags, 2> waitStages{
+  const std::array<VkPipelineStageFlags, GRAPHICS_WAIT_COUNT> waitStages{
       VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
       VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
 
