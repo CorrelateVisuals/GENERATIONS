@@ -28,23 +28,26 @@ void CE::Screenshot::capture(const VkImage& srcImage,
                 stagingBuffer);
 
   // Copy image to buffer
-  VkCommandBuffer commandBuffer = CommandBuffers::singularCommandBuffer;
-  copyImageToBuffer(srcImage, stagingBuffer, extent, commandBuffer, 
-                   commandPool, queue);
+  copyImageToBuffer(srcImage, stagingBuffer, extent, commandPool, queue);
 
   // Save buffer to file
   saveBufferToFile(stagingBuffer, extent, filename);
 
   Log::text(Log::Style::charLeader, "Screenshot saved successfully");
+  
+  // Buffer cleanup happens automatically via RAII destructor
 }
 
 void CE::Screenshot::copyImageToBuffer(const VkImage& srcImage,
                                        Buffer& dstBuffer,
                                        const VkExtent2D& extent,
-                                       VkCommandBuffer& commandBuffer,
                                        const VkCommandPool& commandPool,
                                        const VkQueue& queue) {
+  // beginSingularCommands allocates and begins the singularCommandBuffer
   CommandBuffers::beginSingularCommands(commandPool, queue);
+  
+  // Get reference to the static singularCommandBuffer that was just initialized
+  VkCommandBuffer& commandBuffer = CommandBuffers::singularCommandBuffer;
 
   // Transition image layout to transfer source
   VkImageMemoryBarrier barrier{};
@@ -94,6 +97,7 @@ void CE::Screenshot::copyImageToBuffer(const VkImage& srcImage,
                       VK_PIPELINE_STAGE_TRANSFER_BIT,
                       0, 0, nullptr, 0, nullptr, 1, &barrier);
 
+  // endSingularCommands submits and cleans up the command buffer
   CommandBuffers::endSingularCommands(commandPool, queue);
 }
 

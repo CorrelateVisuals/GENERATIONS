@@ -9,8 +9,8 @@ namespace CE {
 
 class Screenshot {
  public:
-  Screenshot() = default;
-  ~Screenshot() = default;
+  Screenshot() = delete;
+  ~Screenshot() = delete;
 
   static void capture(const VkImage& srcImage,
                       const VkExtent2D& extent,
@@ -23,7 +23,6 @@ class Screenshot {
   static void copyImageToBuffer(const VkImage& srcImage,
                                 Buffer& dstBuffer,
                                 const VkExtent2D& extent,
-                                VkCommandBuffer& commandBuffer,
                                 const VkCommandPool& commandPool,
                                 const VkQueue& queue);
 
