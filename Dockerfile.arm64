@@ -1,7 +1,7 @@
 # Dockerfile for GENERATIONS on ARM64/Raspberry Pi with Vulkan support
 # Optimized for Raspberry Pi 4/5 with VideoCore GPU
 
-FROM arm64v8/ubuntu:22.04 as builder
+FROM arm64v8/ubuntu:22.04 AS builder
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -39,7 +39,7 @@ RUN cmake -S . -B build \
     cmake --build build --parallel $(nproc)
 
 # Runtime stage
-FROM arm64v8/ubuntu:22.04 as runtime
+FROM arm64v8/ubuntu:22.04 AS runtime
 
 ENV DEBIAN_FRONTEND=noninteractive
 

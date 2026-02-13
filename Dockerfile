@@ -2,7 +2,7 @@
 # Supports both AMD and NVIDIA GPUs on x86_64 systems
 
 ARG BASE_IMAGE=ubuntu:22.04
-FROM ${BASE_IMAGE} as builder
+FROM ${BASE_IMAGE} AS builder
 
 # Avoid interactive prompts during package installation
 ENV DEBIAN_FRONTEND=noninteractive
@@ -27,6 +27,7 @@ RUN apt-get update && apt-get install -y \
     libxcursor-dev \
     libxi-dev \
     libx11-dev \
+    libwayland-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
@@ -40,7 +41,7 @@ RUN cmake -S . -B build -Wno-dev --log-level=NOTICE && \
     cmake --build build --parallel $(nproc)
 
 # Runtime stage
-FROM ${BASE_IMAGE} as runtime
+FROM ${BASE_IMAGE} AS runtime
 
 ENV DEBIAN_FRONTEND=noninteractive
 
