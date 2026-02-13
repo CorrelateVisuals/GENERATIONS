@@ -397,7 +397,7 @@ void CE::Swapchain::create(const VkSurfaceKHR &surface, const Queues &queues) {
               queue_family_indices[0]);
   }
 
-  CE::VULKAN_RESULT(vkCreateSwapchainKHR,
+  CE::vulkan_result(vkCreateSwapchainKHR,
                     Device::base_device->logical_device,
                     &createInfo,
                     nullptr,
@@ -456,31 +456,31 @@ void CE::SynchronizationObjects::create() {
                               .flags = VK_FENCE_CREATE_SIGNALED_BIT};
 
   for (uint_fast8_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-    CE::VULKAN_RESULT(vkCreateSemaphore,
-                      Device::base_device->logical_device,
-                      &semaphoreInfo,
-                      nullptr,
-                      &this->image_available_semaphores[i]);
-    CE::VULKAN_RESULT(vkCreateSemaphore,
-                      Device::base_device->logical_device,
-                      &semaphoreInfo,
-                      nullptr,
-                      &this->render_finished_semaphores[i]);
-    CE::VULKAN_RESULT(vkCreateFence,
-                      Device::base_device->logical_device,
-                      &fenceInfo,
-                      nullptr,
-                      &this->graphics_in_flight_fences[i]);
-    CE::VULKAN_RESULT(vkCreateSemaphore,
-                      Device::base_device->logical_device,
-                      &semaphoreInfo,
-                      nullptr,
-                      &this->compute_finished_semaphores[i]);
-    CE::VULKAN_RESULT(vkCreateFence,
-                      Device::base_device->logical_device,
-                      &fenceInfo,
-                      nullptr,
-                      &this->compute_in_flight_fences[i]);
+    CE::vulkan_result(vkCreateSemaphore,
+              Device::base_device->logical_device,
+              &semaphoreInfo,
+              nullptr,
+              &this->image_available_semaphores[i]);
+    CE::vulkan_result(vkCreateSemaphore,
+              Device::base_device->logical_device,
+              &semaphoreInfo,
+              nullptr,
+              &this->render_finished_semaphores[i]);
+    CE::vulkan_result(vkCreateFence,
+              Device::base_device->logical_device,
+              &fenceInfo,
+              nullptr,
+              &this->graphics_in_flight_fences[i]);
+    CE::vulkan_result(vkCreateSemaphore,
+              Device::base_device->logical_device,
+              &semaphoreInfo,
+              nullptr,
+              &this->compute_finished_semaphores[i]);
+    CE::vulkan_result(vkCreateFence,
+              Device::base_device->logical_device,
+              &fenceInfo,
+              nullptr,
+              &this->compute_in_flight_fences[i]);
 
     Log::text(Log::Style::charLeader,
               "frame",

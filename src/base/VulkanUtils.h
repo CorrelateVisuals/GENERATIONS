@@ -10,15 +10,15 @@
 
 namespace CE {
 
-uint32_t findMemoryType(const uint32_t typeFilter,
-                        const VkMemoryPropertyFlags properties);
+uint32_t find_memory_type(const uint32_t type_filter,
+                          const VkMemoryPropertyFlags properties);
 
 template <typename Checkresult, typename... Args>
-void VULKAN_RESULT(Checkresult vkResult, Args &&...args) {
+void vulkan_result(Checkresult vk_result, Args &&...args) {
   using ObjectType = std::remove_pointer_t<std::decay_t<Checkresult>>;
   std::string objectName = typeid(ObjectType).name();
 
-  VkResult result = vkResult(std::forward<Args>(args)...);
+  VkResult result = vk_result(std::forward<Args>(args)...);
   if (result != VK_SUCCESS) {
     throw std::runtime_error("\n!ERROR! result != VK_SUCCESS " + objectName + "!");
   }

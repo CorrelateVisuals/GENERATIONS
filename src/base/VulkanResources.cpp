@@ -11,8 +11,8 @@
 #include <stdexcept>
 #include <unordered_set>
 
-uint32_t CE::findMemoryType(const uint32_t typeFilter,
-                            const VkMemoryPropertyFlags properties) {
+uint32_t CE::find_memory_type(const uint32_t typeFilter,
+                              const VkMemoryPropertyFlags properties) {
   VkPhysicalDeviceMemoryProperties memProperties{};
   vkGetPhysicalDeviceMemoryProperties(Device::base_device->physical_device,
                                       &memProperties);
@@ -69,7 +69,7 @@ void CE::Buffer::create(const VkDeviceSize &size,
   Log::text(Log::Style::charLeader, Log::getMemoryPropertyString(properties));
   Log::text(Log::Style::charLeader, size, "bytes");
 
-  CE::VULKAN_RESULT(
+  CE::vulkan_result(
       vkCreateBuffer,
       Device::base_device->logical_device,
       &bufferInfo,
@@ -93,7 +93,7 @@ void CE::Buffer::create(const VkDeviceSize &size,
             memRequirements.memoryTypeBits);
 
   const uint32_t memory_type_index =
-      CE::findMemoryType(memRequirements.memoryTypeBits, properties);
+      CE::find_memory_type(memRequirements.memoryTypeBits, properties);
 
   VkMemoryAllocateInfo allocateInfo{};
   allocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
@@ -108,7 +108,7 @@ void CE::Buffer::create(const VkDeviceSize &size,
             "memoryTypeIndex",
             allocateInfo.memoryTypeIndex);
 
-  CE::VULKAN_RESULT(vkAllocateMemory,
+  CE::vulkan_result(vkAllocateMemory,
                     Device::base_device->logical_device,
                     &allocateInfo,
                     nullptr,
@@ -239,7 +239,7 @@ void CE::Image::create(const uint32_t width,
   info.tiling = tiling;
   info.usage = usage;
 
-  CE::VULKAN_RESULT(
+  CE::vulkan_result(
       vkCreateImage,
       Device::base_device->logical_device,
       &this->info,
@@ -265,7 +265,7 @@ void CE::Image::create(const uint32_t width,
             memRequirements.memoryTypeBits);
 
   const uint32_t memory_type_index =
-      findMemoryType(memRequirements.memoryTypeBits, properties);
+      find_memory_type(memRequirements.memoryTypeBits, properties);
 
   VkMemoryAllocateInfo allocateInfo{};
   allocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
@@ -280,7 +280,7 @@ void CE::Image::create(const uint32_t width,
             "memoryTypeIndex",
             allocateInfo.memoryTypeIndex);
 
-  CE::VULKAN_RESULT(vkAllocateMemory,
+  CE::vulkan_result(vkAllocateMemory,
                     Device::base_device->logical_device,
                     &allocateInfo,
                     nullptr,
@@ -308,7 +308,7 @@ void CE::Image::create_view(const VkImageAspectFlags aspectFlags) {
   viewInfo.subresourceRange.baseArrayLayer = 0;
   viewInfo.subresourceRange.layerCount = 1;
 
-  CE::VULKAN_RESULT(
+  CE::vulkan_result(
       vkCreateImageView,
       Device::base_device->logical_device,
       &viewInfo,

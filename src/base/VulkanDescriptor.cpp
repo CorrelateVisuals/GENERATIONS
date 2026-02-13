@@ -33,7 +33,7 @@ void CE::DescriptorInterface::create_set_layout() {
       .bindingCount = static_cast<uint32_t>(set_layout_bindings.size()),
       .pBindings = set_layout_bindings.data()};
 
-  CE::VULKAN_RESULT(vkCreateDescriptorSetLayout,
+  CE::vulkan_result(vkCreateDescriptorSetLayout,
                     CE::Device::base_device->logical_device,
                     &layoutInfo,
                     nullptr,
@@ -50,7 +50,7 @@ void CE::DescriptorInterface::create_pool() {
       .maxSets = MAX_FRAMES_IN_FLIGHT,
       .poolSizeCount = static_cast<uint32_t>(pool_sizes.size()),
       .pPoolSizes = pool_sizes.data()};
-  CE::VULKAN_RESULT(vkCreateDescriptorPool,
+  CE::vulkan_result(vkCreateDescriptorPool,
                     CE::Device::base_device->logical_device,
                     &poolInfo,
                     nullptr,
@@ -64,7 +64,7 @@ void CE::DescriptorInterface::allocate_sets() {
       .descriptorPool = pool,
       .descriptorSetCount = MAX_FRAMES_IN_FLIGHT,
       .pSetLayouts = layouts.data()};
-  CE::VULKAN_RESULT(vkAllocateDescriptorSets,
+  CE::vulkan_result(vkAllocateDescriptorSets,
                     CE::Device::base_device->logical_device,
                     &allocateInfo,
                     sets.data());

@@ -91,7 +91,7 @@ void CE::RenderPass::create(VkSampleCountFlagBits msaa_image_samples,
       .dependencyCount = 1,
       .pDependencies = &dependency};
 
-  CE::VULKAN_RESULT(vkCreateRenderPass,
+  CE::vulkan_result(vkCreateRenderPass,
                     Device::base_device->logical_device,
                     &render_pass_info,
                     nullptr,
@@ -119,11 +119,11 @@ void CE::RenderPass::create_framebuffers(CE::Swapchain &swapchain,
         .height = swapchain.extent.height,
         .layers = 1};
 
-    CE::VULKAN_RESULT(vkCreateFramebuffer,
-                      CE::Device::base_device->logical_device,
-                      &framebufferInfo,
-                      nullptr,
-                      &swapchain.framebuffers[i]);
+    CE::vulkan_result(vkCreateFramebuffer,
+              CE::Device::base_device->logical_device,
+              &framebufferInfo,
+              nullptr,
+              &swapchain.framebuffers[i]);
   }
 }
 
@@ -250,13 +250,13 @@ void CE::PipelinesConfiguration::create_pipelines(VkRenderPass &render_pass,
         pipelineInfo.pTessellationState = &tessellationStateInfo;
       }
 
-      CE::VULKAN_RESULT(vkCreateGraphicsPipelines,
-                        Device::base_device->logical_device,
-                        VK_NULL_HANDLE,
-                        1,
-                        &pipelineInfo,
-                        nullptr,
-                        &get_pipeline_object_by_name(pipelineName));
+      CE::vulkan_result(vkCreateGraphicsPipelines,
+            Device::base_device->logical_device,
+            VK_NULL_HANDLE,
+            1,
+            &pipelineInfo,
+            nullptr,
+            &get_pipeline_object_by_name(pipelineName));
       destroy_shader_modules();
     } else if (isCompute) {
       Log::text("{ === }", "Compute  Pipeline: ", pipelineName);
@@ -277,13 +277,13 @@ void CE::PipelinesConfiguration::create_pipelines(VkRenderPass &render_pass,
           .stage = shaderStage,
           .layout = compute_layout};
 
-      CE::VULKAN_RESULT(vkCreateComputePipelines,
-                        Device::base_device->logical_device,
-                        VK_NULL_HANDLE,
-                        1,
-                        &pipelineInfo,
-                        nullptr,
-                        &get_pipeline_object_by_name(pipelineName));
+      CE::vulkan_result(vkCreateComputePipelines,
+            Device::base_device->logical_device,
+            VK_NULL_HANDLE,
+            1,
+            &pipelineInfo,
+            nullptr,
+            &get_pipeline_object_by_name(pipelineName));
       destroy_shader_modules();
     }
 
@@ -374,7 +374,7 @@ CE::PipelinesConfiguration::create_shader_modules(VkShaderStageFlagBits shaderSt
       .codeSize = shaderCode.size(),
       .pCode = reinterpret_cast<const uint32_t *>(shaderCode.data())};
 
-  CE::VULKAN_RESULT(vkCreateShaderModule,
+  CE::vulkan_result(vkCreateShaderModule,
                     Device::base_device->logical_device,
                     &createInfo,
                     nullptr,
@@ -457,7 +457,7 @@ CE::PipelinesConfiguration::get_work_groups_by_name(const std::string &name) {
 void CE::PipelineLayout::create_layout(const VkDescriptorSetLayout &setLayout) {
   VkPipelineLayoutCreateInfo layout{CE::layoutDefault};
   layout.pSetLayouts = &setLayout;
-  CE::VULKAN_RESULT(vkCreatePipelineLayout,
+  CE::vulkan_result(vkCreatePipelineLayout,
                     Device::base_device->logical_device,
                     &layout,
                     nullptr,
@@ -473,7 +473,7 @@ void CE::PipelineLayout::create_layout(const VkDescriptorSetLayout &setLayout,
   layout.pSetLayouts = &setLayout;
   layout.pushConstantRangeCount = _pushConstants.count;
   layout.pPushConstantRanges = &constants;
-  CE::VULKAN_RESULT(vkCreatePipelineLayout,
+  CE::vulkan_result(vkCreatePipelineLayout,
                     Device::base_device->logical_device,
                     &layout,
                     nullptr,

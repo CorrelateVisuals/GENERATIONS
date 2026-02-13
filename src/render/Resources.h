@@ -41,65 +41,65 @@ public:
   private:
     CE::Buffer buffer;
     World::UniformBufferObject &ubo;
-    void createBuffer();
-    void createDescriptorWrite(CE::DescriptorInterface &interface);
+    void create_buffer();
+    void create_descriptor_write(CE::DescriptorInterface &interface);
   };
 
   class StorageBuffer : public CE::Descriptor {
   public:
-    CE::Buffer bufferIn;
-    CE::Buffer bufferOut;
+    CE::Buffer buffer_in;
+    CE::Buffer buffer_out;
 
-    StorageBuffer(CE::DescriptorInterface &descriptorInterface,
-                  const CE::CommandInterface &commandInterface,
+    StorageBuffer(CE::DescriptorInterface &descriptor_interface,
+                  const CE::CommandInterface &command_interface,
                   const auto &object,
                   const size_t quantity);
 
   private:
-    void create(const CE::CommandInterface &commandInterface,
+    void create(const CE::CommandInterface &command_interface,
                 const auto &object,
                 const size_t quantity);
-    void createDescriptorWrite(CE::DescriptorInterface &interface, const size_t quantity);
+    void create_descriptor_write(CE::DescriptorInterface &interface, const size_t quantity);
   };
 
   class ImageSampler : public CE::Descriptor {
   public:
     ImageSampler(CE::DescriptorInterface &interface,
-                 const CE::CommandInterface &commandInterface,
-                 const std::string &texturePath);
+                 const CE::CommandInterface &command_interface,
+                 const std::string &texture_path);
 
   private:
-    void createDescriptorWrite(CE::DescriptorInterface &interface);
-    CE::Image textureImage;
+    void create_descriptor_write(CE::DescriptorInterface &interface);
+    CE::Image texture_image;
   };
 
   class StorageImage : public CE::Descriptor {
   public:
     StorageImage(CE::DescriptorInterface &interface,
                  std::array<CE::Image, MAX_FRAMES_IN_FLIGHT> &images);
-    void createDescriptorWrite(CE::DescriptorInterface &interface,
-                               std::array<CE::Image, MAX_FRAMES_IN_FLIGHT> &images);
+    void create_descriptor_write(CE::DescriptorInterface &interface,
+                                 std::array<CE::Image, MAX_FRAMES_IN_FLIGHT> &images);
   };
   // GPU Interface
   CE::ShaderAccess::CommandResources
       commands;                          // virtual function to record command buffers
-  CE::CommandInterface commandInterface; // interface for command buffers
+  CE::CommandInterface command_interface; // interface for command buffers
   CE::PushConstants push_constant;
 
   // Scene
   World world; // World objects, light, _camera
 
-  CE::DescriptorInterface descriptorInterface;
+  CE::DescriptorInterface descriptor_interface;
 
   // Images
-  CE::Image depthImage;
-  CE::Image msaaImage;
+  CE::Image depth_image;
+  CE::Image msaa_image;
 
   // Descriptors
   UniformBuffer uniform;       // UniformParameters world details
-  StorageBuffer shaderStorage; // FeedbackLoop compute shader
+  StorageBuffer shader_storage; // FeedbackLoop compute shader
 
   // Image Descriptors
   ImageSampler sampler;      // Texture vertex shader
-  StorageImage storageImage; //  PostFX compute shader
+  StorageImage storage_image; //  PostFX compute shader
 };

@@ -7,7 +7,7 @@
 
 Resources::Resources(VulkanMechanics &mechanics)
     : commands{mechanics.queues.family_indices},
-      commandInterface{
+      command_interface{
           commands.singular_command_buffer,
           commands.pool,
           mechanics.queues.graphics_queue},
@@ -18,28 +18,28 @@ Resources::Resources(VulkanMechanics &mechanics)
         mechanics.queues.graphics_queue},
 
       // Descriptors
-      descriptorInterface(),
+        descriptor_interface(),
 
-      depthImage{
+        depth_image{
           CE_DEPTH_IMAGE,
           mechanics.swapchain.extent,
           CE::Image::find_depth_format()},
-      msaaImage{CE_MULTISAMPLE_IMAGE,
+        msaa_image{CE_MULTISAMPLE_IMAGE,
                 mechanics.swapchain.extent,
             mechanics.swapchain.image_format},
 
-      uniform{descriptorInterface, world._ubo}, shaderStorage{descriptorInterface,
-                                                              commandInterface,
-                                                              world._grid.cells,
-                                                              world._grid.pointCount},
-      sampler{descriptorInterface, commandInterface, Lib::path("assets/Avatar.PNG")},
-      storageImage{descriptorInterface, mechanics.swapchain.images} {
+        uniform{descriptor_interface, world._ubo}, shader_storage{descriptor_interface,
+                                    command_interface,
+                                    world._grid.cells,
+                                    world._grid.pointCount},
+        sampler{descriptor_interface, command_interface, Lib::path("assets/Avatar.PNG")},
+        storage_image{descriptor_interface, mechanics.swapchain.images} {
   Log::text(Log::Style::headerGuard);
   Log::text("{ /// }", "constructing Resources (start)");
   Log::text(Log::Style::headerGuard);
   Log::text("{ /// }", "constructing Resources");
 
-  descriptorInterface.initialize_sets();
+  descriptor_interface.initialize_sets();
 }
 
 Resources::~Resources() {
@@ -70,12 +70,12 @@ Resources::UniformBuffer::UniformBuffer(CE::DescriptorInterface &interface,
   pool_size.descriptorCount = MAX_FRAMES_IN_FLIGHT;
   interface.pool_sizes.push_back(pool_size);
 
-  createBuffer();
+  create_buffer();
 
-  createDescriptorWrite(interface);
+  create_descriptor_write(interface);
 }
 
-void Resources::UniformBuffer::createBuffer() {
+void Resources::UniformBuffer::create_buffer() {
   Log::text("{ 101 }", MAX_FRAMES_IN_FLIGHT, "Uniform Buffers");
   VkDeviceSize bufferSize = sizeof(World::UniformBufferObject);
 
@@ -93,7 +93,7 @@ void Resources::UniformBuffer::createBuffer() {
               &buffer.mapped);
 }
 
-void Resources::UniformBuffer::createDescriptorWrite(CE::DescriptorInterface &interface) {
+void Resources::UniformBuffer::create_descriptor_write(CE::DescriptorInterface &interface) {
   VkDescriptorBufferInfo bufferInfo{};
   bufferInfo.buffer = buffer.buffer;
   bufferInfo.offset = 0;
@@ -128,31 +128,31 @@ void Resources::UniformBuffer::update(World &world, const VkExtent2D extent) {
   std::memcpy(buffer.mapped, &ubo, sizeof(ubo));
 }
 
-Resources::StorageBuffer::StorageBuffer(CE::DescriptorInterface &descriptorInterface,
-                                        const CE::CommandInterface &commandInterface,
+Resources::StorageBuffer::StorageBuffer(CE::DescriptorInterface &descriptor_interface,
+                                        const CE::CommandInterface &command_interface,
                                         const auto &object,
                                         const size_t quantity) {
-  my_index = descriptorInterface.write_index;
-  descriptorInterface.write_index += 2;
+  my_index = descriptor_interface.write_index;
+  descriptor_interface.write_index += 2;
 
   set_layout_binding.binding = 1;
   set_layout_binding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
   set_layout_binding.descriptorCount = 1;
   set_layout_binding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-  descriptorInterface.set_layout_bindings[my_index] = set_layout_binding;
+  descriptor_interface.set_layout_bindings[my_index] = set_layout_binding;
   set_layout_binding.binding = 2;
-  descriptorInterface.set_layout_bindings[my_index + 1] = set_layout_binding;
+  descriptor_interface.set_layout_bindings[my_index + 1] = set_layout_binding;
 
   pool_size.type = set_layout_binding.descriptorType;
   pool_size.descriptorCount = MAX_FRAMES_IN_FLIGHT * 2;
-  descriptorInterface.pool_sizes.push_back(pool_size);
+  descriptor_interface.pool_sizes.push_back(pool_size);
 
-  create(commandInterface, object, quantity);
+  create(command_interface, object, quantity);
 
-  createDescriptorWrite(descriptorInterface, quantity);
+  create_descriptor_write(descriptor_interface, quantity);
 }
 
-void Resources::StorageBuffer::create(const CE::CommandInterface &commandInterface,
+void Resources::StorageBuffer::create(const CE::CommandInterface &command_interface,
                                       const auto &object,
                                       const size_t quantity) {
   Log::text("{ 101 }", "Shader Storage Buffers");
@@ -182,32 +182,32 @@ void Resources::StorageBuffer::create(const CE::CommandInterface &commandInterfa
                          VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
                          VK_BUFFER_USAGE_TRANSFER_DST_BIT,
                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                     bufferIn);
+                     buffer_in);
   CE::Buffer::copy(stagingResources.buffer,
-                   bufferIn.buffer,
+                   buffer_in.buffer,
                    bufferSize,
-                   commandInterface.command_buffer,
-                   commandInterface.command_pool,
-                   commandInterface.queue);
+                   command_interface.command_buffer,
+                   command_interface.command_pool,
+                   command_interface.queue);
 
   CE::Buffer::create(static_cast<VkDeviceSize>(bufferSize),
                      VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
                          VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
                          VK_BUFFER_USAGE_TRANSFER_DST_BIT,
                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                     bufferOut);
+                     buffer_out);
   CE::Buffer::copy(stagingResources.buffer,
-                   bufferOut.buffer,
+                   buffer_out.buffer,
                    bufferSize,
-                   commandInterface.command_buffer,
-                   commandInterface.command_pool,
-                   commandInterface.queue);
+                   command_interface.command_buffer,
+                   command_interface.command_pool,
+                   command_interface.queue);
 }
 
-void Resources::StorageBuffer::createDescriptorWrite(CE::DescriptorInterface &interface,
-                                                     const size_t quantity) {
+void Resources::StorageBuffer::create_descriptor_write(CE::DescriptorInterface &interface,
+                                                       const size_t quantity) {
   for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-    VkDescriptorBufferInfo bufferInfo{.buffer = !i ? bufferIn.buffer : bufferOut.buffer,
+    VkDescriptorBufferInfo bufferInfo{.buffer = !i ? buffer_in.buffer : buffer_out.buffer,
                                       .offset = 0,
                                       .range = sizeof(World::Cell) * quantity};
 
@@ -233,9 +233,9 @@ void Resources::StorageBuffer::createDescriptorWrite(CE::DescriptorInterface &in
 };
 
 Resources::ImageSampler::ImageSampler(CE::DescriptorInterface &interface,
-                                      const CE::CommandInterface &commandInterface,
-                                      const std::string &texturePath)
-    : textureImage(texturePath) {
+                    const CE::CommandInterface &command_interface,
+                    const std::string &texture_path)
+  : texture_image(texture_path) {
   my_index = interface.write_index;
   interface.write_index++;
 
@@ -249,20 +249,20 @@ Resources::ImageSampler::ImageSampler(CE::DescriptorInterface &interface,
   pool_size.descriptorCount = MAX_FRAMES_IN_FLIGHT;
   interface.pool_sizes.push_back(pool_size);
 
-  textureImage.load_texture(textureImage.path,
-                            VK_FORMAT_R8G8B8A8_SRGB,
-                            commandInterface.command_buffer,
-                            commandInterface.command_pool,
-                            commandInterface.queue);
-  textureImage.create_view(VK_IMAGE_ASPECT_COLOR_BIT);
-  textureImage.create_sampler();
+  texture_image.load_texture(texture_image.path,
+                             VK_FORMAT_R8G8B8A8_SRGB,
+                             command_interface.command_buffer,
+                             command_interface.command_pool,
+                             command_interface.queue);
+  texture_image.create_view(VK_IMAGE_ASPECT_COLOR_BIT);
+  texture_image.create_sampler();
 
-  createDescriptorWrite(interface);
+  create_descriptor_write(interface);
 }
 
-void Resources::ImageSampler::createDescriptorWrite(CE::DescriptorInterface &interface) {
-  VkDescriptorImageInfo imageInfo{.sampler = textureImage.sampler,
-                                  .imageView = textureImage.view,
+void Resources::ImageSampler::create_descriptor_write(CE::DescriptorInterface &interface) {
+  VkDescriptorImageInfo imageInfo{.sampler = texture_image.sampler,
+                                  .imageView = texture_image.view,
                                   .imageLayout =
                                       VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL};
   info.current_frame = imageInfo;
@@ -300,10 +300,10 @@ Resources::StorageImage::StorageImage(
   pool_size.descriptorCount = MAX_FRAMES_IN_FLIGHT;
   interface.pool_sizes.push_back(pool_size);
 
-  createDescriptorWrite(interface, images);
+  create_descriptor_write(interface, images);
 }
 
-void Resources::StorageImage::createDescriptorWrite(
+void Resources::StorageImage::create_descriptor_write(
     CE::DescriptorInterface &interface,
     std::array<CE::Image, MAX_FRAMES_IN_FLIGHT> &images) {
   for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {

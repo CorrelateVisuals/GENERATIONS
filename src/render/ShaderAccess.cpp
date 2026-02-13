@@ -28,7 +28,7 @@ void CE::ShaderAccess::CommandResources::record_compute_command_buffer(
                           pipelines.compute.layout,
                           0,
                           1,
-                          &resources.descriptorInterface.sets[frame_index],
+                          &resources.descriptor_interface.sets[frame_index],
                           0,
                           nullptr);
 
@@ -45,7 +45,7 @@ void CE::ShaderAccess::CommandResources::record_compute_command_buffer(
               pipelines.config.get_work_groups_by_name("Engine");
   vkCmdDispatch(commandBuffer, workGroups[0], workGroups[0], workGroups[2]);
 
-  CE::VULKAN_RESULT(vkEndCommandBuffer, commandBuffer);
+  CE::vulkan_result(vkEndCommandBuffer, commandBuffer);
 }
 
 void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
@@ -62,7 +62,7 @@ void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
   beginInfo.flags = 0;
   beginInfo.pInheritanceInfo = nullptr;
 
-  CE::VULKAN_RESULT(vkBeginCommandBuffer, commandBuffer, &beginInfo);
+  CE::vulkan_result(vkBeginCommandBuffer, commandBuffer, &beginInfo);
 
   std::array<VkClearValue, 2> clearValues{
       VkClearValue{.color = {{0.46f, 0.55f, 0.62f, 1.0f}}},
@@ -94,7 +94,7 @@ void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
                           pipelines.graphics.layout,
                           0,
                           1,
-                          &resources.descriptorInterface.sets[frame_index],
+                          &resources.descriptor_interface.sets[frame_index],
                           0,
                           nullptr);
 
@@ -118,8 +118,8 @@ void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
                     pipelines.config.get_pipeline_object_by_name("Cells"));
   VkDeviceSize offsets0[]{0, 0};
 
-  VkBuffer currentShaderStorageBuffer[] = {resources.shaderStorage.bufferIn.buffer,
-                                           resources.shaderStorage.bufferOut.buffer};
+  VkBuffer currentShaderStorageBuffer[] = {resources.shader_storage.buffer_in.buffer,
+                                           resources.shader_storage.buffer_out.buffer};
 
   VkBuffer vertexBuffers0[] = {currentShaderStorageBuffer[frame_index],
                                resources.world._cube.vertexBuffer.buffer};
@@ -178,7 +178,7 @@ void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
                           pipelines.compute.layout,
                           0,
                           1,
-                          &resources.descriptorInterface.sets[frame_index],
+                          &resources.descriptor_interface.sets[frame_index],
                           0,
                           nullptr);
 
@@ -199,5 +199,5 @@ void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
                                                   VK_IMAGE_LAYOUT_GENERAL,
                                                   /* -> */ VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
-  CE::VULKAN_RESULT(vkEndCommandBuffer, commandBuffer);
+  CE::vulkan_result(vkEndCommandBuffer, commandBuffer);
 }

@@ -19,7 +19,7 @@ void CE::Device::create_logical_device(const InitializeVulkan &init_vulkan,
   VkDeviceCreateInfo create_info = get_device_create_info(queue_create_infos);
   set_validation_layers(init_vulkan, create_info);
 
-  CE::VULKAN_RESULT(
+    CE::vulkan_result(
     vkCreateDevice, this->physical_device, &create_info, nullptr, &this->logical_device);
   Log::text(
     "{ GPU }", Log::function_name(__func__), "Logical Device created", this->logical_device);
@@ -322,12 +322,12 @@ void CE::InitializeVulkan::create_instance() {
     this->validation.populateDebugMessengerCreateInfo(debug_create_info);
     createInfo.pNext = &debug_create_info;
   }
-  CE::VULKAN_RESULT(vkCreateInstance, &createInfo, nullptr, &this->instance);
+    CE::vulkan_result(vkCreateInstance, &createInfo, nullptr, &this->instance);
 }
 
 void CE::InitializeVulkan::create_surface(GLFWwindow *window) {
   Log::text("{ [ ] }", "Surface");
-  CE::VULKAN_RESULT(
+    CE::vulkan_result(
       glfwCreateWindowSurface, this->instance, window, nullptr, &this->surface);
 }
 

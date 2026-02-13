@@ -97,7 +97,7 @@ void CapitalEngine::drawFrame() {
       .signalSemaphoreCount = 1,
       .pSignalSemaphores = &mechanics.syncObjects.compute_finished_semaphores[frameIndex]};
 
-  CE::VULKAN_RESULT(vkQueueSubmit,
+  CE::vulkan_result(vkQueueSubmit,
                     mechanics.queues.compute_queue,
                     SINGLE_OBJECT_COUNT,
                     &computeSubmitInfo,
@@ -156,7 +156,7 @@ void CapitalEngine::drawFrame() {
       .signalSemaphoreCount = SINGLE_OBJECT_COUNT,
       .pSignalSemaphores = &mechanics.syncObjects.render_finished_semaphores[frameIndex]};
 
-  CE::VULKAN_RESULT(vkQueueSubmit,
+  CE::vulkan_result(vkQueueSubmit,
                     mechanics.queues.graphics_queue,
                     SINGLE_OBJECT_COUNT,
                     &graphicsSubmitInfo,
