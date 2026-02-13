@@ -1,6 +1,6 @@
 #!/bin/bash
 # Helper script to run GENERATIONS in Docker with GPU support
-# Usage: ./run-docker.sh [nvidia|mesa|raspberry-pi]
+# Usage: ./run-docker.sh [nvidia|mesa|raspberry-pi|dev]
 #
 # If you get a "permission denied" error, make this script executable:
 #   chmod +x run-docker.sh
@@ -27,9 +27,20 @@ case "$GPU_TYPE" in
     echo "Starting with Raspberry Pi/ARM64 support..."
     docker-compose --profile raspberry-pi up
     ;;
+  dev|development)
+    echo "Starting development container with build tools..."
+    echo "Repository mounted at /workspace - you can build and run inside the container"
+    docker-compose --profile dev up
+    ;;
   *)
     echo "Unknown GPU type: $GPU_TYPE"
-    echo "Usage: $0 [nvidia|mesa|raspberry-pi]"
+    echo "Usage: $0 [nvidia|mesa|raspberry-pi|dev]"
+    echo ""
+    echo "Options:"
+    echo "  nvidia       - NVIDIA GPU with nvidia-container-runtime"
+    echo "  mesa         - AMD/Intel GPU with Mesa drivers"
+    echo "  raspberry-pi - Raspberry Pi with VideoCore GPU"
+    echo "  dev          - Development container with git and build tools"
     exit 1
     ;;
 esac

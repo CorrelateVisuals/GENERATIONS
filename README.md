@@ -29,6 +29,7 @@ Currently GENERATIONS is running ![Conway's Game of Life](https://en.wikipedia.o
 ./run-docker.sh mesa        # For AMD/Intel/Mesa GPU
 ./run-docker.sh nvidia      # For NVIDIA GPU
 ./run-docker.sh raspberry-pi # For Raspberry Pi
+./run-docker.sh dev         # Development container with git and build tools
 
 # Or use docker-compose directly
 xhost +local:docker
@@ -41,13 +42,21 @@ docker-compose --profile nvidia up --build
 
 # For Raspberry Pi
 docker-compose --profile raspberry-pi up --build
+
+# For development (build inside container)
+docker-compose --profile dev up
 ```
 
-See [DOCKER.md](DOCKER.md) for complete Docker setup instructions, including:
-- Platform-specific installation guides
-- GPU driver setup (NVIDIA, AMD, Intel, Raspberry Pi)
-- Troubleshooting and optimization tips
-- Security considerations
+**Documentation:**
+- [DOCKER.md](DOCKER.md) - Complete setup instructions and troubleshooting
+- [DOCKER_ARCHITECTURE.md](DOCKER_ARCHITECTURE.md) - Architecture details and robustness discussion
+- [RASPBERRY_PI.md](RASPBERRY_PI.md) - Raspberry Pi specific guide
+
+**Key Features:**
+- No driver dependencies in container (uses host GPU drivers)
+- Direct GPU access via device passthrough
+- Production and development containers available
+- Works on x86_64 (NVIDIA/AMD/Intel) and ARM64 (Raspberry Pi)
 
 For Raspberry Pi users, see the dedicated [RASPBERRY_PI.md](RASPBERRY_PI.md) guide.
 

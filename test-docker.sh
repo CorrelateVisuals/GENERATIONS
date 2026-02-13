@@ -30,7 +30,7 @@ fi
 
 echo ""
 echo "3. Verifying shaders exist in container..."
-SHADER_COUNT=$(docker run --rm generations:test sh -c "ls /app/shaders/*.spv 2>/dev/null | wc -l")
+SHADER_COUNT=$(docker run --rm generations:test sh -c 'ls /app/shaders/*.spv 2>/dev/null | wc -l')
 if [ "$SHADER_COUNT" -gt 0 ]; then
     echo "   ✓ Found $SHADER_COUNT compiled shaders"
 else

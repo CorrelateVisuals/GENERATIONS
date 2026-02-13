@@ -1,0 +1,47 @@
+# Development Dockerfile for GENERATIONS
+# This container includes all development tools for building and debugging
+# inside the container, with git and compilation tools available.
+
+ARG BASE_IMAGE=ubuntu:22.04
+FROM ${BASE_IMAGE}
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install all development dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    cmake \
+    git \
+    wget \
+    curl \
+    python3 \
+    python3-pip \
+    libglfw3-dev \
+    libglm-dev \
+    vulkan-tools \
+    libvulkan-dev \
+    vulkan-validationlayers \
+    spirv-tools \
+    glslang-tools \
+    libxrandr-dev \
+    libxinerama-dev \
+    libxcursor-dev \
+    libxi-dev \
+    libx11-dev \
+    libwayland-dev \
+    mesa-vulkan-drivers \
+    gdb \
+    clang-format \
+    vim \
+    nano \
+    htop \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set working directory
+WORKDIR /workspace
+
+# Set display environment variable
+ENV DISPLAY=:0
+
+# Default command opens a bash shell for development
+CMD ["/bin/bash"]

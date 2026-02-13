@@ -2,6 +2,8 @@
 
 This document describes how to run GENERATIONS in Docker with GPU/Vulkan support on various platforms.
 
+**For architecture details and robustness discussion, see [DOCKER_ARCHITECTURE.md](DOCKER_ARCHITECTURE.md)**
+
 ## Prerequisites
 
 - Docker Engine 20.10+ or Docker Desktop
@@ -23,6 +25,9 @@ The easiest way to run GENERATIONS in Docker:
 
 # For Raspberry Pi
 ./run-docker.sh raspberry-pi
+
+# For development (with git and build tools)
+./run-docker.sh dev
 ```
 
 ### Manual Docker Compose
@@ -57,6 +62,23 @@ xhost +local:docker
 
 # Build and run
 docker-compose --profile raspberry-pi up --build
+```
+
+#### For Development
+
+```bash
+# Allow X11 connections from Docker
+xhost +local:docker
+
+# Build and run development container
+docker-compose --profile dev up
+
+# Inside the container, the repository is mounted at /workspace
+# You can build and run:
+cd /workspace
+cmake -S . -B build
+cmake --build build
+./bin/CapitalEngine
 ```
 
 ## Detailed Instructions

@@ -60,3 +60,24 @@ services:
     profiles:
       - arm64
       - raspberry-pi
+
+  # Development container with build tools and git
+  generations-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    image: generations:dev
+    container_name: generations-dev
+    environment:
+      - DISPLAY=${DISPLAY:-:0}
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - .:/workspace:rw  # Mount entire repository for development
+    devices:
+      - /dev/dri:/dev/dri
+    network_mode: host
+    profiles:
+      - dev
+    stdin_open: true
+    tty: true
+

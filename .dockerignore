@@ -40,9 +40,9 @@ cmake_install.cmake
 Makefile
 compile_commands.json
 
-# Documentation
+# Documentation (not needed in container)
+# Markdown files are excluded as they're documentation for the host system
 *.md
-!DOCKER.md
 
 # Logs
 *.log
