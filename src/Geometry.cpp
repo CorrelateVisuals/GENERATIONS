@@ -3,9 +3,12 @@
 
 #include "Geometry.h"
 #include "Library.h"
+#include "core/Log.h"
+#include "base/VulkanDevice.h"
 
 #include <filesystem>
 #include <glm/gtc/constants.hpp>
+#include <iostream>
 
 namespace {
 constexpr glm::vec3 STANDARD_ORIENTATION{90.0f, 180.0f, 0.0f};

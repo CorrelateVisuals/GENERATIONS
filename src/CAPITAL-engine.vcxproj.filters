@@ -21,10 +21,10 @@
     <ClCompile Include="CapitalEngine.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Window.cpp">
+    <ClCompile Include="platform\Window.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Log.cpp">
+    <ClCompile Include="core\Log.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Mechanics.cpp">
@@ -45,16 +45,28 @@
     <ClCompile Include="Terrain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Timer.cpp">
+    <ClCompile Include="core\Timer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ValidationLayers.cpp">
+    <ClCompile Include="platform\ValidationLayers.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Geometry.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="BaseClasses.cpp">
+    <ClCompile Include="base\VulkanDescriptor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="base\VulkanDevice.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="base\VulkanPipeline.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="base\VulkanResources.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="base\VulkanSync.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Camera.cpp">
@@ -68,10 +80,10 @@
     <ClInclude Include="CapitalEngine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Window.h">
+    <ClInclude Include="platform\Window.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Log.h">
+    <ClInclude Include="core\Log.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Mechanics.h">
@@ -92,16 +104,37 @@
     <ClInclude Include="Terrain.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Timer.h">
+    <ClInclude Include="core\Timer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ValidationLayers.h">
+    <ClInclude Include="platform\ValidationLayers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Geometry.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="BaseClasses.h">
+    <ClInclude Include="base\VulkanCore.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="base\VulkanDescriptor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="base\VulkanDevice.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="base\VulkanPipeline.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="base\VulkanPipelinePresets.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="base\VulkanResources.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="base\VulkanSync.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="base\VulkanUtils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Camera.h">

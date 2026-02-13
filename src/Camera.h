@@ -29,13 +29,19 @@ class Camera {
         arcballMaxDistance(300.0f),
         arcballYaw(0.0f),
         arcballPitch(0.0f),
-        arcballRotateSpeed(2.5f),
+        arcballRotateSpeed(1.4f),
         arcballPanSpeed(pan),
-        arcballZoomSpeed(zoom) {}
+        arcballZoomSpeed(zoom),
+        arcballUseConfiguredTarget(false),
+        arcballCursorInitialized(false),
+        arcballLeftWasDown(false),
+        arcballRightWasDown(false),
+        arcballLastCursor(0.0f, 0.0f) {}
 
   void setMode(Mode newMode) { mode = newMode; }
   Mode getMode() const { return mode; }
   void toggleMode();
+  void configureArcball(const glm::vec3& target, float sceneRadius);
 
   glm::mat4 setModel();
   glm::mat4 setView();
@@ -44,10 +50,17 @@ class Camera {
  private:
   void applyPanningMode(const glm::vec2& leftButtonDelta,
                         const glm::vec2& rightButtonDelta);
-  void applyArcballMode(const glm::vec2& leftButtonDelta,
-                        const glm::vec2& rightButtonDelta,
-                        const glm::vec2& middleButtonDelta);
-  void syncArcballFromCurrentView();
+  void applyArcballMode(const glm::vec2& previousCursor,
+                        const glm::vec2& currentCursor,
+                        const bool leftPressed,
+                        const bool rightPressed,
+                        const bool middlePressed,
+                        const float viewportWidth,
+                        const float viewportHeight);
+  glm::vec3 mapCursorToArcball(const glm::vec2& cursor,
+                               const float viewportWidth,
+                               const float viewportHeight) const;
+  void syncArcballFromCurrentView(bool keepConfiguredTarget);
 
   Mode mode;
   glm::vec3 arcballTarget;
@@ -59,6 +72,11 @@ class Camera {
   float arcballRotateSpeed;
   float arcballPanSpeed;
   float arcballZoomSpeed;
+  bool arcballUseConfiguredTarget;
+  bool arcballCursorInitialized;
+  bool arcballLeftWasDown;
+  bool arcballRightWasDown;
+  glm::vec2 arcballLastCursor;
 
   void update();
 };

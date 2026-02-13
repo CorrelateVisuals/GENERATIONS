@@ -6,8 +6,8 @@
 
 #include <vulkan/vulkan.h>
 
-#include "ValidationLayers.h"
-#include "Window.h"
+#include "platform/ValidationLayers.h"
+#include "platform/Window.h"
 
 namespace CE {
 

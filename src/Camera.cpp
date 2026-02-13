@@ -5,18 +5,30 @@
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/hash.hpp>
 #include <glm/gtx/norm.hpp>
+#include <glm/gtx/quaternion.hpp>
 
 #include "Camera.h"
-#include "Log.h"
-#include "Window.h"
+#include "core/Log.h"
+#include "platform/Window.h"
 
 #include <algorithm>
 #include <array>
 #include <cmath>
 
+void Camera::configureArcball(const glm::vec3& target, float sceneRadius) {
+    arcballTarget = target;
+    arcballUseConfiguredTarget = true;
+
+    const float safeRadius = std::max(sceneRadius, 0.1f);
+    arcballMinDistance = std::max(safeRadius * 0.35f, 1.0f);
+    arcballMaxDistance = safeRadius * 14.0f;
+    arcballDistance = std::clamp(safeRadius * 2.8f, arcballMinDistance,
+                                 arcballMaxDistance);
+}
+
 void Camera::toggleMode() {
     if (mode == Mode::Panning) {
-        syncArcballFromCurrentView();
+        syncArcballFromCurrentView(arcballUseConfiguredTarget);
         mode = Mode::Arcball;
         Log::text("{ Cam }", "Mode: Arcball");
         return;
@@ -26,12 +38,14 @@ void Camera::toggleMode() {
     Log::text("{ Cam }", "Mode: Panning");
 }
 
-void Camera::syncArcballFromCurrentView() {
-    const glm::vec3 forward = glm::normalize(front);
-    const float targetDistance = std::clamp(arcballDistance, arcballMinDistance,
-                                                                                    arcballMaxDistance);
+void Camera::syncArcballFromCurrentView(bool keepConfiguredTarget) {
+    if (!keepConfiguredTarget) {
+        const glm::vec3 forward = glm::normalize(front);
+        const float targetDistance =
+            std::clamp(arcballDistance, arcballMinDistance, arcballMaxDistance);
+        arcballTarget = position + forward * targetDistance;
+    }
 
-    arcballTarget = position + forward * targetDistance;
     arcballDistance = glm::length(arcballTarget - position);
     if (arcballDistance <= 0.0001f) {
         arcballDistance = arcballMinDistance;
@@ -43,6 +57,24 @@ void Camera::syncArcballFromCurrentView() {
     arcballPitch = std::atan2(offset.z, std::max(horizontal, 0.0001f));
     arcballPitch = std::clamp(arcballPitch, glm::radians(-89.0f),
                                                         glm::radians(89.0f));
+}
+
+glm::vec3 Camera::mapCursorToArcball(const glm::vec2& cursor,
+                                     const float viewportWidth,
+                                     const float viewportHeight) const {
+    const float safeWidth = std::max(viewportWidth, 1.0f);
+    const float safeHeight = std::max(viewportHeight, 1.0f);
+
+    float x = (2.0f * cursor.x - safeWidth) / safeWidth;
+    float y = (safeHeight - 2.0f * cursor.y) / safeHeight;
+
+    const float lengthSquared = x * x + y * y;
+    if (lengthSquared > 1.0f) {
+        const float invLength = 1.0f / std::sqrt(lengthSquared);
+        return glm::vec3(x * invLength, y * invLength, 0.0f);
+    }
+
+    return glm::vec3(x, y, std::sqrt(1.0f - lengthSquared));
 }
 
 void Camera::applyPanningMode(const glm::vec2& leftButtonDelta,
@@ -57,42 +89,79 @@ void Camera::applyPanningMode(const glm::vec2& leftButtonDelta,
     position.z = std::max(position.z, 0.0f);
 }
 
-void Camera::applyArcballMode(const glm::vec2& leftButtonDelta,
-                                                            const glm::vec2& rightButtonDelta,
-                                                            const glm::vec2& middleButtonDelta) {
-    arcballYaw += leftButtonDelta.x * arcballRotateSpeed;
-    arcballPitch -= leftButtonDelta.y * arcballRotateSpeed;
-    arcballPitch = std::clamp(arcballPitch, glm::radians(-89.0f),
-                                                        glm::radians(89.0f));
+void Camera::applyArcballMode(const glm::vec2& previousCursor,
+                              const glm::vec2& currentCursor,
+                              const bool leftPressed,
+                              const bool rightPressed,
+                              const bool middlePressed,
+                              const float viewportWidth,
+                              const float viewportHeight) {
+    const float safeHeight = std::max(viewportHeight, 1.0f);
+    const glm::vec2 cursorDelta = currentCursor - previousCursor;
 
-    const float zoomDelta = rightButtonDelta.x + middleButtonDelta.x;
-    arcballDistance -= zoomDelta * arcballZoomSpeed * 10.0f;
-    arcballDistance = std::clamp(arcballDistance, arcballMinDistance,
-                                                             arcballMaxDistance);
+    if (leftPressed) {
+        const glm::vec3 from = mapCursorToArcball(previousCursor, viewportWidth,
+                                                  viewportHeight);
+        const glm::vec3 to = mapCursorToArcball(currentCursor, viewportWidth,
+                                                viewportHeight);
 
-    const glm::vec3 offsetDirection = glm::normalize(glm::vec3(
-            std::cos(arcballPitch) * std::cos(arcballYaw),
-            std::cos(arcballPitch) * std::sin(arcballYaw),
-            std::sin(arcballPitch)));
+        const float dotValue = std::clamp(glm::dot(from, to), -1.0f, 1.0f);
+        const float angle = std::acos(dotValue);
+        const glm::vec3 axisCamera = glm::cross(from, to);
 
-    const glm::vec3 currentPosition = arcballTarget + offsetDirection * arcballDistance;
-    const glm::vec3 currentFront = glm::normalize(arcballTarget - currentPosition);
-    const glm::vec3 currentRight =
-            glm::normalize(glm::cross(currentFront, glm::vec3(0.0f, -1.0f, 0.0f)));
-    const glm::vec3 currentUp = glm::normalize(glm::cross(currentRight, currentFront));
+        if (glm::length2(axisCamera) > 1e-9f && angle > 1e-5f) {
+            const glm::vec3 forward = glm::normalize(arcballTarget - position);
+            const glm::vec3 worldUp = glm::vec3(0.0f, -1.0f, 0.0f);
+            const glm::vec3 right = glm::normalize(glm::cross(forward, worldUp));
+            const glm::vec3 upAxis = glm::normalize(glm::cross(right, forward));
 
-    arcballTarget += currentRight * (-middleButtonDelta.x * arcballPanSpeed);
-    arcballTarget += currentUp * (-middleButtonDelta.y * arcballPanSpeed);
+            const glm::vec3 axisWorld = glm::normalize(
+                axisCamera.x * right + axisCamera.y * upAxis + axisCamera.z * (-forward));
 
-    position = arcballTarget + offsetDirection * arcballDistance;
+            const glm::quat rotation = glm::angleAxis(angle * arcballRotateSpeed, axisWorld);
+            glm::vec3 offset = position - arcballTarget;
+            offset = rotation * offset;
+            position = arcballTarget + offset;
+            up = glm::normalize(rotation * up);
+        }
+    }
+
+    glm::vec3 viewFront = glm::normalize(front);
+    glm::vec3 viewRight = glm::normalize(glm::cross(viewFront, up));
+    glm::vec3 viewUp = glm::normalize(glm::cross(viewRight, viewFront));
+
+    if (rightPressed) {
+        const float viewScale =
+            (2.0f * arcballDistance * std::tan(glm::radians(fieldOfView) * 0.5f)) /
+            safeHeight;
+        const float panScale = viewScale * arcballPanSpeed * 0.5f;
+        const glm::vec3 translation =
+            (-cursorDelta.x * panScale) * viewRight +
+            (-cursorDelta.y * panScale) * viewUp;
+        position += translation;
+        arcballTarget += translation;
+    }
+
+    if (middlePressed) {
+        arcballDistance += cursorDelta.y * arcballZoomSpeed * 0.1f;
+        arcballDistance = std::clamp(arcballDistance, arcballMinDistance,
+                                     arcballMaxDistance);
+        position = arcballTarget - viewFront * arcballDistance;
+    }
+
+    if (leftPressed) {
+        position = arcballTarget + glm::normalize(position - arcballTarget) * arcballDistance;
+    }
+
     front = glm::normalize(arcballTarget - position);
-    up = currentUp;
+    viewRight = glm::normalize(glm::cross(front, viewUp));
+    up = glm::normalize(glm::cross(viewRight, front));
+    arcballDistance = glm::length(arcballTarget - position);
 }
 
 void Camera::update() {
     constexpr uint_fast8_t left = 0;
     constexpr uint_fast8_t right = 1;
-    constexpr uint_fast8_t middle = 2;
     std::array<glm::vec2, 3> buttonDelta{};
     bool mousePositionChanged = false;
     static bool run = false;
@@ -117,21 +186,54 @@ void Camera::update() {
         }
     }
 
+    if (mode == Mode::Arcball) {
+        double xpos(0.0), ypos(0.0);
+        glfwGetCursorPos(Window::get().window, &xpos, &ypos);
+        const glm::vec2 cursorPos(static_cast<float>(xpos),
+                                  static_cast<float>(ypos));
+
+        const bool leftPressed =
+            glfwGetMouseButton(Window::get().window, GLFW_MOUSE_BUTTON_LEFT) ==
+            GLFW_PRESS;
+        const bool rightPressed =
+            glfwGetMouseButton(Window::get().window, GLFW_MOUSE_BUTTON_RIGHT) ==
+            GLFW_PRESS;
+        const bool middlePressed =
+            glfwGetMouseButton(Window::get().window, GLFW_MOUSE_BUTTON_MIDDLE) ==
+            GLFW_PRESS;
+
+        if (!arcballCursorInitialized) {
+            arcballLastCursor = cursorPos;
+            arcballCursorInitialized = true;
+        }
+
+        if ((!arcballLeftWasDown && leftPressed) ||
+            (!arcballRightWasDown && rightPressed)) {
+            arcballLastCursor = cursorPos;
+        }
+
+        const glm::vec2 previousCursor = arcballLastCursor;
+        arcballLastCursor = cursorPos;
+
+        applyArcballMode(previousCursor, cursorPos, leftPressed, rightPressed,
+                 middlePressed,
+                 static_cast<float>(Window::get().display.width),
+                 static_cast<float>(Window::get().display.height));
+
+        arcballLeftWasDown = leftPressed;
+        arcballRightWasDown = rightPressed;
+        return;
+    }
+
     if (mousePositionChanged) {
         run = true;
     }
 
     if (!run) {
         return;
-    }
-
-    const glm::vec2 leftButtonDelta = buttonDelta[left];
-    const glm::vec2 rightButtonDelta = buttonDelta[right];
-    const glm::vec2 middleButtonDelta = buttonDelta[middle];
-
-    if (mode == Mode::Arcball) {
-        applyArcballMode(leftButtonDelta, rightButtonDelta, middleButtonDelta);
     } else {
+        const glm::vec2 leftButtonDelta = buttonDelta[left];
+        const glm::vec2 rightButtonDelta = buttonDelta[right];
         applyPanningMode(leftButtonDelta, rightButtonDelta);
     }
 

@@ -1,4 +1,5 @@
 #include "CapitalEngine.h"
+#include "core/Log.h"
 
 #include <string>
 

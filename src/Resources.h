@@ -1,9 +1,12 @@
 #pragma once
 #include "vulkan/vulkan.h"
 
-#include "BaseClasses.h"
 #include "ShaderAccess.h"
 #include "World.h"
+#include "base/VulkanDescriptor.h"
+#include "base/VulkanPipeline.h"
+#include "base/VulkanResources.h"
+#include "base/VulkanSync.h"
 
 #include <array>
 #include <cstring>

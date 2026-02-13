@@ -1,5 +1,6 @@
 #pragma once
-#include "BaseClasses.h"
+#include "base/VulkanDevice.h"
+#include "base/VulkanSync.h"
 
 class Pipelines;
 class Resources;

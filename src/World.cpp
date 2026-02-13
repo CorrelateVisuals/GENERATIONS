@@ -2,8 +2,10 @@
 #include "CapitalEngine.h"
 #include "Geometry.h"
 #include "Terrain.h"
+#include "core/Log.h"
 
 #include <algorithm>
+#include <cmath>
 #include <cstdlib>
 #include <ctime>
 #include <random>
@@ -48,6 +50,12 @@ World::World(VkCommandBuffer& commandBuffer,
               FAR_CLIPPING,
               CAMERA_POSITION),
       _time(TIMER_SPEED) {
+  const float halfGridX = 0.5f * static_cast<float>(GRID_SIZE.x) * CELL_SIZE;
+  const float halfGridY = 0.5f * static_cast<float>(GRID_SIZE.y) * CELL_SIZE;
+  const float sceneRadius =
+      std::sqrt(halfGridX * halfGridX + halfGridY * halfGridY);
+  _camera.configureArcball(glm::vec3(0.0f, 0.0f, 0.0f), sceneRadius);
+
   Log::text("{ wWw }", "constructing World");
 }
 

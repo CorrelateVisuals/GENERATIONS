@@ -1,6 +1,9 @@
 #include "ShaderAccess.h"
 #include "Pipelines.h"
-#include "Resources.h" 
+#include "Resources.h"
+#include "base/VulkanUtils.h"
+
+#include <stdexcept>
 
 void CE::ShaderAccess::CommandResources::recordComputeCommandBuffer(
     Resources& resources,

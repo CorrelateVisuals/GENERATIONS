@@ -1,4 +1,6 @@
 #include "Window.h"
+
+#include "core/Log.h"
 #include "CapitalEngine.h"
 
 #include <unordered_map>

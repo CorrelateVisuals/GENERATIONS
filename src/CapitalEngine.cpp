@@ -1,6 +1,8 @@
 #include "CapitalEngine.h"
+#include "core/Log.h"
 #include "Screenshot.h"
-#include "Window.h"
+#include "platform/Window.h"
+#include "base/VulkanUtils.h"
 
 #include <array>
 #include <chrono>

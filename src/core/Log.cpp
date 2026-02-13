@@ -1,5 +1,4 @@
 #include "Log.h"
-#include "BaseClasses.h"
 
 #include <chrono>
 #include <filesystem>
@@ -51,7 +50,7 @@ void Log::logTitle() {
 void Log::logFooter() {
   Log::measureElapsedTime();
   Log::text(Log::Style::headerGuard);
-  Log::text("© Jakob Povel | Correlate Visuals ©");
+  Log::text("ï¿½ Jakob Povel | Correlate Visuals ï¿½");
 }
 
 bool Log::skipLogging(uint8_t logLevel, std::string icon) {

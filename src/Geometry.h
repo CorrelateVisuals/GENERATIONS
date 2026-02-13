@@ -9,7 +9,7 @@
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/hash.hpp>
 
-#include "BaseClasses.h"
+#include "base/VulkanResources.h"
 
 #include <string>
 #include <vector>

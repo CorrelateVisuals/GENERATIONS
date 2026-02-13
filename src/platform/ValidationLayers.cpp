@@ -1,4 +1,6 @@
 #include "ValidationLayers.h"
+
+#include "core/Log.h"
 #include "CapitalEngine.h"
 
 #include <set>

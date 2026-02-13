@@ -1,7 +1,9 @@
 #pragma once
 #include <vulkan/vulkan.h>
 
-#include "BaseClasses.h"
+#include "base/VulkanDevice.h"
+#include "base/VulkanResources.h"
+#include "base/VulkanSync.h"
 
 #include <string>
 
