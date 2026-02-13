@@ -16,9 +16,14 @@ uint32_t CE::findMemoryType(const uint32_t typeFilter,
   vkGetPhysicalDeviceMemoryProperties(Device::baseDevice->physical,
                                       &memProperties);
 
+  Log::text("{ MEM }", "Find Memory Type", "typeFilter", typeFilter);
+  Log::text(Log::Style::charLeader, Log::getMemoryPropertyString(properties));
+
   for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
     if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags &
                                     properties) == properties) {
+      Log::text(Log::Style::charLeader, "MemoryType index", i, "heap",
+                memProperties.memoryTypes[i].heapIndex);
       return i;
     }
   }
@@ -56,12 +61,22 @@ void CE::Buffer::create(const VkDeviceSize& size,
   VkMemoryRequirements memRequirements{};
   vkGetBufferMemoryRequirements(Device::baseDevice->logical, buffer.buffer,
                                 &memRequirements);
+    Log::text("{ MEM }", "Buffer Memory Requirements");
+    Log::text(Log::Style::charLeader, "requested", size, "aligned",
+        memRequirements.size, "bytes");
+    Log::text(Log::Style::charLeader, "alignment", memRequirements.alignment,
+        "typeBits", memRequirements.memoryTypeBits);
+
+    const uint32_t memoryTypeIndex =
+      CE::findMemoryType(memRequirements.memoryTypeBits, properties);
 
   VkMemoryAllocateInfo allocateInfo{
       .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
       .allocationSize = memRequirements.size,
-      .memoryTypeIndex =
-          CE::findMemoryType(memRequirements.memoryTypeBits, properties)};
+      .memoryTypeIndex = memoryTypeIndex};
+
+    Log::text(Log::Style::charLeader, "alloc", allocateInfo.allocationSize,
+        "bytes", "memoryTypeIndex", allocateInfo.memoryTypeIndex);
 
   CE::VULKAN_RESULT(vkAllocateMemory, Device::baseDevice->logical,
                     &allocateInfo, nullptr, &buffer.memory);
@@ -151,12 +166,22 @@ void CE::Image::create(const uint32_t width,
   VkMemoryRequirements memRequirements{};
   vkGetImageMemoryRequirements(Device::baseDevice->logical, this->image,
                                &memRequirements);
+    Log::text("{ MEM }", "Image Memory Requirements");
+    Log::text(Log::Style::charLeader, "extent", width, "x", height,
+        "aligned", memRequirements.size, "bytes");
+    Log::text(Log::Style::charLeader, "alignment", memRequirements.alignment,
+        "typeBits", memRequirements.memoryTypeBits);
+
+    const uint32_t memoryTypeIndex =
+      findMemoryType(memRequirements.memoryTypeBits, properties);
 
   VkMemoryAllocateInfo allocateInfo{
       .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
       .allocationSize = memRequirements.size,
-      .memoryTypeIndex =
-          findMemoryType(memRequirements.memoryTypeBits, properties)};
+      .memoryTypeIndex = memoryTypeIndex};
+
+    Log::text(Log::Style::charLeader, "alloc", allocateInfo.allocationSize,
+        "bytes", "memoryTypeIndex", allocateInfo.memoryTypeIndex);
 
   CE::VULKAN_RESULT(vkAllocateMemory, Device::baseDevice->logical,
                     &allocateInfo, nullptr, &this->memory);
@@ -186,6 +211,9 @@ void CE::Image::transitionLayout(const VkCommandBuffer& commandBuffer,
                                  const VkFormat format,
                                  const VkImageLayout oldLayout,
                                  const VkImageLayout newLayout) {
+  Log::text("{ SYNC }", "Image Layout Transition", oldLayout, "->",
+            newLayout, "format", format);
+
   VkImageMemoryBarrier barrier{.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
                                .oldLayout = oldLayout,
                                .newLayout = newLayout,
@@ -226,6 +254,11 @@ void CE::Image::transitionLayout(const VkCommandBuffer& commandBuffer,
     destinationStage =
         VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
   }
+
+  Log::text(Log::Style::charLeader, "srcAccess", barrier.srcAccessMask,
+            "dstAccess", barrier.dstAccessMask);
+  Log::text(Log::Style::charLeader, "srcStage", sourceStage, "dstStage",
+            destinationStage);
 
   vkCmdPipelineBarrier(commandBuffer, sourceStage, destinationStage, 0, 0,
                        nullptr, 0, nullptr, 1, &barrier);

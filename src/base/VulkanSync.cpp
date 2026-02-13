@@ -166,6 +166,14 @@ CE::Swapchain::SupportDetails CE::Swapchain::checkSupport(
                                                 &presentModeCount,
                                                 details.presentModes.data());
     }
+
+    Log::text("{ SWP }", "Swapchain support", "formats",
+              details.formats.size(), "presentModes",
+              details.presentModes.size());
+    Log::text(Log::Style::charLeader, "capabilities min/max imageCount",
+              details.capabilities.minImageCount, "/",
+              details.capabilities.maxImageCount);
+
     this->supportDetails = details;
     return details;
   }
@@ -277,6 +285,7 @@ void CE::Swapchain::create(const VkSurfaceKHR& surface, const Queues& queues) {
       pickExtent(Window::get().window, supportDetails.capabilities);
 
   uint32_t imageCount = getImageCount(swapchainSupport);
+  Log::text("{ SWP }", "Requested swapchain imageCount", imageCount);
 
   VkSwapchainCreateInfoKHR createInfo{
       .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
@@ -304,8 +313,12 @@ void CE::Swapchain::create(const VkSurfaceKHR& surface, const Queues& queues) {
     createInfo.queueFamilyIndexCount =
         static_cast<uint32_t>(queueFamilyIndices.size());
     createInfo.pQueueFamilyIndices = queueFamilyIndices.data();
+    Log::text("{ SWP }", "Sharing mode", "CONCURRENT", "gcFamily",
+              queueFamilyIndices[0], "presentFamily", queueFamilyIndices[1]);
   } else {
     createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    Log::text("{ SWP }", "Sharing mode", "EXCLUSIVE", "family",
+              queueFamilyIndices[0]);
   }
 
   CE::VULKAN_RESULT(vkCreateSwapchainKHR, Device::baseDevice->logical,
@@ -313,6 +326,10 @@ void CE::Swapchain::create(const VkSurfaceKHR& surface, const Queues& queues) {
 
   vkGetSwapchainImagesKHR(Device::baseDevice->logical, this->swapchain,
                           &imageCount, nullptr);
+
+  Log::text("{ SWP }", "Swapchain created", "format", surfaceFormat.format,
+            "presentMode", presentMode, "extent", extent.width, "x",
+            extent.height, "images", imageCount);
 
   this->imageFormat = surfaceFormat.format;
   this->extent = extent;
@@ -351,6 +368,13 @@ void CE::SynchronizationObjects::create() {
                       &this->computeFinishedSemaphores[i]);
     CE::VULKAN_RESULT(vkCreateFence, Device::baseDevice->logical, &fenceInfo,
                       nullptr, &this->computeInFlightFences[i]);
+
+    Log::text(Log::Style::charLeader, "frame", i, "sync handles",
+              this->imageAvailableSemaphores[i],
+              this->computeFinishedSemaphores[i],
+              this->renderFinishedSemaphores[i],
+              this->computeInFlightFences[i],
+              this->graphicsInFlightFences[i]);
   }
 }
 

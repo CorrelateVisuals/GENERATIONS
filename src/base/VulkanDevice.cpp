@@ -21,6 +21,7 @@ void CE::Device::createLogicalDevice(const InitializeVulkan& initVulkan,
 
   CE::VULKAN_RESULT(vkCreateDevice, this->physical, &createInfo, nullptr,
                     &this->logical);
+  Log::text("{ GPU }", "Logical Device created", this->logical);
   vkGetDeviceQueue(this->logical,
                    queues.familyIndices.graphicsAndComputeFamily.value(), 0,
                    &queues.graphics);
@@ -29,6 +30,13 @@ void CE::Device::createLogicalDevice(const InitializeVulkan& initVulkan,
                    &queues.compute);
   vkGetDeviceQueue(this->logical, queues.familyIndices.presentFamily.value(),
                    0, &queues.present);
+
+  Log::text(Log::Style::charLeader, "graphics/compute queue family",
+            queues.familyIndices.graphicsAndComputeFamily.value());
+  Log::text(Log::Style::charLeader, "present queue family",
+            queues.familyIndices.presentFamily.value());
+  Log::text(Log::Style::charLeader, "queue handles", queues.graphics,
+            queues.compute, queues.present);
 }
 
 void CE::Device::pickPhysicalDevice(const InitializeVulkan& initVulkan,
@@ -36,6 +44,7 @@ void CE::Device::pickPhysicalDevice(const InitializeVulkan& initVulkan,
                                     Swapchain& swapchain) {
   Log::text("{ ### }", "Physical Device");
   std::vector<VkPhysicalDevice> devices = fillDevices(initVulkan);
+  Log::text("{ GPU }", "Enumerated Vulkan physical devices", devices.size());
 
   for (const auto& device : devices) {
     if (isDeviceSuitable(device, queues, initVulkan, swapchain)) {
@@ -43,6 +52,8 @@ void CE::Device::pickPhysicalDevice(const InitializeVulkan& initVulkan,
       getMaxUsableSampleCount();
       Log::text(Log::Style::charLeader,
                 Log::getSampleCountString(this->maxUsableSampleCount));
+      Log::text(Log::Style::charLeader, "selected physical device",
+                this->physical);
       break;
     }
   }
@@ -123,6 +134,9 @@ bool CE::Device::isDeviceSuitable(const VkPhysicalDevice& physical,
     swapchainAdequate = !swapchainSupport.formats.empty() &&
                         !swapchainSupport.presentModes.empty();
   }
+  Log::text(Log::Style::charLeader, "queueComplete",
+            queues.familyIndices.isComplete(), "extensions",
+            extensionsSupported, "swapchainAdequate", swapchainAdequate);
   return queues.familyIndices.isComplete() && extensionsSupported &&
          swapchainAdequate;
 }
@@ -154,12 +168,18 @@ bool CE::Device::checkDeviceExtensionSupport(
   std::vector<VkExtensionProperties> availableExtensions(extensionCount);
   vkEnumerateDeviceExtensionProperties(physical, nullptr, &extensionCount,
                                        availableExtensions.data());
+  Log::text(Log::Style::charLeader, "available extensions", extensionCount,
+            "required", this->extensions.size());
 
   std::set<std::string> requiredExtensions(this->extensions.begin(),
                                            this->extensions.end());
 
   for (const auto& extension : availableExtensions) {
     requiredExtensions.erase(extension.extensionName);
+  }
+  if (!requiredExtensions.empty()) {
+    Log::text("{ GPU }", "missing required device extensions",
+              requiredExtensions.size());
   }
   return requiredExtensions.empty();
 }
@@ -210,6 +230,9 @@ CE::Queues::FamilyIndices CE::Queues::findQueueFamilies(
       indices.presentFamily = i;
     }
     if (indices.isComplete()) {
+      Log::text(Log::Style::charLeader, "selected queue families", "gc",
+                indices.graphicsAndComputeFamily.value(), "present",
+                indices.presentFamily.value());
       break;
     }
     i++;

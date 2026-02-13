@@ -67,12 +67,15 @@ void CapitalEngine::mainLoop() {
 }
 
 void CapitalEngine::drawFrame() {
+    Log::text("{ FRM }", "Frame", mechanics.syncObjects.currentFrame, "begin");
+
   // Compute submission
   vkWaitForFences(
       mechanics.mainDevice.logical, 1,
       &mechanics.syncObjects
            .computeInFlightFences[mechanics.syncObjects.currentFrame],
       VK_TRUE, UINT64_MAX);
+    Log::text(Log::Style::charLeader, "compute fence waited", mechanics.syncObjects.currentFrame);
 
   resources.uniform.update(resources.world, mechanics.swapchain.extent);
 
@@ -104,6 +107,9 @@ void CapitalEngine::drawFrame() {
       &computeSubmitInfo,
       mechanics.syncObjects
           .computeInFlightFences[mechanics.syncObjects.currentFrame]);
+    Log::text("{ CMP }", "Compute submit", "frame", mechanics.syncObjects.currentFrame,
+                        "signal", mechanics.syncObjects
+                                                    .computeFinishedSemaphores[mechanics.syncObjects.currentFrame]);
 
   // Graphics submission
   vkWaitForFences(
@@ -118,6 +124,7 @@ void CapitalEngine::drawFrame() {
       mechanics.syncObjects
           .imageAvailableSemaphores[mechanics.syncObjects.currentFrame],
       VK_NULL_HANDLE, &imageIndex);
+  Log::text("{ SWP }", "Acquire image", imageIndex, "result", result);
 
   if (result == VK_ERROR_OUT_OF_DATE_KHR) {
     mechanics.swapchain.recreate(mechanics.initVulkan.surface, mechanics.queues,
@@ -147,6 +154,8 @@ void CapitalEngine::drawFrame() {
   const std::array<VkPipelineStageFlags, GRAPHICS_WAIT_COUNT> waitStages{
       VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
       VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+    Log::text("{ SYNC }", "Graphics waits", "compute->VERTEX_INPUT",
+                        "acquire->COLOR_ATTACHMENT_OUTPUT");
 
   VkSubmitInfo graphicsSubmitInfo{
       .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
@@ -167,6 +176,8 @@ void CapitalEngine::drawFrame() {
       &graphicsSubmitInfo,
       mechanics.syncObjects
           .graphicsInFlightFences[mechanics.syncObjects.currentFrame]);
+    Log::text("{ GFX }", "Graphics submit", "frame",
+                        mechanics.syncObjects.currentFrame, "image", imageIndex);
 
   const VkSwapchainKHR swapchain = mechanics.swapchain.swapchain;
 
@@ -183,6 +194,7 @@ void CapitalEngine::drawFrame() {
       .pResults = nullptr};
 
   result = vkQueuePresentKHR(mechanics.queues.present, &presentInfo);
+    Log::text("{ SWP }", "Present image", imageIndex, "result", result);
 
   if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR ||
       Window::get().framebufferResized) {
@@ -197,6 +209,9 @@ void CapitalEngine::drawFrame() {
 
   mechanics.syncObjects.currentFrame =
       (mechanics.syncObjects.currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+
+    Log::text("{ FRM }", "Frame", mechanics.syncObjects.currentFrame,
+                        "scheduled");
 }
 
 void CapitalEngine::takeScreenshot() {
