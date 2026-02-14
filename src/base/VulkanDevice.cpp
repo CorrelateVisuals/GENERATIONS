@@ -14,7 +14,7 @@ void CE::Device::create_logical_device(const InitializeVulkan &init_vulkan,
                      Queues &queues) {
   Log::text("{ +++ }", "Logical Device");
 
-  std::vector<VkDeviceQueueCreateInfo> queue_create_infos =
+  const std::vector<VkDeviceQueueCreateInfo> queue_create_infos =
       fill_queue_create_infos(queues);
   VkDeviceCreateInfo create_info = get_device_create_info(queue_create_infos);
   set_validation_layers(init_vulkan, create_info);
@@ -77,11 +77,11 @@ void CE::Device::pick_physical_device(const InitializeVulkan &init_vulkan,
 std::vector<VkDeviceQueueCreateInfo>
 CE::Device::fill_queue_create_infos(const Queues &queues) const {
   std::vector<VkDeviceQueueCreateInfo> queue_create_infos{};
-  std::set<uint32_t> unique_queue_families = {
+  const std::set<uint32_t> unique_queue_families = {
       queues.family_indices.graphics_and_compute_family.value(),
       queues.family_indices.present_family.value()};
 
-  float queue_priority = 1.0f;
+  const float queue_priority = 1.0f;
   for (uint_fast8_t queue_family : unique_queue_families) {
     VkDeviceQueueCreateInfo queue_create_info{
         .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
@@ -137,7 +137,7 @@ bool CE::Device::is_device_suitable(const VkPhysicalDevice &physical_device,
 
   queues.family_indices =
       queues.find_queue_families(physical_device, init_vulkan.surface);
-  bool extensions_supported = check_device_extension_support(physical_device);
+  const bool extensions_supported = check_device_extension_support(physical_device);
 
   bool swapchain_adequate = false;
   if (extensions_supported) {
@@ -160,7 +160,8 @@ bool CE::Device::is_device_suitable(const VkPhysicalDevice &physical_device,
 
 void CE::Device::get_max_usable_sample_count() {
   vkGetPhysicalDeviceProperties(this->physical_device, &this->properties_);
-  VkSampleCountFlags counts = this->properties_.limits.framebufferColorSampleCounts &
+  const VkSampleCountFlags counts =
+      this->properties_.limits.framebufferColorSampleCounts &
                               this->properties_.limits.framebufferDepthSampleCounts;
   for (uint_fast8_t i = VK_SAMPLE_COUNT_64_BIT; i >= VK_SAMPLE_COUNT_1_BIT; i >>= 1) {
     if (counts & i) {
@@ -287,7 +288,7 @@ void CE::InitializeVulkan::create_instance() {
     throw std::runtime_error("\n!ERROR! validation layers requested, but not available!");
   }
 
-  VkApplicationInfo app_info{.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
+  const VkApplicationInfo app_info{.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
                              .pApplicationName = Window::get().display.title,
                              .applicationVersion = VK_MAKE_VERSION(0, 0, 1),
                              .pEngineName = "CAPITAL Engine",
@@ -303,7 +304,7 @@ void CE::InitializeVulkan::create_instance() {
             "Vulkan",
             1.3);
 
-  std::vector<const char *> extensions = get_required_extensions();
+  const std::vector<const char *> extensions = get_required_extensions();
 
   VkInstanceCreateInfo createInfo{.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
                                   .pNext = nullptr,

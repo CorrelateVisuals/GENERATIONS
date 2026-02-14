@@ -50,8 +50,8 @@ World::World(VkCommandBuffer &command_buffer,
   const float halfGridX = 0.5f * static_cast<float>(GRID_SIZE.x) * CELL_SIZE;
   const float halfGridY = 0.5f * static_cast<float>(GRID_SIZE.y) * CELL_SIZE;
   const float sceneRadius = std::sqrt(halfGridX * halfGridX + halfGridY * halfGridY);
-  _camera.configureArcball(glm::vec3(0.0f, 0.0f, 0.0f), sceneRadius);
-  _camera.configureArcballMultipliers(
+    _camera.configure_arcball(glm::vec3(0.0f, 0.0f, 0.0f), sceneRadius);
+    _camera.configure_arcball_multipliers(
       ARCBALL_TUMBLE_MULT, ARCBALL_PAN_MULT, ARCBALL_DOLLY_MULT);
 
   Log::text("{ wWw }", "constructing World");

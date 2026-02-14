@@ -2,6 +2,7 @@
 
 #include "core/Log.h"
 
+#include <array>
 #include <unordered_map>
 #include <vector>
 
@@ -61,7 +62,7 @@ bool Window::consume_screenshot_pressed() {
 void Window::set_mouse() {
   int newState = GLFW_RELEASE;
   static int buttonType = -1;
-  const static std::vector<uint32_t> mouseButtonTypes{
+  constexpr std::array<int, 3> mouseButtonTypes{
       GLFW_MOUSE_BUTTON_LEFT, GLFW_MOUSE_BUTTON_RIGHT, GLFW_MOUSE_BUTTON_MIDDLE};
 
   for (const int mouseButtonType : mouseButtonTypes) {
@@ -108,7 +109,7 @@ void Window::set_mouse() {
                 buttonMappings.find(buttonType);
             if (buttonMapping != buttonMappings.end()) {
               const std::string &message = buttonMapping->second;
-              glm::vec2 normalizedCoords =
+                const glm::vec2 normalizedCoords =
                   glm::vec2(x, y) * glm::vec2(2.0f, 2.0f) - glm::vec2(1.0f, 1.0f);
               mouse.button_down[buttonType].position += normalizedCoords * mouse.speed;
 

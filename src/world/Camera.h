@@ -6,81 +6,81 @@ class Camera {
 public:
   enum class Mode { Panning, Arcball };
 
-  float zoomSpeed;
-  float panningSpeed;
-  float fieldOfView;
-  float nearClipping;
-  float farClipping;
+  float zoom_speed;
+  float panning_speed;
+  float field_of_view;
+  float near_clipping;
+  float far_clipping;
   glm::vec3 position;
   glm::vec3 front{0.0f, 0.0f, -1.0f};
   glm::vec3 up{0.0f, -1.0f, 0.0f};
 
   Camera(float zoom, float pan, float fov, float near, float far, glm::vec3 pos)
-      : zoomSpeed(zoom), panningSpeed(pan), fieldOfView(fov), nearClipping(near),
-        farClipping(far), position(pos), mode(Mode::Panning),
-        arcballTarget(0.0f, 0.0f, 0.0f), arcballDistance(glm::length(pos)),
-        arcballMinDistance(2.0f), arcballMaxDistance(300.0f), arcballYaw(0.0f),
-        arcballPitch(0.0f), arcballRotateSpeed(1.4f), arcballPanSpeed(pan),
-        arcballZoomSpeed(zoom), arcballTumbleMult(1.0f), arcballPanMult(1.0f),
-        arcballDollyMult(1.0f), arcballHorizonLock(true),
-        arcballUseConfiguredTarget(false), arcballCursorInitialized(false),
-        arcballLeftWasDown(false), arcballRightWasDown(false),
-        arcballLastCursor(0.0f, 0.0f) {}
+      : zoom_speed(zoom), panning_speed(pan), field_of_view(fov), near_clipping(near),
+        far_clipping(far), position(pos), mode(Mode::Panning),
+        arcball_target(0.0f, 0.0f, 0.0f), arcball_distance(glm::length(pos)),
+        arcball_min_distance(2.0f), arcball_max_distance(300.0f), arcball_yaw(0.0f),
+        arcball_pitch(0.0f), arcball_rotate_speed(1.4f), arcball_pan_speed(pan),
+        arcball_zoom_speed(zoom), arcball_tumble_mult(1.0f), arcball_pan_mult(1.0f),
+        arcball_dolly_mult(1.0f), arcball_horizon_lock(true),
+        arcball_use_configured_target(false), arcball_cursor_initialized(false),
+        arcball_left_was_down(false), arcball_right_was_down(false),
+        arcball_last_cursor(0.0f, 0.0f) {}
 
-  void setMode(Mode newMode) {
-    mode = newMode;
+  void set_mode(Mode new_mode) {
+    mode = new_mode;
   }
-  Mode getMode() const {
+  Mode get_mode() const {
     return mode;
   }
-  void toggleMode();
-  void configureArcball(const glm::vec3 &target, float sceneRadius);
-  void configureArcballMultipliers(float tumble, float pan, float dolly);
-  void setArcballHorizonLock(bool enabled) {
-    arcballHorizonLock = enabled;
+  void toggle_mode();
+  void configure_arcball(const glm::vec3 &target, float scene_radius);
+  void configure_arcball_multipliers(float tumble, float pan, float dolly);
+  void set_arcball_horizon_lock(bool enabled) {
+    arcball_horizon_lock = enabled;
   }
-  bool getArcballHorizonLock() const {
-    return arcballHorizonLock;
+  bool get_arcball_horizon_lock() const {
+    return arcball_horizon_lock;
   }
 
-  glm::mat4 setModel();
-  glm::mat4 setView();
-  glm::mat4 setProjection(const VkExtent2D &swapchainExtent);
+  glm::mat4 set_model();
+  glm::mat4 set_view();
+  glm::mat4 set_projection(const VkExtent2D &swapchain_extent);
 
 private:
-  void applyPanningMode(const glm::vec2 &leftButtonDelta,
-                        const glm::vec2 &rightButtonDelta);
-  void applyArcballMode(const glm::vec2 &previousCursor,
-                        const glm::vec2 &currentCursor,
-                        const bool leftPressed,
-                        const bool rightPressed,
-                        const bool middlePressed,
-                        const float viewportWidth,
-                        const float viewportHeight);
-  glm::vec3 mapCursorToArcball(const glm::vec2 &cursor,
-                               const float viewportWidth,
-                               const float viewportHeight) const;
-  void syncArcballFromCurrentView(bool keepConfiguredTarget);
+  void apply_panning_mode(const glm::vec2 &left_button_delta,
+                          const glm::vec2 &right_button_delta);
+  void apply_arcball_mode(const glm::vec2 &previous_cursor,
+                          const glm::vec2 &current_cursor,
+                          const bool left_pressed,
+                          const bool right_pressed,
+                          const bool middle_pressed,
+                          const float viewport_width,
+                          const float viewport_height);
+  glm::vec3 map_cursor_to_arcball(const glm::vec2 &cursor,
+                                  const float viewport_width,
+                                  const float viewport_height) const;
+  void sync_arcball_from_current_view(bool keep_configured_target);
 
   Mode mode;
-  glm::vec3 arcballTarget;
-  float arcballDistance;
-  float arcballMinDistance;
-  float arcballMaxDistance;
-  float arcballYaw;
-  float arcballPitch;
-  float arcballRotateSpeed;
-  float arcballPanSpeed;
-  float arcballZoomSpeed;
-  float arcballTumbleMult;
-  float arcballPanMult;
-  float arcballDollyMult;
-  bool arcballHorizonLock;
-  bool arcballUseConfiguredTarget;
-  bool arcballCursorInitialized;
-  bool arcballLeftWasDown;
-  bool arcballRightWasDown;
-  glm::vec2 arcballLastCursor;
+  glm::vec3 arcball_target;
+  float arcball_distance;
+  float arcball_min_distance;
+  float arcball_max_distance;
+  float arcball_yaw;
+  float arcball_pitch;
+  float arcball_rotate_speed;
+  float arcball_pan_speed;
+  float arcball_zoom_speed;
+  float arcball_tumble_mult;
+  float arcball_pan_mult;
+  float arcball_dolly_mult;
+  bool arcball_horizon_lock;
+  bool arcball_use_configured_target;
+  bool arcball_cursor_initialized;
+  bool arcball_left_was_down;
+  bool arcball_right_was_down;
+  glm::vec2 arcball_last_cursor;
 
   void update();
 };

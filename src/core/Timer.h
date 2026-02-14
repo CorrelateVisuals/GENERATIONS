@@ -12,7 +12,7 @@ public:
   void run();
 
 private:
-  const int hours_per_day{24};
+  static constexpr int hours_per_day{24};
   const float target_duration{1.0f / (speed / hours_per_day)};
-  const float trigger_delay_under_speed = 100.0f;
+  static constexpr float trigger_delay_under_speed = 100.0f;
 };

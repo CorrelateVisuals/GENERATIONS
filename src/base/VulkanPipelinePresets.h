@@ -154,7 +154,7 @@ constexpr static inline VkPipelineLayoutCreateInfo layout_default{
     .pSetLayouts = nullptr,
     .pushConstantRangeCount = 0,
     .pPushConstantRanges = nullptr};
-const static inline uint32_t tessellation_topology_triangle = 3;
+constexpr static inline uint32_t tessellation_topology_triangle = 3;
 constexpr static inline VkPipelineTessellationStateCreateInfo tessellation_state_default{
     .sType = VK_STRUCTURE_TYPE_PIPELINE_TESSELLATION_STATE_CREATE_INFO,
     .pNext = nullptr,

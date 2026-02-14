@@ -35,7 +35,7 @@ void CE::CommandBuffers::create_pool(const Queues::FamilyIndices &family_indices
                    VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
   poolInfo.queueFamilyIndex = family_indices.graphics_and_compute_family.value();
 
-  VkResult result =
+  const VkResult result =
         vkCreateCommandPool(
           Device::base_device->logical_device, &poolInfo, nullptr, &this->pool);
   Log::text("{ cmd }", "Command Pool created", result, this->pool, "@", &this->pool);
@@ -69,7 +69,7 @@ void CE::CommandBuffers::begin_singular_commands(const VkCommandPool &command_po
       .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
       .commandBufferCount = 1};
 
-  VkResult allocResult = vkAllocateCommandBuffers(
+  const VkResult allocResult = vkAllocateCommandBuffers(
         Device::base_device->logical_device, &allocInfo, &singular_command_buffer);
       Log::text(
         "{ 1.. }", "Single Time alloc result", allocResult, singular_command_buffer);
@@ -77,7 +77,7 @@ void CE::CommandBuffers::begin_singular_commands(const VkCommandPool &command_po
   VkCommandBufferBeginInfo beginInfo{.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
                                      .flags =
                                          VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT};
-  VkResult beginResult = vkBeginCommandBuffer(singular_command_buffer, &beginInfo);
+  const VkResult beginResult = vkBeginCommandBuffer(singular_command_buffer, &beginInfo);
   Log::text("{ 1.. }", "Single Time begin result", beginResult);
 
   return;
@@ -97,7 +97,7 @@ void CE::CommandBuffers::end_singular_commands(const VkCommandPool &command_pool
   Log::text("{ ..1 }", "End Single Time CommandResources");
   Log::text("{ ..1 }", "Single Time: pool", command_pool, "queue", queue);
 
-  VkResult endResult = vkEndCommandBuffer(singular_command_buffer);
+  const VkResult endResult = vkEndCommandBuffer(singular_command_buffer);
   Log::text("{ ..1 }", "Single Time end result", endResult);
   VkSubmitInfo submitInfo{};
   submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -108,7 +108,7 @@ void CE::CommandBuffers::end_singular_commands(const VkCommandPool &command_pool
   fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
 
   VkFence uploadFence = VK_NULL_HANDLE;
-  VkResult fenceCreateResult =
+  const VkResult fenceCreateResult =
         vkCreateFence(
           Device::base_device->logical_device, &fenceInfo, nullptr, &uploadFence);
   Log::text("{ ..1 }",
@@ -120,7 +120,7 @@ void CE::CommandBuffers::end_singular_commands(const VkCommandPool &command_pool
     throw std::runtime_error("!ERROR! vkCreateFence failed for single time submit!");
   }
 
-  VkResult submitResult = vkQueueSubmit(queue, 1, &submitInfo, uploadFence);
+  const VkResult submitResult = vkQueueSubmit(queue, 1, &submitInfo, uploadFence);
   Log::text("{ ..1 }", "Single Time submit result", submitResult);
   if (Log::gpu_trace_enabled()) {
     Log::text("{ QUE }",
@@ -133,7 +133,7 @@ void CE::CommandBuffers::end_singular_commands(const VkCommandPool &command_pool
               uploadFence);
   }
 
-  VkResult waitResult =
+  const VkResult waitResult =
       vkWaitForFences(Device::base_device->logical_device,
               1,
               &uploadFence,
@@ -175,7 +175,7 @@ void CE::CommandBuffers::create_buffers(
       .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
       .commandBufferCount = static_cast<uint32_t>(command_buffers.size())};
 
-  VkResult result = vkAllocateCommandBuffers(
+  const VkResult result = vkAllocateCommandBuffers(
       CE::Device::base_device->logical_device, &allocateInfo, command_buffers.data());
   Log::text("{ cmd }", "Command Buffers alloc result", result);
   for (size_t i = 0; i < command_buffers.size(); ++i) {
@@ -336,17 +336,17 @@ void CE::Swapchain::recreate(const VkSurfaceKHR &surface,
   destroy();
   create(surface, queues);
 
-  uint32_t reset = 1;
+  constexpr uint32_t reset = 1;
   sync_objects.current_frame = reset;
 }
 
 void CE::Swapchain::create(const VkSurfaceKHR &surface, const Queues &queues) {
   Log::text("{ <-> }", "Swap Chain");
-  Swapchain::SupportDetails swapchainSupport =
+  const Swapchain::SupportDetails swapchainSupport =
       check_support(Device::base_device->physical_device, surface);
-  VkSurfaceFormatKHR surfaceFormat = pick_surface_format(swapchainSupport.formats);
-  VkPresentModeKHR presentMode = pick_present_mode(swapchainSupport.present_modes);
-  VkExtent2D extent = pick_extent(Window::get().window, support_details.capabilities);
+  const VkSurfaceFormatKHR surfaceFormat = pick_surface_format(swapchainSupport.formats);
+  const VkPresentModeKHR presentMode = pick_present_mode(swapchainSupport.present_modes);
+  const VkExtent2D extent = pick_extent(Window::get().window, support_details.capabilities);
 
   uint32_t imageCount = get_image_count(swapchainSupport);
   Log::text("{ SWP }",
@@ -369,7 +369,7 @@ void CE::Swapchain::create(const VkSurfaceKHR &surface, const Queues &queues) {
       .presentMode = presentMode,
       .clipped = VK_TRUE};
 
-    std::vector<uint32_t> queue_family_indices{
+    const std::vector<uint32_t> queue_family_indices{
       queues.family_indices.graphics_and_compute_family.value(),
       queues.family_indices.present_family.value()};
 

@@ -15,25 +15,30 @@
 #include <array>
 #include <cmath>
 
-void Camera::configureArcball(const glm::vec3 &target, float sceneRadius) {
-  arcballTarget = target;
-  arcballUseConfiguredTarget = true;
+void Camera::configure_arcball(const glm::vec3 &target, float scene_radius) {
+  arcball_target = target;
+  arcball_use_configured_target = true;
 
-  const float safeRadius = std::max(sceneRadius, 0.1f);
-  arcballMinDistance = std::max(safeRadius * 0.35f, 1.0f);
-  arcballMaxDistance = safeRadius * 14.0f;
-  arcballDistance = std::clamp(safeRadius * 2.8f, arcballMinDistance, arcballMaxDistance);
+  const float safe_radius = std::max(scene_radius, 0.1f);
+  constexpr float min_distance_radius_scale = 0.35f;
+  constexpr float max_distance_radius_scale = 14.0f;
+  constexpr float default_distance_radius_scale = 2.8f;
+  arcball_min_distance = std::max(safe_radius * min_distance_radius_scale, 1.0f);
+  arcball_max_distance = safe_radius * max_distance_radius_scale;
+  arcball_distance = std::clamp(safe_radius * default_distance_radius_scale,
+                                arcball_min_distance,
+                                arcball_max_distance);
 }
 
-void Camera::configureArcballMultipliers(float tumble, float pan, float dolly) {
-  arcballTumbleMult = std::max(tumble, 0.01f);
-  arcballPanMult = std::max(pan, 0.01f);
-  arcballDollyMult = std::max(dolly, 0.01f);
+void Camera::configure_arcball_multipliers(float tumble, float pan, float dolly) {
+  arcball_tumble_mult = std::max(tumble, 0.01f);
+  arcball_pan_mult = std::max(pan, 0.01f);
+  arcball_dolly_mult = std::max(dolly, 0.01f);
 }
 
-void Camera::toggleMode() {
+void Camera::toggle_mode() {
   if (mode == Mode::Panning) {
-    syncArcballFromCurrentView(arcballUseConfiguredTarget);
+    sync_arcball_from_current_view(arcball_use_configured_target);
     mode = Mode::Arcball;
     Log::text("{ Cam }", "Mode: Arcball");
     return;
@@ -43,34 +48,34 @@ void Camera::toggleMode() {
   Log::text("{ Cam }", "Mode: Panning");
 }
 
-void Camera::syncArcballFromCurrentView(bool keepConfiguredTarget) {
-  if (!keepConfiguredTarget) {
+void Camera::sync_arcball_from_current_view(bool keep_configured_target) {
+  if (!keep_configured_target) {
     const glm::vec3 forward = glm::normalize(front);
-    const float targetDistance =
-        std::clamp(arcballDistance, arcballMinDistance, arcballMaxDistance);
-    arcballTarget = position + forward * targetDistance;
+    const float target_distance =
+        std::clamp(arcball_distance, arcball_min_distance, arcball_max_distance);
+    arcball_target = position + forward * target_distance;
   }
 
-  arcballDistance = glm::length(arcballTarget - position);
-  if (arcballDistance <= 0.0001f) {
-    arcballDistance = arcballMinDistance;
+  arcball_distance = glm::length(arcball_target - position);
+  if (arcball_distance <= 0.0001f) {
+    arcball_distance = arcball_min_distance;
   }
 
-  const glm::vec3 offset = position - arcballTarget;
+  const glm::vec3 offset = position - arcball_target;
   const float horizontal = std::sqrt(offset.x * offset.x + offset.y * offset.y);
-  arcballYaw = std::atan2(offset.y, offset.x);
-  arcballPitch = std::atan2(offset.z, std::max(horizontal, 0.0001f));
-  arcballPitch = std::clamp(arcballPitch, glm::radians(-89.0f), glm::radians(89.0f));
+  arcball_yaw = std::atan2(offset.y, offset.x);
+  arcball_pitch = std::atan2(offset.z, std::max(horizontal, 0.0001f));
+  arcball_pitch = std::clamp(arcball_pitch, glm::radians(-89.0f), glm::radians(89.0f));
 }
 
-glm::vec3 Camera::mapCursorToArcball(const glm::vec2 &cursor,
-                                     const float viewportWidth,
-                                     const float viewportHeight) const {
-  const float safeWidth = std::max(viewportWidth, 1.0f);
-  const float safeHeight = std::max(viewportHeight, 1.0f);
+glm::vec3 Camera::map_cursor_to_arcball(const glm::vec2 &cursor,
+                                        const float viewport_width,
+                                        const float viewport_height) const {
+  const float safe_width = std::max(viewport_width, 1.0f);
+  const float safe_height = std::max(viewport_height, 1.0f);
 
-  float x = (2.0f * cursor.x - safeWidth) / safeWidth;
-  float y = (safeHeight - 2.0f * cursor.y) / safeHeight;
+  float x = (2.0f * cursor.x - safe_width) / safe_width;
+  float y = (safe_height - 2.0f * cursor.y) / safe_height;
 
   const float lengthSquared = x * x + y * y;
   if (lengthSquared > 1.0f) {
@@ -81,44 +86,48 @@ glm::vec3 Camera::mapCursorToArcball(const glm::vec2 &cursor,
   return glm::vec3(x, y, std::sqrt(1.0f - lengthSquared));
 }
 
-void Camera::applyPanningMode(const glm::vec2 &leftButtonDelta,
-                              const glm::vec2 &rightButtonDelta) {
-  glm::vec3 cameraRight = glm::normalize(glm::cross(front, up));
-  glm::vec3 cameraUp = glm::normalize(glm::cross(cameraRight, front));
+void Camera::apply_panning_mode(const glm::vec2 &left_button_delta,
+                                const glm::vec2 &right_button_delta) {
+  glm::vec3 camera_right = glm::normalize(glm::cross(front, up));
+  glm::vec3 camera_up = glm::normalize(glm::cross(camera_right, front));
 
-  position -= panningSpeed * leftButtonDelta.x * cameraRight;
-  position -= panningSpeed * leftButtonDelta.y * cameraUp;
+  position -= panning_speed * left_button_delta.x * camera_right;
+  position -= panning_speed * left_button_delta.y * camera_up;
 
-  position += zoomSpeed * rightButtonDelta.x * front;
+  position += zoom_speed * right_button_delta.x * front;
   position.z = std::max(position.z, 0.0f);
 }
 
-void Camera::applyArcballMode(const glm::vec2 &previousCursor,
-                              const glm::vec2 &currentCursor,
-                              const bool leftPressed,
-                              const bool rightPressed,
-                              const bool middlePressed,
-                              const float viewportWidth,
-                              const float viewportHeight) {
+void Camera::apply_arcball_mode(const glm::vec2 &previous_cursor,
+                                const glm::vec2 &current_cursor,
+                                const bool left_pressed,
+                                const bool right_pressed,
+                                const bool middle_pressed,
+                                const float viewport_width,
+                                const float viewport_height) {
   const glm::vec3 worldUp = glm::vec3(0.0f, -1.0f, 0.0f);
-  const float safeHeight = std::max(viewportHeight, 1.0f);
-  const float safeWidth = std::max(viewportWidth, 1.0f);
-  const float safeMinAxis = std::max(std::min(safeWidth, safeHeight), 1.0f);
-  const glm::vec2 cursorDelta = currentCursor - previousCursor;
+  constexpr float arcball_pan_scalar = 0.5f;
+  constexpr float arcball_zoom_scalar = 0.1f;
+  constexpr float dead_zone = 0.0008f;
+  constexpr float response_max_drag = 0.06f;
+  constexpr float pole_limit = 0.985f;
+  const float safe_height = std::max(viewport_height, 1.0f);
+  const float safe_width = std::max(viewport_width, 1.0f);
+  const float safe_min_axis = std::max(std::min(safe_width, safe_height), 1.0f);
+  const glm::vec2 cursor_delta = current_cursor - previous_cursor;
 
-  if (leftPressed) {
-    const glm::vec2 normalizedDelta = cursorDelta / safeMinAxis;
-    const float dragMagnitude = glm::length(normalizedDelta);
-    const float deadZone = 0.0008f;
+  if (left_pressed) {
+    const glm::vec2 normalized_delta = cursor_delta / safe_min_axis;
+    const float drag_magnitude = glm::length(normalized_delta);
 
-    if (dragMagnitude > deadZone) {
-      const float response = glm::smoothstep(deadZone, 0.06f, dragMagnitude);
+    if (drag_magnitude > dead_zone) {
+      const float response = glm::smoothstep(dead_zone, response_max_drag, drag_magnitude);
       const float yawAngle =
-          -normalizedDelta.x * arcballRotateSpeed * arcballTumbleMult * response;
+          -normalized_delta.x * arcball_rotate_speed * arcball_tumble_mult * response;
       const float pitchAngle =
-          normalizedDelta.y * arcballRotateSpeed * arcballTumbleMult * response;
+          normalized_delta.y * arcball_rotate_speed * arcball_tumble_mult * response;
 
-      glm::vec3 orbitOffset = position - arcballTarget;
+      glm::vec3 orbitOffset = position - arcball_target;
       const glm::quat yawRotation = glm::angleAxis(yawAngle, worldUp);
       orbitOffset = yawRotation * orbitOffset;
 
@@ -131,13 +140,12 @@ void Camera::applyArcballMode(const glm::vec2 &previousCursor,
         const glm::vec3 pitchedOffset = pitchRotation * orbitOffset;
         const glm::vec3 pitchedFront = glm::normalize(-pitchedOffset);
 
-        const float poleLimit = 0.985f;
-        if (std::abs(glm::dot(pitchedFront, worldUp)) < poleLimit) {
+        if (std::abs(glm::dot(pitchedFront, worldUp)) < pole_limit) {
           orbitOffset = pitchedOffset;
         }
       }
 
-      position = arcballTarget + orbitOffset;
+      position = arcball_target + orbitOffset;
     }
   }
 
@@ -145,29 +153,33 @@ void Camera::applyArcballMode(const glm::vec2 &previousCursor,
   glm::vec3 viewRight = glm::normalize(glm::cross(viewFront, up));
   glm::vec3 viewUp = glm::normalize(glm::cross(viewRight, viewFront));
 
-  if (rightPressed) {
+  if (right_pressed) {
     const float viewScale =
-        (2.0f * arcballDistance * std::tan(glm::radians(fieldOfView) * 0.5f)) /
-        safeHeight;
-    const float panScale = viewScale * arcballPanSpeed * 0.5f * arcballPanMult;
+        (2.0f * arcball_distance * std::tan(glm::radians(field_of_view) * 0.5f)) /
+        safe_height;
+    const float panScale =
+        viewScale * arcball_pan_speed * arcball_pan_scalar * arcball_pan_mult;
     const glm::vec3 translation =
-        (-cursorDelta.x * panScale) * viewRight + (-cursorDelta.y * panScale) * viewUp;
+        (-cursor_delta.x * panScale) * viewRight + (-cursor_delta.y * panScale) * viewUp;
     position += translation;
-    arcballTarget += translation;
+    arcball_target += translation;
   }
 
-  if (middlePressed) {
-    arcballDistance += cursorDelta.y * arcballZoomSpeed * 0.1f * arcballDollyMult;
-    arcballDistance = std::clamp(arcballDistance, arcballMinDistance, arcballMaxDistance);
-    position = arcballTarget - viewFront * arcballDistance;
+  if (middle_pressed) {
+    arcball_distance +=
+        cursor_delta.y * arcball_zoom_speed * arcball_zoom_scalar * arcball_dolly_mult;
+    arcball_distance =
+        std::clamp(arcball_distance, arcball_min_distance, arcball_max_distance);
+    position = arcball_target - viewFront * arcball_distance;
   }
 
-  if (leftPressed) {
-    position = arcballTarget + glm::normalize(position - arcballTarget) * arcballDistance;
+  if (left_pressed) {
+    position = arcball_target +
+               glm::normalize(position - arcball_target) * arcball_distance;
   }
 
-  front = glm::normalize(arcballTarget - position);
-  if (arcballHorizonLock) {
+  front = glm::normalize(arcball_target - position);
+  if (arcball_horizon_lock) {
     viewRight = glm::cross(front, worldUp);
     if (glm::length2(viewRight) > 1e-10f) {
       viewRight = glm::normalize(viewRight);
@@ -179,7 +191,7 @@ void Camera::applyArcballMode(const glm::vec2 &previousCursor,
     viewRight = glm::normalize(glm::cross(front, viewUp));
     up = glm::normalize(glm::cross(viewRight, front));
   }
-  arcballDistance = glm::length(arcballTarget - position);
+  arcball_distance = glm::length(arcball_target - position);
 }
 
 void Camera::update() {
@@ -189,20 +201,21 @@ void Camera::update() {
   bool mousePositionChanged = false;
   static bool run = false;
 
-  static bool cameraToggleDown = false;
-  static bool horizonToggleDown = false;
-  const bool toggleDown = glfwGetKey(Window::get().window, GLFW_KEY_C) == GLFW_PRESS;
-  if (toggleDown && !cameraToggleDown) {
-    toggleMode();
+  static bool camera_toggle_down = false;
+  static bool horizon_toggle_down = false;
+  const bool toggle_down = glfwGetKey(Window::get().window, GLFW_KEY_C) == GLFW_PRESS;
+  if (toggle_down && !camera_toggle_down) {
+    toggle_mode();
   }
-  cameraToggleDown = toggleDown;
+  camera_toggle_down = toggle_down;
 
-  const bool horizonDown = glfwGetKey(Window::get().window, GLFW_KEY_V) == GLFW_PRESS;
-  if (horizonDown && !horizonToggleDown) {
-    arcballHorizonLock = !arcballHorizonLock;
-    Log::text("{ Cam }", arcballHorizonLock ? "Horizon Lock: On" : "Horizon Lock: Off");
+  const bool horizon_down = glfwGetKey(Window::get().window, GLFW_KEY_V) == GLFW_PRESS;
+  if (horizon_down && !horizon_toggle_down) {
+    arcball_horizon_lock = !arcball_horizon_lock;
+    Log::text("{ Cam }",
+              arcball_horizon_lock ? "Horizon Lock: On" : "Horizon Lock: Off");
   }
-  horizonToggleDown = horizonDown;
+  horizon_toggle_down = horizon_down;
 
   for (uint_fast8_t i = 0; i < 3; ++i) {
     buttonDelta[i] = Window::get().mouse.button_down[i].position -
@@ -219,37 +232,38 @@ void Camera::update() {
   if (mode == Mode::Arcball) {
     double xpos(0.0), ypos(0.0);
     glfwGetCursorPos(Window::get().window, &xpos, &ypos);
-    const glm::vec2 cursorPos(static_cast<float>(xpos), static_cast<float>(ypos));
+    const glm::vec2 cursor_pos(static_cast<float>(xpos), static_cast<float>(ypos));
 
-    const bool leftPressed =
+    const bool left_pressed =
         glfwGetMouseButton(Window::get().window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
-    const bool rightPressed =
+    const bool right_pressed =
         glfwGetMouseButton(Window::get().window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS;
-    const bool middlePressed =
+    const bool middle_pressed =
         glfwGetMouseButton(Window::get().window, GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_PRESS;
 
-    if (!arcballCursorInitialized) {
-      arcballLastCursor = cursorPos;
-      arcballCursorInitialized = true;
+    if (!arcball_cursor_initialized) {
+      arcball_last_cursor = cursor_pos;
+      arcball_cursor_initialized = true;
     }
 
-    if ((!arcballLeftWasDown && leftPressed) || (!arcballRightWasDown && rightPressed)) {
-      arcballLastCursor = cursorPos;
+    if ((!arcball_left_was_down && left_pressed) ||
+        (!arcball_right_was_down && right_pressed)) {
+      arcball_last_cursor = cursor_pos;
     }
 
-    const glm::vec2 previousCursor = arcballLastCursor;
-    arcballLastCursor = cursorPos;
+    const glm::vec2 previous_cursor = arcball_last_cursor;
+    arcball_last_cursor = cursor_pos;
 
-    applyArcballMode(previousCursor,
-                     cursorPos,
-                     leftPressed,
-                     rightPressed,
-                     middlePressed,
+    apply_arcball_mode(previous_cursor,
+                     cursor_pos,
+                     left_pressed,
+                     right_pressed,
+                     middle_pressed,
                      static_cast<float>(Window::get().display.width),
                      static_cast<float>(Window::get().display.height));
 
-    arcballLeftWasDown = leftPressed;
-    arcballRightWasDown = rightPressed;
+    arcball_left_was_down = left_pressed;
+    arcball_right_was_down = right_pressed;
     return;
   }
 
@@ -260,33 +274,34 @@ void Camera::update() {
   if (!run) {
     return;
   } else {
-    const glm::vec2 leftButtonDelta = buttonDelta[left];
-    const glm::vec2 rightButtonDelta = buttonDelta[right];
-    applyPanningMode(leftButtonDelta, rightButtonDelta);
+    const glm::vec2 left_button_delta = buttonDelta[left];
+    const glm::vec2 right_button_delta = buttonDelta[right];
+    apply_panning_mode(left_button_delta, right_button_delta);
   }
 
   run = mousePositionChanged;
 }
 
-glm::mat4 Camera::setModel() {
+glm::mat4 Camera::set_model() {
   glm::mat4 model =
       glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
   return model;
 }
 
-glm::mat4 Camera::setView() {
+glm::mat4 Camera::set_view() {
   update();
   glm::mat4 view;
   view = glm::lookAt(position, position + front, up);
   return view;
 }
 
-glm::mat4 Camera::setProjection(const VkExtent2D &swapchainExtent) {
+glm::mat4 Camera::set_projection(const VkExtent2D &swapchain_extent) {
   glm::mat4 projection =
-      glm::perspective(glm::radians(fieldOfView),
-                       swapchainExtent.width / static_cast<float>(swapchainExtent.height),
-                       nearClipping,
-                       farClipping);
+    glm::perspective(glm::radians(field_of_view),
+             swapchain_extent.width /
+               static_cast<float>(swapchain_extent.height),
+             near_clipping,
+             far_clipping);
 
   projection[1][1] *= -1; // flip y axis
   projection[0][0] *= -1; // flip x axis

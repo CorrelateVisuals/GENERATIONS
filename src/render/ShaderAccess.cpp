@@ -32,7 +32,7 @@ void CE::ShaderAccess::CommandResources::record_compute_command_buffer(
                           0,
                           nullptr);
 
-  resources.push_constant.set_data(resources.world._time.passedHours);
+  resources.push_constant.set_data(resources.world._time.passed_hours);
 
   vkCmdPushConstants(command_buffer,
                      pipelines.compute.layout,
@@ -182,7 +182,7 @@ void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
                           0,
                           nullptr);
 
-  resources.push_constant.set_data(resources.world._time.passedHours);
+  resources.push_constant.set_data(resources.world._time.passed_hours);
   vkCmdPushConstants(command_buffer,
                      pipelines.compute.layout,
                      resources.push_constant.shader_stage,
