@@ -83,30 +83,28 @@ layout(location = 0) out vec4 fragColor;
 
 void main() {
     bool aliveCell = (inStates.x == 1);
-    if (!aliveCell) {
+    const int cycleSize = 24;
+    bool cycleEnd = (inStates.z == cycleSize);
+    bool nearCycleWrap = (inStates.z >= cycleSize - 1) || (inStates.z <= 1);
+    if (!aliveCell || cycleEnd || nearCycleWrap) {
         fragColor = vec4(0.0f);
         gl_Position = vec4(2.0f, 2.0f, 2.0f, 1.0f);
         return;
     }
 
-    vec2 gridStart = (vec2(ubo.gridXY) - vec2(1.0f)) * -0.5f;
-    uint instanceIndex = uint(gl_InstanceIndex);
-    uint gridWidth = uint(max(ubo.gridXY.x, 1));
-    vec2 anchoredXY = vec2(gridStart.x + float(instanceIndex % gridWidth),
-                           gridStart.y + float(instanceIndex / gridWidth));
+    vec3 followerBase = inPosition.xyz;
+    float baseScale = max(inPosition.w * 1.20f, ubo.cellSize * 0.85f);
+    float followerScale = baseScale * 0.5f;
+    float lift = max(followerScale * 1.05f, 0.22f);
+    followerBase.z += terrain_height(inPosition.xy) + lift;
 
-    vec3 cellBase = vec3(anchoredXY, inPosition.z);
-    float cellScale = max(inPosition.w * 1.20f, ubo.cellSize * 0.85f);
-    float lift = max(cellScale * 0.52f, 0.08f);
-    cellBase.z += terrain_height(anchoredXY) + lift;
-
-    vec4 position = vec4(cellBase + (inVertex.xyz * cellScale), 1.0f);
+    vec4 position = vec4(followerBase + (inVertex.xyz * followerScale), 1.0f);
     vec4 worldPosition = ubo.model * position;
     vec4 viewPosition = ubo.view * worldPosition;
     vec3 worldNormal = normalize(mat3(ubo.model) * inNormal.xyz);
 
     vec3 lightDirection = normalize(ubo.light.rgb - worldPosition.xyz);
-    float diffuseIntensity = max(dot(worldNormal, lightDirection), 0.42f);
+    float diffuseIntensity = max(dot(worldNormal, lightDirection), 0.38f);
 
     fragColor = inColor * diffuseIntensity;
     gl_Position = ubo.projection * viewPosition;

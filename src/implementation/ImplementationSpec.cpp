@@ -45,6 +45,10 @@ ImplementationSpec default_spec() {
       .is_compute = false,
       .shaders = {"CellsVert", "CellsFrag"},
     };
+    spec.pipelines["CellsFollower"] = CE::Runtime::PipelineDefinition{
+      .is_compute = false,
+      .shaders = {"CellsFollowerVert", "CellsFrag"},
+    };
     spec.pipelines["Engine"] = CE::Runtime::PipelineDefinition{
       .is_compute = true,
       .shaders = {"EngineComp"},
@@ -60,11 +64,12 @@ ImplementationSpec default_spec() {
       .work_groups = {0, 0, 0},
     };
 
-    spec.execution_plan.graphics = {"Landscape", "Cells"};
+    spec.execution_plan.graphics = {"Landscape", "CellsFollower", "Cells"};
     spec.execution_plan.post_graphics_compute = {"Engine"};
 
   spec.draw_ops = {
       {"Cells", "instanced:cells"},
+      {"CellsFollower", "instanced:cells"},
       {"Landscape", "indexed:grid"},
   };
 
