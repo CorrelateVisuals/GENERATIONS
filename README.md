@@ -96,14 +96,11 @@ The near-term direction is stronger resource reuse, cleaner operator abstraction
 
 In short: powerful enough for HPC-minded workloads, straightforward enough to iterate quickly.
 
-## Thanks
+###Big thanks to everyone contributing through GitHub issues, reviews, and code:
 
-Big thanks to everyone contributing through GitHub issues, reviews, and code:
-
-- Jakob Povel (@CorrelateVisuals, @Jakob-HDSR)
+- Jakob Povel
 - Johannes Unterguggenberger (@johannes.unterguggenberger)
 - Jos Onokiewicz (@jos.onokiewicz)
-- GitHub Copilot SWE Agent (@copilot-swe-agent[bot])
 
 And gratitude to the open graphics ecosystem this project learns from and builds on, especially:
 
