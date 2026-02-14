@@ -6,7 +6,7 @@ namespace CE {
 class ShaderAccess {
 public:
   struct CommandResources : public CE::CommandBuffers {
-    CommandResources(const CE::Queues::FamilyIndices &family_indices);
+    CommandResources(const CE::queues::family_indices &family_indices);
     void record_compute_command_buffer(Resources &resources,
                                        Pipelines &pipelines,
                                        const uint32_t frame_index) override;

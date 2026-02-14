@@ -39,7 +39,7 @@ public:
                                               const uint32_t image_index) = 0;
 
 protected:
-  void create_pool(const Queues::FamilyIndices &family_indices);
+  void create_pool(const queues::family_indices &family_indices);
   void create_buffers(
       std::array<VkCommandBuffer, MAX_FRAMES_IN_FLIGHT> &command_buffers) const;
 };
@@ -100,9 +100,9 @@ public:
                                const VkSurfaceKHR &surface);
 
 protected:
-  void create(const VkSurfaceKHR &surface, const Queues &queues);
+  void create(const VkSurfaceKHR &surface, const queues &queues);
   void recreate(const VkSurfaceKHR &surface,
-                const Queues &queues,
+                const queues &queues,
                 SynchronizationObjects &sync_objects);
 
 private:

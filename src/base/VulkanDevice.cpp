@@ -281,7 +281,7 @@ CE::InitializeVulkan::~InitializeVulkan() {
   vkDestroyInstance(this->instance, nullptr);
 }
 
-void CE::InitializeVulkan::create_instance() {
+void CE::initialize_vulkan::create_instance() {
   Log::text("{ VkI }", "Vulkan Instance");
     if (this->validation.enable_validation_layers &&
       !this->validation.check_validation_layer_support()) {
@@ -326,13 +326,13 @@ void CE::InitializeVulkan::create_instance() {
     CE::vulkan_result(vkCreateInstance, &create_info, nullptr, &this->instance);
 }
 
-void CE::InitializeVulkan::create_surface(GLFWwindow *window) {
+void CE::initialize_vulkan::create_surface(GLFWwindow *window) {
   Log::text("{ [ ] }", "Surface");
     CE::vulkan_result(
       glfwCreateWindowSurface, this->instance, window, nullptr, &this->surface);
 }
 
-std::vector<const char *> CE::InitializeVulkan::get_required_extensions() const {
+std::vector<const char *> CE::initialize_vulkan::get_required_extensions() const {
   uint32_t glfw_extension_count(0);
   const char **glfw_extensions;
   glfw_extensions = glfwGetRequiredInstanceExtensions(&glfw_extension_count);
