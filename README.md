@@ -2,10 +2,18 @@
 
 ![GENERATIONS Cover](assets/CoverCapture.PNG)
 
+<p align="left">
+	<img src="assets/branding/vulkan.svg" alt="Vulkan" height="28" />
+	<img src="assets/branding/cplusplus.svg" alt="C++" height="28" />
+	<img src="assets/branding/cmake.svg" alt="CMake" height="28" />
+</p>
+
 GENERATIONS is a Vulkan-native simulation runtime built for reliable, high-throughput GPU workloads.
 It is powered by CAPITAL Engine and designed around one idea: keep the stack lean, explicit, and fast enough to support serious compute-driven interactive systems.
 
 Today, the project runs a real-time cellular simulation and renders it through a modern graphics + compute pipeline with strong separation between platform, rendering, and world logic.
+
+![Runtime Snapshot](assets/LandscapeCapture.PNG)
 
 ## Why this project exists
 
@@ -96,7 +104,9 @@ The near-term direction is stronger resource reuse, cleaner operator abstraction
 
 In short: powerful enough for HPC-minded workloads, straightforward enough to iterate quickly.
 
-###Big thanks to everyone contributing through GitHub issues, reviews, and code:
+## Thanks
+
+Big thanks to everyone contributing through GitHub issues, reviews, and code:
 
 - Jakob Povel
 - Johannes Unterguggenberger (@johannes.unterguggenberger)

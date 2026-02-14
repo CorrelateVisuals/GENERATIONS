@@ -6,15 +6,6 @@ class Camera {
 public:
   enum class Mode { Panning, Arcball };
 
-  float zoom_speed;
-  float panning_speed;
-  float field_of_view;
-  float near_clipping;
-  float far_clipping;
-  glm::vec3 position;
-  glm::vec3 front{0.0f, 0.0f, -1.0f};
-  glm::vec3 up{0.0f, -1.0f, 0.0f};
-
   Camera(float zoom, float pan, float fov, float near, float far, glm::vec3 pos)
       : zoom_speed(zoom), panning_speed(pan), field_of_view(fov), near_clipping(near),
         far_clipping(far), position(pos), mode(Mode::Panning),
@@ -48,6 +39,15 @@ public:
   glm::mat4 set_projection(const VkExtent2D &swapchain_extent);
 
 private:
+  float zoom_speed;
+  float panning_speed;
+  float field_of_view;
+  float near_clipping;
+  float far_clipping;
+  glm::vec3 position;
+  glm::vec3 front{0.0f, 0.0f, -1.0f};
+  glm::vec3 up{0.0f, -1.0f, 0.0f};
+
   void apply_panning_mode(const glm::vec2 &left_button_delta,
                           const glm::vec2 &right_button_delta);
   void apply_arcball_mode(const glm::vec2 &previous_cursor,

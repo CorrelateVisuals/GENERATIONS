@@ -13,11 +13,14 @@ public:
     float exponent;
     float frequency;
     float height_offset;
-  } config;
+  };
 
   Terrain(const Config &config);
   virtual ~Terrain() = default;
 
   std::vector<float> generate_perlin_grid();
   float linear_interpolation_function(float a, float b, float t);
+
+private:
+  Config config;
 };

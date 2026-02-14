@@ -45,13 +45,13 @@ public:
     return main_window;
   }
   void poll_input();
-  void set_mouse();
   bool is_escape_pressed() const {
     return escape_pressed;
   }
   bool consume_screenshot_pressed();
 
 private:
+  void set_mouse();
   bool escape_pressed{false};
   bool screenshot_key_down{false};
   bool screenshot_pressed{false};
