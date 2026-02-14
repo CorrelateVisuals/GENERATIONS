@@ -48,7 +48,8 @@ void Integration::detect_steam_deck() {
 
   // Method 1: Check for Steam Deck specific environment variable
   const char *steam_deck_env = std::getenv("SteamDeck");
-  if (steam_deck_env && std::strcmp(steam_deck_env, "1") == 0) {
+  if (steam_deck_env && std::strlen(steam_deck_env) > 0 &&
+      std::strcmp(steam_deck_env, "1") == 0) {
     steam_deck_detected = true;
     return;
   }
