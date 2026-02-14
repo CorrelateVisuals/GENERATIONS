@@ -23,8 +23,8 @@ SHADER_NODES: list[tuple[str, str, str]] = [
 EDGES: list[tuple[str, str]] = [
     ("CellsVert", "CellsFrag"),
     ("CellsFrag", "EngineComp"),
+    ("LandscapeVert", "LandscapeWireFrameTesc"),
     ("LandscapeWireFrameTesc", "LandscapeWireFrameTese"),
-    ("LandscapeWireFrameTese", "LandscapeVert"),
     ("LandscapeVert", "LandscapeFrag"),
     ("TextureVert", "TextureFrag"),
     ("WaterVert", "WaterFrag"),

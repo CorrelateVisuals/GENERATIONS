@@ -19,8 +19,10 @@ std::vector<StepName> topo_sort_steps(const std::vector<StepName> &steps,
                                       const std::vector<StepEdge> &edges,
                                       const std::vector<StepName> &preferred_order) {
   std::unordered_set<StepName> step_set(steps.begin(), steps.end());
-  std::unordered_map<StepName, std::unordered_set<StepName>> adjacency{};
+  std::unordered_map<StepName, std::vector<StepName>> adjacency{};
+  std::unordered_map<StepName, std::unordered_set<StepName>> edge_seen{};
   std::unordered_map<StepName, uint32_t> indegree{};
+  std::unordered_set<StepName> emitted{};
 
   for (const StepName &step : steps) {
     indegree.emplace(step, 0);
@@ -32,32 +34,31 @@ std::vector<StepName> topo_sort_steps(const std::vector<StepName> &steps,
     if (!step_set.contains(from) || !step_set.contains(to) || from == to) {
       continue;
     }
-    if (adjacency[from].insert(to).second) {
+    if (edge_seen[from].insert(to).second) {
+      adjacency[from].push_back(to);
       indegree[to]++;
     }
   }
 
-  std::queue<StepName> ready{};
-  for (const StepName &step : preferred_order) {
-    if (indegree.contains(step) && indegree[step] == 0) {
-      ready.push(step);
-    }
-  }
-
   std::vector<StepName> ordered{};
-  while (!ready.empty()) {
-    const StepName current = ready.front();
-    ready.pop();
-    ordered.push_back(current);
+  bool progress = true;
+  while (ordered.size() < steps.size() && progress) {
+    progress = false;
+    for (const StepName &step : preferred_order) {
+      if (!step_set.contains(step) || emitted.contains(step)) {
+        continue;
+      }
+      if (indegree[step] == 0) {
+        ordered.push_back(step);
+        emitted.insert(step);
+        progress = true;
 
-    if (!adjacency.contains(current)) {
-      continue;
-    }
-
-    for (const StepName &next : adjacency[current]) {
-      const uint32_t next_degree = --indegree[next];
-      if (next_degree == 0) {
-        ready.push(next);
+        if (!adjacency.contains(step)) {
+          continue;
+        }
+        for (const StepName &next : adjacency[step]) {
+          --indegree[next];
+        }
       }
     }
   }

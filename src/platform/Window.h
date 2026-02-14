@@ -7,6 +7,9 @@
 class Window {
 public:
   Window(const Window &) = delete;
+  Window &operator=(const Window &) = delete;
+  Window(Window &&) = delete;
+  Window &operator=(Window &&) = delete;
 
   struct DisplayConfiguration {
     DisplayConfiguration(const char *t, uint16_t w, uint16_t h)

@@ -131,6 +131,7 @@ World::Grid::Grid(Vec2UintFast16 grid_size,
 
   const float startX = (size.x - 1) / -2.0f;
   const float startY = (size.y - 1) / -2.0f;
+  const float absoluteHeight = 0.0f;
   for (uint_fast32_t i = 0; i < point_count; ++i) {
     point_ids[i] = i;
 
@@ -141,7 +142,7 @@ World::Grid::Grid(Vec2UintFast16 grid_size,
 
     const bool is_alive = is_alive_indices[i];
 
-    cells[i].instance_position = {coordinates[i], is_alive ? cell_size : 0.0f};
+    cells[i].instance_position = {(startX + i % size.x), (startY + i / size.x), absoluteHeight, is_alive ? cell_size : 0.0f};
     cells[i].color = is_alive ? blue : red;
     cells[i].states = is_alive ? alive : dead;
   }

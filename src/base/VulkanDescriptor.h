@@ -31,7 +31,7 @@ public:
   void update_sets();
 
 private:
-  VkDescriptorPool pool;
+  VkDescriptorPool pool{};
 
   void create_set_layout();
   void create_pool();
