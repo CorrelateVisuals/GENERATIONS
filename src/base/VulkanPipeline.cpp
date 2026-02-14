@@ -239,15 +239,15 @@ void CE::PipelinesConfiguration::create_pipelines(VkRenderPass &render_pass,
         rasterization.polygonMode = VK_POLYGON_MODE_LINE;
         rasterization.lineWidth = 2.0f;
         if (pipelineName.find("WireFrame") != std::string::npos) {
-          rasterization.lineWidth = 2.8f;
+          rasterization.lineWidth = 3.8f;
           rasterization.depthBiasEnable = VK_TRUE;
           rasterization.depthBiasConstantFactor = -1.0f;
           rasterization.depthBiasSlopeFactor = -1.0f;
           rasterization.depthBiasClamp = 0.0f;
 
+          depthStencil.depthTestEnable = VK_FALSE;
           depthStencil.depthWriteEnable = VK_FALSE;
-          depthStencil.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
-          colorBlendAttachment = CE::color_blend_attachment_state_average;
+          colorBlendAttachment = CE::color_blend_attachment_state_false;
         } else {
           colorBlendAttachment = CE::color_blend_attachment_state_multiply;
         }

@@ -1,6 +1,7 @@
 #include "Log.h"
 #include "RuntimeConfig.h"
 
+#include <array>
 #include <chrono>
 #include <cctype>
 #include <cstdlib>
@@ -8,6 +9,7 @@
 #include <iomanip>
 #include <sstream>
 #include <string>
+#include <string_view>
 
 #ifdef __linux__
 #include <unistd.h>
@@ -99,6 +101,70 @@ std::string colorizeIcon(const std::string &line) {
                   std::string(iconColor(icon)) + icon + RESET);
   return colored;
 }
+
+bool is_moderate_icon_suppressed(const std::string &icon) {
+  if (icon.empty()) {
+    return false;
+  }
+
+    static const std::array<std::string_view, 10> suppressed_icons = {
+      "{ ... }",
+      "{ 1.. }",
+      "{ ..1 }",
+      "{ MAP }",
+      "{ WR }",
+      "{ |=| }",
+      "{ 101 }",
+      "{ LCK }",
+      "{ cmd }",
+      "{ MEM }",
+  };
+
+  for (const std::string_view suppressed : suppressed_icons) {
+    if (icon == suppressed) {
+      return true;
+    }
+  }
+  return false;
+}
+
+void log_ascii_banner() {
+  static const std::array<std::string_view, 1> banner_lines = {
+      "                 . - < < { G E N E R A T I O N S } > > - .",
+  };
+
+  for (const std::string_view line : banner_lines) {
+    Log::text(line);
+  }
+}
+
+void configure_log_level_once() {
+  static bool initialized = false;
+  if (initialized) {
+    return;
+  }
+  initialized = true;
+
+  const char *env = std::getenv("CE_LOG_LEVEL");
+  if (!env) {
+    return;
+  }
+
+  std::string value(env);
+  for (char &c : value) {
+    c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+  }
+
+  if (value == "off" || value == "0") {
+    Log::log_level = Log::LOG_OFF;
+  } else if (value == "minimal" || value == "min" || value == "1") {
+    Log::log_level = Log::LOG_MINIMIAL;
+  } else if (value == "moderate" || value == "mod" || value == "2") {
+    Log::log_level = Log::LOG_MODERATE;
+  } else if (value == "detailed" || value == "detail" || value == "3") {
+    Log::log_level = Log::LOG_DETAILED;
+  }
+}
 } // namespace
 
 std::string Log::function_name(const char *function_name) {
@@ -147,7 +213,7 @@ void Log::measure_elapsed_time() {
 
 void Log::log_title() {
   Log::text(Log::Style::header_guard);
-  Log::text("                 . - < < { ", "G E N E R A T I O N S", " } > > - .");
+  log_ascii_banner();
   Log::text(Log::Style::header_guard);
   Log::measure_elapsed_time();
 
@@ -158,18 +224,22 @@ void Log::log_footer() {
   flush_repeated_line();
   Log::measure_elapsed_time();
   Log::text(Log::Style::header_guard);
-  Log::text("� Jakob Povel | Correlate Visuals �");
+  Log::text("                 << Jakob Povel | Correlate Visuals >>");
 }
 
 bool Log::skip_logging(uint8_t log_level, const std::string &icon) {
+  configure_log_level_once();
+
   if (!log_file.is_open()) {
     std::cerr << "\n!ERROR! Could not open log_file for writing" << '\n';
     return false;
   }
+
   if (log_level == LOG_OFF ||
       (log_level == LOG_MINIMIAL &&
        (icon == std::string("{ ... }") || icon == std::string(Style::char_leader))) ||
-      (log_level == LOG_MODERATE && icon == std::string(Style::char_leader))) {
+      (log_level == LOG_MODERATE &&
+       (icon == std::string(Style::char_leader) || is_moderate_icon_suppressed(icon)))) {
     return true;
   }
   return false;

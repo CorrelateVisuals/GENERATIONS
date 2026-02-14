@@ -57,7 +57,7 @@ ImplementationSpec default_spec() {
   spec.pipelines["LandscapeWireFrame"] = CE::Runtime::PipelineDefinition{
       .is_compute = false,
       .shaders = {"LandscapeVert", "LandscapeWireFrameTesc", "LandscapeWireFrameTese",
-                  "LandscapeFrag"},
+                  "LandscapeWireFrameFrag"},
   };
   spec.pipelines["Texture"] = CE::Runtime::PipelineDefinition{
       .is_compute = false,
@@ -74,7 +74,7 @@ ImplementationSpec default_spec() {
   };
 
   spec.execution_plan.graphics =
-      {"Cells", "Landscape", "LandscapeWireFrame", "Texture", "Water"};
+      {"Cells", "Landscape", "Texture", "Water", "LandscapeWireFrame"};
   spec.execution_plan.post_graphics_compute = {"Engine", "PostFX"};
 
   spec.draw_ops = {

@@ -13,7 +13,7 @@
 
 namespace Log {
 enum LogLevel { LOG_OFF = 0, LOG_MINIMIAL = 1, LOG_MODERATE = 2, LOG_DETAILED = 3 };
-static uint8_t log_level = LOG_DETAILED;
+inline uint8_t log_level = LOG_MODERATE;
 extern std::ofstream log_file;
 extern std::string previous_time;
 extern std::string previous_line;
