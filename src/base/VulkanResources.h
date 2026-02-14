@@ -14,6 +14,7 @@ public:
   VkBuffer buffer{};
   VkDeviceMemory memory{};
   void *mapped{};
+  VkDeviceSize allocated_size{0};
 
   Buffer() = default;
   virtual ~Buffer();
@@ -42,6 +43,7 @@ public:
   VkDeviceMemory memory{};
   VkImageView view{};
   VkSampler sampler{};
+  VkDeviceSize allocated_size{0};
   VkImageCreateInfo info{.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
                          .pNext = nullptr,
                          .flags = 0,

@@ -1,5 +1,6 @@
 #include "CapitalEngine.h"
 #include "core/Log.h"
+#include "core/MemoryTracker.h"
 #include "io/Screenshot.h"
 #include "platform/Window.h"
 #include "base/VulkanUtils.h"
@@ -49,6 +50,32 @@ void CapitalEngine::main_loop() {
       std::chrono::steady_clock::now() + std::chrono::seconds(1);
   Window &main_window = Window::get();
 
+  // Deep test duration configuration
+  const auto deeptest_duration_seconds = [] {
+    const char *env = std::getenv("CE_DEEPTEST_DURATION");
+    if (!env) {
+      return 0;
+    }
+    try {
+      return std::stoi(std::string(env));
+    } catch (...) {
+      return 0;
+    }
+  }();
+  
+  const bool deeptest_enabled = deeptest_duration_seconds > 0;
+  const auto deeptest_end_time = deeptest_enabled 
+      ? std::chrono::steady_clock::now() + std::chrono::seconds(deeptest_duration_seconds)
+      : std::chrono::steady_clock::time_point::max();
+  auto last_memory_report = std::chrono::steady_clock::now();
+  constexpr auto MEMORY_REPORT_INTERVAL = std::chrono::seconds(3600); // 1 hour
+  
+  if (deeptest_enabled) {
+    Log::text("{ PERF }", "Deep test mode enabled - duration:", 
+              deeptest_duration_seconds, "seconds");
+    MemoryTracker::log_memory_stats();
+  }
+
   while (!glfwWindowShouldClose(main_window.window)) {
     main_window.poll_input();
     resources.world._time.run();
@@ -70,8 +97,28 @@ void CapitalEngine::main_loop() {
     if (main_window.is_escape_pressed()) {
       break;
     }
+    
+    // Deep test: periodic memory reporting
+    if (deeptest_enabled) {
+      auto now = std::chrono::steady_clock::now();
+      if (now - last_memory_report >= MEMORY_REPORT_INTERVAL) {
+        MemoryTracker::log_memory_stats();
+        last_memory_report = now;
+      }
+      
+      // Deep test: check if duration has elapsed
+      if (now >= deeptest_end_time) {
+        Log::text("{ PERF }", "Deep test duration elapsed - terminating");
+        break;
+      }
+    }
   }
   vkDeviceWaitIdle(mechanics.main_device.logical_device);
+
+  if (deeptest_enabled) {
+    Log::text("{ PERF }", "=== FINAL DEEP TEST MEMORY REPORT ===");
+    MemoryTracker::log_memory_stats();
+  }
 
   Log::measure_elapsed_time();
   Log::text(Log::Style::header_guard);

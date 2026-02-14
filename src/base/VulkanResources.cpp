@@ -6,6 +6,7 @@
 #include "VulkanUtils.h"
 
 #include "../core/Log.h"
+#include "../core/MemoryTracker.h"
 
 #include <cstring>
 #include <stdexcept>
@@ -46,6 +47,9 @@ CE::Buffer::~Buffer() {
       this->buffer = VK_NULL_HANDLE;
     }
     if (this->memory != VK_NULL_HANDLE) {
+      if (this->allocated_size > 0) {
+        MemoryTracker::record_vulkan_deallocation(this->allocated_size);
+      }
       vkFreeMemory(Device::base_device->logical_device, this->memory, nullptr);
       this->memory = VK_NULL_HANDLE;
     }
@@ -113,6 +117,10 @@ void CE::Buffer::create(const VkDeviceSize &size,
                     &allocateInfo,
                     nullptr,
                     &buffer.memory);
+  
+  buffer.allocated_size = allocateInfo.allocationSize;
+  MemoryTracker::record_vulkan_allocation(allocateInfo.allocationSize);
+  
   vkBindBufferMemory(
       Device::base_device->logical_device, buffer.buffer, buffer.memory, 0);
 }
@@ -217,6 +225,9 @@ void CE::Image::destroy_vulkan_images() {
       this->image = VK_NULL_HANDLE;
     };
     if (this->memory != VK_NULL_HANDLE) {
+      if (this->allocated_size > 0) {
+        MemoryTracker::record_vulkan_deallocation(this->allocated_size);
+      }
       vkFreeMemory(Device::base_device->logical_device, this->memory, nullptr);
       this->memory = VK_NULL_HANDLE;
     };
@@ -289,6 +300,10 @@ void CE::Image::create(const uint32_t width,
                     &allocateInfo,
                     nullptr,
                     &this->memory);
+  
+  this->allocated_size = allocateInfo.allocationSize;
+  MemoryTracker::record_vulkan_allocation(allocateInfo.allocationSize);
+  
   vkBindImageMemory(Device::base_device->logical_device,
                     this->image,
                     this->memory,
