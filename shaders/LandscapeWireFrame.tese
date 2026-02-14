@@ -27,6 +27,6 @@ void main(void){
     vec3 baseAlbedo = gl_TessCoord.x * inAlbedo[0] +
                       gl_TessCoord.y * inAlbedo[1] +
                       gl_TessCoord.z * inAlbedo[2];
-    outAlbedo = mix(baseAlbedo, vec3(0.05f, 0.05f, 0.05f), 0.9f);
+    outAlbedo = mix(baseAlbedo, vec3(0.95f, 0.97f, 1.0f), 0.9f);
 
 }

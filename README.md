@@ -63,16 +63,15 @@ At runtime, the engine executes a stable loop:
 
 This separation is what makes the project suitable for future node-based and TouchDesigner-style workflows.
 
-## Script interface (implementation layer, MVP)
+## C++ implementation interface
 
-A first implementation-layer script interface is now available.
+The implementation-layer graph setup is now pure C++.
 
 - Engine mode (default): `./bin/CapitalEngine`
-- Script interface mode: `CE_SCRIPT_GRAPH=scripts/all_shaders_graph.py ./bin/CapitalEngine`
-- Script preview only (no engine loop): `CE_SCRIPT_GRAPH=scripts/all_shaders_graph.py CE_SCRIPT_ONLY=1 ./bin/CapitalEngine`
+- Implementation preview only (no engine loop): `CE_SCRIPT_ONLY=1 ./bin/CapitalEngine`
 
-The script interface currently loads and validates a shader graph from Python, resolves dynamic shader paths as `shaders/<name>.<stage>`, and installs a runtime execution plan (compute before graphics, graphics order, compute after graphics).
-This is the first separation step: engine runtime stays in `src/app`, while script-chainer logic lives in `src/implementation`.
+Runtime execution plan, pipeline definitions, draw bindings, and world/terrain settings are installed from `src/implementation/ScriptChainerApp.cpp`.
+Engine runtime stays in `src/app`, while implementation configuration lives in `src/implementation`.
 
 ## Environment flags
 
@@ -83,8 +82,7 @@ Runtime env flags are parsed centrally through `CE::Runtime::env_truthy` in `src
 
 Current flags used by the runtime:
 
-- `CE_SCRIPT_GRAPH`: path to a Python shader graph for script interface mode
-- `CE_SCRIPT_ONLY`: run script interface path only, skip main engine loop when truthy
+- `CE_SCRIPT_ONLY`: run implementation setup only, skip main engine loop when truthy
 - `CE_STARTUP_SCREENSHOT`: capture one startup screenshot when truthy
 - `CE_GPU_TRACE`: enable detailed GPU trace logging when truthy
 

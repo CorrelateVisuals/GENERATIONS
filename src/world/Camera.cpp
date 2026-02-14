@@ -288,7 +288,7 @@ void Camera::update() {
 
   if (left_pressed || right_pressed) {
     constexpr float panning_drag_gain = 8.0f;
-    constexpr float panning_left_hold_speed = 6.0f;
+    constexpr float panning_left_hold_speed = 5.5f;
     constexpr float panning_right_hold_speed = 14.0f;
     const float safe_min_axis =
         std::max(1.0f,
