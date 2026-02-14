@@ -7,11 +7,11 @@
 #include <set>
 #include <stdexcept>
 
-CE::Device *CE::Device::base_device = nullptr;
-std::vector<VkDevice> CE::Device::destroyed_devices;
+CE::device *CE::device::base_device = nullptr;
+std::vector<VkDevice> CE::device::destroyed_devices;
 
-void CE::Device::create_logical_device(const InitializeVulkan &init_vulkan,
-                     Queues &queues) {
+void CE::device::create_logical_device(const initialize_vulkan &init_vulkan,
+                     queues &queues) {
   Log::text("{ +++ }", "Logical Device");
 
   const std::vector<VkDeviceQueueCreateInfo> queue_create_infos =
@@ -24,23 +24,23 @@ void CE::Device::create_logical_device(const InitializeVulkan &init_vulkan,
   Log::text(
     "{ GPU }", Log::function_name(__func__), "Logical Device created", this->logical_device);
   vkGetDeviceQueue(this->logical_device,
-           queues.family_indices.graphics_and_compute_family.value(),
+           queues.indices.graphics_and_compute_family.value(),
                    0,
            &queues.graphics_queue);
   vkGetDeviceQueue(this->logical_device,
-           queues.family_indices.graphics_and_compute_family.value(),
+           queues.indices.graphics_and_compute_family.value(),
                    0,
            &queues.compute_queue);
   vkGetDeviceQueue(
-    this->logical_device, queues.family_indices.present_family.value(), 0,
+    this->logical_device, queues.indices.present_family.value(), 0,
     &queues.present_queue);
 
     Log::text(Log::Style::char_leader,
             "graphics/compute queue family",
-      queues.family_indices.graphics_and_compute_family.value());
+      queues.indices.graphics_and_compute_family.value());
     Log::text(Log::Style::char_leader,
             "present queue family",
-      queues.family_indices.present_family.value());
+      queues.indices.present_family.value());
     Log::text(Log::Style::char_leader,
             "queue handles",
       queues.graphics_queue,
@@ -48,8 +48,8 @@ void CE::Device::create_logical_device(const InitializeVulkan &init_vulkan,
       queues.present_queue);
 }
 
-void CE::Device::pick_physical_device(const InitializeVulkan &init_vulkan,
-                    Queues &queues,
+void CE::device::pick_physical_device(const initialize_vulkan &init_vulkan,
+                    queues &queues,
                     Swapchain &swapchain) {
   Log::text("{ ### }", "Physical Device");
   std::vector<VkPhysicalDevice> devices = fill_devices(init_vulkan);
@@ -75,11 +75,11 @@ void CE::Device::pick_physical_device(const InitializeVulkan &init_vulkan,
 }
 
 std::vector<VkDeviceQueueCreateInfo>
-CE::Device::fill_queue_create_infos(const Queues &queues) const {
+CE::device::fill_queue_create_infos(const queues &queues) const {
   std::vector<VkDeviceQueueCreateInfo> queue_create_infos{};
   const std::set<uint32_t> unique_queue_families = {
-      queues.family_indices.graphics_and_compute_family.value(),
-      queues.family_indices.present_family.value()};
+      queues.indices.graphics_and_compute_family.value(),
+      queues.indices.present_family.value()};
 
   const float queue_priority = 1.0f;
   for (uint_fast8_t queue_family : unique_queue_families) {
@@ -93,7 +93,7 @@ CE::Device::fill_queue_create_infos(const Queues &queues) const {
   return queue_create_infos;
 }
 
-VkDeviceCreateInfo CE::Device::get_device_create_info(
+VkDeviceCreateInfo CE::device::get_device_create_info(
     const std::vector<VkDeviceQueueCreateInfo> &queue_create_infos) const {
   VkDeviceCreateInfo create_info{
       .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
@@ -106,7 +106,7 @@ VkDeviceCreateInfo CE::Device::get_device_create_info(
   return create_info;
 }
 
-void CE::Device::set_validation_layers(const InitializeVulkan &init_vulkan,
+void CE::device::set_validation_layers(const initialize_vulkan &init_vulkan,
                                        VkDeviceCreateInfo &create_info) {
   if (init_vulkan.validation.enable_validation_layers) {
     create_info.enabledLayerCount =
@@ -116,7 +116,7 @@ void CE::Device::set_validation_layers(const InitializeVulkan &init_vulkan,
 }
 
 std::vector<VkPhysicalDevice>
-CE::Device::fill_devices(const InitializeVulkan &init_vulkan) const {
+CE::device::fill_devices(const initialize_vulkan &init_vulkan) const {
   uint32_t device_count(0);
   vkEnumeratePhysicalDevices(init_vulkan.instance, &device_count, nullptr);
 
@@ -129,13 +129,13 @@ CE::Device::fill_devices(const InitializeVulkan &init_vulkan) const {
   return devices;
 }
 
-bool CE::Device::is_device_suitable(const VkPhysicalDevice &physical_device,
-                                    Queues &queues,
-                                    const InitializeVulkan &init_vulkan,
+bool CE::device::is_device_suitable(const VkPhysicalDevice &physical_device,
+                                    queues &queues,
+                                    const initialize_vulkan &init_vulkan,
                                     Swapchain &swapchain) {
   Log::text(Log::Style::char_leader, "Is Device Suitable");
 
-  queues.family_indices =
+  queues.indices =
       queues.find_queue_families(physical_device, init_vulkan.surface);
   const bool extensions_supported = check_device_extension_support(physical_device);
 
@@ -149,16 +149,16 @@ bool CE::Device::is_device_suitable(const VkPhysicalDevice &physical_device,
   }
   Log::text(Log::Style::char_leader,
             "queueComplete",
-            queues.family_indices.is_complete(),
+            queues.indices.is_complete(),
             "extensions",
             extensions_supported,
             "swapchainAdequate",
             swapchain_adequate);
-  return queues.family_indices.is_complete() && extensions_supported &&
+  return queues.indices.is_complete() && extensions_supported &&
          swapchain_adequate;
 }
 
-void CE::Device::get_max_usable_sample_count() {
+void CE::device::get_max_usable_sample_count() {
   vkGetPhysicalDeviceProperties(this->physical_device, &this->properties_);
   const VkSampleCountFlags counts =
       this->properties_.limits.framebufferColorSampleCounts &
@@ -174,7 +174,7 @@ void CE::Device::get_max_usable_sample_count() {
   return;
 }
 
-bool CE::Device::check_device_extension_support(
+bool CE::device::check_device_extension_support(
     const VkPhysicalDevice &physical_device) const {
   Log::text(Log::Style::char_leader, "Check Device Extension Support");
   uint32_t extension_count(0);
@@ -205,7 +205,7 @@ bool CE::Device::check_device_extension_support(
   return required_extensions.empty();
 }
 
-void CE::Device::destroy_device() {
+void CE::device::destroy_device() {
   static bool is_device_destroyed = false;
   for (const VkDevice &device : destroyed_devices) {
     if (device == this->logical_device) {
@@ -219,19 +219,19 @@ void CE::Device::destroy_device() {
     extensions_.clear();
     vkDestroyDevice(this->logical_device, nullptr);
     destroyed_devices.push_back(this->logical_device);
-    if (Device::base_device == this) {
-      Device::base_device = nullptr;
+    if (device::base_device == this) {
+      device::base_device = nullptr;
     }
     this->logical_device = VK_NULL_HANDLE;
   }
 }
 
-CE::Queues::FamilyIndices
-CE::Queues::find_queue_families(const VkPhysicalDevice &physical_device,
+CE::queues::family_indices
+CE::queues::find_queue_families(const VkPhysicalDevice &physical_device,
                               const VkSurfaceKHR &surface) const {
   Log::text(Log::Style::char_leader, "Find Queue Families");
 
-  CE::Queues::FamilyIndices indices{};
+  CE::queues::family_indices indices{};
   uint32_t queue_family_count(0);
   vkGetPhysicalDeviceQueueFamilyProperties(
       physical_device, &queue_family_count, nullptr);
@@ -264,14 +264,14 @@ CE::Queues::find_queue_families(const VkPhysicalDevice &physical_device,
   return indices;
 }
 
-CE::InitializeVulkan::InitializeVulkan() {
+CE::initialize_vulkan::initialize_vulkan() {
   Log::text("{ VkI }", "constructing Initialize Vulkan");
   create_instance();
   this->validation.setup_debug_messenger(this->instance);
   create_surface(Window::get().window);
 }
 
-CE::InitializeVulkan::~InitializeVulkan() {
+CE::initialize_vulkan::~initialize_vulkan() {
   Log::text("{ VkI }", "destructing Initialize Vulkan");
   if (this->validation.enable_validation_layers) {
     this->validation.destroy_debug_utils_messenger_ext(

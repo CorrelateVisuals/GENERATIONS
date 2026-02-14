@@ -112,7 +112,7 @@ void CE::Screenshot::save_buffer_to_file(const Buffer &buffer,
                                          const std::string &filename) {
   void *data{};
   vkMapMemory(
-      Device::base_device->logical_device, buffer.memory, 0, VK_WHOLE_SIZE, 0, &data);
+      device::base_device->logical_device, buffer.memory, 0, VK_WHOLE_SIZE, 0, &data);
 
   std::vector<uint8_t> pixels(extent.width * extent.height * 4);
   memcpy(pixels.data(), data, pixels.size());
@@ -124,7 +124,7 @@ void CE::Screenshot::save_buffer_to_file(const Buffer &buffer,
     }
   }
 
-  vkUnmapMemory(Device::base_device->logical_device, buffer.memory);
+  vkUnmapMemory(device::base_device->logical_device, buffer.memory);
 
   const int width = static_cast<int>(extent.width);
   const int height = static_cast<int>(extent.height);

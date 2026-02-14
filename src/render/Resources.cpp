@@ -6,7 +6,7 @@
 #include "Resources.h"
 
 Resources::Resources(VulkanMechanics &mechanics)
-    : commands{mechanics.queues.family_indices},
+    : commands{mechanics.queues.indices},
       command_interface{
           commands.singular_command_buffer,
           commands.pool,
@@ -47,7 +47,7 @@ Resources::~Resources() {
 }
 
 CE::ShaderAccess::CommandResources::CommandResources(
-    const CE::Queues::FamilyIndices &family_indices) {
+    const CE::queues::family_indices &family_indices) {
   create_pool(family_indices);
   create_buffers(graphics);
   create_buffers(compute);
@@ -85,7 +85,7 @@ void Resources::UniformBuffer::create_buffer() {
                          VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                      buffer);
 
-  vkMapMemory(CE::Device::base_device->logical_device,
+  vkMapMemory(CE::device::base_device->logical_device,
               buffer.memory,
               0,
               bufferSize,
@@ -168,14 +168,14 @@ void Resources::StorageBuffer::create(const CE::CommandInterface &command_interf
                      stagingResources);
 
   void *data;
-  vkMapMemory(CE::Device::base_device->logical_device,
+  vkMapMemory(CE::device::base_device->logical_device,
               stagingResources.memory,
               0,
               bufferSize,
               0,
               &data);
   std::memcpy(data, object.data(), static_cast<size_t>(bufferSize));
-  vkUnmapMemory(CE::Device::base_device->logical_device, stagingResources.memory);
+  vkUnmapMemory(CE::device::base_device->logical_device, stagingResources.memory);
 
   CE::Buffer::create(static_cast<VkDeviceSize>(bufferSize),
                      VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
