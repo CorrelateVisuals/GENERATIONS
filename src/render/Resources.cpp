@@ -5,7 +5,7 @@
 #include "Mechanics.h"
 #include "Resources.h"
 
-Resources::Resources(VulkanMechanics &mechanics)
+Resources::Resources(VulkanMechanics &mechanics, const CE::Runtime::TerrainSettings &terrain_settings)
   : commands{mechanics.queues.indices},
       command_interface{
           commands.singular_command_buffer,
@@ -15,7 +15,8 @@ Resources::Resources(VulkanMechanics &mechanics)
       push_constant{VK_SHADER_STAGE_COMPUTE_BIT, 128, 0},
       world{commands.singular_command_buffer,
         commands.pool,
-        mechanics.queues.graphics_queue},
+        mechanics.queues.graphics_queue,
+        terrain_settings},
 
       // Descriptors
         descriptor_interface(),

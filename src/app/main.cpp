@@ -1,5 +1,6 @@
 #include "CapitalEngine.h"
 #include "core/Log.h"
+#include "core/RuntimeConfig.h"
 #include "implementation/ScriptChainerApp.h"
 
 #include <cstdlib>
@@ -28,6 +29,9 @@ int main() {
     if (env_truthy(std::getenv("CE_SCRIPT_ONLY"))) {
       return EXIT_SUCCESS;
     }
+
+    CE::Runtime::TerrainSettings terrain_settings{};
+    CE::Runtime::set_terrain_settings(terrain_settings);
 
     CapitalEngine GENERATIONS;
     GENERATIONS.main_loop();

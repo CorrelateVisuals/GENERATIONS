@@ -74,6 +74,26 @@ bool ShaderGraph::add_graphics_draw_binding(const GraphicsDrawBinding &binding,
   return true;
 }
 
+bool ShaderGraph::add_setting(const std::string &key,
+                              const std::string &value,
+                              std::string &error) {
+  if (is_blank(key)) {
+    error = "setting key cannot be blank";
+    return false;
+  }
+  if (is_blank(value)) {
+    error = "setting value cannot be blank for key " + key;
+    return false;
+  }
+  if (settings_.contains(key)) {
+    error = "duplicate setting key: " + key;
+    return false;
+  }
+
+  settings_[key] = value;
+  return true;
+}
+
 void ShaderGraph::set_input(const GraphEndpoint &input_endpoint) {
   input_ = input_endpoint;
 }

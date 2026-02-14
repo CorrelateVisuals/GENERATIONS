@@ -3,6 +3,8 @@
 #include "render/Pipelines.h"
 #include "render/Resources.h"
 
+#include <memory>
+
 class CapitalEngine {
 public:
   CapitalEngine();
@@ -16,8 +18,8 @@ public:
 
 private:
   VulkanMechanics mechanics;
-  Resources resources;
-  Pipelines pipelines;
+  std::unique_ptr<Resources> resources;
+  std::unique_ptr<Pipelines> pipelines;
 
   uint32_t last_presented_image_index{0};
   uint32_t last_submitted_frame_index{0};

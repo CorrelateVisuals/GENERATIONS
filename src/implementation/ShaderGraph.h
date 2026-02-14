@@ -45,6 +45,7 @@ public:
   bool add_node(const ShaderNode &node, std::string &error);
   bool add_edge(const GraphEdge &edge, std::string &error);
   bool add_graphics_draw_binding(const GraphicsDrawBinding &binding, std::string &error);
+  bool add_setting(const std::string &key, const std::string &value, std::string &error);
 
   void set_input(const GraphEndpoint &input_endpoint);
   void set_output(const GraphEndpoint &output_endpoint);
@@ -58,6 +59,9 @@ public:
   }
   const std::optional<GraphEndpoint> &input() const { return input_; }
   const std::optional<GraphEndpoint> &output() const { return output_; }
+  const std::unordered_map<std::string, std::string> &settings() const {
+    return settings_;
+  }
 
 private:
   std::vector<ShaderNode> nodes_;
@@ -65,6 +69,7 @@ private:
   std::vector<GraphicsDrawBinding> graphics_draw_bindings_;
   std::unordered_map<std::string, std::size_t> node_index_by_id_;
   std::unordered_map<std::string, std::size_t> graphics_draw_index_by_pipeline_name_;
+  std::unordered_map<std::string, std::string> settings_;
   std::optional<GraphEndpoint> input_;
   std::optional<GraphEndpoint> output_;
 };

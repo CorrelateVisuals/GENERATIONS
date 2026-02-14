@@ -3,6 +3,7 @@
 #include "Geometry.h"
 #include "io/Library.h"
 #include "core/Timer.h"
+#include "core/RuntimeConfig.h"
 
 #include <algorithm>
 #include <array>
@@ -14,7 +15,8 @@ class World {
 public:
   World(VkCommandBuffer &command_buffer,
         const VkCommandPool &command_pool,
-        const VkQueue &queue);
+        const VkQueue &queue,
+        const CE::Runtime::TerrainSettings &terrain_settings);
   ~World();
 
   struct alignas(16) Cell {

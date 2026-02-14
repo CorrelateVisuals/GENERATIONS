@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include <string>
 #include <vector>
+#include <array>
 
 namespace CE::Runtime {
 
@@ -25,8 +26,41 @@ struct PipelineExecutionPlan {
   std::vector<std::string> post_graphics_compute{};
 };
 
+struct TerrainSettings {
+  int grid_width = 100;
+  int grid_height = 100;
+  uint32_t alive_cells = 2000;
+  float cell_size = 0.5f;
+};
+
+struct WorldSettings {
+  float timer_speed = 25.0f;
+  float water_threshold = 0.1f;
+  std::array<float, 4> light_pos{0.0f, 20.0f, 20.0f, 0.0f};
+
+  float zoom_speed = 0.5f;
+  float panning_speed = 1.2f;
+  float field_of_view = 40.0f;
+  float near_clipping = 0.1f;
+  float far_clipping = 1000.0f;
+  std::array<float, 3> camera_position{0.0f, 0.0f, 60.0f};
+  float arcball_tumble_mult = 0.9f;
+  float arcball_pan_mult = 0.85f;
+  float arcball_dolly_mult = 0.8f;
+
+  int cube_shape = 1;
+  int rectangle_shape = 0;
+  int sphere_shape = 2;
+};
+
 void set_pipeline_execution_plan(const PipelineExecutionPlan &plan);
 const PipelineExecutionPlan *get_pipeline_execution_plan();
+
+void set_terrain_settings(const TerrainSettings &settings);
+const TerrainSettings &get_terrain_settings();
+
+void set_world_settings(const WorldSettings &settings);
+const WorldSettings &get_world_settings();
 
 void set_graphics_draw_ops(const std::unordered_map<std::string, std::string> &draw_ops);
 const std::string *get_graphics_draw_op(const std::string &pipeline_name);

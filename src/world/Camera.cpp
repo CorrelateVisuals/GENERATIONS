@@ -123,9 +123,9 @@ void Camera::apply_arcball_mode(const glm::vec2 &previous_cursor,
     if (drag_magnitude > dead_zone) {
       const float response = glm::smoothstep(dead_zone, response_max_drag, drag_magnitude);
       const float yawAngle =
-          -normalized_delta.x * arcball_rotate_speed * arcball_tumble_mult * response;
+        normalized_delta.x * arcball_rotate_speed * arcball_tumble_mult * response;
       const float pitchAngle =
-          normalized_delta.y * arcball_rotate_speed * arcball_tumble_mult * response;
+        -normalized_delta.y * arcball_rotate_speed * arcball_tumble_mult * response;
 
       glm::vec3 orbitOffset = position - arcball_target;
       const glm::quat yawRotation = glm::angleAxis(yawAngle, worldUp);
@@ -264,6 +264,7 @@ void Camera::update() {
   static bool panning_left_was_down = false;
   static bool panning_right_was_down = false;
   static glm::vec2 panning_last_cursor(0.0f, 0.0f);
+  static glm::vec2 panning_left_hold_direction(0.0f, 0.0f);
 
   if (!panning_cursor_initialized) {
     panning_last_cursor = cursor_pos;
@@ -273,35 +274,31 @@ void Camera::update() {
   if ((!panning_left_was_down && left_pressed) ||
       (!panning_right_was_down && right_pressed)) {
     panning_last_cursor = cursor_pos;
+    if (!panning_left_was_down && left_pressed) {
+      panning_left_hold_direction = glm::vec2(0.0f, 0.0f);
+    }
   }
 
   const glm::vec2 cursor_delta = cursor_pos - panning_last_cursor;
   panning_last_cursor = cursor_pos;
 
   if (left_pressed || right_pressed) {
+    constexpr float panning_drag_gain = 8.0f;
+    constexpr float panning_left_hold_speed = 14.0f;
     const float safe_min_axis =
         std::max(1.0f,
                  std::min(static_cast<float>(Window::get().display.width),
                           static_cast<float>(Window::get().display.height)));
-    const glm::vec2 normalized_delta = cursor_delta / safe_min_axis;
+    const glm::vec2 normalized_delta = (cursor_delta / safe_min_axis) * panning_drag_gain;
 
-    const glm::vec2 left_button_delta = left_pressed ? normalized_delta : glm::vec2(0.0f);
+    if (left_pressed && glm::length(normalized_delta) > 0.0001f) {
+      panning_left_hold_direction = glm::normalize(normalized_delta);
+    }
+
+    const glm::vec2 left_button_delta =
+        left_pressed ? panning_left_hold_direction * panning_left_hold_speed : glm::vec2(0.0f);
     const glm::vec2 right_button_delta = right_pressed ? normalized_delta : glm::vec2(0.0f);
     apply_panning_mode(left_button_delta, right_button_delta);
-  }
-
-  static bool click_cursor_initialized = false;
-  static glm::vec2 last_left_click(0.0f, 0.0f);
-  const glm::vec2 current_left_click = Window::get().mouse.button_click[0].position;
-  if (!click_cursor_initialized) {
-    last_left_click = current_left_click;
-    click_cursor_initialized = true;
-  }
-
-  if (current_left_click != last_left_click) {
-    const glm::vec2 click_delta = current_left_click - last_left_click;
-    apply_panning_mode(click_delta, glm::vec2(0.0f));
-    last_left_click = current_left_click;
   }
 
   panning_left_was_down = left_pressed;

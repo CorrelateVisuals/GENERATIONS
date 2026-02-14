@@ -131,6 +131,18 @@ ShaderGraph PythonGraphScript::load(const std::filesystem::path &script_path) {
       continue;
     }
 
+    if (record == "SETTING") {
+      if (tokens.size() != 3) {
+        throw std::runtime_error("invalid SETTING record at line " +
+                                 std::to_string(line_number));
+      }
+      if (!graph.add_setting(tokens[1], tokens[2], error)) {
+        throw std::runtime_error("invalid SETTING record at line " +
+                                 std::to_string(line_number) + ": " + error);
+      }
+      continue;
+    }
+
     throw std::runtime_error("unknown record type at line " + std::to_string(line_number) +
                              ": " + record);
   }

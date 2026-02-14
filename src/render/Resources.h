@@ -7,6 +7,7 @@
 #include "base/VulkanPipeline.h"
 #include "base/VulkanResources.h"
 #include "base/VulkanSync.h"
+#include "core/RuntimeConfig.h"
 
 #include <array>
 #include <cstring>
@@ -19,7 +20,7 @@ class VulkanMechanics;
 
 class Resources {
 public:
-  Resources(VulkanMechanics &mechanics);
+  Resources(VulkanMechanics &mechanics, const CE::Runtime::TerrainSettings &terrain_settings);
   Resources(const Resources &) = delete;
   Resources &operator=(const Resources &) = delete;
   Resources(Resources &&) = delete;

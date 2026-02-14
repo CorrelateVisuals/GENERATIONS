@@ -2,6 +2,7 @@
 #include "Geometry.h"
 #include "Terrain.h"
 #include "core/Log.h"
+#include "core/RuntimeConfig.h"
 
 #include <algorithm>
 #include <cmath>
@@ -10,16 +11,12 @@
 #include <random>
 
 namespace {
-constexpr glm::ivec2 GRID_SIZE = {50, 50};
-constexpr uint_fast32_t NUMBER_OF_ALIVE_CELLS = 200;
-constexpr float CELL_SIZE = 0.5f;
-
 constexpr float TIMER_SPEED = 25.0f;
 constexpr float WATER_THRESHOLD = 0.1f;
 constexpr glm::vec4 LIGHT_POS = {0.0f, 20.0f, 20.0f, 0.0f};
 
 constexpr float ZOOM_SPEED = 0.5f;
-constexpr float PANNING_SPEED = 1.2f;
+constexpr float PANNING_SPEED = 0.3f;
 constexpr float FIELD_OF_VIEW = 40.0f;
 constexpr float NEAR_CLIPPING = 0.1f;
 constexpr float FAR_CLIPPING = 1000.0f;
@@ -35,20 +32,28 @@ constexpr GEOMETRY_SHAPE sphere = CE_SPHERE;
 
 World::World(VkCommandBuffer &command_buffer,
        const VkCommandPool &command_pool,
-             const VkQueue &queue)
+       const VkQueue &queue,
+       const CE::Runtime::TerrainSettings &terrain_settings)
     : _grid(
-      GRID_SIZE, NUMBER_OF_ALIVE_CELLS, CELL_SIZE, command_buffer, command_pool, queue),
+      glm::ivec2(terrain_settings.grid_width, terrain_settings.grid_height),
+      terrain_settings.alive_cells,
+      terrain_settings.cell_size,
+      command_buffer, command_pool, queue),
     _rectangle(rectangle, true, command_buffer, command_pool, queue),
     _cube(sphere, false, command_buffer, command_pool, queue),
-      _ubo(LIGHT_POS, GRID_SIZE, WATER_THRESHOLD, CELL_SIZE), _camera(ZOOM_SPEED,
-                                                                      PANNING_SPEED,
-                                                                      FIELD_OF_VIEW,
-                                                                      NEAR_CLIPPING,
-                                                                      FAR_CLIPPING,
-                                                                      CAMERA_POSITION),
+      _ubo(LIGHT_POS,
+           glm::ivec2(terrain_settings.grid_width, terrain_settings.grid_height),
+           WATER_THRESHOLD,
+           terrain_settings.cell_size),
+      _camera(ZOOM_SPEED,
+              PANNING_SPEED,
+              FIELD_OF_VIEW,
+              NEAR_CLIPPING,
+              FAR_CLIPPING,
+              CAMERA_POSITION),
       _time(TIMER_SPEED) {
-  const float halfGridX = 0.5f * static_cast<float>(GRID_SIZE.x) * CELL_SIZE;
-  const float halfGridY = 0.5f * static_cast<float>(GRID_SIZE.y) * CELL_SIZE;
+  const float halfGridX = 0.5f * static_cast<float>(terrain_settings.grid_width) * terrain_settings.cell_size;
+  const float halfGridY = 0.5f * static_cast<float>(terrain_settings.grid_height) * terrain_settings.cell_size;
   const float sceneRadius = std::sqrt(halfGridX * halfGridX + halfGridY * halfGridY);
     _camera.configure_arcball(glm::vec3(0.0f, 0.0f, 0.0f), sceneRadius);
     _camera.configure_arcball_multipliers(
@@ -97,7 +102,7 @@ World::Grid::Grid(Vec2UintFast16 grid_size,
   Terrain::Config terrainLayer1 = {.dimensions = size,
                                    .roughness = 0.4f,
                                    .octaves = 10,
-                                   .scale = 1.1f,
+                                   .scale = 2.2f,
                                    .amplitude = 10.0f,
                                    .exponent = 2.0f,
                                    .frequency = 2.0f,
@@ -107,7 +112,7 @@ World::Grid::Grid(Vec2UintFast16 grid_size,
   Terrain::Config terrainLayer2 = {.dimensions = size,
                                    .roughness = 1.0f,
                                    .octaves = 10,
-                                   .scale = 1.1f,
+                                   .scale = 2.2f,
                                    .amplitude = 1.0f,
                                    .exponent = 1.0f,
                                    .frequency = 2.0f,
