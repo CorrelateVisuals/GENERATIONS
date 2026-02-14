@@ -233,7 +233,7 @@ void Geometry::create_vertex_buffer(VkCommandBuffer &command_buffer,
   if (Log::gpu_trace_enabled()) {
     Log::text("{ MAP }", "Map staging vertex memory", stagingResources.memory, bufferSize);
   }
-  vkMapMemory(CE::device::base_device->logical_device,
+  vkMapMemory(CE::Device::base_device->logical_device,
               stagingResources.memory,
               0,
               bufferSize,
@@ -242,11 +242,11 @@ void Geometry::create_vertex_buffer(VkCommandBuffer &command_buffer,
   if (Log::gpu_trace_enabled()) {
     Log::text("{ WR }", "Write host->staging vertex bytes", bufferSize);
   }
-  memcpy(data, vertices.data(), (size_t)bufferSize);
+  memcpy(data, vertices.data(), static_cast<size_t>(bufferSize));
   if (Log::gpu_trace_enabled()) {
     Log::text("{ MAP }", "Unmap staging vertex memory", stagingResources.memory);
   }
-  vkUnmapMemory(CE::device::base_device->logical_device, stagingResources.memory);
+  vkUnmapMemory(CE::Device::base_device->logical_device, stagingResources.memory);
 
   CE::Buffer::create(bufferSize,
                      VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
@@ -263,10 +263,10 @@ void Geometry::create_vertex_buffer(VkCommandBuffer &command_buffer,
 
 void Geometry::create_index_buffer(VkCommandBuffer &command_buffer,
                                    const VkCommandPool &command_pool,
-                                 const VkQueue &queue,
-                                 const std::vector<uint32_t> &indices) {
+                                   const VkQueue &queue,
+                                   const std::vector<uint32_t> &index_data) {
   CE::Buffer stagingResources;
-  VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
+  VkDeviceSize bufferSize = sizeof(index_data[0]) * index_data.size();
 
   CE::Buffer::create(bufferSize,
                      VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
@@ -278,7 +278,7 @@ void Geometry::create_index_buffer(VkCommandBuffer &command_buffer,
   if (Log::gpu_trace_enabled()) {
     Log::text("{ MAP }", "Map staging index memory", stagingResources.memory, bufferSize);
   }
-  vkMapMemory(CE::device::base_device->logical_device,
+  vkMapMemory(CE::Device::base_device->logical_device,
               stagingResources.memory,
               0,
               bufferSize,
@@ -287,11 +287,11 @@ void Geometry::create_index_buffer(VkCommandBuffer &command_buffer,
   if (Log::gpu_trace_enabled()) {
     Log::text("{ WR }", "Write host->staging index bytes", bufferSize);
   }
-  memcpy(data, indices.data(), (size_t)bufferSize);
+  memcpy(data, index_data.data(), static_cast<size_t>(bufferSize));
   if (Log::gpu_trace_enabled()) {
     Log::text("{ MAP }", "Unmap staging index memory", stagingResources.memory);
   }
-  vkUnmapMemory(CE::device::base_device->logical_device, stagingResources.memory);
+  vkUnmapMemory(CE::Device::base_device->logical_device, stagingResources.memory);
 
   CE::Buffer::create(bufferSize,
                      VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,

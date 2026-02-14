@@ -12,22 +12,23 @@ add_compile_options(
     -Wall
     -Wextra
     -Wpedantic
-    -Wold-style-cast
+    -Wno-old-style-cast
     -Winit-self
     -Wno-unused
-    -Wshadow
+    -Wno-shadow
     -Wno-parentheses
     -Wlogical-op
     -Wredundant-decls
     -Wcast-align
-    -Wsign-promo
+    -Wno-sign-promo
+    -Wno-missing-field-initializers
     -Wmissing-include-dirs
     -Woverloaded-virtual
     -Wctor-dtor-privacy
 )
 
 include_directories(${PROJECT_SOURCE_DIR}/src)
-include_directories(${PROJECT_SOURCE_DIR}/libraries)
+include_directories(SYSTEM ${PROJECT_SOURCE_DIR}/libraries)
 
 
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)

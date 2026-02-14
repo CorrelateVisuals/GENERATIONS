@@ -6,7 +6,7 @@
 #include "Resources.h"
 
 Resources::Resources(VulkanMechanics &mechanics)
-    : commands{mechanics.queues.family_indices},
+  : commands{mechanics.queues.indices},
       command_interface{
           commands.singular_command_buffer,
           commands.pool,

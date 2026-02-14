@@ -370,11 +370,11 @@ void CE::Swapchain::create(const VkSurfaceKHR &surface, const Queues &queues) {
       .clipped = VK_TRUE};
 
     const std::vector<uint32_t> queue_family_indices{
-      queues.family_indices.graphics_and_compute_family.value(),
-      queues.family_indices.present_family.value()};
+      queues.indices.graphics_and_compute_family.value(),
+      queues.indices.present_family.value()};
 
-  if (queues.family_indices.graphics_and_compute_family !=
-      queues.family_indices.present_family) {
+    if (queues.indices.graphics_and_compute_family !=
+      queues.indices.present_family) {
     createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
     createInfo.queueFamilyIndexCount =
         static_cast<uint32_t>(queue_family_indices.size());

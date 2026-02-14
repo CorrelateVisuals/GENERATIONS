@@ -23,24 +23,24 @@ void CE::Device::create_logical_device(const InitializeVulkan &init_vulkan,
     vkCreateDevice, this->physical_device, &create_info, nullptr, &this->logical_device);
   Log::text(
     "{ GPU }", Log::function_name(__func__), "Logical Device created", this->logical_device);
-  vkGetDeviceQueue(this->logical_device,
-           queues.family_indices.graphics_and_compute_family.value(),
+    vkGetDeviceQueue(this->logical_device,
+       queues.indices.graphics_and_compute_family.value(),
                    0,
            &queues.graphics_queue);
   vkGetDeviceQueue(this->logical_device,
-           queues.family_indices.graphics_and_compute_family.value(),
+       queues.indices.graphics_and_compute_family.value(),
                    0,
            &queues.compute_queue);
   vkGetDeviceQueue(
-    this->logical_device, queues.family_indices.present_family.value(), 0,
+      this->logical_device, queues.indices.present_family.value(), 0,
     &queues.present_queue);
 
     Log::text(Log::Style::char_leader,
             "graphics/compute queue family",
-      queues.family_indices.graphics_and_compute_family.value());
+      queues.indices.graphics_and_compute_family.value());
     Log::text(Log::Style::char_leader,
             "present queue family",
-      queues.family_indices.present_family.value());
+      queues.indices.present_family.value());
     Log::text(Log::Style::char_leader,
             "queue handles",
       queues.graphics_queue,
@@ -78,8 +78,8 @@ std::vector<VkDeviceQueueCreateInfo>
 CE::Device::fill_queue_create_infos(const Queues &queues) const {
   std::vector<VkDeviceQueueCreateInfo> queue_create_infos{};
   const std::set<uint32_t> unique_queue_families = {
-      queues.family_indices.graphics_and_compute_family.value(),
-      queues.family_indices.present_family.value()};
+      queues.indices.graphics_and_compute_family.value(),
+      queues.indices.present_family.value()};
 
   const float queue_priority = 1.0f;
   for (uint_fast8_t queue_family : unique_queue_families) {
@@ -135,7 +135,7 @@ bool CE::Device::is_device_suitable(const VkPhysicalDevice &physical_device,
                                     Swapchain &swapchain) {
   Log::text(Log::Style::char_leader, "Is Device Suitable");
 
-  queues.family_indices =
+  queues.indices =
       queues.find_queue_families(physical_device, init_vulkan.surface);
   const bool extensions_supported = check_device_extension_support(physical_device);
 
@@ -149,12 +149,12 @@ bool CE::Device::is_device_suitable(const VkPhysicalDevice &physical_device,
   }
   Log::text(Log::Style::char_leader,
             "queueComplete",
-            queues.family_indices.is_complete(),
+            queues.indices.is_complete(),
             "extensions",
             extensions_supported,
             "swapchainAdequate",
             swapchain_adequate);
-  return queues.family_indices.is_complete() && extensions_supported &&
+  return queues.indices.is_complete() && extensions_supported &&
          swapchain_adequate;
 }
 

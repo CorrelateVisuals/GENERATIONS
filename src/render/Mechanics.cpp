@@ -18,7 +18,7 @@ VulkanMechanics::~VulkanMechanics() {
 }
 
 void VulkanMechanics::Swapchain::recreate(const VkSurfaceKHR &surface,
-                                          const CE::queues &queues,
+                                          const CE::Queues &queues,
                                           SynchronizationObjects &sync_objects,
                                           Pipelines &pipelines,
                                           Resources &resources) {
