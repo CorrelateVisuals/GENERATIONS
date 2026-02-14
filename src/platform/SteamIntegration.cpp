@@ -61,24 +61,21 @@ void Integration::detect_steam_deck() {
   }
 
 #ifdef __linux__
-  // Method 3: Check for Neptune hardware (Steam Deck codename)
+  // Method 3: Check for Steam Deck hardware (Jupiter/Galileo codenames)
   // Read /sys/devices/virtual/dmi/id/product_name directly
-  const char *product_name_paths[] = {
-      "/sys/devices/virtual/dmi/id/product_name"};
+  const char *product_name_path = "/sys/devices/virtual/dmi/id/product_name";
 
-  for (const char *path : product_name_paths) {
-    std::ifstream product_file(path);
-    if (product_file.is_open()) {
-      std::string product_name;
-      std::getline(product_file, product_name);
-      product_file.close();
+  std::ifstream product_file(product_name_path);
+  if (product_file.is_open()) {
+    std::string product_name;
+    std::getline(product_file, product_name);
+    product_file.close();
 
-      // Steam Deck variants use Jupiter or Galileo codenames
-      if (product_name.find("Jupiter") != std::string::npos ||
-          product_name.find("Galileo") != std::string::npos) {
-        steam_deck_detected = true;
-        return;
-      }
+    // Steam Deck variants use Jupiter or Galileo codenames
+    if (product_name.find("Jupiter") != std::string::npos ||
+        product_name.find("Galileo") != std::string::npos) {
+      steam_deck_detected = true;
+      return;
     }
   }
 #endif
