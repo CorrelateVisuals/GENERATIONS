@@ -65,10 +65,6 @@ public:
   };
 #undef PIPELINE_OBJECTS
 
-  std::vector<VkShaderModule> shader_modules{};
-  const std::string shader_dir = "shaders/";
-  std::unordered_map<std::string, std::variant<Graphics, Compute>> pipeline_map{};
-
   PipelinesConfiguration() = default;
   virtual ~PipelinesConfiguration();
   void create_pipelines(VkRenderPass &render_pass,
@@ -80,9 +76,12 @@ public:
   const std::array<uint32_t, 3> &get_work_groups_by_name(const std::string &name);
 
 protected:
+  std::unordered_map<std::string, std::variant<Graphics, Compute>> pipeline_map{};
   void compile_shaders();
 
 private:
+  std::vector<VkShaderModule> shader_modules{};
+  const std::string shader_dir = "shaders/";
   bool set_shader_stages(const std::string &pipeline_name,
                          std::vector<VkPipelineShaderStageCreateInfo> &shader_stages);
   std::vector<char> read_shader_file(const std::string &filename);

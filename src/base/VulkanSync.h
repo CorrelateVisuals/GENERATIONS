@@ -90,7 +90,7 @@ public:
     VkSurfaceCapabilitiesKHR capabilities{};
     std::vector<VkSurfaceFormatKHR> formats{};
     std::vector<VkPresentModeKHR> present_modes{};
-  } support_details{};
+  };
 
   Swapchain() = default;
   virtual ~Swapchain() {
@@ -106,6 +106,7 @@ protected:
                 SynchronizationObjects &sync_objects);
 
 private:
+  SupportDetails support_details{};
   void destroy();
   VkSurfaceFormatKHR
   pick_surface_format(const std::vector<VkSurfaceFormatKHR> &available_formats) const;

@@ -54,7 +54,10 @@ public:
                   Resources &resources);
   };
 
+private:
   Swapchain swapchain_support;
+
+public:
   Device main_device;
   Swapchain swapchain;
   SynchronizationObjects sync_objects;

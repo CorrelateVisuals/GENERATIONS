@@ -13,18 +13,27 @@
 #endif
 
 std::ofstream Log::log_file("log.txt");
+std::ofstream &Log::logFile = Log::log_file;
 
 std::string Log::Style::char_leader = std::string(8, ' ') + ": ";
+std::string &Log::Style::charLeader = Log::Style::char_leader;
 std::string Log::Style::indent_size = std::string(17, ' ');
+std::string &Log::Style::indentSize = Log::Style::indent_size;
 std::string Log::Style::header_guard = std::string(
     "+-------------------------------------------------------------------------"
     "----+");
+std::string &Log::Style::headerGuard = Log::Style::header_guard;
 int Log::Style::column_count = 14;
+int &Log::Style::columnCount = Log::Style::column_count;
 int Log::Style::column_count_offset = 4;
+int &Log::Style::columnCountOffset = Log::Style::column_count_offset;
 
 std::string Log::previous_time;
+std::string &Log::previousTime = Log::previous_time;
 std::string Log::previous_line;
+std::string &Log::previousLine = Log::previous_line;
 uint32_t Log::repeated_line_count = 0;
+uint32_t &Log::repeatedLineCount = Log::repeated_line_count;
 
 namespace {
 constexpr const char *RESET = "\033[0m";

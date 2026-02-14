@@ -47,8 +47,8 @@ inline void logFooter() {
 
 template <class T, class... Ts> void text(const T &first, const Ts &...inputs);
 bool skip_logging(uint8_t log_level, const std::string &icon);
-inline bool skipLogging(uint8_t logLevel, const std::string &icon) {
-  return skip_logging(logLevel, icon);
+inline bool skipLogging(uint8_t current_log_level, const std::string &icon) {
+  return skip_logging(current_log_level, icon);
 }
 void emit_line(const std::string &line);
 inline void emitLine(const std::string &line) {

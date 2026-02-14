@@ -3,9 +3,11 @@
 ![GENERATIONS Cover](assets/CoverCapture.PNG)
 
 <p align="left">
-	<img src="assets/branding/vulkan.svg" alt="Vulkan" height="28" />
-	<img src="assets/branding/cplusplus.svg" alt="C++" height="28" />
-	<img src="assets/branding/cmake.svg" alt="CMake" height="28" />
+	<img src="assets/branding/vulkan.svg" alt="Vulkan" height="52" />
+	&nbsp;&nbsp;
+	<img src="assets/branding/cplusplus.svg" alt="C++" height="52" />
+	&nbsp;&nbsp;
+	<img src="assets/branding/cmake.svg" alt="CMake" height="52" />
 </p>
 
 GENERATIONS is a Vulkan-native simulation runtime built for reliable, high-throughput GPU workloads.

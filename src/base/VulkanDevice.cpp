@@ -306,24 +306,24 @@ void CE::InitializeVulkan::create_instance() {
 
   const std::vector<const char *> extensions = get_required_extensions();
 
-  VkInstanceCreateInfo createInfo{.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
-                                  .pNext = nullptr,
-                                  .pApplicationInfo = &app_info,
-                                  .enabledLayerCount = 0,
-                                  .enabledExtensionCount =
-                                      static_cast<uint32_t>(extensions.size()),
-                                  .ppEnabledExtensionNames = extensions.data()};
+    VkInstanceCreateInfo create_info{.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
+                     .pNext = nullptr,
+                     .pApplicationInfo = &app_info,
+                     .enabledLayerCount = 0,
+                     .enabledExtensionCount =
+                       static_cast<uint32_t>(extensions.size()),
+                     .ppEnabledExtensionNames = extensions.data()};
 
   VkDebugUtilsMessengerCreateInfoEXT debug_create_info{};
   if (this->validation.enable_validation_layers) {
-    createInfo.enabledLayerCount =
+    create_info.enabledLayerCount =
         static_cast<uint32_t>(this->validation.validation.size());
-    createInfo.ppEnabledLayerNames = this->validation.validation.data();
+    create_info.ppEnabledLayerNames = this->validation.validation.data();
 
     this->validation.populate_debug_messenger_create_info(debug_create_info);
-    createInfo.pNext = &debug_create_info;
+    create_info.pNext = &debug_create_info;
   }
-    CE::vulkan_result(vkCreateInstance, &createInfo, nullptr, &this->instance);
+    CE::vulkan_result(vkCreateInstance, &create_info, nullptr, &this->instance);
 }
 
 void CE::InitializeVulkan::create_surface(GLFWwindow *window) {
