@@ -76,10 +76,10 @@ See [FOLDER_DEPENDENCY_MAP.md](src/FOLDER_DEPENDENCY_MAP.md) for detailed module
 - **Memory Statistics**: VRAM usage and allocation tracking
 
 ### Deployment Flexibility
-- **Headless Compute Mode**: Run simulations without windowing system (cluster-ready)
 - **Minimal Runtime Dependencies**: GLFW, Vulkan loader, standard C++ runtime
 - **Static Linking Options**: Self-contained binaries for HPC nodes
 - **Configuration via Push Constants**: No filesystem dependencies for parameters
+- **Modular Architecture**: Easy to extend for headless/cluster deployments
 
 ## Research & Academic Applications
 
@@ -190,7 +190,7 @@ glfw3.lib
 
 **Cluster/Batch Systems:**
 ```bash
-# Example SLURM job script
+# Example SLURM job script for future headless mode
 #!/bin/bash
 #SBATCH --partition=gpu
 #SBATCH --gres=gpu:1
@@ -200,7 +200,8 @@ module load vulkan/1.3
 export VK_LAYER_PATH=/path/to/vulkan/layers
 
 cd $SLURM_SUBMIT_DIR
-./bin/CapitalEngine --headless --iterations=10000
+# Headless mode coming soon - current version requires display
+./bin/CapitalEngine
 ```
 
 **Container Deployment:**
