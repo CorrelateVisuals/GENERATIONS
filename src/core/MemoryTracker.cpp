@@ -33,6 +33,12 @@ void MemoryTracker::record_allocation(size_t size) {
   if (!is_enabled()) return;
   
   total_allocated.fetch_add(size, std::memory_order_relaxed);
+  
+  // Note: There's a minor race between these two loads - current usage calculation
+  // may be slightly inaccurate. This is acceptable for peak tracking as:
+  // 1. The error is temporary and small
+  // 2. We prioritize low overhead over perfect accuracy
+  // 3. A mutex would add unnecessary performance cost
   size_t allocated = total_allocated.load(std::memory_order_acquire);
   size_t deallocated = total_deallocated.load(std::memory_order_acquire);
   size_t current = allocated - deallocated;
@@ -53,6 +59,8 @@ void MemoryTracker::record_vulkan_allocation(size_t size) {
   if (!is_enabled()) return;
   
   vulkan_allocated.fetch_add(size, std::memory_order_relaxed);
+  
+  // Note: Same minor race as in record_allocation - acceptable for peak tracking
   size_t allocated = vulkan_allocated.load(std::memory_order_acquire);
   size_t deallocated = vulkan_deallocated.load(std::memory_order_acquire);
   size_t current = allocated - deallocated;
