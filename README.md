@@ -99,6 +99,22 @@ Architecture boundary check:
 python3 tools/check_folder_dependencies.py
 ```
 
+## Testing
+
+### Deep Test - Memory Leak Detection
+
+For long-running stability testing and memory leak detection:
+
+```bash
+# Run 5-hour deep test (default)
+./tools/deeptest_memory.sh
+
+# Custom duration (in seconds)
+./tools/deeptest_memory.sh 18000  # 5 hours
+```
+
+See [docs/DEEPTEST.md](docs/DEEPTEST.md) for detailed documentation on memory leak testing.
+
 ## Design direction
 
 GENERATIONS is being shaped into a dependable foundation for high-performance, reusable simulation software.
