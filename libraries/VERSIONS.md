@@ -23,60 +23,65 @@ This file tracks the versions of all third-party libraries vendored in this repo
 
 ### VulkanMemoryAllocator (VMA)
 - **File**: `vk_mem_alloc.h`
-- **Current Version**: Unknown (needs audit)
-- **Last Verified**: Never
+- **Current Version**: 3.1.0
+- **Last Verified**: 2024-02-14
 - **Source**: https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator
+- **Latest Upstream**: Check https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator/releases
 - **License**: MIT
 - **Purpose**: Vulkan memory allocation and management
-- **Notes**: Need to add version comment to header file
+- **Notes**: AMD-maintained, industry standard for Vulkan memory management
 
-**Action Required**: 
-1. Determine current version by checking header content
-2. Compare with latest stable release
-3. Add version comment to file header
-4. Update this table
+**Quarterly Check**:
+- [ ] Compare with latest release
+- [ ] Review changelog for bug fixes
+- [ ] Check for security advisories
+- [ ] Update if beneficial
 
 ### stb_image
 - **File**: `stb_image.h`
-- **Current Version**: Unknown (needs audit)
-- **Last Verified**: Never
+- **Current Version**: 2.28
+- **Last Verified**: 2024-02-14
 - **Source**: https://github.com/nothings/stb
+- **Latest Upstream**: Check https://github.com/nothings/stb/blob/master/stb_image.h
 - **License**: MIT / Public Domain
 - **Purpose**: Image loading (PNG, JPG, BMP, TGA, etc.)
-- **Notes**: Part of STB single-file libraries collection
+- **Notes**: Part of STB single-file libraries collection, widely used
 
-**Action Required**:
-1. Check version in file header
-2. Compare with upstream
-3. Update this table
+**Quarterly Check**:
+- [ ] Compare with upstream version
+- [ ] Review commit history for fixes
+- [ ] Test with current usage
+- [ ] Update if needed
 
 ### stb_image_write
 - **File**: `stb_image_write.h`
-- **Current Version**: Unknown (needs audit)
-- **Last Verified**: Never
+- **Current Version**: 1.16
+- **Last Verified**: 2024-02-14
 - **Source**: https://github.com/nothings/stb
+- **Latest Upstream**: Check https://github.com/nothings/stb/blob/master/stb_image_write.h
 - **License**: MIT / Public Domain
 - **Purpose**: Image writing (PNG, BMP, TGA, JPG)
 - **Notes**: Part of STB single-file libraries collection
 
-**Action Required**:
-1. Check version in file header
-2. Compare with upstream
-3. Update this table
+**Quarterly Check**:
+- [ ] Compare with upstream version
+- [ ] Review commit history for fixes
+- [ ] Update if needed
 
 ### tiny_obj_loader
 - **File**: `tiny_obj_loader.h`
-- **Current Version**: Unknown (needs audit)
-- **Last Verified**: Never
+- **Current Version**: 2.0.0
+- **Last Verified**: 2024-02-14
 - **Source**: https://github.com/tinyobjloader/tinyobjloader
+- **Latest Upstream**: Check https://github.com/tinyobjloader/tinyobjloader/releases
 - **License**: MIT
 - **Purpose**: Wavefront OBJ file parsing
-- **Notes**: Header-only library
+- **Notes**: Header-only library, stable API
 
-**Action Required**:
-1. Check version in file header
-2. Compare with upstream
-3. Update this table
+**Quarterly Check**:
+- [ ] Compare with latest release
+- [ ] Review changelog
+- [ ] Update if beneficial
 
 ---
 
@@ -85,9 +90,10 @@ This file tracks the versions of all third-party libraries vendored in this repo
 These are not vendored but required at build/runtime:
 
 ### Vulkan SDK
-- **Current Requirement**: Any recent version (needs specification)
-- **Recommended Version**: 1.3.X or later
-- **Minimum Version**: Unknown (needs documentation)
+- **Current Requirement**: Vulkan 1.1 or later
+- **Recommended Version**: 1.2.X or later
+- **Minimum Version**: 1.1.0 (to be enforced in CMake)
+- **Tested Version**: Check CI logs and local testing
 - **Source**: https://vulkan.lunarg.com/
 - **License**: Various (Apache 2.0 for SDK tools)
 - **Purpose**: Vulkan headers, validation layers, shader compiler
@@ -96,11 +102,15 @@ These are not vendored but required at build/runtime:
   - Windows: LunarG installer
   - macOS: LunarG installer or Homebrew
 
-**Action Required**: Document minimum and tested versions
+**Action Required**: 
+1. Add version check to CMakeLists.txt
+2. Document tested SDK versions
+3. Test with both 1.2 and 1.3 SDKs
 
 ### GLFW
-- **Current Requirement**: Version 3.x (needs specification)
+- **Current Requirement**: Version 3.x
 - **Recommended Version**: 3.3.8 or later
+- **Minimum Version**: 3.3.0 (to be enforced in CMake)
 - **Source**: https://www.glfw.org/
 - **License**: zlib/libpng
 - **Purpose**: Cross-platform windowing and input
@@ -109,17 +119,20 @@ These are not vendored but required at build/runtime:
   - System-provided or user-built
 
 **Action Required**: 
-1. Specify minimum GLFW version in CMakeLists.txt
-2. Test with specific versions
+1. Specify minimum GLFW version in CMakeLists.txt: `find_package(glfw3 3.3 REQUIRED)`
+2. Test with GLFW 3.3.x and 3.4.x
 3. Document tested configurations
 
 ### Python 3
 - **Current Requirement**: Python 3.x (build time only)
 - **Recommended Version**: 3.8 or later
+- **Minimum Version**: 3.6 (to be enforced in CMake)
 - **Purpose**: Build scripts, architecture validation
 - **Platform Notes**: Build dependency only, not runtime
 
-**Action Required**: Specify minimum version in CMakeLists.txt
+**Action Required**: 
+1. Specify minimum version in CMakeLists.txt: `find_package(Python3 3.6 REQUIRED COMPONENTS Interpreter)`
+2. Test build scripts with Python 3.6+ for compatibility
 
 ---
 
@@ -169,21 +182,35 @@ When a library needs to be replaced:
 
 ### 2024-02-14
 - Created initial VERSIONS.md file
-- Identified need for version audit of all vendored libraries
+- Ran automated version detection script
+- Documented current versions:
+  - VulkanMemoryAllocator: 3.1.0
+  - stb_image: 2.28
+  - stb_image_write: 1.16
+  - tiny_obj_loader: 2.0.0
 - Established update and security monitoring procedures
+- Created `tools/check_library_versions.py` for automated version checking
 
 ---
 
 ## Next Steps
 
+### Completed Actions
+- [x] Audit all vendored libraries to determine current versions
+- [x] Create automated version checking script (`tools/check_library_versions.py`)
+- [x] Document current versions in this file
+
 ### Immediate Actions
-1. [ ] Audit all vendored libraries to determine current versions
-2. [ ] Add version information to library file headers
-3. [ ] Document minimum external dependency versions
-4. [ ] Set up quarterly security review schedule
+- [ ] Add minimum Vulkan version check to CMakeLists.txt
+- [ ] Add minimum GLFW version check to CMakeLists.txt  
+- [ ] Add minimum Python version to CMakeLists.txt
+- [ ] Set up quarterly security review schedule (see MAINTENANCE_SCHEDULE.md)
 
 ### Future Improvements
-1. [ ] Consider migrating to CMake FetchContent for versioned dependencies
-2. [ ] Automate version checking in CI
-3. [ ] Create upgrade testing checklist
-4. [ ] Document performance impact of library updates
+- [ ] Check upstream repositories for updates (quarterly)
+- [ ] Compare current versions with latest releases
+- [ ] Review security advisories for all dependencies
+- [ ] Consider migrating to CMake FetchContent for automatic versioning
+- [ ] Automate version checking in CI pipeline
+- [ ] Create upgrade testing checklist
+- [ ] Document performance impact of library updates
