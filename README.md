@@ -155,12 +155,17 @@ And gratitude to the open graphics ecosystem this project learns from and builds
 
 GENERATIONS is designed to stand the test of time. For comprehensive documentation on ensuring this codebase remains viable for 20+ years:
 
-- **[Long-Term Viability Analysis](docs/LONG_TERM_VIABILITY.md)**: Strengths, weaknesses, and strategic recommendations for HPC Vulkan apps
-- **[Dependency Management Strategy](docs/DEPENDENCY_STRATEGY.md)**: How we manage dependencies for long-term sustainability
-- **[Vulkan Requirements](docs/VULKAN_REQUIREMENTS.md)**: Platform compatibility, hardware requirements, and API versioning
-- **[Maintenance Schedule](docs/MAINTENANCE_SCHEDULE.md)**: Quarterly and annual tasks to keep the codebase healthy
-- **[Build System Migration Guide](docs/BUILD_SYSTEM_MIGRATION.md)**: Moving to CMake-only workflow
-- **[Library Versions](libraries/VERSIONS.md)**: Tracking vendored dependency versions
+### 📋 Start Here
+- **[Executive Summary](docs/EXECUTIVE_SUMMARY.md)** - Quick assessment and key recommendations (5-min read)
+
+### 📚 Detailed Documentation
+- **[Long-Term Viability Analysis](docs/LONG_TERM_VIABILITY.md)** - Strengths, weaknesses, and strategic recommendations
+- **[Dependency Management Strategy](docs/DEPENDENCY_STRATEGY.md)** - How we manage dependencies for long-term sustainability
+- **[Vulkan Requirements](docs/VULKAN_REQUIREMENTS.md)** - Platform compatibility, hardware requirements, and API versioning
+- **[Maintenance Schedule](docs/MAINTENANCE_SCHEDULE.md)** - Quarterly and annual tasks to keep the codebase healthy
+- **[Build System Migration Guide](docs/BUILD_SYSTEM_MIGRATION.md)** - Moving to CMake-only workflow
+- **[Implementation Examples](docs/IMPLEMENTATION_EXAMPLES.md)** - Practical code examples for maintainability features
+- **[Library Versions](libraries/VERSIONS.md)** - Tracking vendored dependency versions
 
 These documents provide a roadmap for maintaining this project across platforms, toolchains, and decades.
 
