@@ -32,7 +32,7 @@ void CE::Screenshot::capture(const VkImage &src_image,
   copy_image_to_buffer(src_image, staging_buffer, extent, command_pool, queue);
   save_buffer_to_file(staging_buffer, extent, format, filename);
 
-  Log::text(Log::Style::charLeader, "Screenshot queued for disk write");
+  Log::text(Log::Style::char_leader, "Screenshot queued for disk write");
 }
 
 void CE::Screenshot::copy_image_to_buffer(const VkImage &src_image,

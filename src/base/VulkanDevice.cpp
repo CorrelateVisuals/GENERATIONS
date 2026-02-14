@@ -35,13 +35,13 @@ void CE::Device::create_logical_device(const InitializeVulkan &init_vulkan,
     this->logical_device, queues.family_indices.present_family.value(), 0,
     &queues.present_queue);
 
-  Log::text(Log::Style::charLeader,
+    Log::text(Log::Style::char_leader,
             "graphics/compute queue family",
       queues.family_indices.graphics_and_compute_family.value());
-  Log::text(Log::Style::charLeader,
+    Log::text(Log::Style::char_leader,
             "present queue family",
       queues.family_indices.present_family.value());
-  Log::text(Log::Style::charLeader,
+    Log::text(Log::Style::char_leader,
             "queue handles",
       queues.graphics_queue,
       queues.compute_queue,
@@ -62,10 +62,10 @@ void CE::Device::pick_physical_device(const InitializeVulkan &init_vulkan,
     if (is_device_suitable(device, queues, init_vulkan, swapchain)) {
       this->physical_device = device;
       get_max_usable_sample_count();
-      Log::text(Log::Style::charLeader,
-                Log::getSampleCountString(this->max_usable_sample_count));
+        Log::text(Log::Style::char_leader,
+            Log::get_sample_count_string(this->max_usable_sample_count));
       Log::text(
-          Log::Style::charLeader, "selected physical device", this->physical_device);
+          Log::Style::char_leader, "selected physical device", this->physical_device);
       break;
     }
   }
@@ -133,7 +133,7 @@ bool CE::Device::is_device_suitable(const VkPhysicalDevice &physical_device,
                                     Queues &queues,
                                     const InitializeVulkan &init_vulkan,
                                     Swapchain &swapchain) {
-  Log::text(Log::Style::charLeader, "Is Device Suitable");
+  Log::text(Log::Style::char_leader, "Is Device Suitable");
 
   queues.family_indices =
       queues.find_queue_families(physical_device, init_vulkan.surface);
@@ -147,7 +147,7 @@ bool CE::Device::is_device_suitable(const VkPhysicalDevice &physical_device,
       !swapchain_support.formats.empty() &&
       !swapchain_support.present_modes.empty();
   }
-  Log::text(Log::Style::charLeader,
+  Log::text(Log::Style::char_leader,
             "queueComplete",
             queues.family_indices.is_complete(),
             "extensions",
@@ -176,7 +176,7 @@ void CE::Device::get_max_usable_sample_count() {
 
 bool CE::Device::check_device_extension_support(
     const VkPhysicalDevice &physical_device) const {
-  Log::text(Log::Style::charLeader, "Check Device Extension Support");
+  Log::text(Log::Style::char_leader, "Check Device Extension Support");
   uint32_t extension_count(0);
   vkEnumerateDeviceExtensionProperties(
       physical_device, nullptr, &extension_count, nullptr);
@@ -184,7 +184,7 @@ bool CE::Device::check_device_extension_support(
   std::vector<VkExtensionProperties> available_extensions(extension_count);
   vkEnumerateDeviceExtensionProperties(
       physical_device, nullptr, &extension_count, available_extensions.data());
-  Log::text(Log::Style::charLeader,
+  Log::text(Log::Style::char_leader,
             "available extensions",
             extension_count,
             "required",
@@ -229,7 +229,7 @@ void CE::Device::destroy_device() {
 CE::Queues::FamilyIndices
 CE::Queues::find_queue_families(const VkPhysicalDevice &physical_device,
                               const VkSurfaceKHR &surface) const {
-  Log::text(Log::Style::charLeader, "Find Queue Families");
+  Log::text(Log::Style::char_leader, "Find Queue Families");
 
   CE::Queues::FamilyIndices indices{};
   uint32_t queue_family_count(0);
@@ -251,7 +251,7 @@ CE::Queues::find_queue_families(const VkPhysicalDevice &physical_device,
       indices.present_family = i;
     }
     if (indices.is_complete()) {
-      Log::text(Log::Style::charLeader,
+      Log::text(Log::Style::char_leader,
                 "selected queue families",
                 "gc",
                 indices.graphics_and_compute_family.value(),
@@ -294,7 +294,7 @@ void CE::InitializeVulkan::create_instance() {
                              .pEngineName = "CAPITAL Engine",
                              .engineVersion = VK_MAKE_VERSION(0, 0, 1),
                              .apiVersion = VK_API_VERSION_1_3};
-  Log::text(Log::Style::charLeader,
+  Log::text(Log::Style::char_leader,
             app_info.pApplicationName,
             app_info.applicationVersion,
             "-",

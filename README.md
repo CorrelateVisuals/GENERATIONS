@@ -3,7 +3,7 @@
 ![GENERATIONS Cover](assets/CoverCapture.PNG)
 
 <p align="left">
-	<img src="assets/branding/vulkan.svg" alt="Vulkan" height="52" />
+	<img src="assets/branding/vulkan.svg" alt="Vulkan" height="104" />
 	&nbsp;&nbsp;
 	<img src="assets/branding/cplusplus.svg" alt="C++" height="52" />
 	&nbsp;&nbsp;

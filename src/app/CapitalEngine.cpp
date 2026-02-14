@@ -17,23 +17,23 @@ constexpr uint32_t SINGLE_OBJECT_COUNT = 1;
 } // namespace
 
 CapitalEngine::CapitalEngine() : resources(mechanics), pipelines(mechanics, resources) {
-  Log::text(Log::Style::headerGuard);
+  Log::text(Log::Style::header_guard);
   Log::text("| CAPITAL Engine");
 }
 
 CapitalEngine::~CapitalEngine() {
-  Log::text(Log::Style::headerGuard);
+  Log::text(Log::Style::header_guard);
   Log::text("| CAPITAL Engine");
-  Log::text(Log::Style::headerGuard);
+  Log::text(Log::Style::header_guard);
 
   glfwDestroyWindow(Window::get().window);
   glfwTerminate();
 }
 
 void CapitalEngine::main_loop() {
-  Log::text(Log::Style::headerGuard);
+  Log::text(Log::Style::header_guard);
   Log::text("{ Main Loop }");
-  Log::measureElapsedTime();
+  Log::measure_elapsed_time();
 
   const bool startupScreenshotEnabled = [] {
     const char *env = std::getenv("CE_STARTUP_SCREENSHOT");
@@ -73,8 +73,8 @@ void CapitalEngine::main_loop() {
   }
   vkDeviceWaitIdle(mechanics.main_device.logical_device);
 
-  Log::measureElapsedTime();
-  Log::text(Log::Style::headerGuard);
+  Log::measure_elapsed_time();
+  Log::text(Log::Style::header_guard);
 }
 
 void CapitalEngine::draw_frame() {

@@ -193,7 +193,7 @@ void CE::CommandBuffers::create_buffers(
 CE::Swapchain::SupportDetails
 CE::Swapchain::check_support(const VkPhysicalDevice &physical_device,
                              const VkSurfaceKHR &surface) {
-  Log::text(Log::Style::charLeader, "Query Swap Chain Support");
+  Log::text(Log::Style::char_leader, "Query Swap Chain Support");
   {
     Swapchain::SupportDetails details{};
     vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
@@ -221,7 +221,7 @@ CE::Swapchain::check_support(const VkPhysicalDevice &physical_device,
               details.formats.size(),
               "presentModes",
               details.present_modes.size());
-    Log::text(Log::Style::charLeader,
+    Log::text(Log::Style::char_leader,
               "capabilities min/max imageCount",
               details.capabilities.minImageCount,
               "/",
@@ -234,7 +234,7 @@ CE::Swapchain::check_support(const VkPhysicalDevice &physical_device,
 
 VkSurfaceFormatKHR CE::Swapchain::pick_surface_format(
     const std::vector<VkSurfaceFormatKHR> &available_formats) const {
-  Log::text(Log::Style::charLeader, "Choose Swap Surface Format");
+  Log::text(Log::Style::char_leader, "Choose Swap Surface Format");
 
   for (const auto &available_format : available_formats) {
     if (available_format.format == VK_FORMAT_R8G8B8A8_SRGB &&
@@ -247,7 +247,7 @@ VkSurfaceFormatKHR CE::Swapchain::pick_surface_format(
 
 VkPresentModeKHR CE::Swapchain::pick_present_mode(
     const std::vector<VkPresentModeKHR> &available_present_modes) const {
-  Log::text(Log::Style::charLeader, "Choose Swap Present Mode");
+  Log::text(Log::Style::char_leader, "Choose Swap Present Mode");
   for (const auto &available_present_mode : available_present_modes) {
     if (available_present_mode == VK_PRESENT_MODE_MAILBOX_KHR) {
       return available_present_mode;
@@ -265,7 +265,7 @@ VkPresentModeKHR CE::Swapchain::pick_present_mode(
 
 VkExtent2D CE::Swapchain::pick_extent(GLFWwindow *window,
                                       const VkSurfaceCapabilitiesKHR &capabilities) const {
-  Log::text(Log::Style::charLeader, "Choose Swap Extent");
+  Log::text(Log::Style::char_leader, "Choose Swap Extent");
 
   if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
     return capabilities.currentExtent;
@@ -482,7 +482,7 @@ void CE::SynchronizationObjects::create() {
               nullptr,
               &this->compute_in_flight_fences[i]);
 
-    Log::text(Log::Style::charLeader,
+    Log::text(Log::Style::char_leader,
               "frame",
               i,
               "sync handles",

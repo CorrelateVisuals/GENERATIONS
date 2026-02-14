@@ -30,13 +30,13 @@ public:
 
   struct UniformBufferObject {
     glm::vec4 light;
-    glm::ivec2 gridXY;
-    float waterThreshold;
-    float cellSize;
+    glm::ivec2 grid_xy;
+    float water_threshold;
+    float cell_size;
     alignas(16) ModelViewProjection mvp{};
 
     UniformBufferObject(glm::vec4 l, glm::ivec2 xy, float w, float s)
-        : light(l), gridXY(xy), waterThreshold(w), cellSize(s){};
+      : light(l), grid_xy(xy), water_threshold(w), cell_size(s){};
   };
 
   struct Grid : public Geometry {

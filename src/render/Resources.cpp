@@ -34,9 +34,9 @@ Resources::Resources(VulkanMechanics &mechanics)
                                       world._grid.point_count},
         sampler{descriptor_interface, command_interface, Lib::path("assets/Avatar.PNG")},
         storage_image{descriptor_interface, mechanics.swapchain.images} {
-  Log::text(Log::Style::headerGuard);
+  Log::text(Log::Style::header_guard);
   Log::text("{ /// }", "constructing Resources (start)");
-  Log::text(Log::Style::headerGuard);
+  Log::text(Log::Style::header_guard);
   Log::text("{ /// }", "constructing Resources");
 
   descriptor_interface.initialize_sets();
@@ -119,8 +119,8 @@ void Resources::UniformBuffer::create_descriptor_write(CE::DescriptorInterface &
 
 void Resources::UniformBuffer::update(World &world, const VkExtent2D extent) {
   ubo.light = world._ubo.light;
-  ubo.gridXY = glm::vec2(static_cast<uint32_t>(world._grid.size.x),
-                         static_cast<uint32_t>(world._grid.size.y));
+  ubo.grid_xy = glm::vec2(static_cast<uint32_t>(world._grid.size.x),
+                          static_cast<uint32_t>(world._grid.size.y));
   ubo.mvp.model = world._camera.set_model();
   ubo.mvp.view = world._camera.set_view();
   ubo.mvp.projection = world._camera.set_projection(extent);
@@ -249,7 +249,7 @@ Resources::ImageSampler::ImageSampler(CE::DescriptorInterface &interface,
   pool_size.descriptorCount = MAX_FRAMES_IN_FLIGHT;
   interface.pool_sizes.push_back(pool_size);
 
-  texture_image.load_texture(texture_image.path,
+  texture_image.load_texture(texture_path,
                              VK_FORMAT_R8G8B8A8_SRGB,
                              command_interface.command_buffer,
                              command_interface.command_pool,

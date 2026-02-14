@@ -53,7 +53,6 @@ private:
 class Device {
 public:
   VkPhysicalDevice physical_device{VK_NULL_HANDLE};
-  VkPhysicalDeviceFeatures features{};
   VkSampleCountFlagBits max_usable_sample_count{VK_SAMPLE_COUNT_1_BIT};
   VkDevice logical_device{VK_NULL_HANDLE};
 
@@ -65,6 +64,7 @@ public:
   }
 
 protected:
+  VkPhysicalDeviceFeatures features{};
   void pick_physical_device(const InitializeVulkan &init_vulkan,
                             Queues &queues,
                             Swapchain &swapchain);

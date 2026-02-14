@@ -22,12 +22,12 @@ uint32_t CE::find_memory_type(const uint32_t type_filter,
             "Find Memory Type",
             "typeFilter",
             type_filter);
-  Log::text(Log::Style::charLeader, Log::getMemoryPropertyString(properties));
+  Log::text(Log::Style::char_leader, Log::get_memory_property_string(properties));
 
   for (uint32_t i = 0; i < mem_properties.memoryTypeCount; i++) {
     if ((type_filter & (1 << i)) &&
         (mem_properties.memoryTypes[i].propertyFlags & properties) == properties) {
-      Log::text(Log::Style::charLeader,
+      Log::text(Log::Style::char_leader,
                 Log::function_name(__func__),
                 "MemoryType index",
                 i,
@@ -65,9 +65,9 @@ void CE::Buffer::create(const VkDeviceSize &size,
   bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
   bufferInfo.queueFamilyIndexCount = 0;
   bufferInfo.pQueueFamilyIndices = nullptr;
-  Log::text("{ ... }", Log::getBufferUsageString(usage));
-  Log::text(Log::Style::charLeader, Log::getMemoryPropertyString(properties));
-  Log::text(Log::Style::charLeader, size, "bytes");
+  Log::text("{ ... }", Log::get_buffer_usage_string(usage));
+  Log::text(Log::Style::char_leader, Log::get_memory_property_string(properties));
+  Log::text(Log::Style::char_leader, size, "bytes");
 
   CE::vulkan_result(
       vkCreateBuffer,
@@ -80,13 +80,13 @@ void CE::Buffer::create(const VkDeviceSize &size,
   vkGetBufferMemoryRequirements(
       Device::base_device->logical_device, buffer.buffer, &memRequirements);
   Log::text("{ MEM }", Log::function_name(__func__), "Buffer Memory Requirements");
-  Log::text(Log::Style::charLeader,
+  Log::text(Log::Style::char_leader,
             "requested",
             size,
             "aligned",
             memRequirements.size,
             "bytes");
-  Log::text(Log::Style::charLeader,
+  Log::text(Log::Style::char_leader,
             "alignment",
             memRequirements.alignment,
             "typeBits",
@@ -101,7 +101,7 @@ void CE::Buffer::create(const VkDeviceSize &size,
   allocateInfo.allocationSize = memRequirements.size;
   allocateInfo.memoryTypeIndex = memory_type_index;
 
-  Log::text(Log::Style::charLeader,
+  Log::text(Log::Style::char_leader,
             "alloc",
             allocateInfo.allocationSize,
             "bytes",
@@ -227,9 +227,9 @@ void CE::Image::create(const uint32_t width,
                        const VkImageUsageFlags &usage,
                        const VkMemoryPropertyFlags &properties) {
   Log::text("{ img }", "Image", width, height);
-  Log::text(Log::Style::charLeader, Log::getSampleCountString(num_samples));
-  Log::text(Log::Style::charLeader, Log::getImageUsageString(usage));
-  Log::text(Log::Style::charLeader, Log::getMemoryPropertyString(properties));
+  Log::text(Log::Style::char_leader, Log::get_sample_count_string(num_samples));
+  Log::text(Log::Style::char_leader, Log::get_image_usage_string(usage));
+  Log::text(Log::Style::char_leader, Log::get_memory_property_string(properties));
 
   info.format = format;
   info.extent = {.width = width, .height = height, .depth = 1};
@@ -250,7 +250,7 @@ void CE::Image::create(const uint32_t width,
   vkGetImageMemoryRequirements(
       Device::base_device->logical_device, this->image, &memRequirements);
   Log::text("{ MEM }", Log::function_name(__func__), "Image Memory Requirements");
-  Log::text(Log::Style::charLeader,
+  Log::text(Log::Style::char_leader,
             "extent",
             width,
             "x",
@@ -258,7 +258,7 @@ void CE::Image::create(const uint32_t width,
             "aligned",
             memRequirements.size,
             "bytes");
-  Log::text(Log::Style::charLeader,
+  Log::text(Log::Style::char_leader,
             "alignment",
             memRequirements.alignment,
             "typeBits",
@@ -273,7 +273,7 @@ void CE::Image::create(const uint32_t width,
   allocateInfo.allocationSize = memRequirements.size;
   allocateInfo.memoryTypeIndex = memory_type_index;
 
-  Log::text(Log::Style::charLeader,
+  Log::text(Log::Style::char_leader,
             "alloc",
             allocateInfo.allocationSize,
             "bytes",
@@ -292,7 +292,7 @@ void CE::Image::create(const uint32_t width,
 }
 
 void CE::Image::create_view(const VkImageAspectFlags aspect_flags) {
-  Log::text(Log::Style::charLeader, "Image View");
+  Log::text(Log::Style::char_leader, "Image View");
 
   VkImageViewCreateInfo viewInfo{};
   viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -379,13 +379,13 @@ void CE::Image::transition_layout(const VkCommandBuffer &command_buffer,
   }
 
   if (should_log_transition) {
-    Log::text(Log::Style::charLeader,
+    Log::text(Log::Style::char_leader,
               "srcAccess",
               barrier.srcAccessMask,
               "dstAccess",
               barrier.dstAccessMask);
     Log::text(
-        Log::Style::charLeader, "srcStage", sourceStage, "dstStage", destinationStage);
+      Log::Style::char_leader, "srcStage", sourceStage, "dstStage", destinationStage);
   }
 
   vkCmdPipelineBarrier(command_buffer,

@@ -24,8 +24,8 @@ void CE::DescriptorInterface::create_set_layout() {
       "{ |=| }", "Descriptor Set Layout:", set_layout_bindings.size(), "bindings");
   for (const VkDescriptorSetLayoutBinding &item : set_layout_bindings) {
     Log::text(
-        "{ ", item.binding, " }", Log::getDescriptorTypeString(item.descriptorType));
-    Log::text(Log::Style::charLeader, Log::getShaderStageString(item.stageFlags));
+      "{ ", item.binding, " }", Log::get_descriptor_type_string(item.descriptorType));
+    Log::text(Log::Style::char_leader, Log::get_shader_stage_string(item.stageFlags));
   }
 
   VkDescriptorSetLayoutCreateInfo layoutInfo{
@@ -43,7 +43,7 @@ void CE::DescriptorInterface::create_set_layout() {
 void CE::DescriptorInterface::create_pool() {
   Log::text("{ |=| }", "Descriptor Pool");
   for (size_t i = 0; i < pool_sizes.size(); i++) {
-    Log::text(Log::Style::charLeader, Log::getDescriptorTypeString(pool_sizes[i].type));
+    Log::text(Log::Style::char_leader, Log::get_descriptor_type_string(pool_sizes[i].type));
   }
   VkDescriptorPoolCreateInfo poolInfo{
       .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,

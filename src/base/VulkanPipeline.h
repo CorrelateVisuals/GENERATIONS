@@ -71,7 +71,6 @@ public:
                         const VkPipelineLayout &graphics_layout,
                         const VkPipelineLayout &compute_layout,
                         VkSampleCountFlagBits &msaa_samples);
-  const std::vector<std::string> &get_pipeline_shaders_by_name(const std::string &name);
   VkPipeline &get_pipeline_object_by_name(const std::string &name);
   const std::array<uint32_t, 3> &get_work_groups_by_name(const std::string &name);
 
@@ -82,6 +81,7 @@ protected:
 private:
   std::vector<VkShaderModule> shader_modules{};
   const std::string shader_dir = "shaders/";
+  const std::vector<std::string> &get_pipeline_shaders_by_name(const std::string &name);
   bool set_shader_stages(const std::string &pipeline_name,
                          std::vector<VkPipelineShaderStageCreateInfo> &shader_stages);
   std::vector<char> read_shader_file(const std::string &filename);

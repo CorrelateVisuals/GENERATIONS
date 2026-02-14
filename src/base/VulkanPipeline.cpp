@@ -20,7 +20,7 @@ CE::RenderPass::~RenderPass() {
 void CE::RenderPass::create(VkSampleCountFlagBits msaa_image_samples,
                             VkFormat swapchain_image_format) {
   Log::text("{ []< }", "Render Pass");
-  Log::text(Log::Style::charLeader,
+  Log::text(Log::Style::char_leader,
             "colorAttachment, depthAttachment, colorAttachmentResolve");
 
   VkAttachmentDescription colorAttachment{
@@ -103,7 +103,7 @@ void CE::RenderPass::create_framebuffers(CE::Swapchain &swapchain,
                                          const VkImageView &depth_view) const {
   Log::text("{ 101 }", "Frame Buffers:", swapchain.images.size());
 
-  Log::text(Log::Style::charLeader,
+  Log::text(Log::Style::char_leader,
             "attachments: msaaImage., depthImage, swapchain imageViews");
   for (uint_fast8_t i = 0; i < swapchain.images.size(); i++) {
     std::array<VkImageView, 3> attachments{msaa_view,
@@ -181,7 +181,7 @@ void CE::PipelinesConfiguration::create_pipelines(VkRenderPass &render_pass,
       }
 
       for (const auto &item : bindingDescription) {
-        Log::text(Log::Style::charLeader,
+        Log::text(Log::Style::char_leader,
                   "binding:",
                   item.binding,
                   item.inputRate ? "VK_VERTEX_INPUT_RATE_INSTANCE"
@@ -263,7 +263,7 @@ void CE::PipelinesConfiguration::create_pipelines(VkRenderPass &render_pass,
 
         const std::array<uint32_t, 3> &workGroups =
           get_work_groups_by_name(pipelineName);
-      Log::text(Log::Style::charLeader,
+      Log::text(Log::Style::char_leader,
                 "workgroups",
                 workGroups[0],
                 workGroups[1],
@@ -363,7 +363,7 @@ CE::PipelinesConfiguration::read_shader_file(const std::string &filename) {
 VkPipelineShaderStageCreateInfo
 CE::PipelinesConfiguration::create_shader_modules(VkShaderStageFlagBits shaderStage,
                                                   std::string shaderName) {
-  Log::text(Log::Style::charLeader, "Shader Module", shaderName);
+  Log::text(Log::Style::char_leader, "Shader Module", shaderName);
 
   std::string shaderPath = this->shader_dir + shaderName;
   auto shaderCode = read_shader_file(shaderPath);

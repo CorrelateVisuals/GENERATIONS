@@ -9,14 +9,14 @@
 Window Window::main_window;
 
 Window::Window() : framebuffer_resized{false}, window{nullptr} {
-  Log::logTitle();
+  Log::log_title();
   Log::text("{ [-] }", "constructing Window");
   init_window();
 }
 
 Window::~Window() {
   Log::text("{ [-] }", "destructing Window");
-  Log::logFooter();
+  Log::log_footer();
 
   glfwDestroyWindow(window);
   glfwTerminate();

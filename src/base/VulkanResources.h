@@ -42,7 +42,6 @@ public:
   VkDeviceMemory memory{};
   VkImageView view{};
   VkSampler sampler{};
-  std::string path{};
   VkImageCreateInfo info{.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
                          .pNext = nullptr,
                          .flags = 0,
@@ -105,6 +104,7 @@ protected:
                                         const VkFormatFeatureFlags &features);
 
 private:
+  std::string path{};
   void destroy_vulkan_images() const;
 };
 

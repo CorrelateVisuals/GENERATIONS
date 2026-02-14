@@ -14,7 +14,7 @@ public:
   Screenshot() = delete;
   ~Screenshot() = delete;
 
-  static void capture(const VkImage &srcImage,
+  static void capture(const VkImage &src_image,
                       const VkExtent2D &extent,
                       const VkFormat &format,
                       const VkCommandPool &command_pool,
