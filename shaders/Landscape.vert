@@ -60,18 +60,25 @@ float ridged_fbm(vec2 p) {
 float terrain_height(vec2 p) {
     mat2 rot = mat2(0.866f, -0.5f, 0.5f, 0.866f);
     vec2 pr = rot * p;
-    vec2 q = pr * 0.08f;
+    vec2 q = pr * 0.065f;
     vec2 warp = vec2(
-        fbm(q * 1.2f + vec2(4.0f, 1.7f)),
-        fbm(q * 1.2f + vec2(7.2f, 3.5f)));
-    q += warp * 0.6f;
+        fbm(q * 1.15f + vec2(4.0f, 1.7f)),
+        fbm(q * 1.15f + vec2(7.2f, 3.5f)));
+    q += warp * 0.75f;
 
-    float base = fbm(q * 1.4f) * 4.5f;
-    float ridge = ridged_fbm(q * 2.4f) * 2.8f;
-    float dunes = (sin(pr.x * 0.06f) + sin(pr.y * 0.05f)) * 0.4f;
-    float detail = fbm(q * 6.0f) * 0.6f;
+    float broad = fbm(q * 0.62f) * 3.6f;
+    float base = fbm(q * 1.05f) * 2.2f;
+    float ridge = ridged_fbm(q * 2.0f) * 4.2f;
+    float crags = pow(max(ridged_fbm(q * 4.7f), 0.0f), 1.8f) * 1.15f;
+    float macro = (sin(pr.x * 0.028f) + sin(pr.y * 0.024f)) * 0.85f;
+    float detail = fbm(q * 7.6f) * 0.26f;
 
-    return (base + ridge + dunes + detail) * 0.78f + 1.00f;
+    float mountainMask = smoothstep(0.52f, 0.80f, ridged_fbm(q * 0.95f));
+    float habitableLowlands = broad + base + macro;
+    float mountainRelief = ridge + crags + detail;
+    float lowlandBias = -0.55f * (1.0f - mountainMask);
+
+    return habitableLowlands + mountainRelief * mountainMask + lowlandBias + 1.35f;
 }
 
 layout(location = 0) out vec3 outWorldPos;

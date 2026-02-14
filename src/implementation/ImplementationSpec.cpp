@@ -5,8 +5,8 @@ namespace CE::Implementation {
 ImplementationSpec default_spec() {
   ImplementationSpec spec{};
 
-  spec.terrain.grid_width = 100;
-  spec.terrain.grid_height = 100;
+  spec.terrain.grid_width = 140;
+  spec.terrain.grid_height = 140;
   spec.terrain.alive_cells = 2000;
   spec.terrain.cell_size = 0.5f;
   spec.terrain.layer1_roughness = 0.4f;
