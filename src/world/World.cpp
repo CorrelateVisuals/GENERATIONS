@@ -33,13 +33,13 @@ constexpr GEOMETRY_SHAPE rectangle = CE_RECTANGLE;
 constexpr GEOMETRY_SHAPE sphere = CE_SPHERE;
 } // namespace
 
-World::World(VkCommandBuffer &commandBuffer,
-             const VkCommandPool &commandPool,
+World::World(VkCommandBuffer &command_buffer,
+       const VkCommandPool &command_pool,
              const VkQueue &queue)
     : _grid(
-          GRID_SIZE, NUMBER_OF_ALIVE_CELLS, CELL_SIZE, commandBuffer, commandPool, queue),
-      _rectangle(rectangle, true, commandBuffer, commandPool, queue),
-      _cube(sphere, false, commandBuffer, commandPool, queue),
+      GRID_SIZE, NUMBER_OF_ALIVE_CELLS, CELL_SIZE, command_buffer, command_pool, queue),
+    _rectangle(rectangle, true, command_buffer, command_pool, queue),
+    _cube(sphere, false, command_buffer, command_pool, queue),
       _ubo(LIGHT_POS, GRID_SIZE, WATER_THRESHOLD, CELL_SIZE), _camera(ZOOM_SPEED,
                                                                       PANNING_SPEED,
                                                                       FIELD_OF_VIEW,
@@ -61,19 +61,19 @@ World::~World() {
   Log::text("{ wWw }", "destructing World");
 }
 
-std::vector<VkVertexInputBindingDescription> World::Cell::getBindingDescription() {
+std::vector<VkVertexInputBindingDescription> World::Cell::get_binding_description() {
   std::vector<VkVertexInputBindingDescription> description{
       {0, sizeof(Cell), VK_VERTEX_INPUT_RATE_INSTANCE},
       {1, sizeof(Shape::Vertex), VK_VERTEX_INPUT_RATE_VERTEX}};
   return description;
 }
 
-std::vector<VkVertexInputAttributeDescription> World::Cell::getAttributeDescription() {
+std::vector<VkVertexInputAttributeDescription> World::Cell::get_attribute_description() {
   std::vector<VkVertexInputAttributeDescription> description{
       {0,
        0,
        VK_FORMAT_R32G32B32A32_SFLOAT,
-       static_cast<uint32_t>(offsetof(Cell, instancePosition))},
+      static_cast<uint32_t>(offsetof(Cell, instance_position))},
       {1,
        1,
        VK_FORMAT_R32G32B32A32_SFLOAT,
@@ -87,13 +87,13 @@ std::vector<VkVertexInputAttributeDescription> World::Cell::getAttributeDescript
   return description;
 };
 
-World::Grid::Grid(vec2_uint_fast16_t gridSize,
-                  uint_fast32_t aliveCells,
-                  float cellSize,
-                  VkCommandBuffer &commandBuffer,
-                  const VkCommandPool &commandPool,
+World::Grid::Grid(vec2_uint_fast16_t grid_size,
+          uint_fast32_t alive_cells,
+          float cell_size,
+          VkCommandBuffer &command_buffer,
+          const VkCommandPool &command_pool,
                   const VkQueue &queue)
-    : size(gridSize), initialAliveCells(aliveCells), pointCount(size.x * size.y) {
+  : size(grid_size), initial_alive_cells(alive_cells), point_count(size.x * size.y) {
   Terrain::Config terrainLayer1 = {.dimensions = size,
                                    .roughness = 0.4f,
                                    .octaves = 10,
@@ -118,10 +118,10 @@ World::Grid::Grid(vec2_uint_fast16_t gridSize,
   std::vector<float> terrainPerlinGrid2 = terrainSurface.generatePerlinGrid();
   const float blendFactor = 0.5f;
 
-  std::vector<bool> isAliveIndices(pointCount, false);
-  std::vector<uint_fast32_t> aliveCellIndices = setCellsAliveRandomly(initialAliveCells);
-  for (int aliveIndex : aliveCellIndices) {
-    isAliveIndices[aliveIndex] = true;
+  std::vector<bool> is_alive_indices(point_count, false);
+  std::vector<uint_fast32_t> alive_cell_indices = set_cells_alive_randomly(initial_alive_cells);
+  for (int alive_index : alive_cell_indices) {
+    is_alive_indices[alive_index] = true;
   }
 
   const glm::vec4 red{1.0f, 0.0f, 0.0f, 1.0f};
@@ -131,26 +131,26 @@ World::Grid::Grid(vec2_uint_fast16_t gridSize,
 
   const float startX = (size.x - 1) / -2.0f;
   const float startY = (size.y - 1) / -2.0f;
-  for (uint_fast32_t i = 0; i < pointCount; ++i) {
-    pointIDs[i] = i;
+  for (uint_fast32_t i = 0; i < point_count; ++i) {
+    point_ids[i] = i;
 
     float height = terrain.linearInterpolationFunction(
         terrainPerlinGrid1[i], terrainPerlinGrid2[i], blendFactor);
     coordinates[i] = {(startX + i % size.x), (startY + i / size.x), height};
     add_vertex_position(coordinates[i]);
 
-    const bool isAlive = isAliveIndices[i];
+    const bool is_alive = is_alive_indices[i];
 
-    cells[i].instancePosition = {coordinates[i], isAlive ? cellSize : 0.0f};
-    cells[i].color = isAlive ? blue : red;
-    cells[i].states = isAlive ? alive : dead;
+    cells[i].instance_position = {coordinates[i], is_alive ? cell_size : 0.0f};
+    cells[i].color = is_alive ? blue : red;
+    cells[i].states = is_alive ? alive : dead;
   }
-  indices = create_grid_polygons(pointIDs, static_cast<int>(size.x));
-  create_vertex_buffer(commandBuffer, commandPool, queue, unique_vertices);
-  create_index_buffer(commandBuffer, commandPool, queue, indices);
+  indices = create_grid_polygons(point_ids, static_cast<int>(size.x));
+  create_vertex_buffer(command_buffer, command_pool, queue, unique_vertices);
+  create_index_buffer(command_buffer, command_pool, queue, indices);
 }
 
-std::vector<VkVertexInputAttributeDescription> World::Grid::getAttributeDescription() {
+std::vector<VkVertexInputAttributeDescription> World::Grid::get_attribute_description() {
   std::vector<VkVertexInputAttributeDescription> attributes{
       {0,
        0,
@@ -160,18 +160,18 @@ std::vector<VkVertexInputAttributeDescription> World::Grid::getAttributeDescript
 }
 
 std::vector<uint_fast32_t>
-World::Grid::setCellsAliveRandomly(uint_fast32_t numberOfCells) {
+World::Grid::set_cells_alive_randomly(uint_fast32_t number_of_cells) {
   const uint_fast32_t targetCount =
-      std::min<uint_fast32_t>(numberOfCells, static_cast<uint_fast32_t>(pointCount));
+      std::min<uint_fast32_t>(number_of_cells, static_cast<uint_fast32_t>(point_count));
 
-  std::vector<uint_fast32_t> cellIds(pointCount);
-  std::iota(cellIds.begin(), cellIds.end(), 0);
+  std::vector<uint_fast32_t> cell_ids(point_count);
+  std::iota(cell_ids.begin(), cell_ids.end(), 0);
 
   std::random_device random;
   std::mt19937 generate(random());
-  std::shuffle(cellIds.begin(), cellIds.end(), generate);
+  std::shuffle(cell_ids.begin(), cell_ids.end(), generate);
 
-  cellIds.resize(targetCount);
-  std::sort(cellIds.begin(), cellIds.end());
-  return cellIds;
+  cell_ids.resize(targetCount);
+  std::sort(cell_ids.begin(), cell_ids.end());
+  return cell_ids;
 }

@@ -403,7 +403,7 @@ void CE::PipelinesConfiguration::compile_shaders() {
     for (const auto &shader : shaders) {
       if (shader == "Comp" || shader == "Vert" || shader == "Tesc" || shader == "Tese" ||
           shader == "Frag") {
-        shaderExtension = Lib::upperToLowerCase(shader);
+        shaderExtension = Lib::upper_to_lower_case(shader);
         std::string shaderSourcePath =
             this->shader_dir + pipelineName + "." + shaderExtension;
           std::string shaderOutputPath = this->shader_dir + pipelineName + shader + ".spv";

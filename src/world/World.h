@@ -12,20 +12,20 @@
 
 class World {
 public:
-  World(VkCommandBuffer &commandBuffer,
-        const VkCommandPool &commandPool,
+  World(VkCommandBuffer &command_buffer,
+        const VkCommandPool &command_pool,
         const VkQueue &queue);
   ~World();
 
   struct alignas(16) Cell {
-    glm::vec4 instancePosition{};
-    glm::vec4 vertexPosition{};
+    glm::vec4 instance_position{};
+    glm::vec4 vertex_position{};
     glm::vec4 normal{};
     glm::vec4 color{};
     glm::ivec4 states{};
 
-    static std::vector<VkVertexInputBindingDescription> getBindingDescription();
-    static std::vector<VkVertexInputAttributeDescription> getAttributeDescription();
+    static std::vector<VkVertexInputBindingDescription> get_binding_description();
+    static std::vector<VkVertexInputAttributeDescription> get_attribute_description();
   };
 
   struct UniformBufferObject {
@@ -41,23 +41,23 @@ public:
 
   struct Grid : public Geometry {
     vec2_uint_fast16_t size;
-    const uint_fast32_t initialAliveCells;
-    const size_t pointCount;
+    const uint_fast32_t initial_alive_cells;
+    const size_t point_count;
 
-    std::vector<uint32_t> pointIDs = std::vector<uint32_t>(pointCount);
-    std::vector<glm::vec3> coordinates = std::vector<glm::vec3>(pointCount);
-    std::vector<World::Cell> cells = std::vector<World::Cell>(pointCount);
+    std::vector<uint32_t> point_ids = std::vector<uint32_t>(point_count);
+    std::vector<glm::vec3> coordinates = std::vector<glm::vec3>(point_count);
+    std::vector<World::Cell> cells = std::vector<World::Cell>(point_count);
 
-    Grid(vec2_uint_fast16_t gridSize,
-         uint_fast32_t aliveCells,
-         float cellSize,
-         VkCommandBuffer &commandBuffer,
-         const VkCommandPool &commandPool,
+    Grid(vec2_uint_fast16_t grid_size,
+         uint_fast32_t alive_cells,
+         float cell_size,
+         VkCommandBuffer &command_buffer,
+         const VkCommandPool &command_pool,
          const VkQueue &queue);
-    static std::vector<VkVertexInputAttributeDescription> getAttributeDescription();
+    static std::vector<VkVertexInputAttributeDescription> get_attribute_description();
 
   private:
-    std::vector<uint_fast32_t> setCellsAliveRandomly(uint_fast32_t numberOfCells);
+    std::vector<uint_fast32_t> set_cells_alive_randomly(uint_fast32_t number_of_cells);
   };
 
   Grid _grid;

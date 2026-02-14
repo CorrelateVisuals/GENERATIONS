@@ -21,18 +21,18 @@ public:
                      const VkBufferUsageFlags &usage,
                      const VkMemoryPropertyFlags &properties,
                      Buffer &buffer);
-  static void copy(const VkBuffer &srcBuffer,
-                   VkBuffer &dstBuffer,
+  static void copy(const VkBuffer &src_buffer,
+                   VkBuffer &dst_buffer,
                    const VkDeviceSize size,
-                   VkCommandBuffer &commandBuffer,
-                   const VkCommandPool &commandPool,
+                   VkCommandBuffer &command_buffer,
+                   const VkCommandPool &command_pool,
                    const VkQueue &queue);
   static void copy_to_image(const VkBuffer &buffer,
                             VkImage &image,
                             const uint32_t width,
                             const uint32_t height,
-                            VkCommandBuffer &commandBuffer,
-                            const VkCommandPool &commandPool,
+                            VkCommandBuffer &command_buffer,
+                            const VkCommandPool &command_pool,
                             const VkQueue &queue);
 };
 
@@ -65,8 +65,8 @@ public:
         const VkFormat format) {
     create_resources(image_type, extent, format);
   }
-  Image(const std::string &texturePath) {
-    path = texturePath;
+  Image(const std::string &texture_path) {
+    path = texture_path;
   }
 
   virtual ~Image() {
@@ -75,7 +75,7 @@ public:
 
   void create(const uint32_t width,
               const uint32_t height,
-              const VkSampleCountFlagBits numSamples,
+              const VkSampleCountFlagBits num_samples,
               const VkFormat format,
               const VkImageTiling tiling,
               const VkImageUsageFlags &usage,

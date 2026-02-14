@@ -6,7 +6,7 @@
 #include <numbers>
 #include <random>
 
-std::vector<float> Lib::generateRandomValues(int amount, float min, float max) {
+std::vector<float> Lib::generate_random_values(int amount, float min, float max) {
   std::random_device rd;
   std::mt19937 gen(rd());
   std::uniform_real_distribution<float> dis(min, max);
@@ -17,7 +17,7 @@ std::vector<float> Lib::generateRandomValues(int amount, float min, float max) {
   return randomValues;
 }
 
-double Lib::lowFrequencyOscillator(double frequency) {
+double Lib::low_frequency_oscillator(double frequency) {
   using namespace std::chrono;
   static const auto start_time = high_resolution_clock::now();
   const auto time_elapsed =
@@ -44,44 +44,44 @@ glm::vec2 Lib::smoothstep(const glm::vec2 &xy) {
   return increase;
 }
 
-std::string Lib::upperToLowerCase(std::string string) {
-  std::string lowerCaseString = "";
+std::string Lib::upper_to_lower_case(std::string string) {
+  std::string lower_case_string = "";
   for (char c : string) {
     if (std::isupper(c)) {
       c = std::tolower(c);
     }
-    lowerCaseString += c;
+    lower_case_string += c;
   }
-  return lowerCaseString;
+  return lower_case_string;
 }
 
-std::string Lib::path(const std::string &linuxPath) {
+std::string Lib::path(const std::string &linux_path) {
 #ifdef _WIN32
-  std::string convertedWindowsPath = "..\\" + linuxPath;
-  for (char &c : convertedWindowsPath) {
+  std::string converted_windows_path = "..\\" + linux_path;
+  for (char &c : converted_windows_path) {
     if (c == '/') {
       c = '\\';
     }
   }
-  if (convertedWindowsPath.substr(0, 3) == "..\\.") {
-    convertedWindowsPath = convertedWindowsPath.substr(3);
+  if (converted_windows_path.substr(0, 3) == "..\\.") {
+    converted_windows_path = converted_windows_path.substr(3);
   }
-  return ifShaderCompile(convertedWindowsPath);
+  return if_shader_compile(converted_windows_path);
 #else
-  return ifShaderCompile(linuxPath);
+  return if_shader_compile(linux_path);
 #endif
 }
 
-std::string Lib::ifShaderCompile(std::string shaderPath) {
-  if (shaderPath.find("shaders") == std::string::npos) {
-    return shaderPath;
+std::string Lib::if_shader_compile(std::string shader_path) {
+  if (shader_path.find("shaders") == std::string::npos) {
+    return shader_path;
   } else {
 #ifdef _WIN32
-    std::string glslangValidator = "glslangValidator.exe -V ";
+    std::string glslang_validator = "glslangValidator.exe -V ";
 #else
-    std::string glslangValidator = "glslangValidator -V ";
+    std::string glslang_validator = "glslangValidator -V ";
 #endif
-    shaderPath.insert(0, glslangValidator);
-    return shaderPath;
+    shader_path.insert(0, glslang_validator);
+    return shader_path;
   }
 }

@@ -3,6 +3,9 @@
         "./bin/CapitalEngine": true,
         "cmake": true,
         "xdotool": true,
-        "true": true
+        "true": true,
+        "nm": true,
+        "set": true,
+        "/usr/bin/c++": true
     }
 }

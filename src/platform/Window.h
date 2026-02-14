@@ -18,16 +18,16 @@ public:
   };
 
   struct Mouse {
-    Mouse(float d, float s) : pressDelay(d), speed(s) {}
-    float pressDelay;
+    Mouse(float d, float s) : press_delay(d), speed(s) {}
+    float press_delay;
     float speed;
 
     struct Button {
       glm::vec2 position;
     };
-    std::array<Button, 3> buttonClick{};
-    std::array<Button, 3> buttonDown{};
-    std::array<Button, 3> previousButtonDown{};
+    std::array<Button, 3> button_click{};
+    std::array<Button, 3> button_down{};
+    std::array<Button, 3> previous_button_down{};
   };
 
   bool framebuffer_resized;
@@ -42,7 +42,7 @@ public:
   Mouse mouse{0.18f, 0.5f};
 
   static Window &get() {
-    return mainWindow;
+    return main_window;
   }
   void poll_input();
   void set_mouse();
@@ -62,5 +62,5 @@ private:
   void init_window();
   static void window_resize(GLFWwindow *win, int width, int height);
 
-  static Window mainWindow;
+  static Window main_window;
 };

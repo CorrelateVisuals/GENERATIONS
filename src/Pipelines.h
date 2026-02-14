@@ -53,18 +53,18 @@ class Pipelines {
         pipeline_map.emplace(
           "Cells",
           Graphics{.shaders = {"Vert", "Frag"},
-               .vertex_attributes = World::Cell::getAttributeDescription(),
-               .vertex_bindings = World::Cell::getBindingDescription()});
+               .vertex_attributes = World::Cell::get_attribute_description(),
+               .vertex_bindings = World::Cell::get_binding_description()});
         pipeline_map.emplace(
           "Landscape",
           Graphics{.shaders = {"Vert", "Frag"},
-               .vertex_attributes = World::Grid::getAttributeDescription(),
+               .vertex_attributes = World::Grid::get_attribute_description(),
                .vertex_bindings = World::Grid::get_binding_description()});
         pipeline_map.emplace(
           "LandscapeWireFrame",
           Graphics{.shaders = {"LandscapeVert", "Tesc", "Tese",
                      "LandscapeFrag"},
-               .vertex_attributes = World::Grid::getAttributeDescription(),
+               .vertex_attributes = World::Grid::get_attribute_description(),
                .vertex_bindings = World::Grid::get_binding_description()});
         pipeline_map.emplace(
           "Texture",

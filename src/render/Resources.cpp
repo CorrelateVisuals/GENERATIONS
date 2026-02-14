@@ -31,7 +31,7 @@ Resources::Resources(VulkanMechanics &mechanics)
         uniform{descriptor_interface, world._ubo}, shader_storage{descriptor_interface,
                                     command_interface,
                                     world._grid.cells,
-                                    world._grid.pointCount},
+                                      world._grid.point_count},
         sampler{descriptor_interface, command_interface, Lib::path("assets/Avatar.PNG")},
         storage_image{descriptor_interface, mechanics.swapchain.images} {
   Log::text(Log::Style::headerGuard);

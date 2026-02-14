@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include <vector>
 
-Window Window::mainWindow;
+Window Window::main_window;
 
 Window::Window() : framebuffer_resized{false}, window{nullptr} {
   Log::logTitle();
@@ -93,28 +93,28 @@ void Window::set_mouse() {
               buttonMappings.find(buttonType);
           if (buttonMapping != buttonMappings.end()) {
             const std::string &message = buttonMapping->second;
-            mouse.buttonClick[buttonType].position = glm::vec2{x, y};
+            mouse.button_click[buttonType].position = glm::vec2{x, y};
 
             Log::text(message + " clicked at",
-                      mouse.buttonClick[buttonType].position.x,
+                      mouse.button_click[buttonType].position.x,
                       ":",
-                      mouse.buttonClick[buttonType].position.y);
+                      mouse.button_click[buttonType].position.y);
           }
         } else {
           const float currentTime = static_cast<float>(glfwGetTime());
           const float timer = currentTime - pressTime;
-          if (timer >= mouse.pressDelay) {
+          if (timer >= mouse.press_delay) {
             const std::unordered_map<int, std::string>::const_iterator &buttonMapping =
                 buttonMappings.find(buttonType);
             if (buttonMapping != buttonMappings.end()) {
               const std::string &message = buttonMapping->second;
               glm::vec2 normalizedCoords =
                   glm::vec2(x, y) * glm::vec2(2.0f, 2.0f) - glm::vec2(1.0f, 1.0f);
-              mouse.buttonDown[buttonType].position += normalizedCoords * mouse.speed;
+              mouse.button_down[buttonType].position += normalizedCoords * mouse.speed;
 
               // Log::text(message + " moved to",
-              //              mouse.buttonDown[buttonType].position.x, ":",
-              //              mouse.buttonDown[buttonType].position.y);
+              //              mouse.button_down[buttonType].position.x, ":",
+              //              mouse.button_down[buttonType].position.y);
             }
           }
         }

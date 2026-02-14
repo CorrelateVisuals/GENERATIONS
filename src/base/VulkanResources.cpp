@@ -11,28 +11,28 @@
 #include <stdexcept>
 #include <unordered_set>
 
-uint32_t CE::find_memory_type(const uint32_t typeFilter,
+uint32_t CE::find_memory_type(const uint32_t type_filter,
                               const VkMemoryPropertyFlags properties) {
-  VkPhysicalDeviceMemoryProperties memProperties{};
+  VkPhysicalDeviceMemoryProperties mem_properties{};
   vkGetPhysicalDeviceMemoryProperties(Device::base_device->physical_device,
-                                      &memProperties);
+                                      &mem_properties);
 
   Log::text("{ MEM }",
             Log::function_name(__func__),
             "Find Memory Type",
             "typeFilter",
-            typeFilter);
+            type_filter);
   Log::text(Log::Style::charLeader, Log::getMemoryPropertyString(properties));
 
-  for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
-    if ((typeFilter & (1 << i)) &&
-        (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
+  for (uint32_t i = 0; i < mem_properties.memoryTypeCount; i++) {
+    if ((type_filter & (1 << i)) &&
+        (mem_properties.memoryTypes[i].propertyFlags & properties) == properties) {
       Log::text(Log::Style::charLeader,
                 Log::function_name(__func__),
                 "MemoryType index",
                 i,
                 "heap",
-                memProperties.memoryTypes[i].heapIndex);
+                mem_properties.memoryTypes[i].heapIndex);
       return i;
     }
   }
@@ -117,43 +117,43 @@ void CE::Buffer::create(const VkDeviceSize &size,
       Device::base_device->logical_device, buffer.buffer, buffer.memory, 0);
 }
 
-void CE::Buffer::copy(const VkBuffer &srcBuffer,
-                      VkBuffer &dstBuffer,
+void CE::Buffer::copy(const VkBuffer &src_buffer,
+                      VkBuffer &dst_buffer,
                       const VkDeviceSize size,
-                      VkCommandBuffer &commandBuffer,
-                      const VkCommandPool &commandPool,
+                      VkCommandBuffer &command_buffer,
+                      const VkCommandPool &command_pool,
                       const VkQueue &queue) {
   Log::text("{ ... }", "copying", size, "bytes");
   if (Log::gpu_trace_enabled()) {
     Log::text("{ XFR }",
               "Buffer copy",
               "src",
-              srcBuffer,
+              src_buffer,
               "dst",
-              dstBuffer,
+              dst_buffer,
               "bytes",
               size,
               "pool",
-              commandPool,
+              command_pool,
               "queue",
               queue);
   }
 
-  CE::CommandBuffers::begin_singular_commands(commandPool, queue);
-  VkBufferCopy copyRegion{};
-  copyRegion.srcOffset = 0;
-  copyRegion.dstOffset = 0;
-  copyRegion.size = size;
-  vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
-  CE::CommandBuffers::end_singular_commands(commandPool, queue);
+  CE::CommandBuffers::begin_singular_commands(command_pool, queue);
+  VkBufferCopy copy_region{};
+  copy_region.srcOffset = 0;
+  copy_region.dstOffset = 0;
+  copy_region.size = size;
+  vkCmdCopyBuffer(command_buffer, src_buffer, dst_buffer, 1, &copy_region);
+  CE::CommandBuffers::end_singular_commands(command_pool, queue);
 }
 
 void CE::Buffer::copy_to_image(const VkBuffer &buffer,
                                VkImage &image,
                                const uint32_t width,
                                const uint32_t height,
-                               VkCommandBuffer &commandBuffer,
-                               const VkCommandPool &commandPool,
+                               VkCommandBuffer &command_buffer,
+                               const VkCommandPool &command_pool,
                                const VkQueue &queue) {
   Log::text("{ img }", "Buffer To Image", width, height);
   if (Log::gpu_trace_enabled()) {
@@ -168,12 +168,12 @@ void CE::Buffer::copy_to_image(const VkBuffer &buffer,
               "x",
               height,
               "pool",
-              commandPool,
+              command_pool,
               "queue",
               queue);
   }
 
-  CE::CommandBuffers::begin_singular_commands(commandPool, queue);
+  CE::CommandBuffers::begin_singular_commands(command_pool, queue);
   VkBufferImageCopy region{};
   region.bufferOffset = 0;
   region.bufferRowLength = 0;
@@ -186,8 +186,8 @@ void CE::Buffer::copy_to_image(const VkBuffer &buffer,
   region.imageExtent = {width, height, 1};
 
   vkCmdCopyBufferToImage(
-      commandBuffer, buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
-  CE::CommandBuffers::end_singular_commands(commandPool, queue);
+        command_buffer, buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+      CE::CommandBuffers::end_singular_commands(command_pool, queue);
 }
 
 void CE::Image::destroy_vulkan_images() const {
@@ -221,13 +221,13 @@ void CE::Image::destroy_vulkan_images() const {
 
 void CE::Image::create(const uint32_t width,
                        const uint32_t height,
-                       const VkSampleCountFlagBits numSamples,
+                       const VkSampleCountFlagBits num_samples,
                        const VkFormat format,
                        const VkImageTiling tiling,
                        const VkImageUsageFlags &usage,
                        const VkMemoryPropertyFlags &properties) {
   Log::text("{ img }", "Image", width, height);
-  Log::text(Log::Style::charLeader, Log::getSampleCountString(numSamples));
+  Log::text(Log::Style::charLeader, Log::getSampleCountString(num_samples));
   Log::text(Log::Style::charLeader, Log::getImageUsageString(usage));
   Log::text(Log::Style::charLeader, Log::getMemoryPropertyString(properties));
 
@@ -235,7 +235,7 @@ void CE::Image::create(const uint32_t width,
   info.extent = {.width = width, .height = height, .depth = 1};
   info.mipLevels = 1;
   info.arrayLayers = 1;
-  info.samples = numSamples;
+  info.samples = num_samples;
   info.tiling = tiling;
   info.usage = usage;
 
@@ -291,7 +291,7 @@ void CE::Image::create(const uint32_t width,
                     0);
 }
 
-void CE::Image::create_view(const VkImageAspectFlags aspectFlags) {
+void CE::Image::create_view(const VkImageAspectFlags aspect_flags) {
   Log::text(Log::Style::charLeader, "Image View");
 
   VkImageViewCreateInfo viewInfo{};
@@ -302,7 +302,7 @@ void CE::Image::create_view(const VkImageAspectFlags aspectFlags) {
   viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
   viewInfo.format = this->info.format;
   viewInfo.components = {};
-  viewInfo.subresourceRange.aspectMask = aspectFlags;
+  viewInfo.subresourceRange.aspectMask = aspect_flags;
   viewInfo.subresourceRange.baseMipLevel = 0;
   viewInfo.subresourceRange.levelCount = 1;
   viewInfo.subresourceRange.baseArrayLayer = 0;
@@ -317,14 +317,14 @@ void CE::Image::create_view(const VkImageAspectFlags aspectFlags) {
   return;
 }
 
-void CE::Image::transition_layout(const VkCommandBuffer &commandBuffer,
+void CE::Image::transition_layout(const VkCommandBuffer &command_buffer,
                                   const VkFormat format,
-                                  const VkImageLayout oldLayout,
-                                  const VkImageLayout newLayout) {
+                       const VkImageLayout old_layout,
+                       const VkImageLayout new_layout) {
   const std::string transition_key = std::to_string(static_cast<uint32_t>(format)) + ":" +
-                                     std::to_string(static_cast<uint32_t>(oldLayout)) +
+                         std::to_string(static_cast<uint32_t>(old_layout)) +
                                      "->" +
-                                     std::to_string(static_cast<uint32_t>(newLayout));
+                         std::to_string(static_cast<uint32_t>(new_layout));
   static std::unordered_set<std::string> logged_transitions{};
   const bool should_log_transition = logged_transitions.insert(transition_key).second;
 
@@ -332,9 +332,9 @@ void CE::Image::transition_layout(const VkCommandBuffer &commandBuffer,
     Log::text("{ SYNC }",
               Log::function_name(__func__),
               "Image Layout Transition",
-              oldLayout,
+              old_layout,
               "->",
-              newLayout,
+              new_layout,
               "format",
               static_cast<uint32_t>(format));
   }
@@ -342,8 +342,8 @@ void CE::Image::transition_layout(const VkCommandBuffer &commandBuffer,
   VkImageMemoryBarrier barrier{};
   barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
   barrier.pNext = nullptr;
-  barrier.oldLayout = oldLayout;
-  barrier.newLayout = newLayout;
+  barrier.oldLayout = old_layout;
+  barrier.newLayout = new_layout;
   barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
   barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
   barrier.image = this->image;
@@ -356,14 +356,14 @@ void CE::Image::transition_layout(const VkCommandBuffer &commandBuffer,
   VkPipelineStageFlags sourceStage{};
   VkPipelineStageFlags destinationStage{};
 
-  if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED &&
-      newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
+    if (old_layout == VK_IMAGE_LAYOUT_UNDEFINED &&
+      new_layout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
     barrier.srcAccessMask = 0;
     barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
     sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
     destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-  } else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL &&
-             newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+  } else if (old_layout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL &&
+             new_layout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
     barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
     barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
@@ -388,7 +388,7 @@ void CE::Image::transition_layout(const VkCommandBuffer &commandBuffer,
         Log::Style::charLeader, "srcStage", sourceStage, "dstStage", destinationStage);
   }
 
-  vkCmdPipelineBarrier(commandBuffer,
+  vkCmdPipelineBarrier(command_buffer,
                        sourceStage,
                        destinationStage,
                        0,
@@ -400,16 +400,16 @@ void CE::Image::transition_layout(const VkCommandBuffer &commandBuffer,
                        &barrier);
 }
 
-void CE::Image::load_texture(const std::string &imagePath,
+void CE::Image::load_texture(const std::string &image_path,
                              const VkFormat format,
-                             VkCommandBuffer &commandBuffer,
-                             const VkCommandPool &commandPool,
+                             VkCommandBuffer &command_buffer,
+                             const VkCommandPool &command_pool,
                              const VkQueue &queue) {
-  Log::text("{ img }", "Image Texture: ", imagePath);
+  Log::text("{ img }", "Image Texture: ", image_path);
 
   int texWidth(0), texHeight(0), texChannels(0), rgba(4);
   stbi_uc *pixels =
-      stbi_load(imagePath.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+      stbi_load(image_path.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
   VkDeviceSize imageSize = static_cast<VkDeviceSize>(texWidth) *
                            static_cast<VkDeviceSize>(texHeight) *
                            static_cast<VkDeviceSize>(rgba);
@@ -455,27 +455,27 @@ void CE::Image::load_texture(const std::string &imagePath,
                VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-  CommandBuffers::begin_singular_commands(commandPool, queue);
-  this->transition_layout(commandBuffer,
+  CommandBuffers::begin_singular_commands(command_pool, queue);
+  this->transition_layout(command_buffer,
                           VK_FORMAT_R8G8B8A8_SRGB,
                           VK_IMAGE_LAYOUT_UNDEFINED,
                           VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-  CommandBuffers::end_singular_commands(commandPool, queue);
+  CommandBuffers::end_singular_commands(command_pool, queue);
 
   Buffer::copy_to_image(stagingResources.buffer,
                         this->image,
                         static_cast<uint32_t>(texWidth),
                         static_cast<uint32_t>(texHeight),
-                        commandBuffer,
-                        commandPool,
+                        command_buffer,
+                        command_pool,
                         queue);
 
-  CommandBuffers::begin_singular_commands(commandPool, queue);
-  this->transition_layout(commandBuffer,
+  CommandBuffers::begin_singular_commands(command_pool, queue);
+  this->transition_layout(command_buffer,
                           VK_FORMAT_R8G8B8A8_SRGB,
                           VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                           VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-  CommandBuffers::end_singular_commands(commandPool, queue);
+  CommandBuffers::end_singular_commands(command_pool, queue);
 }
 
 VkFormat CE::Image::find_depth_format() {
@@ -505,7 +505,7 @@ VkFormat CE::Image::find_supported_format(const std::vector<VkFormat> &candidate
   throw std::runtime_error("\n!ERROR! failed to find supported format!");
 }
 
-void CE::Image::create_resources(IMAGE_RESOURCE_TYPES imageType,
+void CE::Image::create_resources(IMAGE_RESOURCE_TYPES image_type,
                                  const VkExtent2D &dimensions,
                                  const VkFormat format) {
   Log::text("{ []< }", "Color Resources ");
@@ -514,7 +514,7 @@ void CE::Image::create_resources(IMAGE_RESOURCE_TYPES imageType,
   VkImageUsageFlags usage = 0;
   VkImageAspectFlags aspect = 0;
 
-  switch (imageType) {
+  switch (image_type) {
     case CE_DEPTH_IMAGE:
       usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
       aspect = VK_IMAGE_ASPECT_DEPTH_BIT;

@@ -1,73 +1,105 @@
 # GENERATIONS
-GENERATIONS is an economical simulator build on top of CAPITAL Engine. A cross platform Vulkan engine, built for simulations and algorithms that benefit from parallel computing. Tested on Linux and Windows, keeping external libraries to a minimum. Using GLFW for platform agnostic window and input handeling and GLM for convenient typedefs. 
 
-Currently GENERATIONS is running ![Conway's Game of Life](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life).
+![GENERATIONS Cover](assets/CoverCapture.PNG)
 
-![Cover Image](https://github.com/CorrelateVisuals/GENERATION/blob/main/assets/GenerationsCapture.PNG?raw=true)
+GENERATIONS is a Vulkan-native simulation runtime built for reliable, high-throughput GPU workloads.
+It is powered by CAPITAL Engine and designed around one idea: keep the stack lean, explicit, and fast enough to support serious compute-driven interactive systems.
 
-### Expanding Functionality
-- Texture/Image reading and writing GPU & CPU
-    + feedback effect
-    + composite
-- Color picking/Render picking
-    + mouse click to select instanced object
-- Culling and level-of-detail (LOD)
-    + only render what has to be rendered
-- Integrating GUI (Dear ImGui)
-    + or other minimal interface
-- Arcball Camera
-    DONE
+Today, the project runs a real-time cellular simulation and renders it through a modern graphics + compute pipeline with strong separation between platform, rendering, and world logic.
 
-[Development enviroment](https://vulkan-tutorial.com/Development_environment)
+## Why this project exists
 
-## Dependencies
-You will need glslangValidator installed and added to your systempaths. So that it can be ran from the command line.
+Most simulation tools are either easy to use but opaque, or powerful but painful to extend.
+GENERATIONS aims for a third option: a practical, understandable engine where performance work and feature work can happen without fighting hidden framework behavior.
 
-### Windows development
-Additional Include Directories
-```
-$(SolutionDir)..\Libraries\glfw-3.3.8\include
-$(SolutionDir)..\Libraries\glm
-C:\VulkanSDK\1.3.224.1\Include
-```
-Linker Additional Libraries Directories
+This is software for building real things:
+
+- GPU-first simulation pipelines
+- repeatable rendering behavior
+- robust architecture boundaries that hold up under growth
+
+## What is running now
+
+The current runtime demonstrates Conway-style cellular evolution with GPU compute, real-time rendering, terrain, and post-processing.
+The system is tested in active Linux development and includes a maintained Visual Studio solution for Windows workflows.
+
+## Architecture (current state)
+
+The source tree is intentionally layered:
+
 ```text
-C:\VulkanSDK\1.3.224.1\Lib
-$(SolutionDir)..\Libraries\glfw-3.3.8\lib-vc2022
-```
-Linker Additional Dependencies
-```text
-vulkan-1.lib
-glfw3.lib
+src/
+├── app/        # application entry and lifecycle orchestration
+├── base/       # Vulkan primitives, memory/resources, sync, descriptors, pipelines
+├── core/       # logging and timing
+├── io/         # utility I/O (assets, screenshots, helpers)
+├── platform/   # window/input/validation integration
+├── render/     # render mechanics, command recording, pipeline wiring
+└── world/      # simulation state, camera, geometry, terrain
 ```
 
-### Linux development
-Build management using CMake
-From the project root directory **GENERATIONS** run:
+Dependency boundaries are documented and checked through:
+
+- `src/FOLDER_DEPENDENCY_MAP.md`
+- `tools/check_folder_dependencies.py`
+
+This keeps feature velocity high as the codebase scales.
+
+## Core runtime flow
+
+At runtime, the engine executes a stable loop:
+
+1. update world and uniform state
+2. dispatch compute work
+3. record and submit graphics work
+4. present and handle resize/swapchain lifecycle
+
+This separation is what makes the project suitable for future node-based and TouchDesigner-style workflows.
+
+## Build and run (Linux)
+
+From project root:
+
 ```bash
 cmake -S . -B build -Wno-dev --log-level=NOTICE
-cmake --build build --parallel (nproc)
-```
-The excutable **CapitalEngine** is compiled in the **bin** sub-directory. De .spv files in **shaders** sub-directory.
-Executing: Go to the project root directory **GENERATIONS**:
-```bash
+cmake --build build --parallel $(nproc)
 ./bin/CapitalEngine
 ```
 
-### Code beautifier (Vulkan/C++)
-This repository includes a `.clang-format` tuned for Vulkan-heavy C++ readability.
+Notes:
 
-Format all source files from the project root:
+- output binary: `bin/CapitalEngine`
+- shader binaries (`.spv`) are generated in `shaders/`
+- `glslangValidator` or `glslc` must be available in your PATH
+
+## Build and run (Windows)
+
+Open `GENERATIONS.sln` in Visual Studio 2022, ensure Vulkan SDK and GLFW are configured, then build `CapitalEngine`.
+
+The committed project files in `src/` (`CAPITAL-engine.vcxproj*`) are kept in sync with the CMake-based Linux flow.
+
+## Development standards
+
+Formatting:
+
 ```bash
 find src -type f \( -name "*.cpp" -o -name "*.h" \) -print0 | xargs -0 clang-format -i
 ```
 
-Format a single file:
+Architecture boundary check:
+
 ```bash
-clang-format -i src/render/Resources.cpp
+python3 tools/check_folder_dependencies.py
 ```
 
+## Design direction
 
+GENERATIONS is being shaped into a dependable foundation for high-performance, reusable simulation software.
+The near-term direction is stronger resource reuse, cleaner operator abstractions, and predictable graph-style execution without sacrificing Vulkan-level control.
 
-Build on the tutorial series by *Sascha Willems*: [Vulkan tutorial](https://vulkan-tutorial.com/Introduction).
+In short: powerful enough for HPC-minded workloads, straightforward enough to iterate quickly.
+
+---
+
+Built on lessons from the Vulkan ecosystem, including the excellent learning material at https://vulkan-tutorial.com/.
 

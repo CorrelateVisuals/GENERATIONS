@@ -11,10 +11,10 @@
 #include <utility>
 #include <vector>
 
-void CE::Screenshot::capture(const VkImage &srcImage,
+void CE::Screenshot::capture(const VkImage &src_image,
                              const VkExtent2D &extent,
                              const VkFormat &format,
-                             const VkCommandPool &commandPool,
+                             const VkCommandPool &command_pool,
                              const VkQueue &queue,
                              const std::string &filename) {
   Log::text("{ >>> }", "Screenshot:", filename);
@@ -22,26 +22,26 @@ void CE::Screenshot::capture(const VkImage &srcImage,
   VkDeviceSize imageSize = static_cast<VkDeviceSize>(extent.width) *
                            static_cast<VkDeviceSize>(extent.height) *
                            static_cast<VkDeviceSize>(4);
-  Buffer stagingBuffer{};
+  Buffer staging_buffer{};
   Buffer::create(imageSize,
                  VK_BUFFER_USAGE_TRANSFER_DST_BIT,
                  VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                      VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                 stagingBuffer);
+                 staging_buffer);
 
-  copyImageToBuffer(srcImage, stagingBuffer, extent, commandPool, queue);
-  saveBufferToFile(stagingBuffer, extent, format, filename);
+  copy_image_to_buffer(src_image, staging_buffer, extent, command_pool, queue);
+  save_buffer_to_file(staging_buffer, extent, format, filename);
 
   Log::text(Log::Style::charLeader, "Screenshot queued for disk write");
 }
 
-void CE::Screenshot::copyImageToBuffer(const VkImage &srcImage,
-                                       Buffer &dstBuffer,
+void CE::Screenshot::copy_image_to_buffer(const VkImage &src_image,
+                                          Buffer &dst_buffer,
                                        const VkExtent2D &extent,
-                                       const VkCommandPool &commandPool,
+                                       const VkCommandPool &command_pool,
                                        const VkQueue &queue) {
-  CommandBuffers::begin_singular_commands(commandPool, queue);
-  VkCommandBuffer &commandBuffer = CommandBuffers::singular_command_buffer;
+  CommandBuffers::begin_singular_commands(command_pool, queue);
+  VkCommandBuffer &command_buffer = CommandBuffers::singular_command_buffer;
 
   VkImageMemoryBarrier barrier{};
   barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -49,7 +49,7 @@ void CE::Screenshot::copyImageToBuffer(const VkImage &srcImage,
   barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
   barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
   barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-  barrier.image = srcImage;
+  barrier.image = src_image;
   barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
   barrier.subresourceRange.baseMipLevel = 0;
   barrier.subresourceRange.levelCount = 1;
@@ -58,7 +58,7 @@ void CE::Screenshot::copyImageToBuffer(const VkImage &srcImage,
   barrier.srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
   barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
 
-  vkCmdPipelineBarrier(commandBuffer,
+  vkCmdPipelineBarrier(command_buffer,
                        VK_PIPELINE_STAGE_TRANSFER_BIT,
                        VK_PIPELINE_STAGE_TRANSFER_BIT,
                        0,
@@ -80,10 +80,10 @@ void CE::Screenshot::copyImageToBuffer(const VkImage &srcImage,
   region.imageOffset = {0, 0, 0};
   region.imageExtent = {extent.width, extent.height, 1};
 
-  vkCmdCopyImageToBuffer(commandBuffer,
-                         srcImage,
+  vkCmdCopyImageToBuffer(command_buffer,
+                         src_image,
                          VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-                         dstBuffer.buffer,
+                         dst_buffer.buffer,
                          1,
                          &region);
 
@@ -92,7 +92,7 @@ void CE::Screenshot::copyImageToBuffer(const VkImage &srcImage,
   barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
   barrier.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
 
-  vkCmdPipelineBarrier(commandBuffer,
+  vkCmdPipelineBarrier(command_buffer,
                        VK_PIPELINE_STAGE_TRANSFER_BIT,
                        VK_PIPELINE_STAGE_TRANSFER_BIT,
                        0,
@@ -103,13 +103,13 @@ void CE::Screenshot::copyImageToBuffer(const VkImage &srcImage,
                        1,
                        &barrier);
 
-  CommandBuffers::end_singular_commands(commandPool, queue);
+  CommandBuffers::end_singular_commands(command_pool, queue);
 }
 
-void CE::Screenshot::saveBufferToFile(const Buffer &buffer,
-                                      const VkExtent2D &extent,
-                                      const VkFormat &format,
-                                      const std::string &filename) {
+void CE::Screenshot::save_buffer_to_file(const Buffer &buffer,
+                                         const VkExtent2D &extent,
+                                         const VkFormat &format,
+                                         const std::string &filename) {
   void *data{};
   vkMapMemory(
       Device::base_device->logical_device, buffer.memory, 0, VK_WHOLE_SIZE, 0, &data);

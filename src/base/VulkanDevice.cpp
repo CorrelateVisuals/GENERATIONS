@@ -108,7 +108,7 @@ VkDeviceCreateInfo CE::Device::get_device_create_info(
 
 void CE::Device::set_validation_layers(const InitializeVulkan &init_vulkan,
                                        VkDeviceCreateInfo &create_info) {
-  if (init_vulkan.validation.enableValidationLayers) {
+  if (init_vulkan.validation.enable_validation_layers) {
     create_info.enabledLayerCount =
         static_cast<uint32_t>(init_vulkan.validation.validation.size());
     create_info.ppEnabledLayerNames = init_vulkan.validation.validation.data();
@@ -266,15 +266,15 @@ CE::Queues::find_queue_families(const VkPhysicalDevice &physical_device,
 CE::InitializeVulkan::InitializeVulkan() {
   Log::text("{ VkI }", "constructing Initialize Vulkan");
   create_instance();
-  this->validation.setupDebugMessenger(this->instance);
+  this->validation.setup_debug_messenger(this->instance);
   create_surface(Window::get().window);
 }
 
 CE::InitializeVulkan::~InitializeVulkan() {
   Log::text("{ VkI }", "destructing Initialize Vulkan");
-  if (this->validation.enableValidationLayers) {
-    this->validation.DestroyDebugUtilsMessengerEXT(
-        this->instance, this->validation.debugMessenger, nullptr);
+  if (this->validation.enable_validation_layers) {
+    this->validation.destroy_debug_utils_messenger_ext(
+        this->instance, this->validation.debug_messenger, nullptr);
   }
   vkDestroySurfaceKHR(this->instance, this->surface, nullptr);
   vkDestroyInstance(this->instance, nullptr);
@@ -282,8 +282,8 @@ CE::InitializeVulkan::~InitializeVulkan() {
 
 void CE::InitializeVulkan::create_instance() {
   Log::text("{ VkI }", "Vulkan Instance");
-  if (this->validation.enableValidationLayers &&
-      !this->validation.checkValidationLayerSupport()) {
+    if (this->validation.enable_validation_layers &&
+      !this->validation.check_validation_layer_support()) {
     throw std::runtime_error("\n!ERROR! validation layers requested, but not available!");
   }
 
@@ -314,12 +314,12 @@ void CE::InitializeVulkan::create_instance() {
                                   .ppEnabledExtensionNames = extensions.data()};
 
   VkDebugUtilsMessengerCreateInfoEXT debug_create_info{};
-  if (this->validation.enableValidationLayers) {
+  if (this->validation.enable_validation_layers) {
     createInfo.enabledLayerCount =
         static_cast<uint32_t>(this->validation.validation.size());
     createInfo.ppEnabledLayerNames = this->validation.validation.data();
 
-    this->validation.populateDebugMessengerCreateInfo(debug_create_info);
+    this->validation.populate_debug_messenger_create_info(debug_create_info);
     createInfo.pNext = &debug_create_info;
   }
     CE::vulkan_result(vkCreateInstance, &createInfo, nullptr, &this->instance);
@@ -338,7 +338,7 @@ std::vector<const char *> CE::InitializeVulkan::get_required_extensions() const 
 
   std::vector<const char *> extensions(glfw_extensions,
                                        glfw_extensions + glfw_extension_count);
-  if (this->validation.enableValidationLayers) {
+  if (this->validation.enable_validation_layers) {
     extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
   }
   return extensions;

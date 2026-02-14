@@ -47,10 +47,10 @@ void CapitalEngine::main_loop() {
   bool firstLoopScreenshotCaptured = !startupScreenshotEnabled;
   const auto startupScreenshotReadyAt =
       std::chrono::steady_clock::now() + std::chrono::seconds(1);
-  Window &mainWindow = Window::get();
+  Window &main_window = Window::get();
 
-  while (!glfwWindowShouldClose(mainWindow.window)) {
-    mainWindow.poll_input();
+  while (!glfwWindowShouldClose(main_window.window)) {
+    main_window.poll_input();
     resources.world._time.run();
 
     draw_frame();
@@ -62,12 +62,12 @@ void CapitalEngine::main_loop() {
       take_screenshot();
     }
 
-    if (mainWindow.consume_screenshot_pressed()) {
+    if (main_window.consume_screenshot_pressed()) {
       Log::text("{ >>> }", "F12 pressed - capturing screenshot");
       take_screenshot();
     }
 
-    if (mainWindow.is_escape_pressed()) {
+    if (main_window.is_escape_pressed()) {
       break;
     }
   }

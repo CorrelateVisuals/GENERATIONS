@@ -16,14 +16,14 @@ struct vec2_uint_fast16_t {
 };
 
 namespace Lib {
-std::vector<float> generateRandomValues(int amount, float min, float max);
+std::vector<float> generate_random_values(int amount, float min, float max);
 
-double lowFrequencyOscillator(double frequency);
+double low_frequency_oscillator(double frequency);
 glm::vec2 smoothstep(const glm::vec2 &xy);
 
-std::string upperToLowerCase(std::string string);
+std::string upper_to_lower_case(std::string string);
 
 // Cross platform functions
-std::string path(const std::string &linuxPath);
-std::string ifShaderCompile(std::string linuxPath);
+std::string path(const std::string &linux_path);
+std::string if_shader_compile(std::string linux_path);
 } // namespace Lib

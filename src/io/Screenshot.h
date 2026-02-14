@@ -17,21 +17,21 @@ public:
   static void capture(const VkImage &srcImage,
                       const VkExtent2D &extent,
                       const VkFormat &format,
-                      const VkCommandPool &commandPool,
+                      const VkCommandPool &command_pool,
                       const VkQueue &queue,
                       const std::string &filename);
 
 private:
-  static void copyImageToBuffer(const VkImage &srcImage,
-                                Buffer &dstBuffer,
+  static void copy_image_to_buffer(const VkImage &src_image,
+                                   Buffer &dst_buffer,
                                 const VkExtent2D &extent,
-                                const VkCommandPool &commandPool,
+                                const VkCommandPool &command_pool,
                                 const VkQueue &queue);
 
-  static void saveBufferToFile(const Buffer &buffer,
-                               const VkExtent2D &extent,
-                               const VkFormat &format,
-                               const std::string &filename);
+  static void save_buffer_to_file(const Buffer &buffer,
+                                  const VkExtent2D &extent,
+                                  const VkFormat &format,
+                                  const std::string &filename);
 };
 
 } // namespace CE

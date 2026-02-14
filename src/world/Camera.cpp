@@ -205,14 +205,14 @@ void Camera::update() {
   horizonToggleDown = horizonDown;
 
   for (uint_fast8_t i = 0; i < 3; ++i) {
-    buttonDelta[i] = Window::get().mouse.buttonDown[i].position -
-                     Window::get().mouse.previousButtonDown[i].position;
+    buttonDelta[i] = Window::get().mouse.button_down[i].position -
+                     Window::get().mouse.previous_button_down[i].position;
 
-    if (Window::get().mouse.buttonDown[i].position !=
-        Window::get().mouse.previousButtonDown[i].position) {
+    if (Window::get().mouse.button_down[i].position !=
+        Window::get().mouse.previous_button_down[i].position) {
       mousePositionChanged = true;
-      Window::get().mouse.previousButtonDown[i].position =
-          Window::get().mouse.buttonDown[i].position;
+      Window::get().mouse.previous_button_down[i].position =
+          Window::get().mouse.button_down[i].position;
     }
   }
 
