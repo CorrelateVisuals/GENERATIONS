@@ -35,7 +35,7 @@ void CapitalEngine::main_loop() {
   Log::text("{ Main Loop }");
   Log::measure_elapsed_time();
 
-  const bool startupScreenshotEnabled = [] {
+  const bool startup_screenshot_enabled = [] {
     const char *env = std::getenv("CE_STARTUP_SCREENSHOT");
     if (!env) {
       return false;
@@ -44,8 +44,8 @@ void CapitalEngine::main_loop() {
     return value == "1" || value == "true" || value == "TRUE" || value == "on" ||
            value == "ON";
   }();
-  bool firstLoopScreenshotCaptured = !startupScreenshotEnabled;
-  const auto startupScreenshotReadyAt =
+  bool first_loop_screenshot_captured = !startup_screenshot_enabled;
+  const auto startup_screenshot_ready_at =
       std::chrono::steady_clock::now() + std::chrono::seconds(1);
   Window &main_window = Window::get();
 
@@ -55,9 +55,9 @@ void CapitalEngine::main_loop() {
 
     draw_frame();
 
-    if (!firstLoopScreenshotCaptured &&
-        std::chrono::steady_clock::now() >= startupScreenshotReadyAt) {
-      firstLoopScreenshotCaptured = true;
+    if (!first_loop_screenshot_captured &&
+        std::chrono::steady_clock::now() >= startup_screenshot_ready_at) {
+      first_loop_screenshot_captured = true;
       Log::text("{ >>> }", "Main loop startup screenshot capture");
       take_screenshot();
     }

@@ -5,8 +5,8 @@
 
 int main() {
   try {
-    CapitalEngine GENERATIONS;
-    GENERATIONS.main_loop();
+    CapitalEngine generations;
+    generations.main_loop();
 
   } catch (const std::exception &e) {
     Log::text(e.what());
