@@ -58,19 +58,24 @@ ImplementationSpec default_spec() {
       .is_compute = false,
       .shaders = {"LandscapeVert", "LandscapeFrag"},
   };
+    spec.pipelines["Sky"] = CE::Runtime::PipelineDefinition{
+      .is_compute = false,
+      .shaders = {"SkyVert", "SkyFrag"},
+  };
     spec.pipelines["PostFX"] = CE::Runtime::PipelineDefinition{
       .is_compute = true,
       .shaders = {"PostFXComp"},
       .work_groups = {0, 0, 0},
     };
 
-    spec.execution_plan.graphics = {"Landscape", "CellsFollower", "Cells"};
+    spec.execution_plan.graphics = {"Sky", "Landscape", "CellsFollower", "Cells"};
     spec.execution_plan.post_graphics_compute = {"Engine"};
 
   spec.draw_ops = {
       {"Cells", "instanced:cells"},
       {"CellsFollower", "instanced:cells"},
       {"Landscape", "indexed:grid"},
+      {"Sky", "sky_dome"},
   };
 
   return spec;

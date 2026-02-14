@@ -47,9 +47,9 @@ vec4 inColor    = cellIn[index].color;
 ivec4 inStates  = cellIn[index].states;
 
 const int cycleSize = 24;
-ivec4 setState(int _alive, int stage){ 
+ivec4 setState(int _alive, int targetIndex){ 
     int cycle = int(passedHours % cycleSize + 1); 
-    return ivec4(_alive, stage, cycle, passedHours); 
+    return ivec4(_alive, targetIndex, cycle, passedHours); 
 }
 
 int getNeighbourIndex(ivec2 offset) {
@@ -113,8 +113,7 @@ vec2 gridBasePosition(uint cellIndex) {
                 startY + float(cellIndex / uint(gridXY.x)));
 }
 
-vec4 moveTowardsClosestAliveNeighbour(vec4 sourcePos, float cycleT) {
-    int neighbourIndex = closestAliveNeighbourIndex();
+vec4 moveTowardsTarget(vec4 sourcePos, int neighbourIndex, float cycleT) {
     if (neighbourIndex < 0) {
         return sourcePos;
     }
@@ -135,13 +134,6 @@ vec4 moveTowardsClosestAliveNeighbour(vec4 sourcePos, float cycleT) {
 
 bool aliveCell          = inStates.x == alive;
 bool deadCell           = inStates.x == dead;
-bool stage(int number)  { return inStates.y == number; }
-bool inCycleRange       = inStates.z >= 0 && inStates.z < cycleSize;
-bool reachedCycleEnd    = inStates.z == cycleSize;
-
-bool initialized        = aliveCell && inColor == blue;
-bool lifeCycle          = aliveCell && inCycleRange;
-bool endOfStage         = aliveCell && reachedCycleEnd;
 float waterHeightOffset = 0.1;
 bool underWater         = false;
 
@@ -153,23 +145,31 @@ void simulate(out Cell cell) {
     int neighbours  = cycleNeighbours(1);
     int cycleHour = int(passedHours % cycleSize) + 1;
     float cycleT = clamp(float(cycleHour) / float(cycleSize), 0.0, 1.0);
+    bool cycleStart = cycleHour == 1;
     bool cycleEnd = cycleHour == cycleSize;
 
     vec2 baseXY = gridBasePosition(index);
     vec4 basePosOn = vec4(baseXY, inPos.z, sizeAlive);
-    vec4 movedPosOn = moveTowardsClosestAliveNeighbour(basePosOn, cycleT);
+
+    int storedTarget = inStates.y;
+    int targetIndex = -1;
+    if (aliveCell) {
+        bool needsNewTarget = cycleStart || storedTarget < 0 || !neighbourAlive(storedTarget);
+        targetIndex = needsNewTarget ? closestAliveNeighbourIndex() : storedTarget;
+    }
+    vec4 movedPosOn = moveTowardsTarget(basePosOn, targetIndex, cycleT);
 
     if (underWater) {   
-       cell = Cell(inPosOff, inVertPos, inNormal, grey, setState(dead, 0) ); 
+       cell = Cell(inPosOff, inVertPos, inNormal, grey, setState(dead, -1) ); 
    } else if (!cycleEnd) {
         // During the day: no Conway birth/death transitions, only neighbour-follow motion.
-        cell = aliveCell ? Cell(movedPosOn, inVertPos, inNormal, inColor, setState(alive, 0))
-                         : Cell(inPosOff, inVertPos, inNormal, grey, setState(dead, 0));
+        cell = aliveCell ? Cell(movedPosOn, inVertPos, inNormal, inColor, setState(alive, targetIndex))
+                         : Cell(inPosOff, inVertPos, inNormal, grey, setState(dead, -1));
     } else {
         // End of cycle: apply Conway once, reset alive cells to base grid anchor.
-        cell = live(neighbours) ?   Cell(basePosOn, inVertPos, inNormal, white, setState(alive, 0) ) :
-               die(neighbours) ?    Cell(inPosOff, inVertPos, inNormal, grey, setState(dead, 0) ) :
-                                    Cell(inPosOff, inVertPos, inNormal, inColor, setState(dead, 0) );
+        cell = live(neighbours) ?   Cell(basePosOn, inVertPos, inNormal, white, setState(alive, -1) ) :
+               die(neighbours) ?    Cell(inPosOff, inVertPos, inNormal, grey, setState(dead, -1) ) :
+                                    Cell(inPosOff, inVertPos, inNormal, inColor, setState(dead, -1) );
     }
 }
 

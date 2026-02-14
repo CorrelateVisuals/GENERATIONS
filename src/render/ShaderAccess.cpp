@@ -188,6 +188,38 @@ void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
               0);
   };
 
+  const auto draw_sky_dome = [&](const std::string &pipeline_name) {
+    vkCmdBindPipeline(command_buffer,
+                      VK_PIPELINE_BIND_POINT_GRAPHICS,
+                      pipelines.config.get_pipeline_object_by_name(pipeline_name));
+
+    VkBuffer vertex_buffers[] = {resources.world._sky_dome.vertex_buffer.buffer};
+    VkDeviceSize offsets[] = {0};
+    vkCmdBindVertexBuffers(command_buffer, 0, 1, vertex_buffers, offsets);
+
+    const bool has_index_data = !resources.world._sky_dome.indices.empty() &&
+                                resources.world._sky_dome.index_buffer.buffer != VK_NULL_HANDLE;
+    if (has_index_data) {
+      vkCmdBindIndexBuffer(command_buffer,
+                           resources.world._sky_dome.index_buffer.buffer,
+                           0,
+                           VK_INDEX_TYPE_UINT32);
+      vkCmdDrawIndexed(command_buffer,
+                       static_cast<uint32_t>(resources.world._sky_dome.indices.size()),
+                       1,
+                       0,
+                       0,
+                       0);
+      return;
+    }
+
+    vkCmdDraw(command_buffer,
+              static_cast<uint32_t>(resources.world._sky_dome.all_vertices.size()),
+              1,
+              0,
+              0);
+  };
+
   const CE::Runtime::PipelineExecutionPlan *plan = CE::Runtime::get_pipeline_execution_plan();
   const std::vector<std::string> empty_graphics{};
   const std::vector<std::string> &graphics_order =
@@ -217,6 +249,11 @@ void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
 
     if (*draw_op == "indexed:cube") {
       draw_cube_indexed(pipeline_name);
+      continue;
+    }
+
+    if (*draw_op == "sky_dome") {
+      draw_sky_dome(pipeline_name);
       continue;
     }
 

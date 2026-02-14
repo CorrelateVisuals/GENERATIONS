@@ -63,6 +63,7 @@ public:
   Grid _grid;
   Shape _rectangle;
   Shape _cube;
+  Shape _sky_dome;
 
   UniformBufferObject _ubo;
   Camera _camera;

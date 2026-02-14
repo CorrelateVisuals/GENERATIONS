@@ -282,6 +282,15 @@ void CE::PipelinesConfiguration::create_pipelines(VkRenderPass &render_pass,
         colorBlendAttachment = CE::color_blend_attachment_state_average;
       }
 
+      if (pipelineName == "Sky") {
+        rasterization.cullMode = VK_CULL_MODE_NONE;
+        rasterization.depthBiasEnable = VK_FALSE;
+        depthStencil.depthTestEnable = VK_FALSE;
+        depthStencil.depthWriteEnable = VK_FALSE;
+        depthStencil.depthCompareOp = VK_COMPARE_OP_ALWAYS;
+        colorBlendAttachment = CE::color_blend_attachment_state_false;
+      }
+
       VkPipelineTessellationStateCreateInfo tessellationStateInfo{
           CE::tessellation_state_default};
       if (tesselationEnabled) {
