@@ -3,6 +3,8 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <fstream>
+#include <string>
 
 namespace Steam {
 
@@ -60,14 +62,23 @@ void Integration::detect_steam_deck() {
 
 #ifdef __linux__
   // Method 3: Check for Neptune hardware (Steam Deck codename)
-  const char *check_commands[] = {
-      "grep -q 'Jupiter' /sys/devices/virtual/dmi/id/product_name 2>/dev/null",
-      "grep -q 'Galileo' /sys/devices/virtual/dmi/id/product_name 2>/dev/null"};
+  // Read /sys/devices/virtual/dmi/id/product_name directly
+  const char *product_name_paths[] = {
+      "/sys/devices/virtual/dmi/id/product_name"};
 
-  for (const char *cmd : check_commands) {
-    if (std::system(cmd) == 0) {
-      steam_deck_detected = true;
-      return;
+  for (const char *path : product_name_paths) {
+    std::ifstream product_file(path);
+    if (product_file.is_open()) {
+      std::string product_name;
+      std::getline(product_file, product_name);
+      product_file.close();
+
+      // Steam Deck variants use Jupiter or Galileo codenames
+      if (product_name.find("Jupiter") != std::string::npos ||
+          product_name.find("Galileo") != std::string::npos) {
+        steam_deck_detected = true;
+        return;
+      }
     }
   }
 #endif
