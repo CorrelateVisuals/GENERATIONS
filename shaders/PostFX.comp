@@ -12,6 +12,10 @@ vec4 modifyColorGamma(vec4 color, float gamma) { return vec4(pow(color.rgb, vec3
 void main()
 {
     ivec2 coords = ivec2(gl_GlobalInvocationID.xy); // e.g., ivec2(1920, 1080)
+    ivec2 image_size = imageSize(uMyImage);
+    if (coords.x >= image_size.x || coords.y >= image_size.y) {
+        return;
+    }
     vec4 colorIn = imageLoad(uMyImage, coords).rgba;
 
     // Increase contrast

@@ -385,17 +385,22 @@ void CE::Swapchain::recreate(const VkSurfaceKHR &surface,
                              const Queues &queues,
                              SynchronizationObjects &sync_objects) {
   int width(0), height(0);
+  // When minimized, many window systems report a 0x0 framebuffer.
+  // Recreating swapchain resources at 0 size is invalid, so wait until visible again.
   glfwGetFramebufferSize(Window::get().window, &width, &height);
   while (width == 0 || height == 0) {
     glfwGetFramebufferSize(Window::get().window, &width, &height);
     glfwWaitEvents();
   }
 
+  // Recreate touches swapchain images/views/framebuffers that may still be referenced
+  // by queued work. Device-wide idle makes this transition safe and deterministic.
   vkDeviceWaitIdle(Device::base_device->logical_device);
 
   destroy();
   create(surface, queues);
 
+  // Keep frame index in a known slot after swapchain reset.
   constexpr uint32_t reset = 1;
   sync_objects.current_frame = reset;
 }
@@ -560,9 +565,12 @@ void CE::SynchronizationObjects::destroy() {
   }
 
   Log::text("{ ||| }", "Destroy Synchronization Objects");
+  // Semaphores/fences can still be in use by in-flight submissions at shutdown.
+  // Waiting for idle prevents VUID errors during vkDestroySemaphore/vkDestroyFence.
   vkDeviceWaitIdle(Device::base_device->logical_device);
 
   for (uint_fast8_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+    // Null-handle guards make destruction idempotent and safe across partial init paths.
     if (this->render_finished_semaphores[i] != VK_NULL_HANDLE) {
       vkDestroySemaphore(
           Device::base_device->logical_device,

@@ -41,42 +41,36 @@ ImplementationSpec default_spec() {
   spec.world.rectangle_shape = 0;
   spec.world.sphere_shape = 2;
 
-  spec.pipelines["Cells"] = CE::Runtime::PipelineDefinition{
+    spec.pipelines["Cells"] = CE::Runtime::PipelineDefinition{
       .is_compute = false,
       .shaders = {"CellsVert", "CellsFrag"},
-  };
-  spec.pipelines["Engine"] = CE::Runtime::PipelineDefinition{
+    };
+    spec.pipelines["Engine"] = CE::Runtime::PipelineDefinition{
       .is_compute = true,
       .shaders = {"EngineComp"},
       .work_groups = {0, 0, 0},
-  };
-  spec.pipelines["Landscape"] = CE::Runtime::PipelineDefinition{
+    };
+    spec.pipelines["Landscape"] = CE::Runtime::PipelineDefinition{
       .is_compute = false,
       .shaders = {"LandscapeVert", "LandscapeFrag"},
   };
-  spec.pipelines["Texture"] = CE::Runtime::PipelineDefinition{
+    spec.pipelines["Texture"] = CE::Runtime::PipelineDefinition{
       .is_compute = false,
       .shaders = {"TextureVert", "TextureFrag"},
   };
-  spec.pipelines["Water"] = CE::Runtime::PipelineDefinition{
-      .is_compute = false,
-      .shaders = {"WaterVert", "WaterFrag"},
-  };
-  spec.pipelines["PostFX"] = CE::Runtime::PipelineDefinition{
+    spec.pipelines["PostFX"] = CE::Runtime::PipelineDefinition{
       .is_compute = true,
       .shaders = {"PostFXComp"},
       .work_groups = {0, 0, 0},
-  };
+    };
 
-  spec.execution_plan.graphics =
-      {"Cells", "Landscape", "Texture", "Water"};
-  spec.execution_plan.post_graphics_compute = {"Engine", "PostFX"};
+    spec.execution_plan.graphics = {"Texture", "Cells", "Landscape"};
+    spec.execution_plan.post_graphics_compute = {"Engine"};
 
   spec.draw_ops = {
+      {"Texture", "indexed:rectangle"},
       {"Cells", "instanced:cells"},
       {"Landscape", "indexed:grid"},
-      {"Water", "indexed:rectangle"},
-      {"Texture", "indexed:rectangle"},
   };
 
   return spec;

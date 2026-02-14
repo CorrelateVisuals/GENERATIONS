@@ -49,8 +49,8 @@ public:
                 1};
       }
       if (pipeline_name == "PostFX") {
-        return {static_cast<uint32_t>(Window::get().display.width + 7) / 8,
-                static_cast<uint32_t>(Window::get().display.height + 7) / 8,
+        return {static_cast<uint32_t>(Window::get().display.width + 15) / 16,
+          static_cast<uint32_t>(Window::get().display.height + 15) / 16,
                 1};
       }
       return {1, 1, 1};
@@ -137,8 +137,8 @@ public:
             "PostFX",
             Compute{
                 .shaders = {"Comp"},
-            .work_groups = {static_cast<uint32_t>(Window::get().display.width + 7) / 8,
-                    static_cast<uint32_t>(Window::get().display.height + 7) / 8,
+          .work_groups = {static_cast<uint32_t>(Window::get().display.width + 15) / 16,
+              static_cast<uint32_t>(Window::get().display.height + 15) / 16,
                                1}});
       }
 

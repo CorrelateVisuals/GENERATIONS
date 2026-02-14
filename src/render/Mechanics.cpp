@@ -14,9 +14,6 @@ VulkanMechanics::VulkanMechanics()
 }
 
 VulkanMechanics::~VulkanMechanics() {
-  if (main_device.logical_device != VK_NULL_HANDLE) {
-    vkDeviceWaitIdle(main_device.logical_device);
-  }
   Log::text("{ Vk. }", "destructing Vulkan Mechanics");
 }
 

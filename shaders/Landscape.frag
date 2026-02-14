@@ -44,18 +44,11 @@ vec3 pixelTerrainPalette(float heightRelativeToWater) {
     vec3 snow   = vec3(0.80f, 0.82f, 0.84f);
 
     float h = clamp((heightRelativeToWater + 0.8f) / 7.0f, 0.0f, 1.0f);
-    h = quantize(h, 6.0f);
 
-    if (h < 0.12f) {
-        return sand;
-    }
-    if (h < 0.42f) {
-        return mix(grassA, grassB, quantize(h * 2.5f, 3.0f));
-    }
-    if (h < 0.74f) {
-        return mix(grassB, rock, quantize((h - 0.42f) / 0.32f, 4.0f));
-    }
-    return mix(rock, snow, quantize((h - 0.74f) / 0.26f, 3.0f));
+    vec3 c0 = mix(sand, grassA, smoothstep(0.08f, 0.18f, h));
+    vec3 c1 = mix(c0, grassB, smoothstep(0.28f, 0.48f, h));
+    vec3 c2 = mix(c1, rock, smoothstep(0.56f, 0.78f, h));
+    return mix(c2, snow, smoothstep(0.80f, 1.00f, h));
 }
 
 vec3 terrainColor(float heightFromWater, float slope, vec2 worldXZ) {
@@ -74,7 +67,7 @@ vec3 terrainColor(float heightFromWater, float slope, vec2 worldXZ) {
     vec3 deepWater = vec3(0.15f, 0.24f, 0.29f);
     vec3 shallowWater = vec3(0.24f, 0.33f, 0.37f);
     float depthToShore = clamp((-heightFromWater + shoreWidth) / (shoreWidth * 2.0f), 0.0f, 1.0f);
-    vec3 water = mix(shallowWater, deepWater, quantize(depthToShore, 5.0f));
+    vec3 water = mix(shallowWater, deepWater, depthToShore);
 
     float waterBlend = (1.0f - smoothstep(-shoreWidth, shoreWidth, heightFromWater)) * 0.72f;
     vec3 color = mix(land, water, waterBlend);
@@ -90,20 +83,19 @@ vec3 terrainColor(float heightFromWater, float slope, vec2 worldXZ) {
 }*/
 
 void main() {
-    vec3 normal = normalize(inWorldNormal);
+    vec3 dx = dFdx(inWorldPos);
+    vec3 dy = dFdy(inWorldPos);
+    vec3 normal = normalize(cross(dx, dy));
+    if (normal.z < 0.0f) {
+        normal = -normal;
+    }
     vec3 lightDirection = normalize(ubo.light.rgb - inWorldPos);
-    vec3 viewDirection = normalize(-inWorldPos);
-
     float heightFromWater = inWorldPos.z - ubo.waterThreshold;
     float slope = 1.0f - clamp(normal.z, 0.0f, 1.0f);
     vec3 albedo = terrainColor(heightFromWater, slope, inWorldPos.xz);
 
-    float ambientStrength = 0.34f;
+    const float ambientStrength = 0.34f;
     float diffuse = max(dot(normal, lightDirection), 0.0f);
-
-    const float specularStrength = 0.0f;
-    const float micro = 0.0f;
-    vec3 lit = albedo * (ambientStrength + diffuse) * (0.96f + micro) +
-               vec3(specularStrength);
+    vec3 lit = albedo * (ambientStrength + diffuse) * 0.96f;
     outColor = vec4(lit, 1.0f);
 }

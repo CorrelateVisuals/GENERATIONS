@@ -7,7 +7,6 @@
 
 #include <algorithm>
 #include <cstring>
-#include <thread>
 #include <utility>
 #include <vector>
 
@@ -130,9 +129,7 @@ void CE::Screenshot::save_buffer_to_file(const Buffer &buffer,
   const int height = static_cast<int>(extent.height);
   const int stride = width * 4;
 
-  std::thread([filename, width, height, stride, pixels = std::move(pixels)]() mutable {
-    if (!stbi_write_png(filename.c_str(), width, height, 4, pixels.data(), stride)) {
-      std::cerr << "Failed to write screenshot to file: " << filename << '\n';
-    }
-  }).detach();
+  if (!stbi_write_png(filename.c_str(), width, height, 4, pixels.data(), stride)) {
+    std::cerr << "Failed to write screenshot to file: " << filename << '\n';
+  }
 }
