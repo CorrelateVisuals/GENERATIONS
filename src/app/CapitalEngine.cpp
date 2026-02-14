@@ -1,6 +1,7 @@
 #include "CapitalEngine.h"
 #include "core/Log.h"
 #include "io/Screenshot.h"
+#include "platform/SteamIntegration.h"
 #include "platform/Window.h"
 #include "base/VulkanUtils.h"
 
@@ -19,6 +20,9 @@ constexpr uint32_t SINGLE_OBJECT_COUNT = 1;
 CapitalEngine::CapitalEngine() : resources(mechanics), pipelines(mechanics, resources) {
   Log::text(Log::Style::header_guard);
   Log::text("| CAPITAL Engine");
+
+  // Initialize Steam integration
+  Steam::Integration::get();
 }
 
 CapitalEngine::~CapitalEngine() {
@@ -52,6 +56,9 @@ void CapitalEngine::main_loop() {
   while (!glfwWindowShouldClose(main_window.window)) {
     main_window.poll_input();
     resources.world._time.run();
+
+    // Run Steam callbacks if available
+    Steam::Integration::get().run_callbacks();
 
     draw_frame();
 

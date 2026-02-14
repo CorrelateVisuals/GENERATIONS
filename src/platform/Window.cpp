@@ -1,5 +1,6 @@
 #include "Window.h"
 
+#include "SteamIntegration.h"
 #include "core/Log.h"
 
 #include <array>
@@ -25,6 +26,16 @@ Window::~Window() {
 void Window::init_window() {
   glfwInit();
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+
+  // Optimize for Steam Deck if detected
+  if (Steam::Integration::get().is_steam_deck()) {
+    // Steam Deck has 1280x800 native resolution
+    display.width = 1280;
+    display.height = 800;
+    Log::text("{ [*] }", "Steam Deck detected - using native resolution", display.width,
+              "*", display.height);
+  }
+
   window =
       glfwCreateWindow(display.width, display.height, display.title, nullptr, nullptr);
   glfwSetWindowUserPointer(window, this);

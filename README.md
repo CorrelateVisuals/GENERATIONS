@@ -30,6 +30,8 @@ This is software for building real things:
 The current runtime demonstrates Conway-style cellular evolution with GPU compute, real-time rendering, terrain, and post-processing.
 The system is tested in active Linux development and includes a maintained Visual Studio solution for Windows workflows.
 
+The engine includes minimal Steam integration with Steam Deck detection and optimization. See [docs/STEAM_INTEGRATION.md](docs/STEAM_INTEGRATION.md) for details.
+
 ## Architecture (current state)
 
 The source tree is intentionally layered:

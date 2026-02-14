@@ -26,6 +26,7 @@ public:
       return graphics_and_compute_family.has_value() && present_family.has_value();
     }
   };
+  using FamilyIndices = family_indices;
 
   family_indices indices{};
 
@@ -90,5 +91,10 @@ private:
   void get_max_usable_sample_count();
   bool check_device_extension_support(const VkPhysicalDevice &physical_device) const;
 };
+
+// Type aliases for compatibility
+using InitializeVulkan = initialize_vulkan;
+using Queues = queues;
+using Device = device;
 
 } // namespace CE

@@ -1,4 +1,5 @@
 #pragma once
+#include "platform/SteamIntegration.h"
 #include "render/Mechanics.h"
 #include "render/Pipelines.h"
 #include "render/Resources.h"
