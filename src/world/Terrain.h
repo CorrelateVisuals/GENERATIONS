@@ -5,7 +5,7 @@
 class Terrain {
 public:
   struct Config {
-    vec2_uint_fast16_t dimensions;
+    Vec2UintFast16 dimensions;
     float roughness;
     int octaves;
     float scale;

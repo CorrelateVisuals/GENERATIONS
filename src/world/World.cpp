@@ -87,7 +87,7 @@ std::vector<VkVertexInputAttributeDescription> World::Cell::get_attribute_descri
   return description;
 };
 
-World::Grid::Grid(vec2_uint_fast16_t grid_size,
+World::Grid::Grid(Vec2UintFast16 grid_size,
           uint_fast32_t alive_cells,
           float cell_size,
           VkCommandBuffer &command_buffer,

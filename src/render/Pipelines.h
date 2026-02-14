@@ -40,7 +40,7 @@ public:
             const VkPipelineLayout &graphics_layout,
             const VkPipelineLayout &compute_layout,
             VkSampleCountFlagBits &msaa_samples,
-            const vec2_uint_fast16_t grid_size) {
+            const Vec2UintFast16 grid_size) {
       pipeline_map.emplace(
           "Engine",
           Compute{.shaders = {"Comp"},

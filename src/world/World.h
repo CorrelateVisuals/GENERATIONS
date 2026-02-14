@@ -40,7 +40,7 @@ public:
   };
 
   struct Grid : public Geometry {
-    vec2_uint_fast16_t size;
+    Vec2UintFast16 size;
     const uint_fast32_t initial_alive_cells;
     const size_t point_count;
 
@@ -48,7 +48,7 @@ public:
     std::vector<glm::vec3> coordinates = std::vector<glm::vec3>(point_count);
     std::vector<World::Cell> cells = std::vector<World::Cell>(point_count);
 
-    Grid(vec2_uint_fast16_t grid_size,
+    Grid(Vec2UintFast16 grid_size,
          uint_fast32_t alive_cells,
          float cell_size,
          VkCommandBuffer &command_buffer,
