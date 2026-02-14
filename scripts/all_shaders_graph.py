@@ -6,8 +6,6 @@ import sys
 
 
 SHADER_NODES: list[tuple[str, str, str]] = [
-    ("CubeVert", "Cube", "vert"),
-    ("CubeFrag", "Cube", "frag"),
     ("CellsVert", "Cells", "vert"),
     ("CellsFrag", "Cells", "frag"),
     ("EngineComp", "Engine", "comp"),
@@ -23,7 +21,6 @@ SHADER_NODES: list[tuple[str, str, str]] = [
 ]
 
 EDGES: list[tuple[str, str]] = [
-    ("CubeVert", "CubeFrag"),
     ("CellsVert", "CellsFrag"),
     ("CellsFrag", "EngineComp"),
     ("LandscapeVert", "LandscapeWireFrameTesc"),
@@ -38,7 +35,6 @@ INPUT = ("CellsVert", "input_data")
 OUTPUT = ("WaterFrag", "result")
 
 DRAW_BINDINGS: list[tuple[str, str]] = [
-    ("Cube", "indexed:cube"),
     ("Cells", "instanced:cells"),
     ("Landscape", "indexed:grid"),
     ("LandscapeWireFrame", "indexed:grid"),
@@ -47,7 +43,6 @@ DRAW_BINDINGS: list[tuple[str, str]] = [
 ]
 
 PIPELINES: list[tuple[str, str, str, str | None]] = [
-    ("Cube", "graphics", "CubeVert,CubeFrag", None),
     ("Cells", "graphics", "CellsVert,CellsFrag", None),
     ("Engine", "compute", "EngineComp", "0,0,0"),
     ("Landscape", "graphics", "LandscapeVert,LandscapeFrag", None),
