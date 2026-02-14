@@ -69,8 +69,9 @@ A first implementation-layer script interface is now available.
 
 - Engine mode (default): `./bin/CapitalEngine`
 - Script interface mode: `CE_SCRIPT_GRAPH=scripts/all_shaders_graph.py ./bin/CapitalEngine`
+- Script preview only (no engine loop): `CE_SCRIPT_GRAPH=scripts/all_shaders_graph.py CE_SCRIPT_ONLY=1 ./bin/CapitalEngine`
 
-The script interface currently loads and validates a shader graph from Python and resolves dynamic shader paths as `shaders/<name>.<stage>`.
+The script interface currently loads and validates a shader graph from Python, resolves dynamic shader paths as `shaders/<name>.<stage>`, and installs a runtime execution plan (compute before graphics, graphics order, compute after graphics).
 This is the first separation step: engine runtime stays in `src/app`, while script-chainer logic lives in `src/implementation`.
 
 ## Build and run (Linux)

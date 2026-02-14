@@ -35,10 +35,16 @@ struct GraphEndpoint {
   std::string resource;
 };
 
+struct GraphicsDrawBinding {
+  std::string pipeline_name;
+  std::string draw_op;
+};
+
 class ShaderGraph {
 public:
   bool add_node(const ShaderNode &node, std::string &error);
   bool add_edge(const GraphEdge &edge, std::string &error);
+  bool add_graphics_draw_binding(const GraphicsDrawBinding &binding, std::string &error);
 
   void set_input(const GraphEndpoint &input_endpoint);
   void set_output(const GraphEndpoint &output_endpoint);
@@ -47,13 +53,18 @@ public:
 
   const std::vector<ShaderNode> &nodes() const { return nodes_; }
   const std::vector<GraphEdge> &edges() const { return edges_; }
+  const std::vector<GraphicsDrawBinding> &graphics_draw_bindings() const {
+    return graphics_draw_bindings_;
+  }
   const std::optional<GraphEndpoint> &input() const { return input_; }
   const std::optional<GraphEndpoint> &output() const { return output_; }
 
 private:
   std::vector<ShaderNode> nodes_;
   std::vector<GraphEdge> edges_;
+  std::vector<GraphicsDrawBinding> graphics_draw_bindings_;
   std::unordered_map<std::string, std::size_t> node_index_by_id_;
+  std::unordered_map<std::string, std::size_t> graphics_draw_index_by_pipeline_name_;
   std::optional<GraphEndpoint> input_;
   std::optional<GraphEndpoint> output_;
 };

@@ -7,6 +7,10 @@
 class ValidationLayers {
 public:
   ValidationLayers();
+  ValidationLayers(const ValidationLayers &) = delete;
+  ValidationLayers &operator=(const ValidationLayers &) = delete;
+  ValidationLayers(ValidationLayers &&) = delete;
+  ValidationLayers &operator=(ValidationLayers &&) = delete;
   ~ValidationLayers();
 
   VkDebugUtilsMessengerEXT debug_messenger;

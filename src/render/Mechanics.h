@@ -8,6 +8,10 @@ class Resources;
 class VulkanMechanics {
 public:
   VulkanMechanics();
+  VulkanMechanics(const VulkanMechanics &) = delete;
+  VulkanMechanics &operator=(const VulkanMechanics &) = delete;
+  VulkanMechanics(VulkanMechanics &&) = delete;
+  VulkanMechanics &operator=(VulkanMechanics &&) = delete;
   ~VulkanMechanics();
 
   CE::InitializeVulkan init_vulkan{};

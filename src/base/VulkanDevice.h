@@ -42,6 +42,10 @@ public:
   ValidationLayers validation{};
 
   InitializeVulkan();
+  InitializeVulkan(const InitializeVulkan &) = delete;
+  InitializeVulkan &operator=(const InitializeVulkan &) = delete;
+  InitializeVulkan(InitializeVulkan &&) = delete;
+  InitializeVulkan &operator=(InitializeVulkan &&) = delete;
   virtual ~InitializeVulkan();
 
 private:

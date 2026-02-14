@@ -5,19 +5,19 @@ from __future__ import annotations
 import sys
 
 
-SHADER_PAIRS: list[tuple[str, str]] = [
-    ("CellsVert", "vert"),
-    ("CellsFrag", "frag"),
-    ("EngineComp", "comp"),
-    ("LandscapeVert", "vert"),
-    ("LandscapeFrag", "frag"),
-    ("LandscapeWireFrameTesc", "tesc"),
-    ("LandscapeWireFrameTese", "tese"),
-    ("PostFXComp", "comp"),
-    ("TextureVert", "vert"),
-    ("TextureFrag", "frag"),
-    ("WaterVert", "vert"),
-    ("WaterFrag", "frag"),
+SHADER_NODES: list[tuple[str, str, str]] = [
+    ("CellsVert", "Cells", "vert"),
+    ("CellsFrag", "Cells", "frag"),
+    ("EngineComp", "Engine", "comp"),
+    ("LandscapeVert", "Landscape", "vert"),
+    ("LandscapeFrag", "Landscape", "frag"),
+    ("LandscapeWireFrameTesc", "LandscapeWireFrame", "tesc"),
+    ("LandscapeWireFrameTese", "LandscapeWireFrame", "tese"),
+    ("PostFXComp", "PostFX", "comp"),
+    ("TextureVert", "Texture", "vert"),
+    ("TextureFrag", "Texture", "frag"),
+    ("WaterVert", "Water", "vert"),
+    ("WaterFrag", "Water", "frag"),
 ]
 
 EDGES: list[tuple[str, str]] = [
@@ -34,13 +34,24 @@ EDGES: list[tuple[str, str]] = [
 INPUT = ("CellsVert", "input_data")
 OUTPUT = ("WaterFrag", "result")
 
+DRAW_BINDINGS: list[tuple[str, str]] = [
+    ("Cells", "cells_instanced"),
+    ("Landscape", "grid_indexed"),
+    ("LandscapeWireFrame", "grid_wireframe"),
+    ("Water", "rectangle_indexed"),
+    ("Texture", "rectangle_indexed"),
+]
+
 
 def emit_graph() -> None:
-    for name, extension in SHADER_PAIRS:
-        print(f"NODE {name} {name} {extension}")
+    for node_id, shader_name, extension in SHADER_NODES:
+        print(f"NODE {node_id} {shader_name} {extension}")
 
     for source, target in EDGES:
         print(f"EDGE {source} {target}")
+
+    for pipeline_name, draw_op in DRAW_BINDINGS:
+        print(f"DRAW {pipeline_name} {draw_op}")
 
     print(f"INPUT {INPUT[0]} {INPUT[1]}")
     print(f"OUTPUT {OUTPUT[0]} {OUTPUT[1]}")

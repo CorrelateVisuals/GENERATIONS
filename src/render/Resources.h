@@ -20,6 +20,10 @@ class VulkanMechanics;
 class Resources {
 public:
   Resources(VulkanMechanics &mechanics);
+  Resources(const Resources &) = delete;
+  Resources &operator=(const Resources &) = delete;
+  Resources(Resources &&) = delete;
+  Resources &operator=(Resources &&) = delete;
   ~Resources();
 
   // struct CommandResources : public CE::CommandBuffers {

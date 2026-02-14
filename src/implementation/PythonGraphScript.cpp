@@ -119,6 +119,18 @@ ShaderGraph PythonGraphScript::load(const std::filesystem::path &script_path) {
       continue;
     }
 
+    if (record == "DRAW") {
+      if (tokens.size() != 3) {
+        throw std::runtime_error("invalid DRAW record at line " + std::to_string(line_number));
+      }
+      if (!graph.add_graphics_draw_binding(
+              GraphicsDrawBinding{.pipeline_name = tokens[1], .draw_op = tokens[2]}, error)) {
+        throw std::runtime_error("invalid DRAW record at line " +
+                                 std::to_string(line_number) + ": " + error);
+      }
+      continue;
+    }
+
     throw std::runtime_error("unknown record type at line " + std::to_string(line_number) +
                              ": " + record);
   }

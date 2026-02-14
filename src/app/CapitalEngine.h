@@ -6,6 +6,10 @@
 class CapitalEngine {
 public:
   CapitalEngine();
+  CapitalEngine(const CapitalEngine &) = delete;
+  CapitalEngine &operator=(const CapitalEngine &) = delete;
+  CapitalEngine(CapitalEngine &&) = delete;
+  CapitalEngine &operator=(CapitalEngine &&) = delete;
   ~CapitalEngine();
 
   void main_loop();

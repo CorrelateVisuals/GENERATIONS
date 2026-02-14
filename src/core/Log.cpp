@@ -1,4 +1,5 @@
 #include "Log.h"
+#include "RuntimeConfig.h"
 
 #include <chrono>
 #include <cctype>
@@ -176,17 +177,7 @@ bool Log::skip_logging(uint8_t log_level, const std::string &icon) {
 
 bool Log::gpu_trace_enabled() {
   static const bool enabled = [] {
-    const char *value = std::getenv("CE_GPU_TRACE");
-    if (!value) {
-      return false;
-    }
-
-    const std::string raw(value);
-    if (raw == "1" || raw == "true" || raw == "TRUE" || raw == "on" ||
-        raw == "ON") {
-      return true;
-    }
-    return false;
+    return CE::Runtime::env_flag_enabled("CE_GPU_TRACE");
   }();
 
   return enabled;

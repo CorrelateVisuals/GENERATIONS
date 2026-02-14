@@ -52,6 +52,28 @@ bool ShaderGraph::add_edge(const GraphEdge &edge, std::string &error) {
   return true;
 }
 
+bool ShaderGraph::add_graphics_draw_binding(const GraphicsDrawBinding &binding,
+                                            std::string &error) {
+  if (is_blank(binding.pipeline_name)) {
+    error = "graphics draw binding pipeline_name cannot be blank";
+    return false;
+  }
+  if (is_blank(binding.draw_op)) {
+    error = "graphics draw binding draw_op cannot be blank for pipeline " +
+            binding.pipeline_name;
+    return false;
+  }
+  if (graphics_draw_index_by_pipeline_name_.contains(binding.pipeline_name)) {
+    error = "duplicate graphics draw binding pipeline_name: " + binding.pipeline_name;
+    return false;
+  }
+
+  graphics_draw_index_by_pipeline_name_[binding.pipeline_name] =
+      graphics_draw_bindings_.size();
+  graphics_draw_bindings_.push_back(binding);
+  return true;
+}
+
 void ShaderGraph::set_input(const GraphEndpoint &input_endpoint) {
   input_ = input_endpoint;
 }
@@ -81,6 +103,22 @@ bool ShaderGraph::validate(std::string &error) const {
     error = "output endpoint node does not exist: " + output_->node_id;
     return false;
   }
+
+  for (const GraphicsDrawBinding &binding : graphics_draw_bindings_) {
+    bool pipeline_exists = false;
+    for (const ShaderNode &node : nodes_) {
+      if (node.shader_name == binding.pipeline_name && node.stage != ShaderStage::Comp) {
+        pipeline_exists = true;
+        break;
+      }
+    }
+    if (!pipeline_exists) {
+      error = "graphics draw binding references unknown graphics pipeline: " +
+              binding.pipeline_name;
+      return false;
+    }
+  }
+
   return true;
 }
 

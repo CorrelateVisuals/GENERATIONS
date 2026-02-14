@@ -2,7 +2,10 @@
 #include "Pipelines.h"
 #include "Resources.h"
 #include "base/VulkanUtils.h"
+#include "core/RuntimeConfig.h"
 
+#include <functional>
+#include <unordered_map>
 #include <stdexcept>
 
 void CE::ShaderAccess::CommandResources::record_compute_command_buffer(
@@ -41,9 +44,21 @@ void CE::ShaderAccess::CommandResources::record_compute_command_buffer(
                      resources.push_constant.size,
                      resources.push_constant.data.data());
 
-  const std::array<uint32_t, 3> &work_groups =
-              pipelines.config.get_work_groups_by_name("Engine");
-  vkCmdDispatch(command_buffer, work_groups[0], work_groups[0], work_groups[2]);
+  const CE::Runtime::PipelineExecutionPlan *plan = CE::Runtime::get_pipeline_execution_plan();
+  const std::vector<std::string> default_pre_compute{"Engine"};
+  const std::vector<std::string> &pre_compute =
+      (plan && !plan->pre_graphics_compute.empty()) ? plan->pre_graphics_compute
+                                                     : default_pre_compute;
+
+  for (const std::string &pipeline_name : pre_compute) {
+    vkCmdBindPipeline(command_buffer,
+                      VK_PIPELINE_BIND_POINT_COMPUTE,
+                      pipelines.config.get_pipeline_object_by_name(pipeline_name));
+
+    const std::array<uint32_t, 3> &work_groups =
+        pipelines.config.get_work_groups_by_name(pipeline_name);
+    vkCmdDispatch(command_buffer, work_groups[0], work_groups[1], work_groups[2]);
+  }
 
   CE::vulkan_result(vkEndCommandBuffer, command_buffer);
 }
@@ -112,92 +127,126 @@ void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
     vkCmdDrawIndexed(command_buffer, index_count, 1, 0, 0, 0);
   };
 
-  // Pipeline 1
-  vkCmdBindPipeline(command_buffer,
-                    VK_PIPELINE_BIND_POINT_GRAPHICS,
-                    pipelines.config.get_pipeline_object_by_name("Cells"));
-  VkDeviceSize offsets_0[]{0, 0};
+  const auto draw_cells = [&] {
+    vkCmdBindPipeline(command_buffer,
+                      VK_PIPELINE_BIND_POINT_GRAPHICS,
+                      pipelines.config.get_pipeline_object_by_name("Cells"));
+    VkDeviceSize offsets_0[]{0, 0};
 
-  VkBuffer current_shader_storage_buffer[] = {resources.shader_storage.buffer_in.buffer,
-                                              resources.shader_storage.buffer_out.buffer};
+    VkBuffer current_shader_storage_buffer[] = {resources.shader_storage.buffer_in.buffer,
+                                                resources.shader_storage.buffer_out.buffer};
 
-  VkBuffer vertex_buffers_0[] = {current_shader_storage_buffer[frame_index],
-                                 resources.world._cube.vertex_buffer.buffer};
+    VkBuffer vertex_buffers_0[] = {current_shader_storage_buffer[frame_index],
+                                   resources.world._cube.vertex_buffer.buffer};
 
-  vkCmdBindVertexBuffers(command_buffer, 0, 2, vertex_buffers_0, offsets_0);
-  vkCmdDraw(command_buffer,
-            static_cast<uint32_t>(resources.world._cube.all_vertices.size()),
-            resources.world._grid.size.x * resources.world._grid.size.y,
-            0,
-            0);
+    vkCmdBindVertexBuffers(command_buffer, 0, 2, vertex_buffers_0, offsets_0);
+    vkCmdDraw(command_buffer,
+              static_cast<uint32_t>(resources.world._cube.all_vertices.size()),
+              resources.world._grid.size.x * resources.world._grid.size.y,
+              0,
+              0);
+  };
 
-  // Landscape
-  bind_and_draw_indexed("Landscape",
-                        resources.world._grid.vertex_buffer.buffer,
-                        resources.world._grid.index_buffer.buffer,
-                        static_cast<uint32_t>(resources.world._grid.indices.size()));
+  const auto draw_landscape = [&] {
+    bind_and_draw_indexed("Landscape",
+                          resources.world._grid.vertex_buffer.buffer,
+                          resources.world._grid.index_buffer.buffer,
+                          static_cast<uint32_t>(resources.world._grid.indices.size()));
+  };
 
-  //   Landscape Wireframe
-  vkCmdBindPipeline(command_buffer,
-                    VK_PIPELINE_BIND_POINT_GRAPHICS,
-                    pipelines.config.get_pipeline_object_by_name("LandscapeWireFrame"));
-  vkCmdDrawIndexed(command_buffer,
-                   static_cast<uint32_t>(resources.world._grid.indices.size()),
-                   1,
-                   0,
-                   0,
-                   0);
+  const auto draw_landscape_wireframe = [&] {
+    vkCmdBindPipeline(command_buffer,
+                      VK_PIPELINE_BIND_POINT_GRAPHICS,
+                      pipelines.config.get_pipeline_object_by_name("LandscapeWireFrame"));
+    vkCmdDrawIndexed(command_buffer,
+                     static_cast<uint32_t>(resources.world._grid.indices.size()),
+                     1,
+                     0,
+                     0,
+                     0);
+  };
 
-  // Pipeline 3
-  bind_and_draw_indexed("Water",
-                        resources.world._rectangle.vertex_buffer.buffer,
-                        resources.world._rectangle.index_buffer.buffer,
-                        static_cast<uint32_t>(resources.world._rectangle.indices.size()));
+  const auto draw_water = [&] {
+    bind_and_draw_indexed("Water",
+                          resources.world._rectangle.vertex_buffer.buffer,
+                          resources.world._rectangle.index_buffer.buffer,
+                          static_cast<uint32_t>(resources.world._rectangle.indices.size()));
+  };
 
-  // Pipeline 4
-  bind_and_draw_indexed("Texture",
-                        resources.world._rectangle.vertex_buffer.buffer,
-                        resources.world._rectangle.index_buffer.buffer,
-                        static_cast<uint32_t>(resources.world._rectangle.indices.size()));
+  const auto draw_texture = [&] {
+    bind_and_draw_indexed("Texture",
+                          resources.world._rectangle.vertex_buffer.buffer,
+                          resources.world._rectangle.index_buffer.buffer,
+                          static_cast<uint32_t>(resources.world._rectangle.indices.size()));
+  };
+
+  const CE::Runtime::PipelineExecutionPlan *plan = CE::Runtime::get_pipeline_execution_plan();
+  const std::vector<std::string> default_graphics{
+      "Cells", "Landscape", "LandscapeWireFrame", "Water", "Texture"};
+  const std::vector<std::string> &graphics_order =
+      (plan && !plan->graphics.empty()) ? plan->graphics : default_graphics;
+
+  const std::unordered_map<std::string, std::function<void()>> graphics_draw_handlers{
+      {"Cells", draw_cells},
+      {"Landscape", draw_landscape},
+      {"LandscapeWireFrame", draw_landscape_wireframe},
+      {"Water", draw_water},
+      {"Texture", draw_texture},
+  };
+
+  for (const std::string &pipeline_name : graphics_order) {
+    const auto handler = graphics_draw_handlers.find(pipeline_name);
+    if (handler != graphics_draw_handlers.end()) {
+      handler->second();
+    }
+  }
   vkCmdEndRenderPass(command_buffer);
 
   //       This is part of an image memory barrier (i.e., vkCmdPipelineBarrier
   //       with the VkImageMemoryBarrier parameter set)
 
-  swapchain.images[image_index].transition_layout(command_buffer,
-                                                  VK_FORMAT_R8G8B8A8_SRGB,
-                                                  VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
-                                                  /* -> */ VK_IMAGE_LAYOUT_GENERAL);
+  const std::vector<std::string> default_post_compute{"PostFX"};
+  const std::vector<std::string> &post_compute =
+      (plan && !plan->post_graphics_compute.empty()) ? plan->post_graphics_compute
+                                                      : default_post_compute;
 
-  vkCmdBindPipeline(command_buffer,
-                    VK_PIPELINE_BIND_POINT_COMPUTE,
-                    pipelines.config.get_pipeline_object_by_name("PostFX"));
+  if (!post_compute.empty()) {
+    swapchain.images[image_index].transition_layout(command_buffer,
+                                                    VK_FORMAT_R8G8B8A8_SRGB,
+                                                    VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+                                                    /* -> */ VK_IMAGE_LAYOUT_GENERAL);
 
-  vkCmdBindDescriptorSets(command_buffer,
-                          VK_PIPELINE_BIND_POINT_COMPUTE,
-                          pipelines.compute.layout,
-                          0,
-                          1,
-                          &resources.descriptor_interface.sets[frame_index],
-                          0,
-                          nullptr);
+    vkCmdBindDescriptorSets(command_buffer,
+                            VK_PIPELINE_BIND_POINT_COMPUTE,
+                            pipelines.compute.layout,
+                            0,
+                            1,
+                            &resources.descriptor_interface.sets[frame_index],
+                            0,
+                            nullptr);
 
-  resources.push_constant.set_data(resources.world._time.passed_hours);
-  vkCmdPushConstants(command_buffer,
-                     pipelines.compute.layout,
-                     resources.push_constant.shader_stage,
-                     resources.push_constant.offset,
-                     resources.push_constant.size,
-                     resources.push_constant.data.data());
+    resources.push_constant.set_data(resources.world._time.passed_hours);
+    vkCmdPushConstants(command_buffer,
+                       pipelines.compute.layout,
+                       resources.push_constant.shader_stage,
+                       resources.push_constant.offset,
+                       resources.push_constant.size,
+                       resources.push_constant.data.data());
 
-  const std::array<uint32_t, 3> &work_groups =
-              pipelines.config.get_work_groups_by_name("PostFX");
-  vkCmdDispatch(command_buffer, work_groups[0], work_groups[1], work_groups[2]);
+    for (const std::string &pipeline_name : post_compute) {
+      vkCmdBindPipeline(command_buffer,
+                        VK_PIPELINE_BIND_POINT_COMPUTE,
+                        pipelines.config.get_pipeline_object_by_name(pipeline_name));
+      const std::array<uint32_t, 3> &work_groups =
+          pipelines.config.get_work_groups_by_name(pipeline_name);
+      vkCmdDispatch(command_buffer, work_groups[0], work_groups[1], work_groups[2]);
+    }
 
-  swapchain.images[image_index].transition_layout(command_buffer,
-                                                  VK_FORMAT_R8G8B8A8_SRGB,
-                                                  VK_IMAGE_LAYOUT_GENERAL,
-                                                  /* -> */ VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+    swapchain.images[image_index].transition_layout(command_buffer,
+                                                    VK_FORMAT_R8G8B8A8_SRGB,
+                                                    VK_IMAGE_LAYOUT_GENERAL,
+                                                    /* -> */ VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+  }
 
   CE::vulkan_result(vkEndCommandBuffer, command_buffer);
 }

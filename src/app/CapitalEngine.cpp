@@ -1,5 +1,6 @@
 #include "CapitalEngine.h"
 #include "core/Log.h"
+#include "core/RuntimeConfig.h"
 #include "io/Screenshot.h"
 #include "platform/Window.h"
 #include "base/VulkanUtils.h"
@@ -32,15 +33,8 @@ void CapitalEngine::main_loop() {
   Log::text("{ Main Loop }");
   Log::measure_elapsed_time();
 
-  const bool startup_screenshot_enabled = [] {
-    const char *env = std::getenv("CE_STARTUP_SCREENSHOT");
-    if (!env) {
-      return false;
-    }
-    const std::string value(env);
-    return value == "1" || value == "true" || value == "TRUE" || value == "on" ||
-           value == "ON";
-  }();
+  const bool startup_screenshot_enabled =
+      CE::Runtime::env_flag_enabled("CE_STARTUP_SCREENSHOT");
   bool first_loop_screenshot_captured = !startup_screenshot_enabled;
   const auto startup_screenshot_ready_at =
       std::chrono::steady_clock::now() + std::chrono::seconds(1);

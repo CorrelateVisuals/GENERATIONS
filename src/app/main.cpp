@@ -1,15 +1,18 @@
 #include "CapitalEngine.h"
 #include "core/Log.h"
+#include "core/RuntimeConfig.h"
 #include "implementation/ScriptChainerApp.h"
 
 #include <cstdlib>
-#include <string>
 
 int main() {
   try {
     if (const char *script_graph = std::getenv("CE_SCRIPT_GRAPH")) {
       CE::Implementation::ScriptChainerApp::run(script_graph);
-      return EXIT_SUCCESS;
+
+      if (CE::Runtime::env_truthy(std::getenv("CE_SCRIPT_ONLY"))) {
+        return EXIT_SUCCESS;
+      }
     }
 
     CapitalEngine GENERATIONS;

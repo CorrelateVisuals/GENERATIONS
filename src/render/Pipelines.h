@@ -12,6 +12,10 @@ class Resources;
 class Pipelines {
 public:
   Pipelines(VulkanMechanics &mechanics, Resources &resources);
+  Pipelines(const Pipelines &) = delete;
+  Pipelines &operator=(const Pipelines &) = delete;
+  Pipelines(Pipelines &&) = delete;
+  Pipelines &operator=(Pipelines &&) = delete;
   ~Pipelines();
 
   struct ComputeLayout : public CE::PipelineLayout {
