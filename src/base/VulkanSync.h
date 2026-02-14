@@ -24,6 +24,10 @@ public:
   static VkCommandBuffer singular_command_buffer;
 
   CommandBuffers() = default;
+  CommandBuffers(const CommandBuffers &) = delete;
+  CommandBuffers &operator=(const CommandBuffers &) = delete;
+  CommandBuffers(CommandBuffers &&) = delete;
+  CommandBuffers &operator=(CommandBuffers &&) = delete;
   virtual ~CommandBuffers();
   static void begin_singular_commands(const VkCommandPool &command_pool,
                                     const VkQueue &queue);
@@ -44,6 +48,24 @@ protected:
       std::array<VkCommandBuffer, MAX_FRAMES_IN_FLIGHT> &command_buffers) const;
 };
 
+class SingleUseCommands {
+public:
+  SingleUseCommands(const VkCommandPool &command_pool, const VkQueue &queue);
+  SingleUseCommands(const SingleUseCommands &) = delete;
+  SingleUseCommands &operator=(const SingleUseCommands &) = delete;
+  SingleUseCommands(SingleUseCommands &&) = delete;
+  SingleUseCommands &operator=(SingleUseCommands &&) = delete;
+  ~SingleUseCommands();
+
+  VkCommandBuffer &command_buffer();
+  void submit_and_wait();
+
+private:
+  const VkCommandPool &command_pool_;
+  const VkQueue &queue_;
+  bool submitted_{false};
+};
+
 struct CommandInterface {
   VkCommandBuffer &command_buffer;
   const VkCommandPool &command_pool;
@@ -60,6 +82,10 @@ struct CommandInterface {
 class SynchronizationObjects {
 public:
   SynchronizationObjects() = default;
+  SynchronizationObjects(const SynchronizationObjects &) = delete;
+  SynchronizationObjects &operator=(const SynchronizationObjects &) = delete;
+  SynchronizationObjects(SynchronizationObjects &&) = delete;
+  SynchronizationObjects &operator=(SynchronizationObjects &&) = delete;
   ~SynchronizationObjects() {
     destroy();
   };
@@ -93,6 +119,10 @@ public:
   };
 
   Swapchain() = default;
+  Swapchain(const Swapchain &) = delete;
+  Swapchain &operator=(const Swapchain &) = delete;
+  Swapchain(Swapchain &&) = delete;
+  Swapchain &operator=(Swapchain &&) = delete;
   virtual ~Swapchain() {
     destroy();
   };

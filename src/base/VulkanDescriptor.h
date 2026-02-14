@@ -21,6 +21,10 @@ public:
   std::vector<VkDescriptorPoolSize> pool_sizes{};
 
   DescriptorInterface() = default;
+  DescriptorInterface(const DescriptorInterface &) = delete;
+  DescriptorInterface &operator=(const DescriptorInterface &) = delete;
+  DescriptorInterface(DescriptorInterface &&) = delete;
+  DescriptorInterface &operator=(DescriptorInterface &&) = delete;
   virtual ~DescriptorInterface();
 
   void initialize_sets();

@@ -30,6 +30,10 @@ public:
   VkPipelineLayout layout{};
 
   PipelineLayout() = default;
+  PipelineLayout(const PipelineLayout &) = delete;
+  PipelineLayout &operator=(const PipelineLayout &) = delete;
+  PipelineLayout(PipelineLayout &&) = delete;
+  PipelineLayout &operator=(PipelineLayout &&) = delete;
   virtual ~PipelineLayout();
   void create_layout(const VkDescriptorSetLayout &set_layout);
   void create_layout(const VkDescriptorSetLayout &set_layout,
@@ -41,6 +45,10 @@ public:
   VkRenderPass render_pass{};
 
   RenderPass() = default;
+  RenderPass(const RenderPass &) = delete;
+  RenderPass &operator=(const RenderPass &) = delete;
+  RenderPass(RenderPass &&) = delete;
+  RenderPass &operator=(RenderPass &&) = delete;
   virtual ~RenderPass();
   void create(VkSampleCountFlagBits msaa_image_samples, VkFormat swapchain_image_format);
   void create_framebuffers(CE::Swapchain &swapchain,
@@ -66,6 +74,10 @@ public:
 #undef PIPELINE_OBJECTS
 
   PipelinesConfiguration() = default;
+  PipelinesConfiguration(const PipelinesConfiguration &) = delete;
+  PipelinesConfiguration &operator=(const PipelinesConfiguration &) = delete;
+  PipelinesConfiguration(PipelinesConfiguration &&) = delete;
+  PipelinesConfiguration &operator=(PipelinesConfiguration &&) = delete;
   virtual ~PipelinesConfiguration();
   void create_pipelines(VkRenderPass &render_pass,
                         const VkPipelineLayout &graphics_layout,

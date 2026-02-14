@@ -16,6 +16,10 @@ public:
   void *mapped{};
 
   Buffer() = default;
+  Buffer(const Buffer &) = delete;
+  Buffer &operator=(const Buffer &) = delete;
+  Buffer(Buffer &&) = delete;
+  Buffer &operator=(Buffer &&) = delete;
   virtual ~Buffer();
   static void create(const VkDeviceSize &size,
                      const VkBufferUsageFlags &usage,
@@ -67,6 +71,11 @@ public:
   Image(const std::string &texture_path) {
     path = texture_path;
   }
+
+  Image(const Image &) = delete;
+  Image &operator=(const Image &) = delete;
+  Image(Image &&) = delete;
+  Image &operator=(Image &&) = delete;
 
   virtual ~Image() {
     destroy_vulkan_images();

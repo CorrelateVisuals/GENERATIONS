@@ -14,6 +14,34 @@ CE::CommandBuffers::~CommandBuffers() {
   }
 };
 
+CE::SingleUseCommands::SingleUseCommands(const VkCommandPool &command_pool,
+                                         const VkQueue &queue)
+    : command_pool_(command_pool), queue_(queue) {
+  CommandBuffers::begin_singular_commands(command_pool_, queue_);
+}
+
+CE::SingleUseCommands::~SingleUseCommands() {
+  if (!submitted_ && Device::base_device &&
+      CommandBuffers::singular_command_buffer != VK_NULL_HANDLE) {
+    vkFreeCommandBuffers(Device::base_device->logical_device,
+                         command_pool_,
+                         1,
+                         &CommandBuffers::singular_command_buffer);
+    CommandBuffers::singular_command_buffer = VK_NULL_HANDLE;
+  }
+}
+
+VkCommandBuffer &CE::SingleUseCommands::command_buffer() {
+  return CommandBuffers::singular_command_buffer;
+}
+
+void CE::SingleUseCommands::submit_and_wait() {
+  if (!submitted_) {
+    CommandBuffers::end_singular_commands(command_pool_, queue_);
+    submitted_ = true;
+  }
+}
+
 void CE::CommandBuffers::create_pool(const Queues::FamilyIndices &family_indices) {
   Log::text("{ cmd }", "Command Pool");
   if (!Device::base_device) {

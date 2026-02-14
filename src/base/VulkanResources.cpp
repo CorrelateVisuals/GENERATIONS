@@ -139,13 +139,14 @@ void CE::Buffer::copy(const VkBuffer &src_buffer,
               queue);
   }
 
-  CE::CommandBuffers::begin_singular_commands(command_pool, queue);
+  CE::SingleUseCommands single_use_commands(command_pool, queue);
+  VkCommandBuffer &single_use_command_buffer = single_use_commands.command_buffer();
   VkBufferCopy copy_region{};
   copy_region.srcOffset = 0;
   copy_region.dstOffset = 0;
   copy_region.size = size;
-  vkCmdCopyBuffer(command_buffer, src_buffer, dst_buffer, 1, &copy_region);
-  CE::CommandBuffers::end_singular_commands(command_pool, queue);
+  vkCmdCopyBuffer(single_use_command_buffer, src_buffer, dst_buffer, 1, &copy_region);
+  single_use_commands.submit_and_wait();
 }
 
 void CE::Buffer::copy_to_image(const VkBuffer &buffer,
@@ -173,7 +174,8 @@ void CE::Buffer::copy_to_image(const VkBuffer &buffer,
               queue);
   }
 
-  CE::CommandBuffers::begin_singular_commands(command_pool, queue);
+  CE::SingleUseCommands single_use_commands(command_pool, queue);
+  VkCommandBuffer &single_use_command_buffer = single_use_commands.command_buffer();
   VkBufferImageCopy region{};
   region.bufferOffset = 0;
   region.bufferRowLength = 0;
@@ -185,9 +187,13 @@ void CE::Buffer::copy_to_image(const VkBuffer &buffer,
   region.imageOffset = {0, 0, 0};
   region.imageExtent = {width, height, 1};
 
-  vkCmdCopyBufferToImage(
-        command_buffer, buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
-      CE::CommandBuffers::end_singular_commands(command_pool, queue);
+  vkCmdCopyBufferToImage(single_use_command_buffer,
+                         buffer,
+                         image,
+                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                         1,
+                         &region);
+  single_use_commands.submit_and_wait();
 }
 
 void CE::Image::destroy_vulkan_images() {
@@ -459,12 +465,14 @@ void CE::Image::load_texture(const std::string &image_path,
                VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-  CommandBuffers::begin_singular_commands(command_pool, queue);
-  this->transition_layout(command_buffer,
+  {
+    CE::SingleUseCommands single_use_commands(command_pool, queue);
+    this->transition_layout(single_use_commands.command_buffer(),
                           VK_FORMAT_R8G8B8A8_SRGB,
                           VK_IMAGE_LAYOUT_UNDEFINED,
                           VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-  CommandBuffers::end_singular_commands(command_pool, queue);
+    single_use_commands.submit_and_wait();
+  }
 
   Buffer::copy_to_image(stagingResources.buffer,
                         this->image,
@@ -474,12 +482,14 @@ void CE::Image::load_texture(const std::string &image_path,
                         command_pool,
                         queue);
 
-  CommandBuffers::begin_singular_commands(command_pool, queue);
-  this->transition_layout(command_buffer,
+  {
+    CE::SingleUseCommands single_use_commands(command_pool, queue);
+    this->transition_layout(single_use_commands.command_buffer(),
                           VK_FORMAT_R8G8B8A8_SRGB,
                           VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                           VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-  CommandBuffers::end_singular_commands(command_pool, queue);
+    single_use_commands.submit_and_wait();
+  }
 }
 
 VkFormat CE::Image::find_depth_format() {
