@@ -233,7 +233,7 @@ void Geometry::create_vertex_buffer(VkCommandBuffer &command_buffer,
   if (Log::gpu_trace_enabled()) {
     Log::text("{ MAP }", "Map staging vertex memory", stagingResources.memory, bufferSize);
   }
-  vkMapMemory(CE::Device::base_device->logical_device,
+  vkMapMemory(CE::device::base_device->logical_device,
               stagingResources.memory,
               0,
               bufferSize,
@@ -246,7 +246,7 @@ void Geometry::create_vertex_buffer(VkCommandBuffer &command_buffer,
   if (Log::gpu_trace_enabled()) {
     Log::text("{ MAP }", "Unmap staging vertex memory", stagingResources.memory);
   }
-  vkUnmapMemory(CE::Device::base_device->logical_device, stagingResources.memory);
+  vkUnmapMemory(CE::device::base_device->logical_device, stagingResources.memory);
 
   CE::Buffer::create(bufferSize,
                      VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
@@ -278,7 +278,7 @@ void Geometry::create_index_buffer(VkCommandBuffer &command_buffer,
   if (Log::gpu_trace_enabled()) {
     Log::text("{ MAP }", "Map staging index memory", stagingResources.memory, bufferSize);
   }
-  vkMapMemory(CE::Device::base_device->logical_device,
+  vkMapMemory(CE::device::base_device->logical_device,
               stagingResources.memory,
               0,
               bufferSize,
@@ -291,7 +291,7 @@ void Geometry::create_index_buffer(VkCommandBuffer &command_buffer,
   if (Log::gpu_trace_enabled()) {
     Log::text("{ MAP }", "Unmap staging index memory", stagingResources.memory);
   }
-  vkUnmapMemory(CE::Device::base_device->logical_device, stagingResources.memory);
+  vkUnmapMemory(CE::device::base_device->logical_device, stagingResources.memory);
 
   CE::Buffer::create(bufferSize,
                      VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
