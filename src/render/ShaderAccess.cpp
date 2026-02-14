@@ -151,15 +151,10 @@ void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
   };
 
   const auto draw_grid_wireframe = [&](const std::string &pipeline_name) {
-    vkCmdBindPipeline(command_buffer,
-                      VK_PIPELINE_BIND_POINT_GRAPHICS,
-                      pipelines.config.get_pipeline_object_by_name(pipeline_name));
-    vkCmdDrawIndexed(command_buffer,
-                     static_cast<uint32_t>(resources.world._grid.indices.size()),
-                     1,
-                     0,
-                     0,
-                     0);
+    bind_and_draw_indexed(pipeline_name.c_str(),
+                          resources.world._grid.vertex_buffer.buffer,
+                          resources.world._grid.index_buffer.buffer,
+                          static_cast<uint32_t>(resources.world._grid.indices.size()));
   };
 
   const auto draw_rectangle_indexed = [&](const std::string &pipeline_name) {

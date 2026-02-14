@@ -23,6 +23,10 @@ CapitalEngine::CapitalEngine() : resources(mechanics), pipelines(mechanics, reso
 }
 
 CapitalEngine::~CapitalEngine() {
+  if (mechanics.main_device.logical_device != VK_NULL_HANDLE) {
+    vkDeviceWaitIdle(mechanics.main_device.logical_device);
+  }
+
   Log::text(Log::Style::header_guard);
   Log::text("| CAPITAL Engine");
   Log::text(Log::Style::header_guard);

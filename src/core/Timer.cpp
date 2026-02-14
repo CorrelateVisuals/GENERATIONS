@@ -29,9 +29,6 @@ void Timer::run() {
     day_start = current_time;
   }
 
-  if (speed <= trigger_delay_under_speed) {
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
-  }
 
   return;
 }

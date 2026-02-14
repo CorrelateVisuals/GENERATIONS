@@ -206,6 +206,7 @@ void Camera::update() {
   const bool toggle_down = glfwGetKey(Window::get().window, GLFW_KEY_C) == GLFW_PRESS;
   if (toggle_down && !camera_toggle_down) {
     toggle_mode();
+    input_changed = true;
   }
   camera_toggle_down = toggle_down;
 
@@ -214,6 +215,7 @@ void Camera::update() {
     arcball_horizon_lock = !arcball_horizon_lock;
     Log::text("{ Cam }",
               arcball_horizon_lock ? "Horizon Lock: On" : "Horizon Lock: Off");
+    input_changed = true;
   }
   horizon_toggle_down = horizon_down;
 
@@ -224,6 +226,7 @@ void Camera::update() {
     if (Window::get().mouse.button_down[i].position !=
         Window::get().mouse.previous_button_down[i].position) {
       mousePositionChanged = true;
+      input_changed = true;
       Window::get().mouse.previous_button_down[i].position =
           Window::get().mouse.button_down[i].position;
     }
@@ -283,19 +286,27 @@ void Camera::update() {
 }
 
 glm::mat4 Camera::set_model() {
-  glm::mat4 model =
-      glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-  return model;
+  static const glm::mat4 identity = glm::mat4(1.0f);
+  return identity;
 }
 
 glm::mat4 Camera::set_view() {
-  update();
-  glm::mat4 view;
-  view = glm::lookAt(position, position + front, up);
+  if (input_changed) {
+    update();
+    input_changed = false;
+  }
+  glm::mat4 view = glm::lookAt(position, position + front, up);
   return view;
 }
 
 glm::mat4 Camera::set_projection(const VkExtent2D &swapchain_extent) {
+  if (cached_extent.width == swapchain_extent.width &&
+      cached_extent.height == swapchain_extent.height &&
+      cached_extent.width != 0) {
+    return cached_projection;
+  }
+
+  cached_extent = swapchain_extent;
   glm::mat4 projection =
     glm::perspective(glm::radians(field_of_view),
              swapchain_extent.width /
@@ -306,5 +317,6 @@ glm::mat4 Camera::set_projection(const VkExtent2D &swapchain_extent) {
   projection[1][1] *= -1; // flip y axis
   projection[0][0] *= -1; // flip x axis
 
-  return projection;
+  cached_projection = projection;
+  return cached_projection;
 };

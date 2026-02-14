@@ -82,6 +82,10 @@ private:
   bool arcball_right_was_down;
   glm::vec2 arcball_last_cursor;
 
+  VkExtent2D cached_extent{0, 0};
+  glm::mat4 cached_projection{};
+  bool input_changed{true};
+
   void update();
 };
 
