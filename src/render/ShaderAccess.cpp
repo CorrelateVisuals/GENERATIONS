@@ -22,10 +22,6 @@ void CE::ShaderAccess::CommandResources::record_compute_command_buffer(
     throw std::runtime_error("failed to begin recording compute command buffer!");
   }
 
-  vkCmdBindPipeline(command_buffer,
-                    VK_PIPELINE_BIND_POINT_COMPUTE,
-                    pipelines.config.get_pipeline_object_by_name("Engine"));
-
   vkCmdBindDescriptorSets(command_buffer,
                           VK_PIPELINE_BIND_POINT_COMPUTE,
                           pipelines.compute.layout,
@@ -45,10 +41,10 @@ void CE::ShaderAccess::CommandResources::record_compute_command_buffer(
                      resources.push_constant.data.data());
 
   const CE::Runtime::PipelineExecutionPlan *plan = CE::Runtime::get_pipeline_execution_plan();
-  const std::vector<std::string> default_pre_compute{"Engine"};
+  const std::vector<std::string> empty_compute{};
   const std::vector<std::string> &pre_compute =
       (plan && !plan->pre_graphics_compute.empty()) ? plan->pre_graphics_compute
-                                                     : default_pre_compute;
+                                                     : empty_compute;
 
   for (const std::string &pipeline_name : pre_compute) {
     vkCmdBindPipeline(command_buffer,
@@ -127,10 +123,10 @@ void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
     vkCmdDrawIndexed(command_buffer, index_count, 1, 0, 0, 0);
   };
 
-  const auto draw_cells = [&] {
+  const auto draw_cells = [&](const std::string &pipeline_name) {
     vkCmdBindPipeline(command_buffer,
                       VK_PIPELINE_BIND_POINT_GRAPHICS,
-                      pipelines.config.get_pipeline_object_by_name("Cells"));
+                      pipelines.config.get_pipeline_object_by_name(pipeline_name));
     VkDeviceSize offsets_0[]{0, 0};
 
     VkBuffer current_shader_storage_buffer[] = {resources.shader_storage.buffer_in.buffer,
@@ -147,17 +143,17 @@ void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
               0);
   };
 
-  const auto draw_landscape = [&] {
-    bind_and_draw_indexed("Landscape",
+  const auto draw_grid_indexed = [&](const std::string &pipeline_name) {
+    bind_and_draw_indexed(pipeline_name.c_str(),
                           resources.world._grid.vertex_buffer.buffer,
                           resources.world._grid.index_buffer.buffer,
                           static_cast<uint32_t>(resources.world._grid.indices.size()));
   };
 
-  const auto draw_landscape_wireframe = [&] {
+  const auto draw_grid_wireframe = [&](const std::string &pipeline_name) {
     vkCmdBindPipeline(command_buffer,
                       VK_PIPELINE_BIND_POINT_GRAPHICS,
-                      pipelines.config.get_pipeline_object_by_name("LandscapeWireFrame"));
+                      pipelines.config.get_pipeline_object_by_name(pipeline_name));
     vkCmdDrawIndexed(command_buffer,
                      static_cast<uint32_t>(resources.world._grid.indices.size()),
                      1,
@@ -166,38 +162,35 @@ void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
                      0);
   };
 
-  const auto draw_water = [&] {
-    bind_and_draw_indexed("Water",
-                          resources.world._rectangle.vertex_buffer.buffer,
-                          resources.world._rectangle.index_buffer.buffer,
-                          static_cast<uint32_t>(resources.world._rectangle.indices.size()));
-  };
-
-  const auto draw_texture = [&] {
-    bind_and_draw_indexed("Texture",
+  const auto draw_rectangle_indexed = [&](const std::string &pipeline_name) {
+    bind_and_draw_indexed(pipeline_name.c_str(),
                           resources.world._rectangle.vertex_buffer.buffer,
                           resources.world._rectangle.index_buffer.buffer,
                           static_cast<uint32_t>(resources.world._rectangle.indices.size()));
   };
 
   const CE::Runtime::PipelineExecutionPlan *plan = CE::Runtime::get_pipeline_execution_plan();
-  const std::vector<std::string> default_graphics{
-      "Cells", "Landscape", "LandscapeWireFrame", "Water", "Texture"};
+  const std::vector<std::string> empty_graphics{};
   const std::vector<std::string> &graphics_order =
-      (plan && !plan->graphics.empty()) ? plan->graphics : default_graphics;
+      (plan && !plan->graphics.empty()) ? plan->graphics : empty_graphics;
 
-  const std::unordered_map<std::string, std::function<void()>> graphics_draw_handlers{
-      {"Cells", draw_cells},
-      {"Landscape", draw_landscape},
-      {"LandscapeWireFrame", draw_landscape_wireframe},
-      {"Water", draw_water},
-      {"Texture", draw_texture},
+  const std::unordered_map<std::string, std::function<void(const std::string &)>>
+      graphics_draw_op_handlers{
+          {"cells_instanced", draw_cells},
+          {"grid_indexed", draw_grid_indexed},
+          {"grid_wireframe", draw_grid_wireframe},
+          {"rectangle_indexed", draw_rectangle_indexed},
   };
 
   for (const std::string &pipeline_name : graphics_order) {
-    const auto handler = graphics_draw_handlers.find(pipeline_name);
-    if (handler != graphics_draw_handlers.end()) {
-      handler->second();
+    const std::string *draw_op = CE::Runtime::get_graphics_draw_op(pipeline_name);
+    if (!draw_op) {
+      continue;
+    }
+
+    const auto handler = graphics_draw_op_handlers.find(*draw_op);
+    if (handler != graphics_draw_op_handlers.end()) {
+      handler->second(pipeline_name);
     }
   }
   vkCmdEndRenderPass(command_buffer);
@@ -205,10 +198,10 @@ void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
   //       This is part of an image memory barrier (i.e., vkCmdPipelineBarrier
   //       with the VkImageMemoryBarrier parameter set)
 
-  const std::vector<std::string> default_post_compute{"PostFX"};
+  const std::vector<std::string> empty_post_compute{};
   const std::vector<std::string> &post_compute =
       (plan && !plan->post_graphics_compute.empty()) ? plan->post_graphics_compute
-                                                      : default_post_compute;
+                                                      : empty_post_compute;
 
   if (!post_compute.empty()) {
     swapchain.images[image_index].transition_layout(command_buffer,

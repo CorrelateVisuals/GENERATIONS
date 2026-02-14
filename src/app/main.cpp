@@ -1,18 +1,32 @@
 #include "CapitalEngine.h"
 #include "core/Log.h"
-#include "core/RuntimeConfig.h"
 #include "implementation/ScriptChainerApp.h"
 
 #include <cstdlib>
+#include <string>
+
+namespace {
+
+bool env_truthy(const char *value) {
+  if (!value) {
+    return false;
+  }
+  const std::string mode(value);
+  return mode == "1" || mode == "true" || mode == "TRUE" || mode == "on" ||
+         mode == "ON";
+}
+
+} // namespace
 
 int main() {
   try {
-    if (const char *script_graph = std::getenv("CE_SCRIPT_GRAPH")) {
-      CE::Implementation::ScriptChainerApp::run(script_graph);
+    const std::string script_graph =
+        std::getenv("CE_SCRIPT_GRAPH") ? std::getenv("CE_SCRIPT_GRAPH")
+                                        : "scripts/all_shaders_graph.py";
+    CE::Implementation::ScriptChainerApp::run(script_graph);
 
-      if (CE::Runtime::env_truthy(std::getenv("CE_SCRIPT_ONLY"))) {
-        return EXIT_SUCCESS;
-      }
+    if (env_truthy(std::getenv("CE_SCRIPT_ONLY"))) {
+      return EXIT_SUCCESS;
     }
 
     CapitalEngine GENERATIONS;

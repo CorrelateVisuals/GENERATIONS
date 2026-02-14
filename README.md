@@ -74,6 +74,24 @@ A first implementation-layer script interface is now available.
 The script interface currently loads and validates a shader graph from Python, resolves dynamic shader paths as `shaders/<name>.<stage>`, and installs a runtime execution plan (compute before graphics, graphics order, compute after graphics).
 This is the first separation step: engine runtime stays in `src/app`, while script-chainer logic lives in `src/implementation`.
 
+## Environment flags
+
+Runtime env flags are parsed centrally through `CE::Runtime::env_truthy` in `src/core/RuntimeConfig.*`.
+
+- accepted truthy values (case-insensitive): `1`, `true`, `on`
+- everything else (including unset) is treated as `false`
+
+Current flags used by the runtime:
+
+- `CE_SCRIPT_GRAPH`: path to a Python shader graph for script interface mode
+- `CE_SCRIPT_ONLY`: run script interface path only, skip main engine loop when truthy
+- `CE_STARTUP_SCREENSHOT`: capture one startup screenshot when truthy
+- `CE_GPU_TRACE`: enable detailed GPU trace logging when truthy
+
+Console/terminal behavior:
+
+- `NO_COLOR` disables ANSI log colors
+
 ## Build and run (Linux)
 
 From project root:
