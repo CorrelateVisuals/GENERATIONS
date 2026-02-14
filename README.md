@@ -9,9 +9,6 @@ Today, the project runs a real-time cellular simulation and renders it through a
 
 ## Why this project exists
 
-Most simulation tools are either easy to use but opaque, or powerful but painful to extend.
-GENERATIONS aims for a third option: a practical, understandable engine where performance work and feature work can happen without fighting hidden framework behavior.
-
 This is software for building real things:
 
 - GPU-first simulation pipelines
@@ -98,6 +95,18 @@ GENERATIONS is being shaped into a dependable foundation for high-performance, r
 The near-term direction is stronger resource reuse, cleaner operator abstractions, and predictable graph-style execution without sacrificing Vulkan-level control.
 
 In short: powerful enough for HPC-minded workloads, straightforward enough to iterate quickly.
+
+## Thanks
+
+Big thanks to everyone who has contributed through GitHub issues, reviews, and code:
+
+- https://github.com/CorrelateVisuals/GENERATIONS/graphs/contributors
+
+And gratitude to the open graphics ecosystem this project learns from and builds on, especially:
+
+- https://vulkan-tutorial.com/
+- https://github.com/SaschaWillems/Vulkan
+- Khronos Vulkan documentation and tooling
 
 ---
 

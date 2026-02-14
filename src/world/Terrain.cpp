@@ -8,32 +8,32 @@
 
 Terrain::Terrain(const Config &config) : config(config) {}
 
-std::vector<float> Terrain::generatePerlinGrid() {
-  uint_fast16_t pointCount = config.dimensions.x * config.dimensions.y;
-  std::vector<float> randomValues(pointCount);
+std::vector<float> Terrain::generate_perlin_grid() {
+  uint_fast16_t point_count = config.dimensions.x * config.dimensions.y;
+  std::vector<float> random_values(point_count);
 
-  for (uint_fast16_t i = 0; i < pointCount; i++) {
+  for (uint_fast16_t i = 0; i < point_count; i++) {
     glm::vec2 position(i % config.dimensions.x, i / config.dimensions.x);
-    glm::vec2 scaledPosition =
+    glm::vec2 scaled_position =
         position / glm::vec2(config.dimensions.x, config.dimensions.y);
 
-    float totalNoise = 0.0f;
+    float total_noise = 0.0f;
     float frequency = config.frequency;
     float amplitude = config.amplitude;
 
     for (int octave = 0; octave < config.octaves; octave++) {
-      totalNoise += glm::perlin(scaledPosition * config.scale * frequency) * amplitude;
+      total_noise += glm::perlin(scaled_position * config.scale * frequency) * amplitude;
       frequency *= 2.0f;
       amplitude *= config.roughness;
     }
 
-    totalNoise = pow(totalNoise, config.exponent);
+    total_noise = pow(total_noise, config.exponent);
 
-    randomValues[i] = totalNoise + config.heightOffset;
+    random_values[i] = total_noise + config.height_offset;
   }
-  return randomValues;
+  return random_values;
 }
 
-float Terrain::linearInterpolationFunction(float a, float b, float t) {
+float Terrain::linear_interpolation_function(float a, float b, float t) {
   return a * (1.0f - t) + b * t;
 }

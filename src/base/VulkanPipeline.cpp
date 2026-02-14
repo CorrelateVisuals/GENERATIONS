@@ -188,28 +188,28 @@ void CE::PipelinesConfiguration::create_pipelines(VkRenderPass &render_pass,
                                  : "VK_VERTEX_INPUT_RATE_VERTEX");
       }
 
-      VkPipelineVertexInputStateCreateInfo vertexInput{CE::vertexInputStateDefault};
+      VkPipelineVertexInputStateCreateInfo vertexInput{CE::vertex_input_state_default};
       vertexInput.vertexBindingDescriptionCount = bindingsSize;
       vertexInput.vertexAttributeDescriptionCount = attributeSize;
       vertexInput.pVertexBindingDescriptions = bindingDescription.data();
       vertexInput.pVertexAttributeDescriptions = attributesDescription.data();
 
-      VkPipelineInputAssemblyStateCreateInfo inputAssembly{
-          CE::inputAssemblyStateTriangleList};
+        VkPipelineInputAssemblyStateCreateInfo inputAssembly{
+          CE::input_assembly_state_triangle_list};
 
-      VkPipelineRasterizationStateCreateInfo rasterization{CE::rasterizationCullBackBit};
+        VkPipelineRasterizationStateCreateInfo rasterization{CE::rasterization_cull_back_bit};
 
-      VkPipelineMultisampleStateCreateInfo multisampling{CE::multisampleStateDefault};
+        VkPipelineMultisampleStateCreateInfo multisampling{CE::multisample_state_default};
       multisampling.rasterizationSamples = msaa_samples;
-      VkPipelineDepthStencilStateCreateInfo depthStencil{CE::depthStencilStateDefault};
+        VkPipelineDepthStencilStateCreateInfo depthStencil{CE::depth_stencil_state_default};
 
       static VkPipelineColorBlendAttachmentState colorBlendAttachment{
-          CE::colorBlendAttachmentStateFalse};
-      VkPipelineColorBlendStateCreateInfo colorBlend{CE::colorBlendStateDefault};
+          CE::color_blend_attachment_state_false};
+        VkPipelineColorBlendStateCreateInfo colorBlend{CE::color_blend_state_default};
       colorBlend.pAttachments = &colorBlendAttachment;
 
-      VkPipelineViewportStateCreateInfo viewport{CE::viewportStateDefault};
-      VkPipelineDynamicStateCreateInfo dynamic{CE::dynamicStateDefault};
+        VkPipelineViewportStateCreateInfo viewport{CE::viewport_state_default};
+        VkPipelineDynamicStateCreateInfo dynamic{CE::dynamic_state_default};
 
       VkGraphicsPipelineCreateInfo pipelineInfo{
           .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
@@ -229,7 +229,7 @@ void CE::PipelinesConfiguration::create_pipelines(VkRenderPass &render_pass,
           .basePipelineHandle = VK_NULL_HANDLE};
 
       VkPipelineTessellationStateCreateInfo tessellationStateInfo{
-          CE::tessellationStateDefault};
+          CE::tessellation_state_default};
       if (tesselationEnabled) {
         inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_PATCH_LIST;
         rasterization.polygonMode = VK_POLYGON_MODE_LINE;
@@ -243,9 +243,9 @@ void CE::PipelinesConfiguration::create_pipelines(VkRenderPass &render_pass,
 
           depthStencil.depthWriteEnable = VK_FALSE;
           depthStencil.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
-          colorBlendAttachment = CE::colorBlendAttachmentStateAverage;
+          colorBlendAttachment = CE::color_blend_attachment_state_average;
         } else {
-          colorBlendAttachment = CE::colorBlendAttachmentStateMultiply;
+          colorBlendAttachment = CE::color_blend_attachment_state_multiply;
         }
         pipelineInfo.pTessellationState = &tessellationStateInfo;
       }
@@ -455,7 +455,7 @@ CE::PipelinesConfiguration::get_work_groups_by_name(const std::string &name) {
 };
 
 void CE::PipelineLayout::create_layout(const VkDescriptorSetLayout &setLayout) {
-  VkPipelineLayoutCreateInfo layout{CE::layoutDefault};
+  VkPipelineLayoutCreateInfo layout{CE::layout_default};
   layout.pSetLayouts = &setLayout;
   CE::vulkan_result(vkCreatePipelineLayout,
                     Device::base_device->logical_device,
@@ -469,7 +469,7 @@ void CE::PipelineLayout::create_layout(const VkDescriptorSetLayout &setLayout,
   VkPushConstantRange constants{.stageFlags = _pushConstants.shader_stage,
                                 .offset = _pushConstants.offset,
                                 .size = _pushConstants.size};
-  VkPipelineLayoutCreateInfo layout{CE::layoutDefault};
+  VkPipelineLayoutCreateInfo layout{CE::layout_default};
   layout.pSetLayouts = &setLayout;
   layout.pushConstantRangeCount = _pushConstants.count;
   layout.pPushConstantRanges = &constants;

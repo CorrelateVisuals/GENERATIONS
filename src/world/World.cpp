@@ -101,7 +101,7 @@ World::Grid::Grid(vec2_uint_fast16_t grid_size,
                                    .amplitude = 5.0f,
                                    .exponent = 2.0f,
                                    .frequency = 2.0f,
-                                   .heightOffset = 0.0f};
+                                     .height_offset = 0.0f};
   Terrain terrain(terrainLayer1);
 
   Terrain::Config terrainLayer2 = {.dimensions = size,
@@ -111,11 +111,11 @@ World::Grid::Grid(vec2_uint_fast16_t grid_size,
                                    .amplitude = 0.3f,
                                    .exponent = 1.0f,
                                    .frequency = 2.0f,
-                                   .heightOffset = 0.0f};
+                                     .height_offset = 0.0f};
   Terrain terrainSurface(terrainLayer2);
 
-  std::vector<float> terrainPerlinGrid1 = terrain.generatePerlinGrid();
-  std::vector<float> terrainPerlinGrid2 = terrainSurface.generatePerlinGrid();
+  std::vector<float> terrainPerlinGrid1 = terrain.generate_perlin_grid();
+  std::vector<float> terrainPerlinGrid2 = terrainSurface.generate_perlin_grid();
   const float blendFactor = 0.5f;
 
   std::vector<bool> is_alive_indices(point_count, false);
@@ -134,7 +134,7 @@ World::Grid::Grid(vec2_uint_fast16_t grid_size,
   for (uint_fast32_t i = 0; i < point_count; ++i) {
     point_ids[i] = i;
 
-    float height = terrain.linearInterpolationFunction(
+    float height = terrain.linear_interpolation_function(
         terrainPerlinGrid1[i], terrainPerlinGrid2[i], blendFactor);
     coordinates[i] = {(startX + i % size.x), (startY + i / size.x), height};
     add_vertex_position(coordinates[i]);
