@@ -30,8 +30,9 @@ void MemoryTracker::record_allocation(size_t size) {
   if (!is_enabled()) return;
   
   total_allocated.fetch_add(size, std::memory_order_relaxed);
-  size_t current = total_allocated.load(std::memory_order_relaxed) - 
-                   total_deallocated.load(std::memory_order_relaxed);
+  size_t allocated = total_allocated.load(std::memory_order_acquire);
+  size_t deallocated = total_deallocated.load(std::memory_order_acquire);
+  size_t current = allocated - deallocated;
   
   size_t expected = peak_usage.load(std::memory_order_relaxed);
   while (current > expected && 
@@ -49,8 +50,9 @@ void MemoryTracker::record_vulkan_allocation(size_t size) {
   if (!is_enabled()) return;
   
   vulkan_allocated.fetch_add(size, std::memory_order_relaxed);
-  size_t current = vulkan_allocated.load(std::memory_order_relaxed) - 
-                   vulkan_deallocated.load(std::memory_order_relaxed);
+  size_t allocated = vulkan_allocated.load(std::memory_order_acquire);
+  size_t deallocated = vulkan_deallocated.load(std::memory_order_acquire);
+  size_t current = allocated - deallocated;
   
   size_t expected = vulkan_peak_usage.load(std::memory_order_relaxed);
   while (current > expected && 
@@ -73,8 +75,9 @@ size_t MemoryTracker::get_total_deallocated() {
 }
 
 size_t MemoryTracker::get_current_usage() {
-  return total_allocated.load(std::memory_order_relaxed) - 
-         total_deallocated.load(std::memory_order_relaxed);
+  size_t allocated = total_allocated.load(std::memory_order_acquire);
+  size_t deallocated = total_deallocated.load(std::memory_order_acquire);
+  return allocated - deallocated;
 }
 
 size_t MemoryTracker::get_peak_usage() {
@@ -90,8 +93,9 @@ size_t MemoryTracker::get_vulkan_deallocated() {
 }
 
 size_t MemoryTracker::get_vulkan_current_usage() {
-  return vulkan_allocated.load(std::memory_order_relaxed) - 
-         vulkan_deallocated.load(std::memory_order_relaxed);
+  size_t allocated = vulkan_allocated.load(std::memory_order_acquire);
+  size_t deallocated = vulkan_deallocated.load(std::memory_order_acquire);
+  return allocated - deallocated;
 }
 
 size_t MemoryTracker::get_vulkan_peak_usage() {
