@@ -244,9 +244,10 @@ void MemoryTracker::log_detailed_leaks() {
   
   Log::text("{ !!! }", "Leaks by Type:");
   for (const auto& pair : type_totals) {
-    Log::text(Log::Style::char_leader, pair.first + ":", 
-              format_bytes(pair.second), 
-              "(" + std::to_string(type_counts[pair.first]) + " allocations)");
+    std::ostringstream type_info;
+    type_info << pair.first << ": " << format_bytes(pair.second) 
+              << " (" << type_counts[pair.first] << " allocations)";
+    Log::text(Log::Style::char_leader, type_info.str());
   }
   
   // Show top 10 largest leaks
@@ -268,7 +269,9 @@ void MemoryTracker::log_detailed_leaks() {
   }
   
   if (leaks.size() > 10) {
-    Log::text(Log::Style::char_leader, "... and", (leaks.size() - 10), "more");
+    std::ostringstream remaining;
+    remaining << "... and " << (leaks.size() - 10) << " more";
+    Log::text(Log::Style::char_leader, remaining.str());
   }
 }
 
