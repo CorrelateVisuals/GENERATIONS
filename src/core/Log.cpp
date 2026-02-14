@@ -12,19 +12,19 @@
 #include <unistd.h>
 #endif
 
-std::ofstream Log::logFile("log.txt");
+std::ofstream Log::log_file("log.txt");
 
-std::string Log::Style::charLeader = std::string(8, ' ') + ": ";
-std::string Log::Style::indentSize = std::string(17, ' ');
-std::string Log::Style::headerGuard = std::string(
+std::string Log::Style::char_leader = std::string(8, ' ') + ": ";
+std::string Log::Style::indent_size = std::string(17, ' ');
+std::string Log::Style::header_guard = std::string(
     "+-------------------------------------------------------------------------"
     "----+");
-int Log::Style::columnCount = 14;
-int Log::Style::columnCountOffset = 4;
+int Log::Style::column_count = 14;
+int Log::Style::column_count_offset = 4;
 
-std::string Log::previousTime;
-std::string Log::previousLine;
-uint32_t Log::repeatedLineCount = 0;
+std::string Log::previous_time;
+std::string Log::previous_line;
+uint32_t Log::repeated_line_count = 0;
 
 namespace {
 constexpr const char *RESET = "\033[0m";
@@ -100,18 +100,18 @@ std::string colorizeIcon(const std::string &line) {
 }
 } // namespace
 
-std::string Log::function_name(const char *functionName) {
-  if (!functionName) {
+std::string Log::function_name(const char *function_name) {
+  if (!function_name) {
     return "_unknown_function";
   }
 
   std::string formatted{"_"};
-  formatted.reserve(std::char_traits<char>::length(functionName) + 4);
+  formatted.reserve(std::char_traits<char>::length(function_name) + 4);
 
-  for (size_t i = 0; functionName[i] != '\0'; ++i) {
-    const unsigned char current = static_cast<unsigned char>(functionName[i]);
+  for (size_t i = 0; function_name[i] != '\0'; ++i) {
+    const unsigned char current = static_cast<unsigned char>(function_name[i]);
     if (std::isupper(current)) {
-      if (i > 0 && functionName[i - 1] != '_') {
+      if (i > 0 && function_name[i - 1] != '_') {
         formatted.push_back('_');
       }
       formatted.push_back(
@@ -124,50 +124,51 @@ std::string Log::function_name(const char *functionName) {
   return formatted;
 }
 
-void Log::measureElapsedTime() {
-  static std::chrono::high_resolution_clock::time_point lastCall;
-  static bool firstCall = true;
+void Log::measure_elapsed_time() {
+  static std::chrono::high_resolution_clock::time_point last_call;
+  static bool first_call = true;
 
   std::chrono::high_resolution_clock::time_point now =
       std::chrono::high_resolution_clock::now();
 
-  if (firstCall) {
-    firstCall = false;
-    lastCall = now;
+  if (first_call) {
+    first_call = false;
+    last_call = now;
     Log::text("{ TIME START }", "0.0", "seconds");
   } else {
-    double elapsedTime =
-        std::chrono::duration_cast<std::chrono::duration<double>>(now - lastCall).count();
-    Log::text("{ TIME INTERVAL }", elapsedTime, "seconds");
-    lastCall = now;
+    double elapsed_time =
+        std::chrono::duration_cast<std::chrono::duration<double>>(now - last_call)
+            .count();
+    Log::text("{ TIME INTERVAL }", elapsed_time, "seconds");
+    last_call = now;
   }
 }
 
-void Log::logTitle() {
-  Log::text(Log::Style::headerGuard);
+void Log::log_title() {
+  Log::text(Log::Style::header_guard);
   Log::text("                 . - < < { ", "G E N E R A T I O N S", " } > > - .");
-  Log::text(Log::Style::headerGuard);
-  Log::measureElapsedTime();
+  Log::text(Log::Style::header_guard);
+  Log::measure_elapsed_time();
 
   Log::text("{ dir }", std::filesystem::current_path().string());
 }
 
-void Log::logFooter() {
-  flushRepeatedLine();
-  Log::measureElapsedTime();
-  Log::text(Log::Style::headerGuard);
+void Log::log_footer() {
+  flush_repeated_line();
+  Log::measure_elapsed_time();
+  Log::text(Log::Style::header_guard);
   Log::text("� Jakob Povel | Correlate Visuals �");
 }
 
-bool Log::skipLogging(uint8_t logLevel, const std::string &icon) {
-  if (!logFile.is_open()) {
-    std::cerr << "\n!ERROR! Could not open logFile for writing" << '\n';
+bool Log::skip_logging(uint8_t log_level, const std::string &icon) {
+  if (!log_file.is_open()) {
+    std::cerr << "\n!ERROR! Could not open log_file for writing" << '\n';
     return false;
   }
-  if (logLevel == LOG_OFF ||
-      (logLevel == LOG_MINIMIAL &&
-       (icon == std::string("{ ... }") || icon == std::string(Style::charLeader))) ||
-      (logLevel == LOG_MODERATE && icon == std::string(Style::charLeader))) {
+  if (log_level == LOG_OFF ||
+      (log_level == LOG_MINIMIAL &&
+       (icon == std::string("{ ... }") || icon == std::string(Style::char_leader))) ||
+      (log_level == LOG_MODERATE && icon == std::string(Style::char_leader))) {
     return true;
   }
   return false;
@@ -191,35 +192,35 @@ bool Log::gpu_trace_enabled() {
   return enabled;
 }
 
-void Log::emitLine(const std::string &line) {
-  std::string currentTime = returnDateAndTime();
-  if (currentTime != previousTime) {
-    std::cout << ' ' << currentTime;
-    logFile << ' ' << currentTime;
+void Log::emit_line(const std::string &line) {
+  std::string current_time = return_date_and_time();
+  if (current_time != previous_time) {
+    std::cout << ' ' << current_time;
+    log_file << ' ' << current_time;
   } else {
     std::string padding(
-        static_cast<size_t>(Style::columnCount) + Style::columnCountOffset, ' ');
+        static_cast<size_t>(Style::column_count) + Style::column_count_offset, ' ');
     std::cout << padding;
-    logFile << padding;
+    log_file << padding;
   }
 
   std::cout << ' ' << colorizeIcon(line) << '\n';
-  logFile << ' ' << line << '\n';
-  previousTime = currentTime;
+  log_file << ' ' << line << '\n';
+  previous_time = current_time;
 }
 
-void Log::flushRepeatedLine() {
-  if (repeatedLineCount == 0) {
+void Log::flush_repeated_line() {
+  if (repeated_line_count == 0) {
     return;
   }
 
   std::ostringstream summary;
-  summary << "{ REP } previous line repeated" << ' ' << repeatedLineCount << "x";
-  emitLine(summary.str());
-  repeatedLineCount = 0;
+  summary << "{ REP } previous line repeated" << ' ' << repeated_line_count << "x";
+  emit_line(summary.str());
+  repeated_line_count = 0;
 }
 
-std::string Log::getBufferUsageString(const VkBufferUsageFlags &usage) {
+std::string Log::get_buffer_usage_string(const VkBufferUsageFlags &usage) {
   std::string result;
 
   if (usage & VK_BUFFER_USAGE_TRANSFER_SRC_BIT) {
@@ -258,7 +259,7 @@ std::string Log::getBufferUsageString(const VkBufferUsageFlags &usage) {
   return result;
 }
 
-std::string Log::getMemoryPropertyString(const VkMemoryPropertyFlags &properties) {
+std::string Log::get_memory_property_string(const VkMemoryPropertyFlags &properties) {
   std::string result = "VkMemoryPropertyFlags: ";
 #define ADD_FLAG_CASE(flag)                                                              \
   if (properties & flag) {                                                               \
@@ -283,7 +284,7 @@ std::string Log::getMemoryPropertyString(const VkMemoryPropertyFlags &properties
   return result;
 }
 
-std::string Log::getDescriptorTypeString(const VkDescriptorType &type) {
+std::string Log::get_descriptor_type_string(const VkDescriptorType &type) {
   switch (type) {
     case VK_DESCRIPTOR_TYPE_SAMPLER:
       return "VK_DESCRIPTOR_TYPE_SAMPLER";
@@ -324,7 +325,7 @@ std::string Log::getDescriptorTypeString(const VkDescriptorType &type) {
   }
 }
 
-std::string Log::getShaderStageString(const VkShaderStageFlags &flags) {
+std::string Log::get_shader_stage_string(const VkShaderStageFlags &flags) {
   std::string result = "VkShaderStageFlags: ";
 #define ADD_FLAG_CASE(flag)                                                              \
   if (flags & flag) {                                                                    \
@@ -365,10 +366,10 @@ std::string Log::getShaderStageString(const VkShaderStageFlags &flags) {
   return result;
 }
 
-std::string Log::getSampleCountString(const VkSampleCountFlags &sampleCount) {
+std::string Log::get_sample_count_string(const VkSampleCountFlags &sample_count) {
   std::string result = "VkSampleCountFlags: ";
 #define ADD_FLAG_CASE(flag)                                                              \
-  if (sampleCount & flag) {                                                              \
+  if (sample_count & flag) {                                                             \
     result += STRINGIFICATION(flag) " | ";                                               \
   }
 
@@ -389,7 +390,7 @@ std::string Log::getSampleCountString(const VkSampleCountFlags &sampleCount) {
   return result;
 }
 
-std::string Log::getImageUsageString(const VkImageUsageFlags &usage) {
+std::string Log::get_image_usage_string(const VkImageUsageFlags &usage) {
   std::string result = "VkImageUsageFlags: ";
 #define ADD_FLAG_CASE(flag)                                                              \
   if (usage & flag) {                                                                    \
@@ -418,7 +419,7 @@ std::string Log::getImageUsageString(const VkImageUsageFlags &usage) {
   return result;
 }
 
-std::string Log::returnDateAndTime() {
+std::string Log::return_date_and_time() {
   auto now = std::chrono::system_clock::now();
   std::time_t nowC = std::chrono::system_clock::to_time_t(now);
   char nowStr[20] = "---";
