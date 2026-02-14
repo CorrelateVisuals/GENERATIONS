@@ -42,6 +42,46 @@ DRAW_BINDINGS: list[tuple[str, str]] = [
     ("Texture", "rectangle_indexed"),
 ]
 
+SETTINGS: list[tuple[str, str]] = [
+    ("world.timer_speed", "25.0"),
+    ("world.water_threshold", "0.1"),
+    ("world.light_pos", "0.0,20.0,20.0,0.0"),
+
+    ("camera.zoom_speed", "0.15"),
+    ("camera.panning_speed", "0.3"),
+    ("camera.field_of_view", "40.0"),
+    ("camera.near_clipping", "0.1"),
+    ("camera.far_clipping", "1000.0"),
+    ("camera.position", "0.0,0.0,60.0"),
+    ("camera.arcball_tumble_mult", "0.9"),
+    ("camera.arcball_pan_mult", "0.85"),
+    ("camera.arcball_dolly_mult", "0.8"),
+
+    ("geometry.rectangle", "0"),
+    ("geometry.sphere", "2"),
+
+    ("terrain.grid_width", "100"),
+    ("terrain.grid_height", "100"),
+    ("terrain.alive_cells", "2000"),
+    ("terrain.cell_size", "0.5"),
+    ("terrain.layer1.roughness", "0.4"),
+    ("terrain.layer1.octaves", "10"),
+    ("terrain.layer1.scale", "2.2"),
+    ("terrain.layer1.amplitude", "10.0"),
+    ("terrain.layer1.exponent", "2.0"),
+    ("terrain.layer1.frequency", "2.0"),
+    ("terrain.layer1.height_offset", "0.0"),
+    ("terrain.layer2.roughness", "1.0"),
+    ("terrain.layer2.octaves", "10"),
+    ("terrain.layer2.scale", "2.2"),
+    ("terrain.layer2.amplitude", "1.0"),
+    ("terrain.layer2.exponent", "1.0"),
+    ("terrain.layer2.frequency", "2.0"),
+    ("terrain.layer2.height_offset", "0.0"),
+    ("terrain.blend_factor", "0.5"),
+    ("terrain.absolute_height", "0.0"),
+]
+
 
 def emit_graph() -> None:
     for node_id, shader_name, extension in SHADER_NODES:
@@ -52,6 +92,9 @@ def emit_graph() -> None:
 
     for pipeline_name, draw_op in DRAW_BINDINGS:
         print(f"DRAW {pipeline_name} {draw_op}")
+
+    for key, value in SETTINGS:
+        print(f"SETTING {key} {value}")
 
     print(f"INPUT {INPUT[0]} {INPUT[1]}")
     print(f"OUTPUT {OUTPUT[0]} {OUTPUT[1]}")

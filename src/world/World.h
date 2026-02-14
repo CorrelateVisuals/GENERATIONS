@@ -50,12 +50,10 @@ public:
     std::vector<glm::vec3> coordinates = std::vector<glm::vec3>(point_count);
     std::vector<World::Cell> cells = std::vector<World::Cell>(point_count);
 
-    Grid(Vec2UintFast16 grid_size,
-         uint_fast32_t alive_cells,
-         float cell_size,
-         VkCommandBuffer &command_buffer,
-         const VkCommandPool &command_pool,
-         const VkQueue &queue);
+        Grid(const CE::Runtime::TerrainSettings &terrain_settings,
+          VkCommandBuffer &command_buffer,
+          const VkCommandPool &command_pool,
+          const VkQueue &queue);
     static std::vector<VkVertexInputAttributeDescription> get_attribute_description();
 
   private:

@@ -31,6 +31,25 @@ struct TerrainSettings {
   int grid_height = 100;
   uint32_t alive_cells = 2000;
   float cell_size = 0.5f;
+
+  float layer1_roughness = 0.4f;
+  int layer1_octaves = 10;
+  float layer1_scale = 2.2f;
+  float layer1_amplitude = 10.0f;
+  float layer1_exponent = 2.0f;
+  float layer1_frequency = 2.0f;
+  float layer1_height_offset = 0.0f;
+
+  float layer2_roughness = 1.0f;
+  int layer2_octaves = 10;
+  float layer2_scale = 2.2f;
+  float layer2_amplitude = 1.0f;
+  float layer2_exponent = 1.0f;
+  float layer2_frequency = 2.0f;
+  float layer2_height_offset = 0.0f;
+
+  float blend_factor = 0.5f;
+  float absolute_height = 0.0f;
 };
 
 struct WorldSettings {

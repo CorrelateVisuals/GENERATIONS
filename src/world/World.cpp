@@ -11,53 +11,65 @@
 #include <random>
 
 namespace {
-constexpr float TIMER_SPEED = 25.0f;
-constexpr float WATER_THRESHOLD = 0.1f;
-constexpr glm::vec4 LIGHT_POS = {0.0f, 20.0f, 20.0f, 0.0f};
-
-constexpr float ZOOM_SPEED = 0.5f;
-constexpr float PANNING_SPEED = 0.3f;
-constexpr float FIELD_OF_VIEW = 40.0f;
-constexpr float NEAR_CLIPPING = 0.1f;
-constexpr float FAR_CLIPPING = 1000.0f;
-constexpr glm::vec3 CAMERA_POSITION = {0.0f, 0.0f, 60.0f};
-constexpr float ARCBALL_TUMBLE_MULT = 0.9f;
-constexpr float ARCBALL_PAN_MULT = 0.85f;
-constexpr float ARCBALL_DOLLY_MULT = 0.8f;
-
-constexpr GEOMETRY_SHAPE cube = CE_CUBE;
-constexpr GEOMETRY_SHAPE rectangle = CE_RECTANGLE;
-constexpr GEOMETRY_SHAPE sphere = CE_SPHERE;
+GEOMETRY_SHAPE resolve_shape(const int value, const GEOMETRY_SHAPE fallback) {
+  switch (value) {
+  case CE_RECTANGLE:
+    return CE_RECTANGLE;
+  case CE_CUBE:
+    return CE_CUBE;
+  case CE_SPHERE:
+    return CE_SPHERE;
+  case CE_SPHERE_HR:
+    return CE_SPHERE_HR;
+  case CE_TORUS:
+    return CE_TORUS;
+  default:
+    return fallback;
+  }
+}
 } // namespace
 
 World::World(VkCommandBuffer &command_buffer,
        const VkCommandPool &command_pool,
        const VkQueue &queue,
        const CE::Runtime::TerrainSettings &terrain_settings)
-    : _grid(
-      glm::ivec2(terrain_settings.grid_width, terrain_settings.grid_height),
-      terrain_settings.alive_cells,
-      terrain_settings.cell_size,
-      command_buffer, command_pool, queue),
-    _rectangle(rectangle, true, command_buffer, command_pool, queue),
-    _cube(sphere, false, command_buffer, command_pool, queue),
-      _ubo(LIGHT_POS,
+    : _grid(terrain_settings,
+            command_buffer, command_pool, queue),
+      _rectangle(resolve_shape(CE::Runtime::get_world_settings().rectangle_shape,
+             CE_RECTANGLE),
+     true,
+     command_buffer,
+     command_pool,
+     queue),
+      _cube(resolve_shape(CE::Runtime::get_world_settings().sphere_shape, CE_SPHERE),
+      false,
+      command_buffer,
+      command_pool,
+      queue),
+      _ubo(glm::vec4(CE::Runtime::get_world_settings().light_pos[0],
+         CE::Runtime::get_world_settings().light_pos[1],
+         CE::Runtime::get_world_settings().light_pos[2],
+         CE::Runtime::get_world_settings().light_pos[3]),
            glm::ivec2(terrain_settings.grid_width, terrain_settings.grid_height),
-           WATER_THRESHOLD,
+     CE::Runtime::get_world_settings().water_threshold,
            terrain_settings.cell_size),
-      _camera(ZOOM_SPEED,
-              PANNING_SPEED,
-              FIELD_OF_VIEW,
-              NEAR_CLIPPING,
-              FAR_CLIPPING,
-              CAMERA_POSITION),
-      _time(TIMER_SPEED) {
+      _camera(CE::Runtime::get_world_settings().zoom_speed,
+        CE::Runtime::get_world_settings().panning_speed,
+        CE::Runtime::get_world_settings().field_of_view,
+        CE::Runtime::get_world_settings().near_clipping,
+        CE::Runtime::get_world_settings().far_clipping,
+        glm::vec3(CE::Runtime::get_world_settings().camera_position[0],
+      CE::Runtime::get_world_settings().camera_position[1],
+      CE::Runtime::get_world_settings().camera_position[2])),
+      _time(CE::Runtime::get_world_settings().timer_speed) {
   const float halfGridX = 0.5f * static_cast<float>(terrain_settings.grid_width) * terrain_settings.cell_size;
   const float halfGridY = 0.5f * static_cast<float>(terrain_settings.grid_height) * terrain_settings.cell_size;
   const float sceneRadius = std::sqrt(halfGridX * halfGridX + halfGridY * halfGridY);
     _camera.configure_arcball(glm::vec3(0.0f, 0.0f, 0.0f), sceneRadius);
     _camera.configure_arcball_multipliers(
-      ARCBALL_TUMBLE_MULT, ARCBALL_PAN_MULT, ARCBALL_DOLLY_MULT);
+      CE::Runtime::get_world_settings().arcball_tumble_mult,
+      CE::Runtime::get_world_settings().arcball_pan_mult,
+      CE::Runtime::get_world_settings().arcball_dolly_mult);
 
   Log::text("{ wWw }", "constructing World");
 }
@@ -92,36 +104,36 @@ std::vector<VkVertexInputAttributeDescription> World::Cell::get_attribute_descri
   return description;
 };
 
-World::Grid::Grid(Vec2UintFast16 grid_size,
-          uint_fast32_t alive_cells,
-          float cell_size,
+World::Grid::Grid(const CE::Runtime::TerrainSettings &terrain_settings,
           VkCommandBuffer &command_buffer,
           const VkCommandPool &command_pool,
                   const VkQueue &queue)
-  : size(grid_size), initial_alive_cells(alive_cells), point_count(size.x * size.y) {
+  : size(glm::ivec2(terrain_settings.grid_width, terrain_settings.grid_height)),
+    initial_alive_cells(terrain_settings.alive_cells),
+    point_count(size.x * size.y) {
   Terrain::Config terrainLayer1 = {.dimensions = size,
-                                   .roughness = 0.4f,
-                                   .octaves = 10,
-                                   .scale = 2.2f,
-                                   .amplitude = 10.0f,
-                                   .exponent = 2.0f,
-                                   .frequency = 2.0f,
-                                     .height_offset = 0.0f};
+                                   .roughness = terrain_settings.layer1_roughness,
+                                   .octaves = terrain_settings.layer1_octaves,
+                                   .scale = terrain_settings.layer1_scale,
+                                   .amplitude = terrain_settings.layer1_amplitude,
+                                   .exponent = terrain_settings.layer1_exponent,
+                                   .frequency = terrain_settings.layer1_frequency,
+                                   .height_offset = terrain_settings.layer1_height_offset};
   Terrain terrain(terrainLayer1);
 
   Terrain::Config terrainLayer2 = {.dimensions = size,
-                                   .roughness = 1.0f,
-                                   .octaves = 10,
-                                   .scale = 2.2f,
-                                   .amplitude = 1.0f,
-                                   .exponent = 1.0f,
-                                   .frequency = 2.0f,
-                                     .height_offset = 0.0f};
+                                   .roughness = terrain_settings.layer2_roughness,
+                                   .octaves = terrain_settings.layer2_octaves,
+                                   .scale = terrain_settings.layer2_scale,
+                                   .amplitude = terrain_settings.layer2_amplitude,
+                                   .exponent = terrain_settings.layer2_exponent,
+                                   .frequency = terrain_settings.layer2_frequency,
+                                   .height_offset = terrain_settings.layer2_height_offset};
   Terrain terrainSurface(terrainLayer2);
 
   std::vector<float> terrainPerlinGrid1 = terrain.generate_perlin_grid();
   std::vector<float> terrainPerlinGrid2 = terrainSurface.generate_perlin_grid();
-  const float blendFactor = 0.5f;
+  const float blendFactor = terrain_settings.blend_factor;
 
   std::vector<bool> is_alive_indices(point_count, false);
   std::vector<uint_fast32_t> alive_cell_indices = set_cells_alive_randomly(initial_alive_cells);
@@ -136,7 +148,7 @@ World::Grid::Grid(Vec2UintFast16 grid_size,
 
   const float startX = (size.x - 1) / -2.0f;
   const float startY = (size.y - 1) / -2.0f;
-  const float absoluteHeight = 0.0f;
+  const float absoluteHeight = terrain_settings.absolute_height;
   for (uint_fast32_t i = 0; i < point_count; ++i) {
     point_ids[i] = i;
 
@@ -147,7 +159,7 @@ World::Grid::Grid(Vec2UintFast16 grid_size,
 
     const bool is_alive = is_alive_indices[i];
 
-    cells[i].instance_position = {(startX + i % size.x), (startY + i / size.x), absoluteHeight, is_alive ? cell_size : 0.0f};
+    cells[i].instance_position = {(startX + i % size.x), (startY + i / size.x), absoluteHeight, is_alive ? terrain_settings.cell_size : 0.0f};
     cells[i].color = is_alive ? blue : red;
     cells[i].states = is_alive ? alive : dead;
   }
