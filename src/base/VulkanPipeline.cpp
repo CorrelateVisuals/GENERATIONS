@@ -237,6 +237,10 @@ void CE::PipelinesConfiguration::create_pipelines(VkRenderPass &render_pass,
           CE::input_assembly_state_triangle_list};
 
         VkPipelineRasterizationStateCreateInfo rasterization{CE::rasterization_cull_back_bit};
+      rasterization.depthBiasEnable = VK_FALSE;
+      rasterization.depthBiasConstantFactor = 0.0f;
+      rasterization.depthBiasSlopeFactor = 0.0f;
+      rasterization.depthBiasClamp = 0.0f;
 
         VkPipelineMultisampleStateCreateInfo multisampling{CE::multisample_state_default};
       multisampling.rasterizationSamples = msaa_samples;
@@ -449,7 +453,8 @@ void CE::PipelinesConfiguration::compile_shaders() {
 
   const auto resolve_stage_extension =
       [&](const std::string &shader_name) -> std::pair<std::string, std::string> {
-    if (const auto token = stage_tokens.find(shader_name); token != stage_tokens.end()) {
+    const auto token = stage_tokens.find(shader_name);
+    if (token != stage_tokens.end()) {
       return {pipelineName, token->second};
     }
 

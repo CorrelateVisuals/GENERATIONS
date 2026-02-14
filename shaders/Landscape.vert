@@ -71,7 +71,7 @@ float terrain_height(vec2 p) {
     float dunes = (sin(pr.x * 0.06f) + sin(pr.y * 0.05f)) * 0.4f;
     float detail = fbm(q * 6.0f) * 0.6f;
 
-    return (base + ridge + dunes + detail) * 0.78f;
+    return (base + ridge + dunes + detail) * 0.78f + 0.35f;
 }
 
 layout(location = 0) out vec3 outWorldPos;

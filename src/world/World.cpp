@@ -1,6 +1,5 @@
 #include "World.h"
 #include "Geometry.h"
-#include "Terrain.h"
 #include "core/Log.h"
 #include "core/RuntimeConfig.h"
 
@@ -109,30 +108,6 @@ World::Grid::Grid(const CE::Runtime::TerrainSettings &terrain_settings,
   : size(glm::ivec2(terrain_settings.grid_width, terrain_settings.grid_height)),
     initial_alive_cells(terrain_settings.alive_cells),
     point_count(size.x * size.y) {
-  Terrain::Config terrainLayer1 = {.dimensions = size,
-                                   .roughness = terrain_settings.layer1_roughness,
-                                   .octaves = terrain_settings.layer1_octaves,
-                                   .scale = terrain_settings.layer1_scale,
-                                   .amplitude = terrain_settings.layer1_amplitude,
-                                   .exponent = terrain_settings.layer1_exponent,
-                                   .frequency = terrain_settings.layer1_frequency,
-                                   .height_offset = terrain_settings.layer1_height_offset};
-  Terrain terrain(terrainLayer1);
-
-  Terrain::Config terrainLayer2 = {.dimensions = size,
-                                   .roughness = terrain_settings.layer2_roughness,
-                                   .octaves = terrain_settings.layer2_octaves,
-                                   .scale = terrain_settings.layer2_scale,
-                                   .amplitude = terrain_settings.layer2_amplitude,
-                                   .exponent = terrain_settings.layer2_exponent,
-                                   .frequency = terrain_settings.layer2_frequency,
-                                   .height_offset = terrain_settings.layer2_height_offset};
-  Terrain terrainSurface(terrainLayer2);
-
-  std::vector<float> terrainPerlinGrid1 = terrain.generate_perlin_grid();
-  std::vector<float> terrainPerlinGrid2 = terrainSurface.generate_perlin_grid();
-  const float blendFactor = terrain_settings.blend_factor;
-
   std::vector<bool> is_alive_indices(point_count, false);
   std::vector<uint_fast32_t> alive_cell_indices = set_cells_alive_randomly(initial_alive_cells);
   for (int alive_index : alive_cell_indices) {
@@ -150,9 +125,7 @@ World::Grid::Grid(const CE::Runtime::TerrainSettings &terrain_settings,
   for (uint_fast32_t i = 0; i < point_count; ++i) {
     point_ids[i] = i;
 
-    float height = terrain.linear_interpolation_function(
-        terrainPerlinGrid1[i], terrainPerlinGrid2[i], blendFactor);
-    coordinates[i] = {(startX + i % size.x), (startY + i / size.x), height};
+    coordinates[i] = {(startX + i % size.x), (startY + i / size.x), absoluteHeight};
     add_vertex_position(coordinates[i]);
 
     const bool is_alive = is_alive_indices[i];

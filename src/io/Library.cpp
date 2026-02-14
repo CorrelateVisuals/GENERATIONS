@@ -10,7 +10,7 @@ std::string Lib::path(const std::string &linux_path) {
       c = '\\';
     }
   }
-  if (converted_windows_path.starts_with("..\\")) {
+  if (converted_windows_path.rfind("..\\", 0) == 0) {
     converted_windows_path = converted_windows_path.substr(3);
   }
   return if_shader_compile(converted_windows_path);

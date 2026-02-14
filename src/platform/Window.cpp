@@ -88,8 +88,8 @@ void Window::set_mouse() {
     switch (oldState) {
       case GLFW_PRESS: {
         if (newState == GLFW_RELEASE) {
-          if (const auto buttonMapping = buttonMappings.find(buttonType);
-              buttonMapping != buttonMappings.end()) {
+          const auto buttonMapping = buttonMappings.find(buttonType);
+          if (buttonMapping != buttonMappings.end()) {
             const auto &[key, message] = *buttonMapping;
             mouse.button_click[buttonType].position = glm::vec2{x, y};
 
@@ -102,8 +102,8 @@ void Window::set_mouse() {
           const float currentTime = static_cast<float>(glfwGetTime());
           const float timer = currentTime - pressTime;
           if (timer >= mouse.press_delay) {
-            if (const auto buttonMapping = buttonMappings.find(buttonType);
-                buttonMapping != buttonMappings.end()) {
+            const auto buttonMapping = buttonMappings.find(buttonType);
+            if (buttonMapping != buttonMappings.end()) {
               const auto &[key, message] = *buttonMapping;
                 const glm::vec2 normalizedCoords =
                   glm::vec2(x, y) * glm::vec2(2.0f, 2.0f) - glm::vec2(1.0f, 1.0f);
