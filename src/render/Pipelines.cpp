@@ -1,5 +1,3 @@
-#include <vulkan/vulkan.h>
-
 #include "Mechanics.h"
 #include "Pipelines.h"
 #include "core/Log.h"

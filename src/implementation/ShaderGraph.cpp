@@ -40,11 +40,11 @@ bool ShaderGraph::add_node(const ShaderNode &node, std::string &error) {
 }
 
 bool ShaderGraph::add_edge(const GraphEdge &edge, std::string &error) {
-  if (!node_index_by_id_.contains(edge.from)) {
+  if (node_index_by_id_.find(edge.from) == node_index_by_id_.end()) {
     error = "edge source node does not exist: " + edge.from;
     return false;
   }
-  if (!node_index_by_id_.contains(edge.to)) {
+  if (node_index_by_id_.find(edge.to) == node_index_by_id_.end()) {
     error = "edge target node does not exist: " + edge.to;
     return false;
   }
@@ -136,11 +136,11 @@ bool ShaderGraph::validate(std::string &error) const {
     error = "graph is missing output endpoint";
     return false;
   }
-  if (!node_index_by_id_.contains(input_->node_id)) {
+  if (node_index_by_id_.find(input_->node_id) == node_index_by_id_.end()) {
     error = "input endpoint node does not exist: " + input_->node_id;
     return false;
   }
-  if (!node_index_by_id_.contains(output_->node_id)) {
+  if (node_index_by_id_.find(output_->node_id) == node_index_by_id_.end()) {
     error = "output endpoint node does not exist: " + output_->node_id;
     return false;
   }
@@ -150,7 +150,7 @@ bool ShaderGraph::validate(std::string &error) const {
     bool has_graphics = false;
 
     for (const std::string &shader_id : pipeline.shader_ids) {
-      if (!node_index_by_id_.contains(shader_id)) {
+      if (node_index_by_id_.find(shader_id) == node_index_by_id_.end()) {
         error = "pipeline definition references unknown shader node: " + shader_id;
         return false;
       }

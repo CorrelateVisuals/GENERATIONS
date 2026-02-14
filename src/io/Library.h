@@ -2,7 +2,6 @@
 #include <glm/glm.hpp>
 
 #include <string>
-#include <vector>
 
 struct Vec2UintFast16 {
   uint_fast16_t x;
@@ -16,13 +15,6 @@ struct Vec2UintFast16 {
 };
 
 namespace Lib {
-std::vector<float> generate_random_values(int amount, float min, float max);
-
-double low_frequency_oscillator(double frequency);
-glm::vec2 smoothstep(const glm::vec2 &xy);
-
-std::string upper_to_lower_case(std::string string);
-
 // Cross platform functions
 std::string path(const std::string &linux_path);
 std::string if_shader_compile(std::string linux_path);

@@ -31,7 +31,7 @@ std::vector<StepName> topo_sort_steps(const std::vector<StepName> &steps,
   for (const StepEdge &edge : edges) {
     const StepName &from = edge.first;
     const StepName &to = edge.second;
-    if (!step_set.contains(from) || !step_set.contains(to) || from == to) {
+    if (step_set.find(from) == step_set.end() || step_set.find(to) == step_set.end() || from == to) {
       continue;
     }
     if (edge_seen[from].insert(to).second) {
@@ -92,7 +92,7 @@ CE::Runtime::PipelineExecutionPlan build_execution_plan(const ShaderGraph &graph
     }
     step_for_node[node.id] = step;
 
-    if (!steps.contains(step)) {
+    if (steps.find(step) == steps.end()) {
       discovered_steps.push_back(step);
     }
     steps.insert(step);
@@ -107,7 +107,7 @@ CE::Runtime::PipelineExecutionPlan build_execution_plan(const ShaderGraph &graph
 
   std::vector<StepEdge> step_edges{};
   for (const GraphEdge &edge : graph.edges()) {
-    if (!step_for_node.contains(edge.from) || !step_for_node.contains(edge.to)) {
+    if (step_for_node.find(edge.from) == step_for_node.end() || step_for_node.find(edge.to) == step_for_node.end()) {
       continue;
     }
     step_edges.emplace_back(step_for_node.at(edge.from), step_for_node.at(edge.to));

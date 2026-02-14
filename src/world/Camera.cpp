@@ -3,16 +3,13 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
-#include <glm/gtx/hash.hpp>
 #include <glm/gtx/norm.hpp>
-#include <glm/gtx/quaternion.hpp>
 
 #include "Camera.h"
 #include "core/Log.h"
 #include "platform/Window.h"
 
 #include <algorithm>
-#include <array>
 #include <cmath>
 
 void Camera::configure_arcball(const glm::vec3 &target, float scene_radius) {

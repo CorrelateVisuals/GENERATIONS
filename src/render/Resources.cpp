@@ -66,7 +66,9 @@ Resources::UniformBuffer::UniformBuffer(CE::DescriptorInterface &interface,
   set_layout_binding.descriptorCount = 1;
   set_layout_binding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT |
                                   VK_SHADER_STAGE_VERTEX_BIT |
-                                  VK_SHADER_STAGE_FRAGMENT_BIT;
+                                  VK_SHADER_STAGE_FRAGMENT_BIT |
+                                  VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT |
+                                  VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
   interface.set_layout_bindings[my_index] = set_layout_binding;
 
   pool_size.type = type;
