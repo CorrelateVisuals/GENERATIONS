@@ -60,39 +60,7 @@ file(GLOB_RECURSE CAPITALENGINE_SOURCES CONFIGURE_DEPENDS
     src/*.h
 )
 
-set(SHADER_DIR ${PROJECT_SOURCE_DIR}/shaders)
-file(GLOB SHADERS ${SHADER_DIR}/*.vert ${SHADER_DIR}/*.frag ${SHADER_DIR}/*.comp ${SHADER_DIR}/*.geom ${SHADER_DIR}/*.tesc ${SHADER_DIR}/*.tese ${SHADER_DIR}/*.mesh ${SHADER_DIR}/*.task ${SHADER_DIR}/*.rgen ${SHADER_DIR}/*.rchit ${SHADER_DIR}/*.rmiss)
-
 find_package(Vulkan)
-
-# Use glslc if available, otherwise fall back to glslangValidator
-if(Vulkan_GLSLC_EXECUTABLE)
-    set(SHADER_COMPILER ${Vulkan_GLSLC_EXECUTABLE})
-    foreach(SHADER IN LISTS SHADERS)
-        get_filename_component(FILENAME ${SHADER} NAME)
-        string(REPLACE "shader." "" new_name ${FILENAME})
-        add_custom_command(OUTPUT ${SHADER_DIR}/${new_name}.spv
-            COMMAND ${SHADER_COMPILER} ${SHADER} -o ${SHADER_DIR}/${new_name}.spv
-            DEPENDS ${SHADER}
-            COMMENT "Compiling ${FILENAME}")
-        list(APPEND SPV_SHADERS ${SHADER_DIR}/${new_name}.spv)
-    endForeach()
-elseif(Vulkan_GLSLANG_VALIDATOR_EXECUTABLE)
-    set(SHADER_COMPILER ${Vulkan_GLSLANG_VALIDATOR_EXECUTABLE})
-    foreach(SHADER IN LISTS SHADERS)
-        get_filename_component(FILENAME ${SHADER} NAME)
-        string(REPLACE "shader." "" new_name ${FILENAME})
-        add_custom_command(OUTPUT ${SHADER_DIR}/${new_name}.spv
-            COMMAND ${SHADER_COMPILER} -V ${SHADER} -o ${SHADER_DIR}/${new_name}.spv
-            DEPENDS ${SHADER}
-            COMMENT "Compiling ${FILENAME}")
-        list(APPEND SPV_SHADERS ${SHADER_DIR}/${new_name}.spv)
-    endForeach()
-else()
-    message(FATAL_ERROR "No shader compiler found. Install glslang-tools or shaderc.")
-endif()
-
-add_custom_target(shaders ALL DEPENDS ${SPV_SHADERS})
 
 add_custom_target(architecture_check
     COMMAND ${Python3_EXECUTABLE} ${PROJECT_SOURCE_DIR}/tools/check_folder_dependencies.py
@@ -100,7 +68,7 @@ add_custom_target(architecture_check
     COMMENT "Checking folder dependency boundaries"
 )
 
-add_executable(CapitalEngine ${CAPITALENGINE_SOURCES} ${SHADERS})
+add_executable(CapitalEngine ${CAPITALENGINE_SOURCES})
 add_dependencies(CapitalEngine architecture_check)
 
 target_link_libraries(CapitalEngine glfw)

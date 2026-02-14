@@ -56,8 +56,7 @@ ImplementationSpec default_spec() {
   };
   spec.pipelines["LandscapeWireFrame"] = CE::Runtime::PipelineDefinition{
       .is_compute = false,
-      .shaders = {"LandscapeVert", "LandscapeWireFrameTesc", "LandscapeWireFrameTese",
-                  "LandscapeWireFrameFrag"},
+      .shaders = {"LandscapeVert", "LandscapeWireFrameFrag"},
   };
   spec.pipelines["Texture"] = CE::Runtime::PipelineDefinition{
       .is_compute = false,

@@ -45,12 +45,9 @@ src/
 └── world/      # simulation state, camera, geometry, terrain
 ```
 
-Dependency boundaries are documented and checked through:
+Dependency boundaries are checked through:
 
-- `src/FOLDER_DEPENDENCY_MAP.md`
 - `tools/check_folder_dependencies.py`
-
-This keeps feature velocity high as the codebase scales.
 
 ## Core runtime flow
 
@@ -103,8 +100,8 @@ cmake --build build --parallel $(nproc)
 Notes:
 
 - output binary: `bin/CapitalEngine`
-- shader binaries (`.spv`) are generated in `shaders/`
-- `glslangValidator` or `glslc` must be available in your PATH
+- shaders are compiled at runtime on first use (generates `shaders/*.spv`)
+- `glslangValidator` must be available in your PATH
 
 ## Build and run (Windows)
 
@@ -149,5 +146,4 @@ And gratitude to the open graphics ecosystem this project learns from and builds
 
 ---
 
-Built on lessons from the Vulkan ecosystem, including the excellent learning material at https://vulkan-tutorial.com/.
 

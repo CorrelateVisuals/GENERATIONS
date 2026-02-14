@@ -4,9 +4,7 @@
 #include "base/VulkanUtils.h"
 #include "core/RuntimeConfig.h"
 
-#include <functional>
 #include <string_view>
-#include <unordered_map>
 #include <stdexcept>
 
 void CE::ShaderAccess::CommandResources::record_compute_command_buffer(
@@ -145,13 +143,6 @@ void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
   };
 
   const auto draw_grid_indexed = [&](const std::string &pipeline_name) {
-    bind_and_draw_indexed(pipeline_name.c_str(),
-                          resources.world._grid.vertex_buffer.buffer,
-                          resources.world._grid.index_buffer.buffer,
-                          static_cast<uint32_t>(resources.world._grid.indices.size()));
-  };
-
-  const auto draw_grid_wireframe = [&](const std::string &pipeline_name) {
     bind_and_draw_indexed(pipeline_name.c_str(),
                           resources.world._grid.vertex_buffer.buffer,
                           resources.world._grid.index_buffer.buffer,

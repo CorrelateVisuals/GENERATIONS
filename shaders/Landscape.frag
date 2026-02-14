@@ -60,13 +60,15 @@ vec3 pixelTerrainPalette(float heightRelativeToWater) {
 
 vec3 terrainColor(float heightFromWater, float slope, vec2 worldXZ) {
     const float shoreWidth = 0.6f;
+    mat2 rot = mat2(0.866f, -0.5f, 0.5f, 0.866f);
+    vec2 xr = rot * worldXZ;
 
     vec3 land = pixelTerrainPalette(heightFromWater);
     vec3 rock = vec3(0.43f, 0.42f, 0.44f);
     float rockMix = smoothstep(0.28f, 0.78f, slope);
     land = mix(land, rock, rockMix * 0.7f);
 
-    float detail = noise2(worldXZ * 0.18f) * 0.6f + noise2(worldXZ * 0.72f) * 0.4f;
+    float detail = noise2(xr * 0.18f) * 0.6f + noise2(xr * 0.72f) * 0.4f;
     land *= 0.92f + detail * 0.16f;
 
     vec3 deepWater = vec3(0.15f, 0.24f, 0.29f);

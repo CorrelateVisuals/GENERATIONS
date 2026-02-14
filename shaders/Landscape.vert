@@ -58,7 +58,9 @@ float ridged_fbm(vec2 p) {
 }
 
 float terrain_height(vec2 p) {
-    vec2 q = p * 0.08f;
+    mat2 rot = mat2(0.866f, -0.5f, 0.5f, 0.866f);
+    vec2 pr = rot * p;
+    vec2 q = pr * 0.08f;
     vec2 warp = vec2(
         fbm(q * 1.2f + vec2(4.0f, 1.7f)),
         fbm(q * 1.2f + vec2(7.2f, 3.5f)));
@@ -66,7 +68,7 @@ float terrain_height(vec2 p) {
 
     float base = fbm(q * 1.4f) * 4.5f;
     float ridge = ridged_fbm(q * 2.4f) * 2.8f;
-    float dunes = (sin(p.x * 0.06f) + sin(p.y * 0.05f)) * 0.4f;
+    float dunes = (sin(pr.x * 0.06f) + sin(pr.y * 0.05f)) * 0.4f;
     float detail = fbm(q * 6.0f) * 0.6f;
 
     return base + ridge + dunes + detail;
