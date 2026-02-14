@@ -18,7 +18,7 @@ std::string resolve_shader_spv_path(const std::string &shader_dir,
                                     const std::string &shader_name) {
   const std::string alias_path = shader_dir + shader_name;
 
-  if (shader_name.size() <= 4 || shader_name.rfind(".spv") != shader_name.size() - 4) {
+  if (!shader_name.ends_with(".spv")) {
     return alias_path;
   }
 
@@ -33,7 +33,7 @@ std::string resolve_shader_spv_path(const std::string &shader_dir,
   }};
 
   for (const auto &[token, extension] : stage_suffix) {
-    if (base.size() >= token.size() && base.rfind(token) == base.size() - token.size()) {
+    if (base.ends_with(token)) {
       const std::string source_base = base.substr(0, base.size() - token.size());
       const std::string canonical_path = shader_dir + source_base + "." +
                                          std::string(extension) + ".spv";
@@ -170,8 +170,8 @@ CE::PipelinesConfiguration::~PipelinesConfiguration() {
   if (Device::base_device) {
     Log::text(
         "{ === }", "destructing", this->pipeline_map.size(), "Pipelines Configuration");
-    for (auto &pipeline : this->pipeline_map) {
-      VkPipeline &pipelineObject = get_pipeline_object_by_name(pipeline.first);
+    for (auto &[name, variant] : this->pipeline_map) {
+      VkPipeline &pipelineObject = get_pipeline_object_by_name(name);
       vkDestroyPipeline(Device::base_device->logical_device, pipelineObject, nullptr);
     }
   }
@@ -187,9 +187,8 @@ void CE::PipelinesConfiguration::create_pipelines(VkRenderPass &render_pass,
 
   const auto pipelinesStart = std::chrono::high_resolution_clock::now();
 
-  for (auto &entry : this->pipeline_map) {
+  for (auto &[pipelineName, pipelineVariant] : this->pipeline_map) {
     const auto pipelineStart = std::chrono::high_resolution_clock::now();
-    const std::string pipelineName = entry.first;
 
     std::vector<std::string> shaders = get_pipeline_shaders_by_name(pipelineName);
     if (shaders.empty()) {
@@ -198,14 +197,11 @@ void CE::PipelinesConfiguration::create_pipelines(VkRenderPass &render_pass,
 
     const bool isCompute = std::any_of(
       shaders.begin(), shaders.end(), [](const std::string &shader) {
-        return shader == "Comp" ||
-           (shader.size() >= 4 && shader.rfind("Comp") == shader.size() - 4);
+        return shader.ends_with("Comp");
       });
 
     if (!isCompute) {
       Log::text("{ === }", "Graphics Pipeline: ", pipelineName);
-      std::variant<Graphics, Compute> &pipelineVariant = entry.second;
-
       std::vector<VkPipelineShaderStageCreateInfo> shaderStages{};
       bool tesselationEnabled = set_shader_stages(pipelineName, shaderStages);
 
@@ -271,24 +267,24 @@ void CE::PipelinesConfiguration::create_pipelines(VkRenderPass &render_pass,
           .subpass = 0,
           .basePipelineHandle = VK_NULL_HANDLE};
 
+      if (pipelineName.find("WireFrame") != std::string::npos) {
+        rasterization.polygonMode = VK_POLYGON_MODE_LINE;
+        rasterization.lineWidth = 1.05f;
+        rasterization.depthBiasEnable = VK_FALSE;
+        rasterization.cullMode = VK_CULL_MODE_NONE;
+        depthStencil.depthTestEnable = VK_FALSE;
+        depthStencil.depthWriteEnable = VK_FALSE;
+        depthStencil.depthCompareOp = VK_COMPARE_OP_ALWAYS;
+        colorBlendAttachment = CE::color_blend_attachment_state_average;
+      }
+
       VkPipelineTessellationStateCreateInfo tessellationStateInfo{
           CE::tessellation_state_default};
       if (tesselationEnabled) {
         inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_PATCH_LIST;
-        rasterization.polygonMode = VK_POLYGON_MODE_LINE;
-        rasterization.lineWidth = 1.0f;
-        if (pipelineName.find("WireFrame") != std::string::npos) {
-          rasterization.lineWidth = 1.05f;
-          rasterization.depthBiasEnable = VK_TRUE;
-          rasterization.depthBiasConstantFactor = -0.15f;
-          rasterization.depthBiasSlopeFactor = -0.15f;
-          rasterization.depthBiasClamp = 0.0f;
-
-          depthStencil.depthTestEnable = VK_TRUE;
-          depthStencil.depthWriteEnable = VK_FALSE;
-          depthStencil.depthCompareOp = VK_COMPARE_OP_LESS;
-          colorBlendAttachment = CE::color_blend_attachment_state_average;
-        } else {
+        if (pipelineName.find("WireFrame") == std::string::npos) {
+          rasterization.polygonMode = VK_POLYGON_MODE_LINE;
+          rasterization.lineWidth = 1.0f;
           colorBlendAttachment = CE::color_blend_attachment_state_multiply;
         }
         pipelineInfo.pTessellationState = &tessellationStateInfo;
@@ -367,7 +363,7 @@ bool CE::PipelinesConfiguration::set_shader_stages(
   for (uint32_t i = 0; i < shaders.size(); i++) {
     VkShaderStageFlagBits shaderStage{};
 
-    if (shaderType.find(shaders[i]) != shaderType.end()) {
+    if (shaderType.contains(shaders[i])) {
       shaderName = pipelineName + shaders[i];
       shaderStage = shaderType.at(shaders[i]);
     } else {
@@ -458,16 +454,15 @@ void CE::PipelinesConfiguration::compile_shaders() {
     }
 
     for (const auto &[token, extension] : stage_tokens) {
-      if (shader_name.size() >= token.size() &&
-          shader_name.rfind(token) == shader_name.size() - token.size()) {
+      if (shader_name.ends_with(token)) {
         return {shader_name.substr(0, shader_name.size() - token.size()), extension};
       }
     }
     return {"", ""};
   };
 
-  for (const auto &entry : this->pipeline_map) {
-    pipelineName = entry.first;
+  for (const auto &[name, variant] : this->pipeline_map) {
+    pipelineName = name;
     std::vector<std::string> shaders = get_pipeline_shaders_by_name(pipelineName);
     for (const auto &shader : shaders) {
       const auto [source_base, extension] = resolve_stage_extension(shader);

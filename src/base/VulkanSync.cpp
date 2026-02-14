@@ -554,30 +554,49 @@ void CE::SynchronizationObjects::create() {
   }
 }
 
-void CE::SynchronizationObjects::destroy() const {
-  if (Device::base_device) {
-    Log::text("{ ||| }", "Destroy Synchronization Objects");
-    for (uint_fast8_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+void CE::SynchronizationObjects::destroy() {
+  if (!Device::base_device || Device::base_device->logical_device == VK_NULL_HANDLE) {
+    return;
+  }
+
+  Log::text("{ ||| }", "Destroy Synchronization Objects");
+  vkDeviceWaitIdle(Device::base_device->logical_device);
+
+  for (uint_fast8_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+    if (this->render_finished_semaphores[i] != VK_NULL_HANDLE) {
       vkDestroySemaphore(
           Device::base_device->logical_device,
           this->render_finished_semaphores[i],
           nullptr);
+      this->render_finished_semaphores[i] = VK_NULL_HANDLE;
+    }
+    if (this->image_available_semaphores[i] != VK_NULL_HANDLE) {
       vkDestroySemaphore(
           Device::base_device->logical_device,
           this->image_available_semaphores[i],
           nullptr);
+      this->image_available_semaphores[i] = VK_NULL_HANDLE;
+    }
+    if (this->compute_finished_semaphores[i] != VK_NULL_HANDLE) {
       vkDestroySemaphore(
           Device::base_device->logical_device,
           this->compute_finished_semaphores[i],
           nullptr);
+      this->compute_finished_semaphores[i] = VK_NULL_HANDLE;
+    }
+    if (this->graphics_in_flight_fences[i] != VK_NULL_HANDLE) {
       vkDestroyFence(
           Device::base_device->logical_device,
           this->graphics_in_flight_fences[i],
           nullptr);
+      this->graphics_in_flight_fences[i] = VK_NULL_HANDLE;
+    }
+    if (this->compute_in_flight_fences[i] != VK_NULL_HANDLE) {
       vkDestroyFence(
           Device::base_device->logical_device,
           this->compute_in_flight_fences[i],
           nullptr);
-    };
+      this->compute_in_flight_fences[i] = VK_NULL_HANDLE;
+    }
   }
 }

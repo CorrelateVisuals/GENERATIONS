@@ -101,14 +101,9 @@ void main() {
     float ambientStrength = 0.34f;
     float diffuse = max(dot(normal, lightDirection), 0.0f);
 
-    vec3 reflectDirection = reflect(-lightDirection, normal);
-    float specular = pow(max(dot(viewDirection, reflectDirection), 0.0f), 22.0f);
-    float specularStrength = 0.22f;
-
-    float aa = 1.0f / (1.0f + 6.0f * length(fwidth(inWorldPos.xy)));
-    float micro = (noise2(inWorldPos.xy * 1.6f) * 0.05f +
-                   noise2(inWorldPos.xy * 4.0f) * 0.02f) * aa;
+    const float specularStrength = 0.0f;
+    const float micro = 0.0f;
     vec3 lit = albedo * (ambientStrength + diffuse) * (0.96f + micro) +
-               vec3(specular * specularStrength);
+               vec3(specularStrength);
     outColor = vec4(lit, 1.0f);
 }

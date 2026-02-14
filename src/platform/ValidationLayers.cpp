@@ -22,8 +22,8 @@ VkResult ValidationLayers::create_debug_utils_messenger_ext(
     const VkDebugUtilsMessengerCreateInfoEXT *create_info,
     const VkAllocationCallbacks *allocator,
     VkDebugUtilsMessengerEXT *debug_messenger) {
-  auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(
-      instance, "vkCreateDebugUtilsMessengerEXT");
+  auto func = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(
+      vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT"));
   if (func == nullptr) {
     return VK_ERROR_EXTENSION_NOT_PRESENT;
   }
@@ -34,8 +34,8 @@ void ValidationLayers::destroy_debug_utils_messenger_ext(
     VkInstance instance,
     VkDebugUtilsMessengerEXT debug_messenger,
     const VkAllocationCallbacks *allocator) {
-  auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(
-      instance, "vkDestroyDebugUtilsMessengerEXT");
+  auto func = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(
+      vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT"));
   if (func != nullptr) {
     func(instance, debug_messenger, allocator);
   }
@@ -77,7 +77,7 @@ bool ValidationLayers::check_validation_layer_support() {
   }
 
   for (const auto &layer_name : validation) {
-    if (available_layer_names.find(layer_name) == available_layer_names.end()) {
+    if (!available_layer_names.contains(layer_name)) {
       return false;
     }
   }

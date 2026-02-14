@@ -221,7 +221,7 @@ void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
     }
 
     constexpr std::string_view indexed_prefix = "indexed:";
-    if (draw_op->rfind(indexed_prefix.data(), 0) == 0) {
+    if (draw_op->starts_with(indexed_prefix)) {
       const std::string_view target =
           std::string_view(*draw_op).substr(indexed_prefix.size());
       if (target == "grid") {

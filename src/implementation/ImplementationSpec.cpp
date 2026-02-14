@@ -32,8 +32,8 @@ ImplementationSpec default_spec() {
   spec.world.zoom_speed = 0.15f;
   spec.world.panning_speed = 0.3f;
   spec.world.field_of_view = 40.0f;
-  spec.world.near_clipping = 0.1f;
-  spec.world.far_clipping = 1000.0f;
+    spec.world.near_clipping = 0.6f;
+    spec.world.far_clipping = 300.0f;
   spec.world.camera_position = {0.0f, 0.0f, 60.0f};
   spec.world.arcball_tumble_mult = 0.9f;
   spec.world.arcball_pan_mult = 0.85f;
@@ -54,11 +54,6 @@ ImplementationSpec default_spec() {
       .is_compute = false,
       .shaders = {"LandscapeVert", "LandscapeFrag"},
   };
-  spec.pipelines["LandscapeWireFrame"] = CE::Runtime::PipelineDefinition{
-      .is_compute = false,
-      .shaders = {"LandscapeVert", "LandscapeWireFrameTesc", "LandscapeWireFrameTese",
-                  "LandscapeWireFrameFrag"},
-  };
   spec.pipelines["Texture"] = CE::Runtime::PipelineDefinition{
       .is_compute = false,
       .shaders = {"TextureVert", "TextureFrag"},
@@ -74,13 +69,12 @@ ImplementationSpec default_spec() {
   };
 
   spec.execution_plan.graphics =
-      {"Cells", "Landscape", "Texture", "Water", "LandscapeWireFrame"};
+      {"Cells", "Landscape", "Texture", "Water"};
   spec.execution_plan.post_graphics_compute = {"Engine", "PostFX"};
 
   spec.draw_ops = {
       {"Cells", "instanced:cells"},
       {"Landscape", "indexed:grid"},
-      {"LandscapeWireFrame", "indexed:grid"},
       {"Water", "indexed:rectangle"},
       {"Texture", "indexed:rectangle"},
   };

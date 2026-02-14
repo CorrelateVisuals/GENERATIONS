@@ -101,7 +101,7 @@ protected:
   void create();
 
 private:
-  void destroy() const;
+  void destroy();
 };
 
 class Swapchain {

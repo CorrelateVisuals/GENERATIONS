@@ -201,27 +201,15 @@ std::vector<uint32_t> Geometry::create_grid_polygons(const std::vector<uint32_t>
       uint32_t bottomLeft = (row + 1) * grid_width + col;
       uint32_t bottomRight = bottomLeft + 1;
 
-      const bool flip = ((row + col) & 1u) != 0u;
-      if (!flip) {
-        // Create the first triangle of the quad
-        result.push_back(topLeft);
-        result.push_back(topRight);
-        result.push_back(bottomLeft);
+      // Create the first triangle of the quad
+      result.push_back(topLeft);
+      result.push_back(topRight);
+      result.push_back(bottomLeft);
 
-        // Create the second triangle of the quad
-        result.push_back(topRight);
-        result.push_back(bottomRight);
-        result.push_back(bottomLeft);
-      } else {
-        // Alternate diagonal to avoid long continuous split lines
-        result.push_back(topLeft);
-        result.push_back(topRight);
-        result.push_back(bottomRight);
-
-        result.push_back(topLeft);
-        result.push_back(bottomRight);
-        result.push_back(bottomLeft);
-      }
+      // Create the second triangle of the quad
+      result.push_back(topRight);
+      result.push_back(bottomRight);
+      result.push_back(bottomLeft);
     }
   }
 
@@ -398,7 +386,7 @@ void Geometry::load_model(const std::string &model_name, Geometry &geometry) {
 
       vertex.color = {1.0f, 1.0f, 1.0f};
 
-      if (tempUniqueVertices.count(vertex) == 0) {
+      if (!tempUniqueVertices.contains(vertex)) {
         tempUniqueVertices[vertex] =
             static_cast<uint32_t>(geometry.unique_vertices.size());
         geometry.unique_vertices.push_back(vertex);
