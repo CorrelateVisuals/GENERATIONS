@@ -98,9 +98,12 @@ In short: powerful enough for HPC-minded workloads, straightforward enough to it
 
 ## Thanks
 
-Big thanks to everyone who has contributed through GitHub issues, reviews, and code:
+Big thanks to everyone contributing through GitHub issues, reviews, and code:
 
-- https://github.com/CorrelateVisuals/GENERATIONS/graphs/contributors
+- Jakob Povel (@CorrelateVisuals, @Jakob-HDSR)
+- Johannes Unterguggenberger (@johannes.unterguggenberger)
+- Jos Onokiewicz (@jos.onokiewicz)
+- GitHub Copilot SWE Agent (@copilot-swe-agent[bot])
 
 And gratitude to the open graphics ecosystem this project learns from and builds on, especially:
 

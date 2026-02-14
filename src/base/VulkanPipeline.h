@@ -22,7 +22,7 @@ struct PushConstants {
 
   PushConstants(VkShaderStageFlags stage, uint32_t data_size, uint32_t data_offset);
   virtual ~PushConstants() = default;
-  void set_data(const uint64_t &data);
+  void set_data(const uint64_t &value);
 };
 
 class PipelineLayout {
@@ -33,7 +33,7 @@ public:
   virtual ~PipelineLayout();
   void create_layout(const VkDescriptorSetLayout &set_layout);
   void create_layout(const VkDescriptorSetLayout &set_layout,
-                     const PushConstants &_push_constants);
+                     const PushConstants &push_constants);
 };
 
 class RenderPass {

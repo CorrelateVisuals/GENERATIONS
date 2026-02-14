@@ -454,9 +454,9 @@ CE::PipelinesConfiguration::get_work_groups_by_name(const std::string &name) {
   return std::get<CE::PipelinesConfiguration::Compute>(variant).work_groups;
 };
 
-void CE::PipelineLayout::create_layout(const VkDescriptorSetLayout &setLayout) {
+void CE::PipelineLayout::create_layout(const VkDescriptorSetLayout &set_layout) {
   VkPipelineLayoutCreateInfo layout{CE::layout_default};
-  layout.pSetLayouts = &setLayout;
+  layout.pSetLayouts = &set_layout;
   CE::vulkan_result(vkCreatePipelineLayout,
                     Device::base_device->logical_device,
                     &layout,
@@ -464,14 +464,14 @@ void CE::PipelineLayout::create_layout(const VkDescriptorSetLayout &setLayout) {
                     &this->layout);
 }
 
-void CE::PipelineLayout::create_layout(const VkDescriptorSetLayout &setLayout,
-                                       const PushConstants &_pushConstants) {
-  VkPushConstantRange constants{.stageFlags = _pushConstants.shader_stage,
-                                .offset = _pushConstants.offset,
-                                .size = _pushConstants.size};
+void CE::PipelineLayout::create_layout(const VkDescriptorSetLayout &set_layout,
+                                       const PushConstants &push_constants) {
+  VkPushConstantRange constants{.stageFlags = push_constants.shader_stage,
+                                .offset = push_constants.offset,
+                                .size = push_constants.size};
   VkPipelineLayoutCreateInfo layout{CE::layout_default};
-  layout.pSetLayouts = &setLayout;
-  layout.pushConstantRangeCount = _pushConstants.count;
+  layout.pSetLayouts = &set_layout;
+  layout.pushConstantRangeCount = push_constants.count;
   layout.pPushConstantRanges = &constants;
   CE::vulkan_result(vkCreatePipelineLayout,
                     Device::base_device->logical_device,
@@ -487,15 +487,15 @@ CE::PipelineLayout::~PipelineLayout() {
 }
 
 CE::PushConstants::PushConstants(VkShaderStageFlags stage,
-                                 uint32_t dataSize,
-                                 uint32_t dataOffset) {
+                                 uint32_t data_size,
+                                 uint32_t data_offset) {
   shader_stage = stage;
 
-  size = (dataSize % 4 == 0) ? dataSize : ((dataSize + 3) & ~3);
+  size = (data_size % 4 == 0) ? data_size : ((data_size + 3) & ~3);
   if (size > 128) {
     size = 128;
   }
-  offset = (dataOffset % 4 == 0) ? dataOffset : ((dataOffset + 3) & ~3);
+  offset = (data_offset % 4 == 0) ? data_offset : ((data_offset + 3) & ~3);
   count = 1;
   std::fill(data.begin(), data.end(), 0);
 
@@ -504,6 +504,6 @@ CE::PushConstants::PushConstants(VkShaderStageFlags stage,
   }
 }
 
-void CE::PushConstants::set_data(const uint64_t &data) {
-  this->data = {data};
+void CE::PushConstants::set_data(const uint64_t &value) {
+  this->data = {value};
 }
