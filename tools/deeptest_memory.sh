@@ -34,6 +34,7 @@ cleanup() {
 trap cleanup EXIT INT TERM
 
 echo "Starting deep test..."
+# Note: Application writes directly to log.txt via Log::log_file
 CE_DEEPTEST_DURATION="$DURATION_SECONDS" ./bin/CapitalEngine &
 APP_PID=$!
 

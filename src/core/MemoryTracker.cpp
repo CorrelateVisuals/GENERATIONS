@@ -15,15 +15,18 @@ std::atomic<size_t> MemoryTracker::vulkan_allocated{0};
 std::atomic<size_t> MemoryTracker::vulkan_deallocated{0};
 std::atomic<size_t> MemoryTracker::vulkan_peak_usage{0};
 
-std::chrono::steady_clock::time_point MemoryTracker::start_time = 
-    std::chrono::steady_clock::now();
-
 bool MemoryTracker::is_enabled() {
   static const bool enabled = [] {
     const char *value = std::getenv("CE_DEEPTEST_DURATION");
     return value != nullptr;
   }();
   return enabled;
+}
+
+std::chrono::steady_clock::time_point MemoryTracker::get_start_time() {
+  static const std::chrono::steady_clock::time_point start_time = 
+      std::chrono::steady_clock::now();
+  return start_time;
 }
 
 void MemoryTracker::record_allocation(size_t size) {
@@ -104,7 +107,8 @@ size_t MemoryTracker::get_vulkan_peak_usage() {
 
 void MemoryTracker::log_memory_stats() {
   auto now = std::chrono::steady_clock::now();
-  auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - start_time).count();
+  auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(
+      now - get_start_time()).count();
   
   auto format_bytes = [](size_t bytes) -> std::string {
     std::ostringstream oss;
@@ -144,7 +148,7 @@ void MemoryTracker::reset_stats() {
   vulkan_deallocated.store(0, std::memory_order_relaxed);
   vulkan_peak_usage.store(0, std::memory_order_relaxed);
   
-  start_time = std::chrono::steady_clock::now();
+  // Note: start_time cannot be reset as it's a const static local in get_start_time()
 }
 
 } // namespace CE

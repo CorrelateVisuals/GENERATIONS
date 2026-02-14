@@ -27,6 +27,7 @@ public:
   static void reset_stats();
   
   static bool is_enabled();
+  static std::chrono::steady_clock::time_point get_start_time();
 
 private:
   static std::atomic<size_t> total_allocated;
@@ -36,8 +37,6 @@ private:
   static std::atomic<size_t> vulkan_allocated;
   static std::atomic<size_t> vulkan_deallocated;
   static std::atomic<size_t> vulkan_peak_usage;
-  
-  static std::chrono::steady_clock::time_point start_time;
 };
 
 } // namespace CE

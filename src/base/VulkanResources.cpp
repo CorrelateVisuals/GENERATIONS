@@ -118,6 +118,7 @@ void CE::Buffer::create(const VkDeviceSize &size,
                     nullptr,
                     &buffer.memory);
   
+  // vulkan_result throws on failure, so we only reach here if allocation succeeded
   buffer.allocated_size = allocateInfo.allocationSize;
   MemoryTracker::record_vulkan_allocation(allocateInfo.allocationSize);
   
@@ -301,6 +302,7 @@ void CE::Image::create(const uint32_t width,
                     nullptr,
                     &this->memory);
   
+  // vulkan_result throws on failure, so we only reach here if allocation succeeded
   this->allocated_size = allocateInfo.allocationSize;
   MemoryTracker::record_vulkan_allocation(allocateInfo.allocationSize);
   
