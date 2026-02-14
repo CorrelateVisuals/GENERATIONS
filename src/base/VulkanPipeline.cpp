@@ -7,8 +7,46 @@
 
 #include <algorithm>
 #include <chrono>
+#include <filesystem>
 #include <fstream>
 #include <stdexcept>
+
+namespace {
+
+std::string resolve_shader_spv_path(const std::string &shader_dir,
+                                    const std::string &shader_name) {
+  const std::string alias_path = shader_dir + shader_name;
+
+  if (shader_name.size() <= 4 || shader_name.rfind(".spv") != shader_name.size() - 4) {
+    return alias_path;
+  }
+
+  const std::string base = shader_name.substr(0, shader_name.size() - 4);
+  const std::array<std::pair<std::string_view, std::string_view>, 6> stage_suffix = {{
+      {"Comp", "comp"},
+      {"Vert", "vert"},
+      {"Tesc", "tesc"},
+      {"Tese", "tese"},
+      {"Frag", "frag"},
+      {"Geom", "geom"},
+  }};
+
+  for (const auto &[token, extension] : stage_suffix) {
+    if (base.size() >= token.size() && base.rfind(token) == base.size() - token.size()) {
+      const std::string source_base = base.substr(0, base.size() - token.size());
+      const std::string canonical_path = shader_dir + source_base + "." +
+                                         std::string(extension) + ".spv";
+      if (std::filesystem::exists(canonical_path)) {
+        return canonical_path;
+      }
+      break;
+    }
+  }
+
+  return alias_path;
+}
+
+} // namespace
 
 CE::RenderPass::~RenderPass() {
   Log::text("{ []< }", "destructing Render Pass");
@@ -373,7 +411,7 @@ CE::PipelinesConfiguration::create_shader_modules(VkShaderStageFlagBits shaderSt
                                                   std::string shaderName) {
   Log::text(Log::Style::char_leader, "Shader Module", shaderName);
 
-  std::string shaderPath = this->shader_dir + shaderName;
+  std::string shaderPath = resolve_shader_spv_path(this->shader_dir, shaderName);
   auto shaderCode = read_shader_file(shaderPath);
   VkShaderModule shaderModule{VK_NULL_HANDLE};
 
@@ -439,8 +477,14 @@ void CE::PipelinesConfiguration::compile_shaders() {
           stage_tokens.contains(shader) ? (pipelineName + shader) : shader;
       std::string shaderSourcePath = this->shader_dir + source_base + "." + extension;
       std::string shaderOutputPath = this->shader_dir + output_base + ".spv";
-      std::ifstream outputFile(shaderOutputPath);
-      if (outputFile.good()) {
+      bool shouldCompile = true;
+      if (std::filesystem::exists(shaderOutputPath)) {
+        const auto sourceWriteTime = std::filesystem::last_write_time(shaderSourcePath);
+        const auto outputWriteTime = std::filesystem::last_write_time(shaderOutputPath);
+        shouldCompile = sourceWriteTime > outputWriteTime;
+      }
+
+      if (!shouldCompile) {
         continue;
       }
       systemCommand = Lib::path(shaderSourcePath + " -o " + shaderOutputPath);

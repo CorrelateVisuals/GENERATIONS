@@ -1,7 +1,13 @@
 #version 450
 
 
+layout (location = 0) in vec3 inWorldPos[];
+layout (location = 1) in vec3 inWorldNormal[];
+layout (location = 2) in vec3 inAlbedo[];
 layout (vertices = 3) out;
+layout (location = 0) out vec3 outWorldPos[3];
+layout (location = 1) out vec3 outWorldNormal[3];
+layout (location = 2) out vec3 outAlbedo[3];
 
 float edgeTessLevel(vec4 a, vec4 b) {
     const float eps = 1e-5;
@@ -31,4 +37,7 @@ void main(void)
     }
 
     gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position;
+    outWorldPos[gl_InvocationID] = inWorldPos[gl_InvocationID];
+    outWorldNormal[gl_InvocationID] = inWorldNormal[gl_InvocationID];
+    outAlbedo[gl_InvocationID] = inAlbedo[gl_InvocationID];
 }
