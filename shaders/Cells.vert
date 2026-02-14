@@ -82,10 +82,16 @@ float terrain_height(vec2 p) {
 layout(location = 0) out vec4 fragColor;
 
 void main() {
+    bool aliveCell = (inStates.x == 1);
+    if (!aliveCell) {
+        fragColor = vec4(0.0f);
+        gl_Position = vec4(2.0f, 2.0f, 2.0f, 1.0f);
+        return;
+    }
+
     vec3 cellBase = inPosition.xyz;
-    float cellScale = max(inPosition.w * 1.35f, 0.0f);
-    float aliveMask = step(0.0001f, cellScale);
-    float lift = max(cellScale * 0.65f, 0.25f) * aliveMask;
+    float cellScale = max(inPosition.w * 1.20f, ubo.cellSize * 0.85f);
+    float lift = max(cellScale * 0.52f, 0.08f);
     cellBase.z += terrain_height(inPosition.xy) + lift;
 
     vec4 position = vec4(cellBase + (inVertex.xyz * cellScale), 1.0f);
@@ -94,7 +100,7 @@ void main() {
     vec3 worldNormal = normalize(mat3(ubo.model) * inNormal.xyz);
 
     vec3 lightDirection = normalize(ubo.light.rgb - worldPosition.xyz);
-    float diffuseIntensity = max(dot(worldNormal, lightDirection), 0.30f);
+    float diffuseIntensity = max(dot(worldNormal, lightDirection), 0.42f);
 
     fragColor = inColor * diffuseIntensity;
     gl_Position = ubo.projection * viewPosition;

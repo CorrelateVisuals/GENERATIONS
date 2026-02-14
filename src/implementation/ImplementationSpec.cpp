@@ -39,7 +39,7 @@ ImplementationSpec default_spec() {
   spec.world.arcball_pan_mult = 0.85f;
   spec.world.arcball_dolly_mult = 0.8f;
   spec.world.rectangle_shape = 0;
-  spec.world.sphere_shape = 2;
+  spec.world.sphere_shape = 1;
 
     spec.pipelines["Cells"] = CE::Runtime::PipelineDefinition{
       .is_compute = false,
