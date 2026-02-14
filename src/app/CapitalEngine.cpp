@@ -16,9 +16,17 @@ constexpr size_t GRAPHICS_WAIT_COUNT = 2;
 constexpr uint32_t SINGLE_OBJECT_COUNT = 1;
 } // namespace
 
-CapitalEngine::CapitalEngine() : resources(mechanics), pipelines(mechanics, resources) {
+CapitalEngine::CapitalEngine() : resources(mechanics), pipelines(mechanics, resources), imgui_ui(mechanics, pipelines) {
   Log::text(Log::Style::header_guard);
   Log::text("| CAPITAL Engine");
+  
+  // Upload ImGui fonts after initialization
+  imgui_ui.upload_fonts(resources.commands.pool, mechanics.queues.graphics_queue);
+  
+  // Set callback for ImGui rendering
+  resources.commands.pre_render_pass_end_callback = [this](VkCommandBuffer cmd_buffer) {
+    imgui_ui.render(cmd_buffer);
+  };
 }
 
 CapitalEngine::~CapitalEngine() {
@@ -79,6 +87,9 @@ void CapitalEngine::main_loop() {
 
 void CapitalEngine::draw_frame() {
   const uint32_t frameIndex = mechanics.sync_objects.current_frame;
+
+  // Start ImGui frame
+  imgui_ui.new_frame();
 
   // Compute submission
   vkWaitForFences(mechanics.main_device.logical_device,
@@ -145,6 +156,9 @@ void CapitalEngine::draw_frame() {
                 &mechanics.sync_objects.graphics_in_flight_fences[frameIndex]);
 
   vkResetCommandBuffer(resources.commands.graphics[frameIndex], 0);
+
+  // Build ImGui UI
+  imgui_ui.render_demo_window();
 
     resources.commands.record_graphics_command_buffer(
       mechanics.swapchain, resources, pipelines, frameIndex, imageIndex);

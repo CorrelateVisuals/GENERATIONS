@@ -1,5 +1,6 @@
 #pragma once
 #include "base/VulkanSync.h"
+#include <functional>
 
 namespace CE {
 
@@ -15,6 +16,10 @@ public:
                                         Pipelines &pipelines,
                                         const uint32_t frame_index,
                                         const uint32_t image_index) override;
+    
+    // Set a callback to be called before ending the render pass
+    // This allows app layer to add additional rendering (e.g., ImGui)
+    std::function<void(VkCommandBuffer)> pre_render_pass_end_callback;
   };
 };
 } // namespace CE

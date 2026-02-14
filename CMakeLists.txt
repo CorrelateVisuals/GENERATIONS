@@ -28,9 +28,22 @@ add_compile_options(
 
 include_directories(${PROJECT_SOURCE_DIR}/src)
 include_directories(${PROJECT_SOURCE_DIR}/libraries)
+include_directories(${PROJECT_SOURCE_DIR}/libraries/imgui)
 
 
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
+
+# ImGui sources
+set(IMGUI_DIR ${PROJECT_SOURCE_DIR}/libraries/imgui)
+set(IMGUI_SOURCES
+    ${IMGUI_DIR}/imgui.cpp
+    ${IMGUI_DIR}/imgui_demo.cpp
+    ${IMGUI_DIR}/imgui_draw.cpp
+    ${IMGUI_DIR}/imgui_tables.cpp
+    ${IMGUI_DIR}/imgui_widgets.cpp
+    ${IMGUI_DIR}/backends/imgui_impl_glfw.cpp
+    ${IMGUI_DIR}/backends/imgui_impl_vulkan.cpp
+)
 
 file(GLOB_RECURSE CAPITALENGINE_SOURCES CONFIGURE_DEPENDS
     RELATIVE "${CMAKE_SOURCE_DIR}"
@@ -78,7 +91,7 @@ add_custom_target(architecture_check
     COMMENT "Checking folder dependency boundaries"
 )
 
-add_executable(CapitalEngine ${CAPITALENGINE_SOURCES} ${SHADERS})
+add_executable(CapitalEngine ${CAPITALENGINE_SOURCES} ${IMGUI_SOURCES} ${SHADERS})
 add_dependencies(CapitalEngine architecture_check)
 
 target_link_libraries(CapitalEngine glfw)

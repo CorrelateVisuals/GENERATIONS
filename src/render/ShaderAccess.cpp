@@ -159,6 +159,12 @@ void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
                         resources.world._rectangle.vertex_buffer.buffer,
                         resources.world._rectangle.index_buffer.buffer,
                         static_cast<uint32_t>(resources.world._rectangle.indices.size()));
+  
+  // Allow app layer to inject additional rendering (e.g., ImGui)
+  if (pre_render_pass_end_callback) {
+    pre_render_pass_end_callback(command_buffer);
+  }
+  
   vkCmdEndRenderPass(command_buffer);
 
   //       This is part of an image memory barrier (i.e., vkCmdPipelineBarrier
