@@ -74,6 +74,27 @@ bool ShaderGraph::add_graphics_draw_binding(const GraphicsDrawBinding &binding,
   return true;
 }
 
+bool ShaderGraph::add_pipeline_definition(const PipelineDefinition &definition,
+                                          std::string &error) {
+  if (is_blank(definition.pipeline_name)) {
+    error = "pipeline definition name cannot be blank";
+    return false;
+  }
+  if (pipeline_definition_index_by_name_.contains(definition.pipeline_name)) {
+    error = "duplicate pipeline definition: " + definition.pipeline_name;
+    return false;
+  }
+  if (definition.shader_ids.empty()) {
+    error = "pipeline definition has no shaders: " + definition.pipeline_name;
+    return false;
+  }
+
+  pipeline_definition_index_by_name_[definition.pipeline_name] =
+      pipeline_definitions_.size();
+  pipeline_definitions_.push_back(definition);
+  return true;
+}
+
 bool ShaderGraph::add_setting(const std::string &key,
                               const std::string &value,
                               std::string &error) {
@@ -124,14 +145,48 @@ bool ShaderGraph::validate(std::string &error) const {
     return false;
   }
 
-  for (const GraphicsDrawBinding &binding : graphics_draw_bindings_) {
-    bool pipeline_exists = false;
-    for (const ShaderNode &node : nodes_) {
-      if (node.shader_name == binding.pipeline_name && node.stage != ShaderStage::Comp) {
-        pipeline_exists = true;
-        break;
+  for (const PipelineDefinition &pipeline : pipeline_definitions_) {
+    bool has_compute = false;
+    bool has_graphics = false;
+
+    for (const std::string &shader_id : pipeline.shader_ids) {
+      if (!node_index_by_id_.contains(shader_id)) {
+        error = "pipeline definition references unknown shader node: " + shader_id;
+        return false;
+      }
+
+      const ShaderNode &node = nodes_[node_index_by_id_.at(shader_id)];
+      if (node.stage == ShaderStage::Comp) {
+        has_compute = true;
+      } else {
+        has_graphics = true;
       }
     }
+
+    if (pipeline.is_compute && !has_compute) {
+      error = "compute pipeline definition has no compute shader: " +
+              pipeline.pipeline_name;
+      return false;
+    }
+
+    if (!pipeline.is_compute && !has_graphics) {
+      error = "graphics pipeline definition has no graphics shaders: " +
+              pipeline.pipeline_name;
+      return false;
+    }
+  }
+
+  for (const GraphicsDrawBinding &binding : graphics_draw_bindings_) {
+    bool pipeline_exists = pipeline_definition_index_by_name_.contains(binding.pipeline_name);
+    if (!pipeline_exists) {
+      for (const ShaderNode &node : nodes_) {
+        if (node.shader_name == binding.pipeline_name && node.stage != ShaderStage::Comp) {
+          pipeline_exists = true;
+          break;
+        }
+      }
+    }
+
     if (!pipeline_exists) {
       error = "graphics draw binding references unknown graphics pipeline: " +
               binding.pipeline_name;

@@ -28,6 +28,19 @@ std::vector<std::string> split_tokens(const std::string &line) {
   return tokens;
 }
 
+std::vector<std::string> split_csv(const std::string &value) {
+  std::vector<std::string> result;
+  std::string token;
+  std::istringstream stream(value);
+  while (std::getline(stream, token, ',')) {
+    const std::string trimmed = trim_copy(token);
+    if (!trimmed.empty()) {
+      result.push_back(trimmed);
+    }
+  }
+  return result;
+}
+
 std::string read_command_stdout(const std::string &command, int &exit_code) {
   std::array<char, 256> buffer{};
   std::string output;
@@ -126,6 +139,47 @@ ShaderGraph PythonGraphScript::load(const std::filesystem::path &script_path) {
       if (!graph.add_graphics_draw_binding(
               GraphicsDrawBinding{.pipeline_name = tokens[1], .draw_op = tokens[2]}, error)) {
         throw std::runtime_error("invalid DRAW record at line " +
+                                 std::to_string(line_number) + ": " + error);
+      }
+      continue;
+    }
+
+    if (record == "PIPELINE") {
+      if (tokens.size() != 4 && tokens.size() != 5) {
+        throw std::runtime_error("invalid PIPELINE record at line " +
+                                 std::to_string(line_number));
+      }
+
+      const bool is_compute = tokens[2] == "compute";
+      if (!is_compute && tokens[2] != "graphics") {
+        throw std::runtime_error("invalid PIPELINE type at line " +
+                                 std::to_string(line_number) + ": " + tokens[2]);
+      }
+
+      const std::vector<std::string> shader_ids = split_csv(tokens[3]);
+      if (shader_ids.empty()) {
+        throw std::runtime_error("PIPELINE has empty shader list at line " +
+                                 std::to_string(line_number));
+      }
+
+      std::array<uint32_t, 3> work_groups{0, 0, 0};
+      if (tokens.size() == 5) {
+        const std::vector<std::string> group_tokens = split_csv(tokens[4]);
+        if (group_tokens.size() != 3) {
+          throw std::runtime_error("PIPELINE workgroups must have 3 values at line " +
+                                   std::to_string(line_number));
+        }
+        work_groups = {static_cast<uint32_t>(std::stoul(group_tokens[0])),
+                       static_cast<uint32_t>(std::stoul(group_tokens[1])),
+                       static_cast<uint32_t>(std::stoul(group_tokens[2]))};
+      }
+
+      if (!graph.add_pipeline_definition(PipelineDefinition{.pipeline_name = tokens[1],
+                                                            .is_compute = is_compute,
+                                                            .shader_ids = shader_ids,
+                                                            .work_groups = work_groups},
+                                         error)) {
+        throw std::runtime_error("invalid PIPELINE record at line " +
                                  std::to_string(line_number) + ": " + error);
       }
       continue;

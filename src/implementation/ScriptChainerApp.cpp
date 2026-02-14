@@ -5,8 +5,10 @@
 #include "core/Log.h"
 #include "core/RuntimeConfig.h"
 
+#include <algorithm>
 #include <array>
 #include <charconv>
+#include <cstdint>
 #include <stdexcept>
 #include <string_view>
 #include <unordered_map>
@@ -157,6 +159,175 @@ void apply_graph_runtime_settings(const CE::Implementation::ShaderGraph &graph) 
   CE::Runtime::set_world_settings(world);
 }
 
+int shader_stage_rank(const CE::Implementation::ShaderStage stage) {
+  switch (stage) {
+  case CE::Implementation::ShaderStage::Vert:
+    return 0;
+  case CE::Implementation::ShaderStage::Tesc:
+    return 1;
+  case CE::Implementation::ShaderStage::Tese:
+    return 2;
+  case CE::Implementation::ShaderStage::Geom:
+    return 3;
+  case CE::Implementation::ShaderStage::Frag:
+    return 4;
+  case CE::Implementation::ShaderStage::Comp:
+    return 5;
+  case CE::Implementation::ShaderStage::Unknown:
+    return 6;
+  }
+  return 6;
+}
+
+std::array<uint32_t, 3> parse_workgroups_setting(
+    const std::unordered_map<std::string, std::string> &settings,
+    const std::string &pipeline_name,
+    const std::array<uint32_t, 3> fallback) {
+  const std::string key = "workgroups." + pipeline_name;
+  const auto it = settings.find(key);
+  if (it == settings.end()) {
+    return fallback;
+  }
+
+  std::array<float, 3> parsed =
+      parse_float_array_setting<3>(settings, key.c_str(),
+                                   {static_cast<float>(fallback[0]),
+                                    static_cast<float>(fallback[1]),
+                                    static_cast<float>(fallback[2])});
+
+  return {static_cast<uint32_t>(std::max(1.0f, parsed[0])),
+          static_cast<uint32_t>(std::max(1.0f, parsed[1])),
+          static_cast<uint32_t>(std::max(1.0f, parsed[2]))};
+}
+
+void install_pipeline_definitions_from_graph(const CE::Implementation::ShaderGraph &graph) {
+  if (!graph.pipeline_definitions().empty()) {
+    std::unordered_map<std::string, CE::Runtime::PipelineDefinition> definitions{};
+    const CE::Runtime::TerrainSettings &terrain = CE::Runtime::get_terrain_settings();
+
+    for (const CE::Implementation::PipelineDefinition &pipeline :
+         graph.pipeline_definitions()) {
+      CE::Runtime::PipelineDefinition definition{};
+      definition.is_compute = pipeline.is_compute;
+      definition.shaders = pipeline.shader_ids;
+
+      if (pipeline.is_compute) {
+        std::array<uint32_t, 3> fallback{1, 1, 1};
+        if (pipeline.pipeline_name == "Engine") {
+          fallback = {static_cast<uint32_t>(terrain.grid_width + 31) / 32,
+                      static_cast<uint32_t>(terrain.grid_height + 31) / 32,
+                      1};
+        }
+        definition.work_groups = pipeline.work_groups;
+        if (definition.work_groups[0] == 0 || definition.work_groups[1] == 0 ||
+            definition.work_groups[2] == 0) {
+          definition.work_groups = fallback;
+        }
+      }
+
+      definitions[pipeline.pipeline_name] = definition;
+    }
+
+    CE::Runtime::set_pipeline_definitions(definitions);
+    return;
+  }
+
+  std::unordered_map<std::string, CE::Runtime::PipelineDefinition> definitions{};
+  std::unordered_map<std::string, CE::Implementation::ShaderStage> node_stage_by_id{};
+  std::unordered_map<std::string,
+                     std::unordered_map<CE::Implementation::ShaderStage, std::string>>
+      stage_node_by_pipeline{};
+
+  const auto &settings = graph.settings();
+  const CE::Runtime::TerrainSettings &terrain = CE::Runtime::get_terrain_settings();
+
+  for (const CE::Implementation::ShaderNode &node : graph.nodes()) {
+    CE::Runtime::PipelineDefinition &definition = definitions[node.shader_name];
+    definition.is_compute = definition.is_compute ||
+                            (node.stage == CE::Implementation::ShaderStage::Comp);
+    definition.shaders.push_back(node.id);
+    node_stage_by_id[node.id] = node.stage;
+    stage_node_by_pipeline[node.shader_name].try_emplace(node.stage, node.id);
+  }
+
+  for (auto &[pipeline_name, definition] : definitions) {
+    if (!definition.is_compute) {
+      bool has_vert = false;
+      bool has_frag = false;
+      for (const std::string &shader_id : definition.shaders) {
+        const auto stage_it = node_stage_by_id.find(shader_id);
+        if (stage_it == node_stage_by_id.end()) {
+          continue;
+        }
+        has_vert = has_vert || (stage_it->second == CE::Implementation::ShaderStage::Vert);
+        has_frag = has_frag || (stage_it->second == CE::Implementation::ShaderStage::Frag);
+      }
+
+      constexpr std::string_view wireframe_suffix = "WireFrame";
+      if ((!has_vert || !has_frag) && pipeline_name.ends_with(wireframe_suffix)) {
+        const std::string base_pipeline_name =
+            pipeline_name.substr(0, pipeline_name.size() - wireframe_suffix.size());
+        const auto base_pipeline_it = stage_node_by_pipeline.find(base_pipeline_name);
+        if (base_pipeline_it == stage_node_by_pipeline.end()) {
+          continue;
+        }
+
+        if (!has_vert) {
+          const auto base_vert_it =
+              base_pipeline_it->second.find(CE::Implementation::ShaderStage::Vert);
+          if (base_vert_it != base_pipeline_it->second.end()) {
+            definition.shaders.push_back(base_vert_it->second);
+          }
+        }
+        if (!has_frag) {
+          const auto base_frag_it =
+              base_pipeline_it->second.find(CE::Implementation::ShaderStage::Frag);
+          if (base_frag_it != base_pipeline_it->second.end()) {
+            definition.shaders.push_back(base_frag_it->second);
+          }
+        }
+      }
+    }
+
+    std::sort(definition.shaders.begin(),
+              definition.shaders.end(),
+              [&node_stage_by_id](const std::string &a, const std::string &b) {
+                const auto stage_a_it = node_stage_by_id.find(a);
+                const auto stage_b_it = node_stage_by_id.find(b);
+                const CE::Implementation::ShaderStage stage_a =
+                    (stage_a_it == node_stage_by_id.end())
+                        ? CE::Implementation::ShaderStage::Unknown
+                        : stage_a_it->second;
+                const CE::Implementation::ShaderStage stage_b =
+                    (stage_b_it == node_stage_by_id.end())
+                        ? CE::Implementation::ShaderStage::Unknown
+                        : stage_b_it->second;
+                const int rank_a = shader_stage_rank(stage_a);
+                const int rank_b = shader_stage_rank(stage_b);
+                if (rank_a != rank_b) {
+                  return rank_a < rank_b;
+                }
+                return a < b;
+              });
+
+    definition.shaders.erase(
+        std::unique(definition.shaders.begin(), definition.shaders.end()),
+        definition.shaders.end());
+
+    if (definition.is_compute) {
+      std::array<uint32_t, 3> fallback{1, 1, 1};
+      if (pipeline_name == "Engine") {
+        fallback = {static_cast<uint32_t>(terrain.grid_width + 31) / 32,
+                    static_cast<uint32_t>(terrain.grid_height + 31) / 32,
+                    1};
+      }
+      definition.work_groups = parse_workgroups_setting(settings, pipeline_name, fallback);
+    }
+  }
+
+  CE::Runtime::set_pipeline_definitions(definitions);
+}
+
 } // namespace
 
 namespace CE::Implementation {
@@ -186,6 +357,7 @@ void ScriptChainerApp::run(const std::filesystem::path &script_path) {
   }
 
   apply_graph_runtime_settings(graph);
+  install_pipeline_definitions_from_graph(graph);
 
   const CE::Runtime::PipelineExecutionPlan plan = build_execution_plan(graph);
   CE::Runtime::set_pipeline_execution_plan(plan);

@@ -157,7 +157,11 @@ void CE::PipelinesConfiguration::create_pipelines(VkRenderPass &render_pass,
       throw std::runtime_error("\n!ERROR! Pipeline has no shaders: " + pipelineName);
     }
 
-    bool isCompute = std::find(shaders.begin(), shaders.end(), "Comp") != shaders.end();
+    const bool isCompute = std::any_of(
+      shaders.begin(), shaders.end(), [](const std::string &shader) {
+        return shader == "Comp" ||
+           (shader.size() >= 4 && shader.rfind("Comp") == shader.size() - 4);
+      });
 
     if (!isCompute) {
       Log::text("{ === }", "Graphics Pipeline: ", pipelineName);
@@ -269,8 +273,12 @@ void CE::PipelinesConfiguration::create_pipelines(VkRenderPass &render_pass,
                 workGroups[1],
                 workGroups[2]);
 
-        VkPipelineShaderStageCreateInfo shaderStage{create_shader_modules(
-          VK_SHADER_STAGE_COMPUTE_BIT, pipelineName + shaders[0] + ".spv")};
+      const std::string shaderToken = shaders[0];
+      const std::string shaderModuleName =
+          (shaderToken == "Comp") ? (pipelineName + shaderToken) : shaderToken;
+
+      VkPipelineShaderStageCreateInfo shaderStage{create_shader_modules(
+          VK_SHADER_STAGE_COMPUTE_BIT, shaderModuleName + ".spv")};
 
       VkComputePipelineCreateInfo pipelineInfo{
           .sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
@@ -394,26 +402,49 @@ CE::PipelinesConfiguration::create_shader_modules(VkShaderStageFlagBits shaderSt
 void CE::PipelinesConfiguration::compile_shaders() {
   Log::text("{ GLSL }", "Compile Shaders");
   std::string systemCommand{};
-  std::string shaderExtension{};
   std::string pipelineName{};
+
+  const std::unordered_map<std::string, std::string> stage_tokens{{"Comp", "comp"},
+                                                                   {"Vert", "vert"},
+                                                                   {"Tesc", "tesc"},
+                                                                   {"Tese", "tese"},
+                                                                   {"Frag", "frag"},
+                                                                   {"Geom", "geom"}};
+
+  const auto resolve_stage_extension =
+      [&](const std::string &shader_name) -> std::pair<std::string, std::string> {
+    if (const auto token = stage_tokens.find(shader_name); token != stage_tokens.end()) {
+      return {pipelineName, token->second};
+    }
+
+    for (const auto &[token, extension] : stage_tokens) {
+      if (shader_name.size() >= token.size() &&
+          shader_name.rfind(token) == shader_name.size() - token.size()) {
+        return {shader_name.substr(0, shader_name.size() - token.size()), extension};
+      }
+    }
+    return {"", ""};
+  };
 
   for (const auto &entry : this->pipeline_map) {
     pipelineName = entry.first;
     std::vector<std::string> shaders = get_pipeline_shaders_by_name(pipelineName);
     for (const auto &shader : shaders) {
-      if (shader == "Comp" || shader == "Vert" || shader == "Tesc" || shader == "Tese" ||
-          shader == "Frag") {
-        shaderExtension = Lib::upper_to_lower_case(shader);
-        std::string shaderSourcePath =
-            this->shader_dir + pipelineName + "." + shaderExtension;
-          std::string shaderOutputPath = this->shader_dir + pipelineName + shader + ".spv";
-        std::ifstream outputFile(shaderOutputPath);
-        if (outputFile.good()) {
-          continue;
-        }
-        systemCommand = Lib::path(shaderSourcePath + " -o " + shaderOutputPath);
-        system(systemCommand.c_str());
+      const auto [source_base, extension] = resolve_stage_extension(shader);
+      if (source_base.empty() || extension.empty()) {
+        continue;
       }
+
+      const std::string output_base =
+          stage_tokens.contains(shader) ? (pipelineName + shader) : shader;
+      std::string shaderSourcePath = this->shader_dir + source_base + "." + extension;
+      std::string shaderOutputPath = this->shader_dir + output_base + ".spv";
+      std::ifstream outputFile(shaderOutputPath);
+      if (outputFile.good()) {
+        continue;
+      }
+      systemCommand = Lib::path(shaderSourcePath + " -o " + shaderOutputPath);
+      system(systemCommand.c_str());
     }
   }
 }

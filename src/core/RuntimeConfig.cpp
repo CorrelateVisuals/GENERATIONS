@@ -10,6 +10,7 @@ namespace CE::Runtime {
 namespace {
 
 std::optional<PipelineExecutionPlan> active_plan{};
+std::unordered_map<std::string, PipelineDefinition> active_pipeline_definitions{};
 std::unordered_map<std::string, std::string> active_graphics_draw_ops{};
 TerrainSettings active_terrain_settings{};
 WorldSettings active_world_settings{};
@@ -44,6 +45,15 @@ const PipelineExecutionPlan *get_pipeline_execution_plan() {
   return active_plan ? &(*active_plan) : nullptr;
 }
 
+void set_pipeline_definitions(
+    const std::unordered_map<std::string, PipelineDefinition> &definitions) {
+  active_pipeline_definitions = definitions;
+}
+
+const std::unordered_map<std::string, PipelineDefinition> &get_pipeline_definitions() {
+  return active_pipeline_definitions;
+}
+
 void set_terrain_settings(const TerrainSettings &settings) {
   active_terrain_settings = settings;
 }
@@ -71,6 +81,7 @@ const std::string *get_graphics_draw_op(const std::string &pipeline_name) {
 
 void clear_pipeline_execution_plan() {
   active_plan.reset();
+  active_pipeline_definitions.clear();
   active_graphics_draw_ops.clear();
 }
 

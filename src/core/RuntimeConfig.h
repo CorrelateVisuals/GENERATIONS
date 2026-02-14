@@ -26,6 +26,12 @@ struct PipelineExecutionPlan {
   std::vector<std::string> post_graphics_compute{};
 };
 
+struct PipelineDefinition {
+  bool is_compute = false;
+  std::vector<std::string> shaders{};
+  std::array<uint32_t, 3> work_groups{0, 0, 0};
+};
+
 struct TerrainSettings {
   int grid_width = 100;
   int grid_height = 100;
@@ -74,6 +80,10 @@ struct WorldSettings {
 
 void set_pipeline_execution_plan(const PipelineExecutionPlan &plan);
 const PipelineExecutionPlan *get_pipeline_execution_plan();
+
+void set_pipeline_definitions(
+  const std::unordered_map<std::string, PipelineDefinition> &definitions);
+const std::unordered_map<std::string, PipelineDefinition> &get_pipeline_definitions();
 
 void set_terrain_settings(const TerrainSettings &settings);
 const TerrainSettings &get_terrain_settings();

@@ -5,6 +5,7 @@
 #include "core/RuntimeConfig.h"
 
 #include <functional>
+#include <string_view>
 #include <unordered_map>
 #include <stdexcept>
 
@@ -164,18 +165,42 @@ void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
                           static_cast<uint32_t>(resources.world._rectangle.indices.size()));
   };
 
+  const auto draw_cube_indexed = [&](const std::string &pipeline_name) {
+    vkCmdBindPipeline(command_buffer,
+                      VK_PIPELINE_BIND_POINT_GRAPHICS,
+                      pipelines.config.get_pipeline_object_by_name(pipeline_name));
+
+    VkBuffer vertex_buffers[] = {resources.world._cube.vertex_buffer.buffer};
+    VkDeviceSize offsets[] = {0};
+    vkCmdBindVertexBuffers(command_buffer, 0, 1, vertex_buffers, offsets);
+
+    const bool has_index_data = !resources.world._cube.indices.empty() &&
+                                resources.world._cube.index_buffer.buffer != VK_NULL_HANDLE;
+    if (has_index_data) {
+      vkCmdBindIndexBuffer(command_buffer,
+                           resources.world._cube.index_buffer.buffer,
+                           0,
+                           VK_INDEX_TYPE_UINT32);
+      vkCmdDrawIndexed(command_buffer,
+                       static_cast<uint32_t>(resources.world._cube.indices.size()),
+                       1,
+                       0,
+                       0,
+                       0);
+      return;
+    }
+
+    vkCmdDraw(command_buffer,
+              static_cast<uint32_t>(resources.world._cube.all_vertices.size()),
+              1,
+              0,
+              0);
+  };
+
   const CE::Runtime::PipelineExecutionPlan *plan = CE::Runtime::get_pipeline_execution_plan();
   const std::vector<std::string> empty_graphics{};
   const std::vector<std::string> &graphics_order =
       (plan && !plan->graphics.empty()) ? plan->graphics : empty_graphics;
-
-  const std::unordered_map<std::string, std::function<void(const std::string &)>>
-      graphics_draw_op_handlers{
-          {"cells_instanced", draw_cells},
-          {"grid_indexed", draw_grid_indexed},
-          {"grid_wireframe", draw_grid_wireframe},
-          {"rectangle_indexed", draw_rectangle_indexed},
-  };
 
   for (const std::string &pipeline_name : graphics_order) {
     const std::string *draw_op = CE::Runtime::get_graphics_draw_op(pipeline_name);
@@ -183,9 +208,38 @@ void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
       continue;
     }
 
-    const auto handler = graphics_draw_op_handlers.find(*draw_op);
-    if (handler != graphics_draw_op_handlers.end()) {
-      handler->second(pipeline_name);
+    if (*draw_op == "cells_instanced" || *draw_op == "instanced:cells") {
+      draw_cells(pipeline_name);
+      continue;
+    }
+
+    if (*draw_op == "grid_indexed" || *draw_op == "grid_wireframe" ||
+        *draw_op == "indexed:grid") {
+      draw_grid_indexed(pipeline_name);
+      continue;
+    }
+
+    if (*draw_op == "rectangle_indexed" || *draw_op == "indexed:rectangle") {
+      draw_rectangle_indexed(pipeline_name);
+      continue;
+    }
+
+    if (*draw_op == "indexed:cube") {
+      draw_cube_indexed(pipeline_name);
+      continue;
+    }
+
+    constexpr std::string_view indexed_prefix = "indexed:";
+    if (draw_op->rfind(indexed_prefix.data(), 0) == 0) {
+      const std::string_view target =
+          std::string_view(*draw_op).substr(indexed_prefix.size());
+      if (target == "grid") {
+        draw_grid_indexed(pipeline_name);
+      } else if (target == "cube") {
+        draw_cube_indexed(pipeline_name);
+      } else {
+        draw_rectangle_indexed(pipeline_name);
+      }
     }
   }
   vkCmdEndRenderPass(command_buffer);
