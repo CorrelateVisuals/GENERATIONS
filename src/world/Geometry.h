@@ -36,8 +36,9 @@ public:
   static std::vector<VkVertexInputAttributeDescription> get_attribute_description();
 
   bool operator==(const Vertex &other) const {
-    return vertex_position == other.vertex_position && color == other.color &&
-           texture_coordinates == other.texture_coordinates && normal == other.normal;
+    return instance_position == other.instance_position &&
+           vertex_position == other.vertex_position && normal == other.normal &&
+           color == other.color && texture_coordinates == other.texture_coordinates;
   }
 };
 

@@ -191,7 +191,14 @@ std::vector<uint32_t> Geometry::create_grid_polygons(const std::vector<uint32_t>
                                                      uint32_t grid_width) {
   std::vector<uint32_t> result;
 
+  if (grid_width < 2 || vertices.size() < static_cast<size_t>(grid_width * 2)) {
+    return result;
+  }
+
   uint32_t numRows = static_cast<uint32_t>(vertices.size()) / grid_width;
+  if (numRows < 2) {
+    return result;
+  }
 
   for (uint32_t row = 0; row < numRows - 1; row++) {
     for (uint32_t col = 0; col < grid_width - 1; col++) {
@@ -220,8 +227,12 @@ void Geometry::create_vertex_buffer(VkCommandBuffer &command_buffer,
                                     const VkCommandPool &command_pool,
                                   const VkQueue &queue,
                                   const std::vector<Vertex> &vertices) {
+  if (vertices.empty()) {
+    return;
+  }
+
   CE::Buffer stagingResources;
-  VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
+  VkDeviceSize bufferSize = sizeof(Vertex) * vertices.size();
 
   CE::Buffer::create(bufferSize,
                      VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
@@ -265,8 +276,12 @@ void Geometry::create_index_buffer(VkCommandBuffer &command_buffer,
                                    const VkCommandPool &command_pool,
                                    const VkQueue &queue,
                                    const std::vector<uint32_t> &index_data) {
+  if (index_data.empty()) {
+    return;
+  }
+
   CE::Buffer stagingResources;
-  VkDeviceSize bufferSize = sizeof(index_data[0]) * index_data.size();
+  VkDeviceSize bufferSize = sizeof(uint32_t) * index_data.size();
 
   CE::Buffer::create(bufferSize,
                      VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
@@ -336,8 +351,7 @@ void Geometry::load_model(const std::string &model_name, Geometry &geometry) {
     std::cout << "WARN: " << warn << '\n';
   }
   if (!err.empty()) {
-    std::cerr << err << '\n';
-    return;
+    throw std::runtime_error(err);
   }
 
   if (Log::gpu_trace_enabled()) {
@@ -419,7 +433,7 @@ void Geometry::transform_model(std::vector<Vertex> &vertices,
         vertex.vertex_position *= scale;
         vertex.vertex_position = vertex.vertex_position + translation_distance;
 
-        vertex.normal = glm::vec3(rotationMatrix * glm::vec4(vertex.normal, 1.0f));
+        vertex.normal = glm::vec3(rotationMatrix * glm::vec4(vertex.normal, 0.0f));
         break;
       case ORIENTATION_ORDER::CE_ROTATE_TRANSLATE_SCALE:
         vertex.vertex_position =
@@ -427,7 +441,7 @@ void Geometry::transform_model(std::vector<Vertex> &vertices,
         vertex.vertex_position = vertex.vertex_position + translation_distance;
         vertex.vertex_position *= scale;
 
-        vertex.normal = glm::vec3(rotationMatrix * glm::vec4(vertex.normal, 1.0f));
+        vertex.normal = glm::vec3(rotationMatrix * glm::vec4(vertex.normal, 0.0f));
         break;
     }
   }

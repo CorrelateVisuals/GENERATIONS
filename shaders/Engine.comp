@@ -60,8 +60,8 @@ int getNeighbourIndex(ivec2 offset) {
 }
 
 bool neighbourAlive(int index) {
-    ivec2 currentState = cellIn[index].states.xy;
-    bool aliveState = currentState.x == alive && currentState.y == 1;
+    int currentLife = cellIn[index].states.x;
+    bool aliveState = currentLife == alive;
     return aliveState;
 }
 
@@ -78,6 +78,44 @@ int cycleNeighbours(int range) {
         neighboursAlive += int(neighbourAlive(neighbourIndex));
     }
     return neighboursAlive;
+}
+
+int closestAliveNeighbourIndex() {
+    const int numOffsets = 8;
+    ivec2 directNeighbourOffsets[numOffsets] = {
+        ivec2(-1, -1), ivec2(-1, 0), ivec2(-1, 1), ivec2(0, -1),
+        ivec2(0, 1), ivec2(1, -1), ivec2(1, 0), ivec2(1, 1)
+    };
+
+    float nearestDist2 = 1e20;
+    int nearestIndex = -1;
+    for (int i = 0; i < numOffsets; i++) {
+        int neighbourIndex = getNeighbourIndex(directNeighbourOffsets[i]);
+        if (!neighbourAlive(neighbourIndex)) {
+            continue;
+        }
+
+        vec2 delta = cellIn[neighbourIndex].position.xy - inPos.xy;
+        float dist2 = dot(delta, delta);
+        if (dist2 > 1e-6 && dist2 < nearestDist2) {
+            nearestDist2 = dist2;
+            nearestIndex = neighbourIndex;
+        }
+    }
+
+    return nearestIndex;
+}
+
+vec4 moveTowardsClosestAliveNeighbour(vec4 sourcePos) {
+    int neighbourIndex = closestAliveNeighbourIndex();
+    if (neighbourIndex < 0) {
+        return sourcePos;
+    }
+
+    vec2 targetXY = cellIn[neighbourIndex].position.xy;
+    vec2 delta = targetXY - sourcePos.xy;
+    sourcePos.xy += delta / 24.0;
+    return sourcePos;
 }
 
 bool aliveCell          = inStates.x == alive;
@@ -98,16 +136,17 @@ vec4 colorIncrement     = inColor + vec4(float((passedHours % cycleSize + 1)) / 
 
 void simulate(out Cell cell) {
     int neighbours  = cycleNeighbours(1);
+    vec4 movedPosOn = moveTowardsClosestAliveNeighbour(inPosOn);
 
     if (underWater) {   
        cell = Cell(inPosOff, inVertPos, inNormal, grey, setState(dead, 0) ); 
    } else if (stage(0)) {
-        cell = initialized ?    Cell(inPosOn, inVertPos, inNormal, white, setState(alive, 0) ) :
-               lifeCycle ?      Cell(inPosOn, inVertPos, inNormal, colorIncrement, setState(alive, 0) ) :
-               endOfStage ?     Cell(inPosOn, inVertPos, inNormal, white, setState(alive, 1) ) :
+        cell = initialized ?    Cell(movedPosOn, inVertPos, inNormal, white, setState(alive, 0) ) :
+               lifeCycle ?      Cell(movedPosOn, inVertPos, inNormal, colorIncrement, setState(alive, 0) ) :
+               endOfStage ?     Cell(movedPosOn, inVertPos, inNormal, white, setState(alive, 1) ) :
                                 Cell(inPosOff, inVertPos, inNormal, grey, setState(dead, 1) );
     } else if (stage(1)) {
-        cell = live(neighbours) ?   Cell(inPosOn, inVertPos, inNormal, white, setState(alive, 0) ) :
+        cell = live(neighbours) ?   Cell(movedPosOn, inVertPos, inNormal, white, setState(alive, 0) ) :
                die(neighbours) ?    Cell(inPosOff, inVertPos, inNormal, grey, setState(dead, 0) ) :
                                     Cell(inPosOff, inVertPos, inNormal, inColor, setState(dead, 1) );
     }
