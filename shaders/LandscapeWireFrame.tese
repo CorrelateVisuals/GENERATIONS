@@ -1,6 +1,6 @@
 #version 450
 
-layout(triangles, fractional_odd_spacing, cw) in;
+layout(triangles, equal_spacing, cw) in;
 
 layout (location = 0) in vec3 inWorldPos[];
 layout (location = 1) in vec3 inWorldNormal[];
@@ -31,4 +31,5 @@ void main(void){
 
     vec4 view_pos = ubo.view * vec4(lifted_pos, 1.0f);
     gl_Position = ubo.projection * view_pos;
+    gl_Position.z -= 0.0005f * gl_Position.w;
 }

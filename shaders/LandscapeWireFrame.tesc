@@ -6,17 +6,16 @@ layout (vertices = 3) out;
 layout (location = 0) out vec3 outWorldPos[3];
 layout (location = 1) out vec3 outWorldNormal[3];
 
-float patchTessLevel(vec4 a, vec4 b, vec4 c) {
+float edgeTessLevel(vec4 a, vec4 b) {
     const float eps = 1e-5;
-    vec4 center = (a + b + c) / 3.0f;
-    vec2 ndc = center.xy / max(center.w, eps);
-    float dist = clamp(length(ndc), 0.0f, 1.2f);
+    vec2 aNdc = a.xy / max(a.w, eps);
+    vec2 bNdc = b.xy / max(b.w, eps);
+    float edgeLength = length(aNdc - bNdc);
 
-    // Distance-based LOD to avoid visible seams between edges.
+    // Edge-based LOD keeps shared edges consistent between patches.
     const float minLevel = 1.0;
     const float maxLevel = 3.0;
-    float t = 1.0f - dist;
-    float level = mix(minLevel, maxLevel, t);
+    float level = edgeLength * 16.0;
     return clamp(level, minLevel, maxLevel);
 }
 
@@ -24,14 +23,14 @@ void main(void)
 {
     if (gl_InvocationID == 0)
     {
-        float l = patchTessLevel(gl_in[0].gl_Position,
-                                 gl_in[1].gl_Position,
-                                 gl_in[2].gl_Position);
+        float l0 = edgeTessLevel(gl_in[1].gl_Position, gl_in[2].gl_Position);
+        float l1 = edgeTessLevel(gl_in[2].gl_Position, gl_in[0].gl_Position);
+        float l2 = edgeTessLevel(gl_in[0].gl_Position, gl_in[1].gl_Position);
 
-        gl_TessLevelOuter[0] = l;
-        gl_TessLevelOuter[1] = l;
-        gl_TessLevelOuter[2] = l;
-        gl_TessLevelInner[0] = l;
+        gl_TessLevelOuter[0] = l0;
+        gl_TessLevelOuter[1] = l1;
+        gl_TessLevelOuter[2] = l2;
+        gl_TessLevelInner[0] = (l0 + l1 + l2) / 3.0;
     }
 
     gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position;
