@@ -190,7 +190,7 @@ void CE::Buffer::copy_to_image(const VkBuffer &buffer,
       CE::CommandBuffers::end_singular_commands(command_pool, queue);
 }
 
-void CE::Image::destroy_vulkan_images() const {
+void CE::Image::destroy_vulkan_images() {
   if (Device::base_device && this->memory) {
     if (Log::gpu_trace_enabled()) {
       Log::text("{ DST }",
@@ -206,15 +206,19 @@ void CE::Image::destroy_vulkan_images() const {
     }
     if (this->sampler != VK_NULL_HANDLE) {
       vkDestroySampler(Device::base_device->logical_device, this->sampler, nullptr);
+      this->sampler = VK_NULL_HANDLE;
     };
     if (this->view != VK_NULL_HANDLE) {
       vkDestroyImageView(Device::base_device->logical_device, this->view, nullptr);
+      this->view = VK_NULL_HANDLE;
     };
     if (this->image != VK_NULL_HANDLE) {
       vkDestroyImage(Device::base_device->logical_device, this->image, nullptr);
+      this->image = VK_NULL_HANDLE;
     };
     if (this->memory != VK_NULL_HANDLE) {
       vkFreeMemory(Device::base_device->logical_device, this->memory, nullptr);
+      this->memory = VK_NULL_HANDLE;
     };
   };
 }

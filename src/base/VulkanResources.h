@@ -105,7 +105,7 @@ protected:
 
 private:
   std::string path{};
-  void destroy_vulkan_images() const;
+  void destroy_vulkan_images();
 };
 
 } // namespace CE

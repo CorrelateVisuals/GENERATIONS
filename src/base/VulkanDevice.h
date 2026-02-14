@@ -59,6 +59,10 @@ public:
   static Device *base_device;
 
   Device() = default;
+  Device(const Device &) = delete;
+  Device &operator=(const Device &) = delete;
+  Device(Device &&) = delete;
+  Device &operator=(Device &&) = delete;
   virtual ~Device() {
     destroy_device();
   }

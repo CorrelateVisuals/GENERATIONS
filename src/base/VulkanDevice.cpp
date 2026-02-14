@@ -206,7 +206,11 @@ bool CE::Device::check_device_extension_support(
 }
 
 void CE::Device::destroy_device() {
-  static bool is_device_destroyed = false;
+  if (this->logical_device == VK_NULL_HANDLE) {
+    return;
+  }
+
+  bool is_device_destroyed = false;
   for (const VkDevice &device : destroyed_devices) {
     if (device == this->logical_device) {
       is_device_destroyed = true;
@@ -219,6 +223,11 @@ void CE::Device::destroy_device() {
     extensions_.clear();
     vkDestroyDevice(this->logical_device, nullptr);
     destroyed_devices.push_back(this->logical_device);
+    if (Device::base_device == this) {
+      Device::base_device = nullptr;
+    }
+    this->logical_device = VK_NULL_HANDLE;
+  } else {
     if (Device::base_device == this) {
       Device::base_device = nullptr;
     }

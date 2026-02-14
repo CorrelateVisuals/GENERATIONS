@@ -73,12 +73,22 @@ void CE::CommandBuffers::begin_singular_commands(const VkCommandPool &command_po
         Device::base_device->logical_device, &allocInfo, &singular_command_buffer);
       Log::text(
         "{ 1.. }", "Single Time alloc result", allocResult, singular_command_buffer);
+  if (allocResult != VK_SUCCESS || singular_command_buffer == VK_NULL_HANDLE) {
+    singular_command_buffer = VK_NULL_HANDLE;
+    throw std::runtime_error("!ERROR! vkAllocateCommandBuffers failed for single time submit!");
+  }
 
   VkCommandBufferBeginInfo beginInfo{.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
                                      .flags =
                                          VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT};
   const VkResult beginResult = vkBeginCommandBuffer(singular_command_buffer, &beginInfo);
   Log::text("{ 1.. }", "Single Time begin result", beginResult);
+  if (beginResult != VK_SUCCESS) {
+    vkFreeCommandBuffers(
+        Device::base_device->logical_device, command_pool, 1, &singular_command_buffer);
+    singular_command_buffer = VK_NULL_HANDLE;
+    throw std::runtime_error("!ERROR! vkBeginCommandBuffer failed for single time submit!");
+  }
 
   return;
 }
@@ -99,6 +109,12 @@ void CE::CommandBuffers::end_singular_commands(const VkCommandPool &command_pool
 
   const VkResult endResult = vkEndCommandBuffer(singular_command_buffer);
   Log::text("{ ..1 }", "Single Time end result", endResult);
+  if (endResult != VK_SUCCESS) {
+    vkFreeCommandBuffers(
+        Device::base_device->logical_device, command_pool, 1, &singular_command_buffer);
+    singular_command_buffer = VK_NULL_HANDLE;
+    throw std::runtime_error("!ERROR! vkEndCommandBuffer failed for single time submit!");
+  }
   VkSubmitInfo submitInfo{};
   submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
   submitInfo.commandBufferCount = 1;
@@ -117,11 +133,19 @@ void CE::CommandBuffers::end_singular_commands(const VkCommandPool &command_pool
   if (fenceCreateResult != VK_SUCCESS) {
     vkFreeCommandBuffers(
         Device::base_device->logical_device, command_pool, 1, &singular_command_buffer);
+    singular_command_buffer = VK_NULL_HANDLE;
     throw std::runtime_error("!ERROR! vkCreateFence failed for single time submit!");
   }
 
   const VkResult submitResult = vkQueueSubmit(queue, 1, &submitInfo, uploadFence);
   Log::text("{ ..1 }", "Single Time submit result", submitResult);
+  if (submitResult != VK_SUCCESS) {
+    vkDestroyFence(Device::base_device->logical_device, uploadFence, nullptr);
+    vkFreeCommandBuffers(
+        Device::base_device->logical_device, command_pool, 1, &singular_command_buffer);
+    singular_command_buffer = VK_NULL_HANDLE;
+    throw std::runtime_error("!ERROR! vkQueueSubmit failed for single time submit!");
+  }
   if (Log::gpu_trace_enabled()) {
     Log::text("{ QUE }",
               "Queue submit",
@@ -140,6 +164,13 @@ void CE::CommandBuffers::end_singular_commands(const VkCommandPool &command_pool
               VK_TRUE,
               UINT64_MAX);
   Log::text("{ ..1 }", "Single Time fence wait result", waitResult);
+  if (waitResult != VK_SUCCESS) {
+    vkDestroyFence(Device::base_device->logical_device, uploadFence, nullptr);
+    vkFreeCommandBuffers(
+        Device::base_device->logical_device, command_pool, 1, &singular_command_buffer);
+    singular_command_buffer = VK_NULL_HANDLE;
+    throw std::runtime_error("!ERROR! vkWaitForFences failed for single time submit!");
+  }
   if (Log::gpu_trace_enabled()) {
     Log::text("{ LCK }", "Fence wait complete", uploadFence, "result", waitResult);
   }
@@ -149,6 +180,7 @@ void CE::CommandBuffers::end_singular_commands(const VkCommandPool &command_pool
   vkFreeCommandBuffers(
       Device::base_device->logical_device, command_pool, 1, &singular_command_buffer);
   Log::text("{ ..1 }", "Single Time freed", singular_command_buffer);
+  singular_command_buffer = VK_NULL_HANDLE;
 }
 
 void CE::CommandBuffers::create_buffers(

@@ -31,9 +31,7 @@ public:
       pick_physical_device(init_vulkan, queues, swapchain);
       create_logical_device(init_vulkan, queues);
     };
-    ~Device() {
-      destroy_device();
-    }
+    ~Device() = default;
   };
 
   struct SynchronizationObjects : public CE::SynchronizationObjects {
