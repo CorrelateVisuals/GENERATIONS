@@ -118,6 +118,7 @@ void CapitalEngine::main_loop() {
   if (deeptest_enabled) {
     Log::text("{ PERF }", "=== FINAL DEEP TEST MEMORY REPORT ===");
     MemoryTracker::log_memory_stats();
+    MemoryTracker::log_detailed_leaks();
   }
 
   Log::measure_elapsed_time();

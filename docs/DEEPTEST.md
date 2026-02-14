@@ -45,6 +45,22 @@ The deep test logs memory statistics in the following format:
          : Vulkan Peak: 515.75 MiB
          : Vulkan Allocated: 2.25 GiB
          : Vulkan Deallocated: 1.75 GiB
+         : Active Allocations: 42
+```
+
+At the end of the test, if any memory leaks are detected, you'll see a detailed analysis:
+
+```
+{ !!! } === MEMORY LEAK ANALYSIS ===
+         : Total Leaked: 128.00 MiB
+         : Leak Count: 15
+{ !!! } Leaks by Type:
+         : Buffer: 64.00 MiB (8 allocations)
+         : Image: 64.00 MiB (7 allocations)
+{ !!! } Top 10 Largest Leaks:
+         : ID #1234 Buffer 16.00 MiB (age: 18000s)
+         : ID #1235 Image 12.50 MiB (age: 17950s)
+         : ...
 ```
 
 ### Key Metrics
@@ -54,6 +70,22 @@ The deep test logs memory statistics in the following format:
 - **Vulkan Peak** - Maximum memory usage observed
 - **Vulkan Allocated** - Total memory allocated (will increase)
 - **Vulkan Deallocated** - Total memory deallocated (should track allocations)
+- **Active Allocations** - Number of allocations that haven't been freed yet
+
+### Leak Analysis Details
+
+When leaks are detected, the detailed analysis provides:
+
+- **Total Leaked** - Sum of all unfreed memory
+- **Leak Count** - Number of individual allocations still active
+- **Leaks by Type** - Breakdown showing whether Buffers or Images are leaking
+- **Top Largest Leaks** - Individual leak entries with:
+  - Unique ID number for each allocation
+  - Type (Buffer or Image)
+  - Size of the leaked allocation
+  - Age (how long ago it was allocated)
+
+This information helps pinpoint exactly which allocations are not being freed.
 
 ### Detecting Memory Leaks
 
@@ -61,12 +93,14 @@ A memory leak is indicated by:
 
 1. **Growing Current Usage** - If "Vulkan Current" continuously increases over time
 2. **Allocation/Deallocation Mismatch** - If allocated memory significantly exceeds deallocated memory and the gap keeps growing
+3. **Active Allocations at Shutdown** - Non-zero active allocations in the final report
 
 Expected behavior:
 - Initial allocations during startup
 - Stable current usage during runtime
 - Minor fluctuations are normal due to swapchain recreation and resource updates
 - Final report should show current usage similar to peak usage (indicating stable state)
+- **Zero or near-zero active allocations at shutdown** (some may remain due to static resources)
 
 ## Integration with CI/CD
 

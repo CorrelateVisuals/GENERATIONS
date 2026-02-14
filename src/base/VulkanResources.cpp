@@ -47,9 +47,7 @@ CE::Buffer::~Buffer() {
       this->buffer = VK_NULL_HANDLE;
     }
     if (this->memory != VK_NULL_HANDLE) {
-      if (this->allocated_size > 0) {
-        MemoryTracker::record_vulkan_deallocation(this->allocated_size);
-      }
+      MemoryTracker::record_vulkan_deallocation(static_cast<void*>(this->memory));
       vkFreeMemory(Device::base_device->logical_device, this->memory, nullptr);
       this->memory = VK_NULL_HANDLE;
     }
@@ -120,7 +118,8 @@ void CE::Buffer::create(const VkDeviceSize &size,
   
   // vulkan_result throws on failure, so we only reach here if allocation succeeded
   buffer.allocated_size = allocateInfo.allocationSize;
-  MemoryTracker::record_vulkan_allocation(allocateInfo.allocationSize);
+  MemoryTracker::record_vulkan_allocation(allocateInfo.allocationSize, "Buffer", 
+                                          static_cast<void*>(buffer.memory));
   
   vkBindBufferMemory(
       Device::base_device->logical_device, buffer.buffer, buffer.memory, 0);
@@ -226,9 +225,7 @@ void CE::Image::destroy_vulkan_images() {
       this->image = VK_NULL_HANDLE;
     };
     if (this->memory != VK_NULL_HANDLE) {
-      if (this->allocated_size > 0) {
-        MemoryTracker::record_vulkan_deallocation(this->allocated_size);
-      }
+      MemoryTracker::record_vulkan_deallocation(static_cast<void*>(this->memory));
       vkFreeMemory(Device::base_device->logical_device, this->memory, nullptr);
       this->memory = VK_NULL_HANDLE;
     };
@@ -304,7 +301,8 @@ void CE::Image::create(const uint32_t width,
   
   // vulkan_result throws on failure, so we only reach here if allocation succeeded
   this->allocated_size = allocateInfo.allocationSize;
-  MemoryTracker::record_vulkan_allocation(allocateInfo.allocationSize);
+  MemoryTracker::record_vulkan_allocation(allocateInfo.allocationSize, "Image",
+                                          static_cast<void*>(this->memory));
   
   vkBindImageMemory(Device::base_device->logical_device,
                     this->image,
