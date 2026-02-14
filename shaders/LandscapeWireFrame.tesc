@@ -16,9 +16,9 @@ float edgeTessLevel(vec4 a, vec4 b) {
     float edgeLength = length(aNdc - bNdc);
 
     // Screen-space adaptive tessellation. Tuned to stay stable while adding detail.
-    const float minLevel = 3.0;
-    const float maxLevel = 44.0;
-    float level = edgeLength * 34.0;
+    const float minLevel = 1.0;
+    const float maxLevel = 6.0;
+    float level = edgeLength * 8.0;
     return clamp(level, minLevel, maxLevel);
 }
 

@@ -5,6 +5,7 @@
 #include "../io/Library.h"
 #include "../core/Log.h"
 
+#include <array>
 #include <algorithm>
 #include <chrono>
 #include <filesystem>
@@ -275,16 +276,17 @@ void CE::PipelinesConfiguration::create_pipelines(VkRenderPass &render_pass,
       if (tesselationEnabled) {
         inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_PATCH_LIST;
         rasterization.polygonMode = VK_POLYGON_MODE_LINE;
-        rasterization.lineWidth = 2.0f;
+        rasterization.lineWidth = 1.0f;
         if (pipelineName.find("WireFrame") != std::string::npos) {
-          rasterization.lineWidth = 3.8f;
+          rasterization.lineWidth = 1.2f;
           rasterization.depthBiasEnable = VK_TRUE;
           rasterization.depthBiasConstantFactor = -1.0f;
           rasterization.depthBiasSlopeFactor = -1.0f;
           rasterization.depthBiasClamp = 0.0f;
 
-          depthStencil.depthTestEnable = VK_FALSE;
+          depthStencil.depthTestEnable = VK_TRUE;
           depthStencil.depthWriteEnable = VK_FALSE;
+          depthStencil.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
           colorBlendAttachment = CE::color_blend_attachment_state_false;
         } else {
           colorBlendAttachment = CE::color_blend_attachment_state_multiply;
@@ -473,10 +475,8 @@ void CE::PipelinesConfiguration::compile_shaders() {
         continue;
       }
 
-      const std::string output_base =
-          stage_tokens.contains(shader) ? (pipelineName + shader) : shader;
       std::string shaderSourcePath = this->shader_dir + source_base + "." + extension;
-      std::string shaderOutputPath = this->shader_dir + output_base + ".spv";
+      std::string shaderOutputPath = shaderSourcePath + ".spv";
       bool shouldCompile = true;
       if (std::filesystem::exists(shaderOutputPath)) {
         const auto sourceWriteTime = std::filesystem::last_write_time(shaderSourcePath);

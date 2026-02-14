@@ -18,10 +18,6 @@ mat4 view = ubo.view;
 mat4 projection = ubo.projection;
 float waterThreshold = ubo.waterThreshold;
 
-float quantize(float value, float levels) {
-    return floor(value * levels + 0.5f) / levels;
-}
-
 float hash21(vec2 p) {
     return fract(sin(dot(p, vec2(127.1f, 311.7f))) * 43758.5453f);
 }
@@ -76,54 +72,8 @@ float terrain_height(vec2 p) {
     return base + ridge + dunes + detail;
 }
 
-vec3 pixelTerrainPalette(float heightRelativeToWater) {
-    vec3 sand   = vec3(0.72f, 0.66f, 0.50f);
-    vec3 grassA = vec3(0.46f, 0.58f, 0.41f);
-    vec3 grassB = vec3(0.34f, 0.47f, 0.36f);
-    vec3 rock   = vec3(0.43f, 0.42f, 0.44f);
-    vec3 snow   = vec3(0.80f, 0.82f, 0.84f);
-
-    float h = clamp((heightRelativeToWater + 0.8f) / 7.0f, 0.0f, 1.0f);
-    h = quantize(h, 6.0f);
-
-    if (h < 0.12f) {
-        return sand;
-    }
-    if (h < 0.42f) {
-        return mix(grassA, grassB, quantize(h * 2.5f, 3.0f));
-    }
-    if (h < 0.74f) {
-        return mix(grassB, rock, quantize((h - 0.42f) / 0.32f, 4.0f));
-    }
-    return mix(rock, snow, quantize((h - 0.74f) / 0.26f, 3.0f));
-}
-
-vec4 setColor(float heightFromWater, float slope, float detail) {
-    const float shoreWidth = 0.6f;
-
-    vec3 land = pixelTerrainPalette(heightFromWater);
-    vec3 rock = vec3(0.43f, 0.42f, 0.44f);
-    float rockMix = smoothstep(0.28f, 0.78f, slope);
-    land = mix(land, rock, rockMix * 0.7f);
-    land *= 0.92f + detail * 0.16f;
-
-    vec3 deepWater = vec3(0.15f, 0.24f, 0.29f);
-    vec3 shallowWater = vec3(0.24f, 0.33f, 0.37f);
-    float depthToShore = clamp((-heightFromWater + shoreWidth) / (shoreWidth * 2.0f), 0.0f, 1.0f);
-    vec3 water = mix(shallowWater, deepWater, quantize(depthToShore, 5.0f));
-
-    float waterBlend = (1.0f - smoothstep(-shoreWidth, shoreWidth, heightFromWater)) * 0.72f;
-    vec3 color = mix(land, water, waterBlend);
-
-    float foam = 1.0f - smoothstep(0.0f, shoreWidth * 0.7f, abs(heightFromWater));
-    color = mix(color, vec3(0.83f, 0.86f, 0.89f), foam * waterBlend * 0.28f);
-
-    return vec4(color, 1.0f);
-}
-
 layout(location = 0) out vec3 outWorldPos;
 layout(location = 1) out vec3 outWorldNormal;
-layout(location = 2) out vec3 outAlbedo;
 
 void main() {
     vec2 p = inPosition.xy;
@@ -143,14 +93,8 @@ void main() {
     vec3 normalLocal = normalize(vec3(hL - hR, hD - hU, 2.0f * eps));
     vec3 worldNormal = normalize(mat3(model) * normalLocal);
 
-    float heightFromWater = worldPosition.z - waterThreshold;
-    float slope = 1.0f - clamp(worldNormal.z, 0.0f, 1.0f);
-    float detail = fbm(p * 0.35f + vec2(12.5f, 4.3f));
-    vec4 color = setColor(heightFromWater, slope, detail);
-
     outWorldPos = worldPosition.xyz;
     outWorldNormal = worldNormal;
-    outAlbedo = color.rgb;
     gl_Position = projection * viewPosition;
 }
 
