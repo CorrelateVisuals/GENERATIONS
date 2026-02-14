@@ -90,7 +90,7 @@ bool initialized        = aliveCell && inColor == blue;
 bool lifeCycle          = aliveCell && inCycleRange;
 bool endOfStage         = aliveCell && reachedCycleEnd;
 float waterHeightOffset = 0.1;
-bool underWater         = inPos.z <= (ubo.waterThreshold + waterHeightOffset);
+bool underWater         = false;
 
 bool live(int neighbours) { return (aliveCell && (neighbours == 3 || neighbours == 2)) || (deadCell && neighbours == 3); }
 bool die(int neighbours)  { return (aliveCell && (neighbours < 2 || neighbours > 3)); }

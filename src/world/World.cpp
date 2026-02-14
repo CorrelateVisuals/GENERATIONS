@@ -130,7 +130,10 @@ World::Grid::Grid(const CE::Runtime::TerrainSettings &terrain_settings,
 
     const bool is_alive = is_alive_indices[i];
 
-    cells[i].instance_position = {(startX + i % size.x), (startY + i / size.x), absoluteHeight, is_alive ? terrain_settings.cell_size : 0.0f};
+    cells[i].instance_position = {(startX + i % size.x),
+                    (startY + i / size.x),
+                    absoluteHeight,
+                    is_alive ? terrain_settings.cell_size * 1.6f : 0.0f};
     cells[i].color = is_alive ? blue : red;
     cells[i].states = is_alive ? alive : dead;
   }

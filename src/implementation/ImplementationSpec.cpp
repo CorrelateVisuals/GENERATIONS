@@ -7,7 +7,7 @@ ImplementationSpec default_spec() {
 
   spec.terrain.grid_width = 140;
   spec.terrain.grid_height = 140;
-  spec.terrain.alive_cells = 2000;
+  spec.terrain.alive_cells = 10000;
   spec.terrain.cell_size = 0.5f;
   spec.terrain.layer1_roughness = 0.4f;
   spec.terrain.layer1_octaves = 10;
@@ -54,21 +54,16 @@ ImplementationSpec default_spec() {
       .is_compute = false,
       .shaders = {"LandscapeVert", "LandscapeFrag"},
   };
-    spec.pipelines["Texture"] = CE::Runtime::PipelineDefinition{
-      .is_compute = false,
-      .shaders = {"TextureVert", "TextureFrag"},
-  };
     spec.pipelines["PostFX"] = CE::Runtime::PipelineDefinition{
       .is_compute = true,
       .shaders = {"PostFXComp"},
       .work_groups = {0, 0, 0},
     };
 
-    spec.execution_plan.graphics = {"Texture", "Cells", "Landscape"};
+    spec.execution_plan.graphics = {"Landscape", "Cells"};
     spec.execution_plan.post_graphics_compute = {"Engine"};
 
   spec.draw_ops = {
-      {"Texture", "indexed:rectangle"},
       {"Cells", "instanced:cells"},
       {"Landscape", "indexed:grid"},
   };
