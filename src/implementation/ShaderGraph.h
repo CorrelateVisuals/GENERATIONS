@@ -1,0 +1,64 @@
+#pragma once
+
+#include <optional>
+#include <string>
+#include <unordered_map>
+#include <vector>
+
+namespace CE::Implementation {
+
+enum class ShaderStage {
+  Vert,
+  Frag,
+  Comp,
+  Tesc,
+  Tese,
+  Geom,
+  Unknown,
+};
+
+struct ShaderNode {
+  std::string id;
+  std::string shader_name;
+  ShaderStage stage{ShaderStage::Unknown};
+
+  std::string shader_path() const;
+};
+
+struct GraphEdge {
+  std::string from;
+  std::string to;
+};
+
+struct GraphEndpoint {
+  std::string node_id;
+  std::string resource;
+};
+
+class ShaderGraph {
+public:
+  bool add_node(const ShaderNode &node, std::string &error);
+  bool add_edge(const GraphEdge &edge, std::string &error);
+
+  void set_input(const GraphEndpoint &input_endpoint);
+  void set_output(const GraphEndpoint &output_endpoint);
+
+  bool validate(std::string &error) const;
+
+  const std::vector<ShaderNode> &nodes() const { return nodes_; }
+  const std::vector<GraphEdge> &edges() const { return edges_; }
+  const std::optional<GraphEndpoint> &input() const { return input_; }
+  const std::optional<GraphEndpoint> &output() const { return output_; }
+
+private:
+  std::vector<ShaderNode> nodes_;
+  std::vector<GraphEdge> edges_;
+  std::unordered_map<std::string, std::size_t> node_index_by_id_;
+  std::optional<GraphEndpoint> input_;
+  std::optional<GraphEndpoint> output_;
+};
+
+ShaderStage shader_stage_from_extension(const std::string &extension);
+std::string shader_stage_to_extension(ShaderStage stage);
+
+} // namespace CE::Implementation

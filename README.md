@@ -63,6 +63,16 @@ At runtime, the engine executes a stable loop:
 
 This separation is what makes the project suitable for future node-based and TouchDesigner-style workflows.
 
+## Script interface (implementation layer, MVP)
+
+A first implementation-layer script interface is now available.
+
+- Engine mode (default): `./bin/CapitalEngine`
+- Script interface mode: `CE_SCRIPT_GRAPH=scripts/all_shaders_graph.py ./bin/CapitalEngine`
+
+The script interface currently loads and validates a shader graph from Python and resolves dynamic shader paths as `shaders/<name>.<stage>`.
+This is the first separation step: engine runtime stays in `src/app`, while script-chainer logic lives in `src/implementation`.
+
 ## Build and run (Linux)
 
 From project root:

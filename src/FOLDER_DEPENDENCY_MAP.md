@@ -5,13 +5,16 @@
 - `base`: Vulkan primitives/utilities
 - `core`: logging/time
 - `io`: filesystem + screenshot helpers
+- `implementation`: script/app-level graph declaration and loading
 - `platform`: window + validation layer plumbing
 - `render`: mechanics/pipelines/resources/shader command recording
 - `world`: camera/terrain/geometry/world state
 
 ## Current dependency directions
 - `app` -> `render`, `io`, `platform`, `core`, `base`
+- `app` -> `implementation`
 - `render` -> `world`, `io`, `core`, `base`
+- `implementation` -> `core`
 - `world` -> `io`, `core`, `platform`, `base`
 - `io` -> `core`, `base`
 - `platform` -> `core`
@@ -19,6 +22,7 @@
 
 ## Practical rule set (recommended)
 - `app` may depend on any runtime layer.
+- `implementation` should stay orchestration-focused and avoid Vulkan ownership.
 - `render` should not depend on `app`.
 - `world` should not depend on `app` or `render`.
 - `platform` should not depend on `app`, `world`, or `render`.

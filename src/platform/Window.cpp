@@ -6,8 +6,6 @@
 #include <unordered_map>
 #include <vector>
 
-Window Window::main_window;
-
 Window::Window() : framebuffer_resized{false}, window{nullptr} {
   Log::log_title();
   Log::text("{ [-] }", "constructing Window");

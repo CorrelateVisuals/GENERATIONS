@@ -42,6 +42,7 @@ public:
   Mouse mouse{0.18f, 0.5f};
 
   static Window &get() {
+    static Window main_window;
     return main_window;
   }
   void poll_input();
@@ -61,6 +62,4 @@ private:
 
   void init_window();
   static void window_resize(GLFWwindow *win, int width, int height);
-
-  static Window main_window;
 };

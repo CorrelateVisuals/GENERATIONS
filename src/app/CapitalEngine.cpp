@@ -25,9 +25,6 @@ CapitalEngine::~CapitalEngine() {
   Log::text(Log::Style::header_guard);
   Log::text("| CAPITAL Engine");
   Log::text(Log::Style::header_guard);
-
-  glfwDestroyWindow(Window::get().window);
-  glfwTerminate();
 }
 
 void CapitalEngine::main_loop() {
