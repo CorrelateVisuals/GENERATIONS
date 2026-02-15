@@ -1,0 +1,43 @@
+#include "gui.h"
+
+#include "core/RuntimeConfig.h"
+
+#include <algorithm>
+#include <cstdlib>
+
+namespace CE::RenderGUI {
+
+StageStripConfig get_stage_strip_config(const VkExtent2D &extent) {
+  StageStripConfig config{};
+
+  const char *enabled_raw = std::getenv("CE_RENDER_STAGE_STRIP");
+  config.enabled = enabled_raw ? CE::Runtime::env_truthy(enabled_raw) : true;
+
+  const uint32_t max_reasonable_height = std::max<uint32_t>(extent.height / 2, 1);
+  config.strip_height_px = std::clamp<uint32_t>(extent.height / 5, 80, max_reasonable_height);
+
+  if (const char *height_raw = std::getenv("CE_RENDER_STAGE_STRIP_HEIGHT")) {
+    char *end = nullptr;
+    const long parsed = std::strtol(height_raw, &end, 10);
+    if (end != height_raw && *end == '\0' && parsed > 0) {
+      config.strip_height_px =
+          std::clamp<uint32_t>(static_cast<uint32_t>(parsed), 32, max_reasonable_height);
+    }
+  }
+
+  if (const char *padding_raw = std::getenv("CE_RENDER_STAGE_STRIP_PADDING")) {
+    char *end = nullptr;
+    const long parsed = std::strtol(padding_raw, &end, 10);
+    if (end != padding_raw && *end == '\0' && parsed >= 0) {
+      config.padding_px = std::clamp<uint32_t>(static_cast<uint32_t>(parsed), 0, 64);
+    }
+  }
+
+  return config;
+}
+
+std::array<const char *, 5> get_stage_strip_labels() {
+  return {"LandscapeDebug", "LandscapeStage1", "LandscapeStage2", "Landscape", "Full"};
+}
+
+} // namespace CE::RenderGUI

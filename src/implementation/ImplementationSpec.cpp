@@ -19,8 +19,8 @@ int parse_render_stage() {
   if (parsed < 0) {
     return 4;
   }
-  if (parsed > 4) {
-    return 4;
+  if (parsed > 5) {
+    return 5;
   }
   return static_cast<int>(parsed);
 }
@@ -92,6 +92,14 @@ ImplementationSpec default_spec() {
       .is_compute = false,
       .shaders = {"LandscapeVert", "LandscapeDebugFrag"},
   };
+    spec.pipelines["LandscapeStage1"] = CE::Runtime::PipelineDefinition{
+      .is_compute = false,
+      .shaders = {"LandscapeVert", "LandscapeStage1Frag"},
+  };
+    spec.pipelines["LandscapeStage2"] = CE::Runtime::PipelineDefinition{
+      .is_compute = false,
+      .shaders = {"LandscapeVert", "LandscapeStage2Frag"},
+  };
     spec.pipelines["TerrainBox"] = CE::Runtime::PipelineDefinition{
       .is_compute = false,
       .shaders = {"TerrainBoxSeamVert", "TerrainBoxFrag"},
@@ -111,10 +119,10 @@ ImplementationSpec default_spec() {
     spec.execution_plan.post_graphics_compute = {};
 
     if (render_stage >= 1) {
-      spec.execution_plan.graphics = {"Landscape"};
+      spec.execution_plan.graphics = {"LandscapeStage1"};
     }
     if (render_stage >= 2) {
-      spec.execution_plan.graphics = {"Landscape", "TerrainBox"};
+      spec.execution_plan.graphics = {"LandscapeStage2"};
     }
     if (render_stage >= 3) {
       spec.execution_plan.graphics = {"Sky", "Landscape", "TerrainBox"};
@@ -129,6 +137,8 @@ ImplementationSpec default_spec() {
       {"CellsFollower", "instanced:cells"},
       {"Landscape", "indexed:grid"},
       {"LandscapeDebug", "indexed:grid"},
+      {"LandscapeStage1", "indexed:grid"},
+      {"LandscapeStage2", "indexed:grid"},
         {"TerrainBox", "indexed:grid_box"},
       {"Sky", "sky_dome"},
   };

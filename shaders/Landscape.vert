@@ -99,11 +99,25 @@ void main() {
     vec4 viewPosition = view * worldPosition;
 
     float eps = max(0.35f * ubo.cellSize, 0.05f);
-    float hL = terrain_height(p - vec2(eps, 0.0f));
-    float hR = terrain_height(p + vec2(eps, 0.0f));
-    float hD = terrain_height(p - vec2(0.0f, eps));
-    float hU = terrain_height(p + vec2(0.0f, eps));
-    vec3 terrainNormal = normalize(vec3(hL - hR, hD - hU, 2.0f * eps));
+    vec2 gridMin = (vec2(ubo.gridXY) - vec2(1.0f)) * -0.5f;
+    vec2 gridMax = gridMin + vec2(ubo.gridXY) - vec2(1.0f);
+
+    vec2 pL = vec2(max(p.x - eps, gridMin.x), p.y);
+    vec2 pR = vec2(min(p.x + eps, gridMax.x), p.y);
+    vec2 pD = vec2(p.x, max(p.y - eps, gridMin.y));
+    vec2 pU = vec2(p.x, min(p.y + eps, gridMax.y));
+
+    float hL = terrain_height(pL);
+    float hR = terrain_height(pR);
+    float hD = terrain_height(pD);
+    float hU = terrain_height(pU);
+
+    float dx = max(pR.x - pL.x, 1e-4f);
+    float dy = max(pU.y - pD.y, 1e-4f);
+    float dHdx = (hR - hL) / dx;
+    float dHdy = (hU - hD) / dy;
+
+    vec3 terrainNormal = normalize(vec3(-dHdx, -dHdy, 1.0f));
     vec3 normalLocal = mix(vec3(0.0f, 0.0f, -1.0f), terrainNormal, applyDisplacement);
     vec3 worldNormal = normalize(mat3(model) * normalLocal);
 

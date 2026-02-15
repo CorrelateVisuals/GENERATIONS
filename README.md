@@ -15,7 +15,7 @@ It is powered by CAPITAL Engine and designed around one idea: keep the stack lea
 
 Today, the project runs a real-time cellular simulation with the latest terrain pass, rendered through a modern graphics + compute pipeline with strong separation between platform, rendering, and world logic.
 
-![Runtime Snapshot](assets/TerrainRuntime_20260215.png)
+![Runtime Snapshot](assets/TerrainRuntimeTopDown_20260215.png)
 
 ## Why this project exists
 

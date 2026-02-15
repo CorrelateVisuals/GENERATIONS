@@ -1,9 +1,12 @@
 #include "ShaderAccess.h"
 #include "Pipelines.h"
 #include "Resources.h"
+#include "gui.h"
 #include "base/VulkanUtils.h"
 #include "core/RuntimeConfig.h"
 
+#include <array>
+#include <algorithm>
 #include <string_view>
 #include <stdexcept>
 
@@ -98,7 +101,20 @@ void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
   vkCmdSetViewport(command_buffer, 0, 1, &viewport);
 
   VkRect2D scissor{.offset = {0, 0}, .extent = swapchain.extent};
-  vkCmdSetScissor(command_buffer, 0, 1, &scissor);
+  const CE::RenderGUI::StageStripConfig stage_strip =
+      CE::RenderGUI::get_stage_strip_config(swapchain.extent);
+  const bool stage_strip_enabled =
+      stage_strip.enabled && swapchain.extent.height > (stage_strip.strip_height_px + 1);
+
+  if (stage_strip_enabled) {
+    VkRect2D scene_scissor{
+        .offset = {0, static_cast<int32_t>(stage_strip.strip_height_px)},
+        .extent = {.width = swapchain.extent.width,
+                   .height = swapchain.extent.height - stage_strip.strip_height_px}};
+    vkCmdSetScissor(command_buffer, 0, 1, &scene_scissor);
+  } else {
+    vkCmdSetScissor(command_buffer, 0, 1, &scissor);
+  }
 
   vkCmdBindDescriptorSets(command_buffer,
                           VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -285,6 +301,60 @@ void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
       }
     }
   }
+
+  if (stage_strip_enabled) {
+    const std::array<const char *, 5> strip_labels = CE::RenderGUI::get_stage_strip_labels();
+    const uint32_t tile_count = static_cast<uint32_t>(strip_labels.size());
+    const uint32_t padding = stage_strip.padding_px;
+    const uint32_t strip_height = stage_strip.strip_height_px;
+    const uint32_t reserved_padding = padding * (tile_count + 1);
+    const uint32_t usable_width =
+        (swapchain.extent.width > reserved_padding) ? (swapchain.extent.width - reserved_padding)
+                                                    : swapchain.extent.width;
+    const uint32_t tile_width = std::max<uint32_t>(usable_width / tile_count, 1);
+    const uint32_t tile_height =
+        std::max<uint32_t>((strip_height > 2 * padding) ? (strip_height - 2 * padding)
+                                                         : strip_height,
+                           1);
+
+    for (uint32_t tile = 0; tile < tile_count; ++tile) {
+      const uint32_t tile_x = padding + tile * (tile_width + padding);
+      const uint32_t clamped_width =
+          std::min<uint32_t>(tile_width, swapchain.extent.width - std::min(tile_x, swapchain.extent.width));
+
+      VkViewport tile_viewport{.x = static_cast<float>(tile_x),
+                               .y = static_cast<float>(padding),
+                               .width = static_cast<float>(clamped_width),
+                               .height = static_cast<float>(tile_height),
+                               .minDepth = 0.0f,
+                               .maxDepth = 1.0f};
+      vkCmdSetViewport(command_buffer, 0, 1, &tile_viewport);
+
+      VkRect2D tile_scissor{.offset = {static_cast<int32_t>(tile_x), static_cast<int32_t>(padding)},
+                            .extent = {.width = clamped_width, .height = tile_height}};
+      vkCmdSetScissor(command_buffer, 0, 1, &tile_scissor);
+
+      if (tile == 0) {
+        draw_grid_indexed("LandscapeDebug");
+      } else if (tile == 1) {
+        draw_grid_indexed("LandscapeStage1");
+      } else if (tile == 2) {
+        draw_grid_indexed("LandscapeStage2");
+      } else if (tile == 3) {
+        draw_grid_indexed("Landscape");
+      } else {
+        draw_sky_dome("Sky");
+        draw_grid_indexed("Landscape");
+        draw_grid_box_indexed("TerrainBox");
+        draw_cells("CellsFollower");
+        draw_cells("Cells");
+      }
+    }
+
+    vkCmdSetViewport(command_buffer, 0, 1, &viewport);
+    vkCmdSetScissor(command_buffer, 0, 1, &scissor);
+  }
+
   vkCmdEndRenderPass(command_buffer);
 
   //       This is part of an image memory barrier (i.e., vkCmdPipelineBarrier
