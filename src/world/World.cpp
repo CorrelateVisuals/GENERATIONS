@@ -111,6 +111,136 @@ std::vector<VkVertexInputAttributeDescription> World::Cell::get_attribute_descri
   return description;
 };
 
+void World::Grid::initialize_cells(const CE::Runtime::TerrainSettings &terrain_settings,
+                                   const std::vector<bool> &is_alive_indices) {
+  const glm::vec4 white{1.0f, 1.0f, 1.0f, 1.0f};
+  const glm::vec4 grey{0.5f, 0.5f, 0.5f, 1.0f};
+  const glm::ivec4 alive{1, -1, 0, -1};
+  const glm::ivec4 dead{-1, -1, 0, -1};
+  const float startX = (size.x - 1) / -2.0f;
+  const float startY = (size.y - 1) / -2.0f;
+  const float absoluteHeight = terrain_settings.absolute_height;
+  for (uint_fast32_t i = 0; i < point_count; ++i) {
+    point_ids[i] = i;
+    coordinates[i] = {(startX + i % size.x), (startY + i / size.x), absoluteHeight};
+    const bool is_alive = is_alive_indices[i];
+    cells[i].instance_position = {(startX + i % size.x), (startY + i / size.x), absoluteHeight,
+                                  is_alive ? terrain_settings.cell_size * 1.6f : 0.0f};
+    cells[i].color = is_alive ? white : grey;
+    cells[i].states = is_alive ? alive : dead;
+  }
+}
+
+void World::Grid::create_render_grid(const CE::Runtime::TerrainSettings &terrain_settings,
+                                     float startX, float startY, float absoluteHeight) {
+  const uint32_t grid_width = static_cast<uint32_t>(size.x);
+  const uint32_t grid_height = static_cast<uint32_t>(size.y);
+  const uint32_t render_subdivisions = static_cast<uint32_t>(std::max(terrain_settings.terrain_render_subdivisions, 1));
+  const uint32_t render_grid_width = (grid_width > 0) ? ((grid_width - 1) * render_subdivisions + 1) : 0;
+  const uint32_t render_grid_height = (grid_height > 0) ? ((grid_height - 1) * render_subdivisions + 1) : 0;
+  std::vector<uint32_t> render_point_ids;
+  render_point_ids.reserve(static_cast<size_t>(render_grid_width) * render_grid_height);
+  unique_vertices.reserve(unique_vertices.size() + render_point_ids.capacity());
+  for (uint32_t row = 0; row < render_grid_height; ++row) {
+    const float y = startY + static_cast<float>(row) / static_cast<float>(render_subdivisions);
+    for (uint32_t col = 0; col < render_grid_width; ++col) {
+      const float x = startX + static_cast<float>(col) / static_cast<float>(render_subdivisions);
+      add_vertex_position({x, y, absoluteHeight});
+      render_point_ids.push_back(static_cast<uint32_t>(render_point_ids.size()));
+    }
+  }
+  indices = create_grid_polygons(render_point_ids, render_grid_width);
+}
+
+void World::Grid::create_boundary_loop(uint32_t render_grid_width, uint32_t render_grid_height,
+                                       std::vector<uint32_t> &boundary_loop) {
+  boundary_loop.reserve(static_cast<size_t>(2 * render_grid_width + 2 * render_grid_height - 4));
+  for (uint32_t col = 0; col < render_grid_width; ++col) {
+    boundary_loop.push_back(col);
+  }
+  for (uint32_t row = 1; row < render_grid_height; ++row) {
+    boundary_loop.push_back(row * render_grid_width + (render_grid_width - 1));
+  }
+  for (int32_t col = static_cast<int32_t>(render_grid_width) - 2; col >= 0; --col) {
+    boundary_loop.push_back((render_grid_height - 1) * render_grid_width + static_cast<uint32_t>(col));
+  }
+  for (int32_t row = static_cast<int32_t>(render_grid_height) - 2; row >= 1; --row) {
+    boundary_loop.push_back(static_cast<uint32_t>(row) * render_grid_width);
+  }
+}
+
+void World::Grid::create_box_vertices(const std::vector<uint32_t> &boundary_loop, float zBottom) {
+  const uint32_t ring_count = static_cast<uint32_t>(boundary_loop.size());
+  box_vertices.clear();
+  box_vertices.reserve(ring_count * 2 + 4);
+  for (const uint32_t source_index : boundary_loop) {
+    box_vertices.push_back({glm::vec3(0.0f), unique_vertices[source_index].vertex_position});
+  }
+  for (const uint32_t source_index : boundary_loop) {
+    glm::vec3 p = unique_vertices[source_index].vertex_position;
+    p.z = zBottom;
+    box_vertices.push_back({glm::vec3(0.0f), p});
+  }
+}
+
+void World::Grid::create_box_indices(uint32_t ring_count) {
+  box_indices.clear();
+  box_indices.reserve(ring_count * 6 + 6);
+  for (uint32_t i = 0; i < ring_count; ++i) {
+    const uint32_t j = (i + 1) % ring_count;
+    box_indices.push_back(i);
+    box_indices.push_back(ring_count + i);
+    box_indices.push_back(j);
+    box_indices.push_back(j);
+    box_indices.push_back(ring_count + i);
+    box_indices.push_back(ring_count + j);
+  }
+}
+
+void World::Grid::add_bottom_face(float xMin, float yMin, float xMax, float yMax, float zBottom) {
+  const uint32_t bottom_base = static_cast<uint32_t>(box_vertices.size());
+  box_vertices.push_back({glm::vec3(0.0f), glm::vec3(xMin, yMin, zBottom)});
+  box_vertices.push_back({glm::vec3(0.0f), glm::vec3(xMax, yMin, zBottom)});
+  box_vertices.push_back({glm::vec3(0.0f), glm::vec3(xMax, yMax, zBottom)});
+  box_vertices.push_back({glm::vec3(0.0f), glm::vec3(xMin, yMax, zBottom)});
+  box_indices.push_back(bottom_base + 0);
+  box_indices.push_back(bottom_base + 2);
+  box_indices.push_back(bottom_base + 1);
+  box_indices.push_back(bottom_base + 0);
+  box_indices.push_back(bottom_base + 3);
+  box_indices.push_back(bottom_base + 2);
+}
+
+void World::Grid::create_buffers(VkCommandBuffer &command_buffer, const VkCommandPool &command_pool, const VkQueue &queue) {
+  create_vertex_buffer(command_buffer, command_pool, queue, unique_vertices);
+  create_index_buffer(command_buffer, command_pool, queue, indices);
+  create_vertex_buffer(command_buffer, command_pool, queue, box_vertices, box_vertex_buffer);
+  create_index_buffer(command_buffer, command_pool, queue, box_indices, box_index_buffer);
+}
+
+void World::Grid::setup_terrain_box(const CE::Runtime::TerrainSettings &terrain_settings,
+                                    float startX, float startY, float absoluteHeight,
+                                    VkCommandBuffer &command_buffer, const VkCommandPool &command_pool, const VkQueue &queue) {
+  const uint32_t grid_width = static_cast<uint32_t>(size.x);
+  const uint32_t grid_height = static_cast<uint32_t>(size.y);
+  const uint32_t render_subdivisions = static_cast<uint32_t>(std::max(terrain_settings.terrain_render_subdivisions, 1));
+  const uint32_t render_grid_width = (grid_width > 0) ? ((grid_width - 1) * render_subdivisions + 1) : 0;
+  const uint32_t render_grid_height = (grid_height > 0) ? ((grid_height - 1) * render_subdivisions + 1) : 0;
+  std::vector<uint32_t> boundary_loop{};
+  create_boundary_loop(render_grid_width, render_grid_height, boundary_loop);
+  const float box_depth = std::max(terrain_settings.terrain_box_depth, terrain_settings.cell_size * 4.0f);
+  const float zBottom = absoluteHeight - box_depth;
+  create_box_vertices(boundary_loop, zBottom);
+  const uint32_t ring_count = static_cast<uint32_t>(boundary_loop.size());
+  create_box_indices(ring_count);
+  const float xMin = startX;
+  const float xMax = startX + static_cast<float>(size.x - 1);
+  const float yMin = startY;
+  const float yMax = startY + static_cast<float>(size.y - 1);
+  add_bottom_face(xMin, yMin, xMax, yMax, zBottom);
+  create_buffers(command_buffer, command_pool, queue);
+}
+
 World::Grid::Grid(const CE::Runtime::TerrainSettings &terrain_settings,
           VkCommandBuffer &command_buffer,
           const VkCommandPool &command_pool,
@@ -123,131 +253,12 @@ World::Grid::Grid(const CE::Runtime::TerrainSettings &terrain_settings,
   for (int alive_index : alive_cell_indices) {
     is_alive_indices[alive_index] = true;
   }
-
-  const glm::vec4 white{1.0f, 1.0f, 1.0f, 1.0f};
-  const glm::vec4 grey{0.5f, 0.5f, 0.5f, 1.0f};
-  const glm::ivec4 alive{1, -1, 0, -1};
-  const glm::ivec4 dead{-1, -1, 0, -1};
-
+  initialize_cells(terrain_settings, is_alive_indices);
   const float startX = (size.x - 1) / -2.0f;
   const float startY = (size.y - 1) / -2.0f;
   const float absoluteHeight = terrain_settings.absolute_height;
-  const float box_depth = std::max(terrain_settings.terrain_box_depth,
-                                   terrain_settings.cell_size * 4.0f);
-  for (uint_fast32_t i = 0; i < point_count; ++i) {
-    point_ids[i] = i;
-
-    coordinates[i] = {(startX + i % size.x), (startY + i / size.x), absoluteHeight};
-
-    const bool is_alive = is_alive_indices[i];
-
-    cells[i].instance_position = {(startX + i % size.x),
-                    (startY + i / size.x),
-                    absoluteHeight,
-                    is_alive ? terrain_settings.cell_size * 1.6f : 0.0f};
-    cells[i].color = is_alive ? white : grey;
-    cells[i].states = is_alive ? alive : dead;
-  }
-
-  const uint32_t grid_width = static_cast<uint32_t>(size.x);
-  const uint32_t grid_height = static_cast<uint32_t>(size.y);
-  const uint32_t render_subdivisions =
-      static_cast<uint32_t>(std::max(terrain_settings.terrain_render_subdivisions, 1));
-  const uint32_t render_grid_width =
-      (grid_width > 0) ? ((grid_width - 1) * render_subdivisions + 1) : 0;
-  const uint32_t render_grid_height =
-      (grid_height > 0) ? ((grid_height - 1) * render_subdivisions + 1) : 0;
-
-  std::vector<uint32_t> render_point_ids;
-  render_point_ids.reserve(static_cast<size_t>(render_grid_width) * render_grid_height);
-  unique_vertices.reserve(unique_vertices.size() + render_point_ids.capacity());
-
-  for (uint32_t row = 0; row < render_grid_height; ++row) {
-    const float y = startY +
-                    static_cast<float>(row) / static_cast<float>(render_subdivisions);
-    for (uint32_t col = 0; col < render_grid_width; ++col) {
-      const float x = startX +
-                      static_cast<float>(col) / static_cast<float>(render_subdivisions);
-      add_vertex_position({x, y, absoluteHeight});
-      render_point_ids.push_back(
-          static_cast<uint32_t>(render_point_ids.size()));
-    }
-  }
-
-  indices = create_grid_polygons(render_point_ids, render_grid_width);
-
-  const float xMin = startX;
-  const float xMax = startX + static_cast<float>(size.x - 1);
-  const float yMin = startY;
-  const float yMax = startY + static_cast<float>(size.y - 1);
-  const float zTop = absoluteHeight;
-  const float zBottom = absoluteHeight - box_depth;
-
-  std::vector<uint32_t> boundary_loop{};
-  boundary_loop.reserve(static_cast<size_t>(2 * render_grid_width + 2 * render_grid_height - 4));
-
-  for (uint32_t col = 0; col < render_grid_width; ++col) {
-    boundary_loop.push_back(col);
-  }
-  for (uint32_t row = 1; row < render_grid_height; ++row) {
-    boundary_loop.push_back(row * render_grid_width + (render_grid_width - 1));
-  }
-  for (int32_t col = static_cast<int32_t>(render_grid_width) - 2; col >= 0; --col) {
-    boundary_loop.push_back((render_grid_height - 1) * render_grid_width +
-                            static_cast<uint32_t>(col));
-  }
-  for (int32_t row = static_cast<int32_t>(render_grid_height) - 2; row >= 1; --row) {
-    boundary_loop.push_back(static_cast<uint32_t>(row) * render_grid_width);
-  }
-
-  const uint32_t ring_count = static_cast<uint32_t>(boundary_loop.size());
-  box_vertices.clear();
-  box_indices.clear();
-  box_vertices.reserve(ring_count * 2 + 4);
-  box_indices.reserve(ring_count * 6 + 6);
-
-  for (const uint32_t source_index : boundary_loop) {
-    box_vertices.push_back({glm::vec3(0.0f), unique_vertices[source_index].vertex_position});
-  }
-  for (const uint32_t source_index : boundary_loop) {
-    glm::vec3 p = unique_vertices[source_index].vertex_position;
-    p.z = zBottom;
-    box_vertices.push_back({glm::vec3(0.0f), p});
-  }
-
-  for (uint32_t i = 0; i < ring_count; ++i) {
-    const uint32_t j = (i + 1) % ring_count;
-    const uint32_t top_i = i;
-    const uint32_t top_j = j;
-    const uint32_t bottom_i = ring_count + i;
-    const uint32_t bottom_j = ring_count + j;
-
-    box_indices.push_back(top_i);
-    box_indices.push_back(bottom_i);
-    box_indices.push_back(top_j);
-
-    box_indices.push_back(top_j);
-    box_indices.push_back(bottom_i);
-    box_indices.push_back(bottom_j);
-  }
-
-  const uint32_t bottom_base = static_cast<uint32_t>(box_vertices.size());
-  box_vertices.push_back({glm::vec3(0.0f), glm::vec3(xMin, yMin, zBottom)});
-  box_vertices.push_back({glm::vec3(0.0f), glm::vec3(xMax, yMin, zBottom)});
-  box_vertices.push_back({glm::vec3(0.0f), glm::vec3(xMax, yMax, zBottom)});
-  box_vertices.push_back({glm::vec3(0.0f), glm::vec3(xMin, yMax, zBottom)});
-
-  box_indices.push_back(bottom_base + 0);
-  box_indices.push_back(bottom_base + 2);
-  box_indices.push_back(bottom_base + 1);
-  box_indices.push_back(bottom_base + 0);
-  box_indices.push_back(bottom_base + 3);
-  box_indices.push_back(bottom_base + 2);
-
-  create_vertex_buffer(command_buffer, command_pool, queue, unique_vertices);
-  create_index_buffer(command_buffer, command_pool, queue, indices);
-  create_vertex_buffer(command_buffer, command_pool, queue, box_vertices, box_vertex_buffer);
-  create_index_buffer(command_buffer, command_pool, queue, box_indices, box_index_buffer);
+  create_render_grid(terrain_settings, startX, startY, absoluteHeight);
+  setup_terrain_box(terrain_settings, startX, startY, absoluteHeight, command_buffer, command_pool, queue);
 }
 
 std::vector<VkVertexInputAttributeDescription> World::Grid::get_attribute_description() {

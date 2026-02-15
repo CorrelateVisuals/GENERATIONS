@@ -64,6 +64,19 @@ public:
 
   private:
     std::vector<uint_fast32_t> set_cells_alive_randomly(uint_fast32_t number_of_cells);
+    void initialize_cells(const CE::Runtime::TerrainSettings &terrain_settings,
+                          const std::vector<bool> &is_alive_indices);
+    void create_render_grid(const CE::Runtime::TerrainSettings &terrain_settings,
+                            float startX, float startY, float absoluteHeight);
+    void create_boundary_loop(uint32_t render_grid_width, uint32_t render_grid_height,
+                              std::vector<uint32_t> &boundary_loop);
+    void create_box_vertices(const std::vector<uint32_t> &boundary_loop, float zBottom);
+    void create_box_indices(uint32_t ring_count);
+    void add_bottom_face(float xMin, float yMin, float xMax, float yMax, float zBottom);
+    void create_buffers(VkCommandBuffer &command_buffer, const VkCommandPool &command_pool, const VkQueue &queue);
+    void setup_terrain_box(const CE::Runtime::TerrainSettings &terrain_settings,
+                          float startX, float startY, float absoluteHeight,
+                          VkCommandBuffer &command_buffer, const VkCommandPool &command_pool, const VkQueue &queue);
   };
 
   Grid _grid;
