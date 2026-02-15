@@ -199,13 +199,17 @@ int detect_hover_cell(float mouseX, float mouseY,
 // Example 7: Advanced Color Manipulation
 // ============================================================================
 // NOTE: These examples use static state for demonstration purposes.
-// In production code, consider managing state differently (e.g., class members)
+// In production code, consider managing state differently:
+// - Move colorPalette to namespace constant or class member
+// - Move cellColorIndices to class member with clear/reset method
+// - Pass state as parameters to avoid unbounded memory growth
 
 void cycle_cell_colors(World &world, int cellIndex) {
     if (cellIndex < 0 || cellIndex >= static_cast<int>(world.get_grid().cells.size())) {
         return;
     }
 
+    // Demo: Static color palette (in production, use namespace constant or config)
     static std::vector<glm::vec4> colorPalette = {
         glm::vec4(1.0f, 0.0f, 0.0f, 1.0f),  // Red
         glm::vec4(0.0f, 1.0f, 0.0f, 1.0f),  // Green
@@ -216,6 +220,7 @@ void cycle_cell_colors(World &world, int cellIndex) {
         glm::vec4(1.0f, 1.0f, 1.0f, 1.0f),  // White
     };
 
+    // Demo: Static map (in production, use class member with capacity limit or clear method)
     static std::unordered_map<int, int> cellColorIndices;
     
     int &colorIndex = cellColorIndices[cellIndex];
