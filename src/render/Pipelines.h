@@ -68,7 +68,8 @@ public:
 
       const bool uses_grid_geometry =
           draw_op == "grid_indexed" || draw_op == "grid_wireframe" ||
-          draw_op == "indexed:grid" || draw_op == "vertices:grid";
+          draw_op == "indexed:grid" || draw_op == "vertices:grid" ||
+          draw_op == "indexed:grid_box";
       if (uses_grid_geometry) {
         return Graphics{.shaders = shaders,
                         .vertex_attributes = World::Grid::get_attribute_description(),

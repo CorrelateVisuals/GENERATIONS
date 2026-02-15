@@ -63,11 +63,21 @@ protected:
                             const VkCommandPool &command_pool,
                           const VkQueue &queue,
                           const std::vector<Vertex> &vertices);
+  void create_vertex_buffer(VkCommandBuffer &command_buffer,
+                            const VkCommandPool &command_pool,
+                            const VkQueue &queue,
+                            const std::vector<Vertex> &vertices,
+                            CE::Buffer &target_buffer);
 
   void create_index_buffer(VkCommandBuffer &command_buffer,
                            const VkCommandPool &command_pool,
                          const VkQueue &queue,
                          const std::vector<uint32_t> &indices);
+  void create_index_buffer(VkCommandBuffer &command_buffer,
+                           const VkCommandPool &command_pool,
+                           const VkQueue &queue,
+                           const std::vector<uint32_t> &indices,
+                           CE::Buffer &target_buffer);
 
 private:
   void load_model(const std::string &model_name, Geometry &geometry);

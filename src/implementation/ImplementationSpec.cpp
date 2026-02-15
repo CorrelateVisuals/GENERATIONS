@@ -9,6 +9,7 @@ ImplementationSpec default_spec() {
   spec.terrain.grid_height = 140;
   spec.terrain.alive_cells = 10000;
   spec.terrain.cell_size = 0.5f;
+  spec.terrain.terrain_box_depth = 30.0f;
   spec.terrain.layer1_roughness = 0.4f;
   spec.terrain.layer1_octaves = 10;
   spec.terrain.layer1_scale = 2.2f;
@@ -61,6 +62,10 @@ ImplementationSpec default_spec() {
       .is_compute = false,
       .shaders = {"LandscapeVert", "LandscapeFrag"},
   };
+    spec.pipelines["TerrainBox"] = CE::Runtime::PipelineDefinition{
+      .is_compute = false,
+      .shaders = {"TerrainBoxVert", "TerrainBoxFrag"},
+  };
     spec.pipelines["Sky"] = CE::Runtime::PipelineDefinition{
       .is_compute = false,
       .shaders = {"SkyVert", "SkyFrag"},
@@ -71,13 +76,14 @@ ImplementationSpec default_spec() {
       .work_groups = {0, 0, 0},
     };
 
-    spec.execution_plan.graphics = {"Landscape", "CellsFollower", "Cells", "Sky"};
+    spec.execution_plan.graphics = {"TerrainBox", "Landscape", "CellsFollower", "Cells", "Sky"};
     spec.execution_plan.post_graphics_compute = {"Engine"};
 
   spec.draw_ops = {
       {"Cells", "instanced:cells"},
       {"CellsFollower", "instanced:cells"},
       {"Landscape", "indexed:grid"},
+        {"TerrainBox", "indexed:grid_box"},
       {"Sky", "sky_dome"},
   };
 

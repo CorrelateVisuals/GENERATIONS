@@ -227,6 +227,14 @@ void Geometry::create_vertex_buffer(VkCommandBuffer &command_buffer,
                                     const VkCommandPool &command_pool,
                                   const VkQueue &queue,
                                   const std::vector<Vertex> &vertices) {
+  create_vertex_buffer(command_buffer, command_pool, queue, vertices, this->vertex_buffer);
+}
+
+void Geometry::create_vertex_buffer(VkCommandBuffer &command_buffer,
+                                    const VkCommandPool &command_pool,
+                                    const VkQueue &queue,
+                                    const std::vector<Vertex> &vertices,
+                                    CE::Buffer &target_buffer) {
   if (vertices.empty()) {
     return;
   }
@@ -262,10 +270,10 @@ void Geometry::create_vertex_buffer(VkCommandBuffer &command_buffer,
   CE::Buffer::create(bufferSize,
                      VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                     this->vertex_buffer);
+                     target_buffer);
 
   CE::Buffer::copy(stagingResources.buffer,
-                   this->vertex_buffer.buffer,
+                   target_buffer.buffer,
                    bufferSize,
                    command_buffer,
                    command_pool,
@@ -276,6 +284,14 @@ void Geometry::create_index_buffer(VkCommandBuffer &command_buffer,
                                    const VkCommandPool &command_pool,
                                    const VkQueue &queue,
                                    const std::vector<uint32_t> &index_data) {
+  create_index_buffer(command_buffer, command_pool, queue, index_data, this->index_buffer);
+}
+
+void Geometry::create_index_buffer(VkCommandBuffer &command_buffer,
+                                   const VkCommandPool &command_pool,
+                                   const VkQueue &queue,
+                                   const std::vector<uint32_t> &index_data,
+                                   CE::Buffer &target_buffer) {
   if (index_data.empty()) {
     return;
   }
@@ -311,10 +327,10 @@ void Geometry::create_index_buffer(VkCommandBuffer &command_buffer,
   CE::Buffer::create(bufferSize,
                      VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                     this->index_buffer);
+                     target_buffer);
 
   CE::Buffer::copy(stagingResources.buffer,
-                   this->index_buffer.buffer,
+                   target_buffer.buffer,
                    bufferSize,
                    command_buffer,
                    command_pool,

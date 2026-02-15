@@ -149,6 +149,13 @@ void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
                           static_cast<uint32_t>(resources.world._grid.indices.size()));
   };
 
+  const auto draw_grid_box_indexed = [&](const std::string &pipeline_name) {
+    bind_and_draw_indexed(pipeline_name.c_str(),
+                          resources.world._grid.box_vertex_buffer.buffer,
+                          resources.world._grid.box_index_buffer.buffer,
+                          static_cast<uint32_t>(resources.world._grid.box_indices.size()));
+  };
+
   const auto draw_rectangle_indexed = [&](const std::string &pipeline_name) {
     bind_and_draw_indexed(pipeline_name.c_str(),
                           resources.world._rectangle.vertex_buffer.buffer,
@@ -242,6 +249,11 @@ void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
       continue;
     }
 
+    if (*draw_op == "indexed:grid_box") {
+      draw_grid_box_indexed(pipeline_name);
+      continue;
+    }
+
     if (*draw_op == "rectangle_indexed" || *draw_op == "indexed:rectangle") {
       draw_rectangle_indexed(pipeline_name);
       continue;
@@ -263,6 +275,8 @@ void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
           std::string_view(*draw_op).substr(indexed_prefix.size());
       if (target == "grid") {
         draw_grid_indexed(pipeline_name);
+      } else if (target == "grid_box") {
+        draw_grid_box_indexed(pipeline_name);
       } else if (target == "cube") {
         draw_cube_indexed(pipeline_name);
       } else {

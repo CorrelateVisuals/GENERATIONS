@@ -1,6 +1,6 @@
 #version 450
 
-layout(location = 0) in vec4 inPosition;
+layout(location = 0) in vec3 inPosition;
 
 layout (binding = 0) uniform ParameterUBO {
     vec4 light;
@@ -81,16 +81,20 @@ layout(location = 0) out vec3 outWorldPos;
 void main() {
     vec2 p = inPosition.xy;
     float height = terrain_height(p);
+    float baseSurfaceZ = ubo.waterRules.w;
+    float surfaceEpsilon = max(ubo.cellSize * 0.25f, 0.001f);
+    float applyDisplacement = step(abs(inPosition.z - baseSurfaceZ), surfaceEpsilon);
 
     float eps = max(0.35f * ubo.cellSize, 0.05f);
     float hL = terrain_height(p - vec2(eps, 0.0f));
     float hR = terrain_height(p + vec2(eps, 0.0f));
     float hD = terrain_height(p - vec2(0.0f, eps));
     float hU = terrain_height(p + vec2(0.0f, eps));
-    vec3 normalLocal = normalize(vec3(hL - hR, hD - hU, 2.0f * eps));
+    vec3 terrainNormal = normalize(vec3(hL - hR, hD - hU, 2.0f * eps));
+    vec3 normalLocal = mix(vec3(0.0f, 0.0f, -1.0f), terrainNormal, applyDisplacement);
 
     vec4 localPosition = vec4(inPosition.xyz, 1.0f);
-    localPosition.z += height;
+    localPosition.z += height * applyDisplacement;
 
     // Lift slightly along the surface normal so the wireframe
     // sits just above the terrain and doesn't z-fight.

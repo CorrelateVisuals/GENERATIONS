@@ -14,7 +14,7 @@ void main() {
     base = mix(base, zenith, smoothstep(0.35, 1.0, h));
 
     float azimuth = atan(vDir.z, vDir.x);
-    float broadCloudBand = 0.5 + 0.5 * sin(azimuth * 2.5 + vDir.y * 3.0);
+    float broadCloudBand = 0.5 + 0.5 * sin(azimuth * 2.0 + vDir.y * 3.0);
     base += vec3(0.035, 0.03, 0.02) * broadCloudBand * smoothstep(0.2, 0.95, h);
 
     // Soft stylized sun glow for a pleasant atmosphere.

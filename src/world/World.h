@@ -51,6 +51,10 @@ public:
     std::vector<uint32_t> point_ids = std::vector<uint32_t>(point_count);
     std::vector<glm::vec3> coordinates = std::vector<glm::vec3>(point_count);
     std::vector<World::Cell> cells = std::vector<World::Cell>(point_count);
+    std::vector<Vertex> box_vertices{};
+    std::vector<uint32_t> box_indices{};
+    CE::Buffer box_vertex_buffer;
+    CE::Buffer box_index_buffer;
 
         Grid(const CE::Runtime::TerrainSettings &terrain_settings,
           VkCommandBuffer &command_buffer,
