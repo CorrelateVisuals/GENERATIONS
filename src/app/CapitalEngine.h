@@ -53,4 +53,7 @@ private:
   std::tm get_current_time_info() const;
   std::string build_screenshot_filename(const std::string &tag) const;
   std::string format_screenshot_name(const std::tm &timeInfo, int milliseconds, const std::string &tag) const;
+  void log_loop_start();
+  void log_loop_end();
+  void run_main_loop_iteration(ScreenshotState &state, Window &window);
 };

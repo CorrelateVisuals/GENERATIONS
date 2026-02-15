@@ -107,22 +107,34 @@ void CapitalEngine::process_screenshot_handling(ScreenshotState &state, Window &
   }
 }
 
-void CapitalEngine::main_loop() {
+void CapitalEngine::log_loop_start() {
   Log::text(Log::Style::header_guard);
   Log::text("{ Main Loop }");
   Log::measure_elapsed_time();
+}
+
+void CapitalEngine::log_loop_end() {
+  vkDeviceWaitIdle(mechanics.main_device.logical_device);
+  Log::measure_elapsed_time();
+  Log::text(Log::Style::header_guard);
+}
+
+void CapitalEngine::run_main_loop_iteration(ScreenshotState &state, Window &window) {
+  process_frame_update(window);
+  process_screenshot_handling(state, window);
+}
+
+void CapitalEngine::main_loop() {
+  log_loop_start();
   ScreenshotState screenshot_state = initialize_screenshot_state();
   Window &main_window = Window::get();
   while (!glfwWindowShouldClose(main_window.window)) {
-    process_frame_update(main_window);
-    process_screenshot_handling(screenshot_state, main_window);
+    run_main_loop_iteration(screenshot_state, main_window);
     if (main_window.is_escape_pressed()) {
       break;
     }
   }
-  vkDeviceWaitIdle(mechanics.main_device.logical_device);
-  Log::measure_elapsed_time();
-  Log::text(Log::Style::header_guard);
+  log_loop_end();
 }
 
 void CapitalEngine::draw_frame() {
