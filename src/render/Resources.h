@@ -67,7 +67,7 @@ public:
                 const auto &object,
                 const size_t quantity);
     void create_descriptor_write(CE::DescriptorInterface &interface, const size_t quantity);
-    CE::Buffer create_staging_buffer(const auto &object, const size_t quantity);
+    CE::Buffer create_staging_buffer(const auto &object, const size_t quantity, VkDeviceSize &out_buffer_size);
     void create_device_buffer(const CE::CommandInterface &command_interface,
                                const CE::Buffer &staging,
                                VkDeviceSize size,

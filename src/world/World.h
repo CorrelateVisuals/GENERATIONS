@@ -65,7 +65,8 @@ public:
   private:
     std::vector<uint_fast32_t> set_cells_alive_randomly(uint_fast32_t number_of_cells);
     void initialize_cells(const CE::Runtime::TerrainSettings &terrain_settings,
-                          const std::vector<bool> &is_alive_indices);
+                          const std::vector<bool> &is_alive_indices,
+                          float startX, float startY, float absoluteHeight);
     void create_render_grid(const CE::Runtime::TerrainSettings &terrain_settings,
                             float startX, float startY, float absoluteHeight);
     void create_boundary_loop(uint32_t render_grid_width, uint32_t render_grid_height,

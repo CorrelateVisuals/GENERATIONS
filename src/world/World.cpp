@@ -112,14 +112,12 @@ std::vector<VkVertexInputAttributeDescription> World::Cell::get_attribute_descri
 };
 
 void World::Grid::initialize_cells(const CE::Runtime::TerrainSettings &terrain_settings,
-                                   const std::vector<bool> &is_alive_indices) {
+                                   const std::vector<bool> &is_alive_indices,
+                                   float startX, float startY, float absoluteHeight) {
   const glm::vec4 white{1.0f, 1.0f, 1.0f, 1.0f};
   const glm::vec4 grey{0.5f, 0.5f, 0.5f, 1.0f};
   const glm::ivec4 alive{1, -1, 0, -1};
   const glm::ivec4 dead{-1, -1, 0, -1};
-  const float startX = (size.x - 1) / -2.0f;
-  const float startY = (size.y - 1) / -2.0f;
-  const float absoluteHeight = terrain_settings.absolute_height;
   for (uint_fast32_t i = 0; i < point_count; ++i) {
     point_ids[i] = i;
     coordinates[i] = {(startX + i % size.x), (startY + i / size.x), absoluteHeight};
@@ -253,10 +251,10 @@ World::Grid::Grid(const CE::Runtime::TerrainSettings &terrain_settings,
   for (int alive_index : alive_cell_indices) {
     is_alive_indices[alive_index] = true;
   }
-  initialize_cells(terrain_settings, is_alive_indices);
   const float startX = (size.x - 1) / -2.0f;
   const float startY = (size.y - 1) / -2.0f;
   const float absoluteHeight = terrain_settings.absolute_height;
+  initialize_cells(terrain_settings, is_alive_indices, startX, startY, absoluteHeight);
   create_render_grid(terrain_settings, startX, startY, absoluteHeight);
   setup_terrain_box(terrain_settings, startX, startY, absoluteHeight, command_buffer, command_pool, queue);
 }

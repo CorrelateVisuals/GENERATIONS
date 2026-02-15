@@ -169,9 +169,10 @@ void Resources::StorageBuffer::map_and_copy_data(CE::Buffer &buffer, const auto 
   vkUnmapMemory(CE::Device::base_device->logical_device, buffer.memory);
 }
 
-CE::Buffer Resources::StorageBuffer::create_staging_buffer(const auto &object, const size_t quantity) {
+CE::Buffer Resources::StorageBuffer::create_staging_buffer(const auto &object, const size_t quantity, VkDeviceSize &out_buffer_size) {
   CE::Buffer stagingResources;
   VkDeviceSize bufferSize = sizeof(World::Cell) * quantity;
+  out_buffer_size = bufferSize;
   CE::Buffer::create(bufferSize,
                      VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
@@ -198,8 +199,8 @@ void Resources::StorageBuffer::create(const CE::CommandInterface &command_interf
                                       const auto &object,
                                       const size_t quantity) {
   Log::text("{ 101 }", "Shader Storage Buffers");
-  CE::Buffer stagingResources = create_staging_buffer(object, quantity);
-  VkDeviceSize bufferSize = sizeof(World::Cell) * quantity;
+  VkDeviceSize bufferSize;
+  CE::Buffer stagingResources = create_staging_buffer(object, quantity, bufferSize);
   create_device_buffer(command_interface, stagingResources, bufferSize, buffer_in);
   create_device_buffer(command_interface, stagingResources, bufferSize, buffer_out);
 }
