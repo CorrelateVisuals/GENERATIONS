@@ -3,14 +3,11 @@
 #include "core/RuntimeConfig.h"
 #include "io/Screenshot.h"
 #include "platform/Window.h"
-#include "base/VulkanUtils.h"
 
 #include <chrono>
 #include <filesystem>
 #include <iomanip>
 #include <sstream>
-#include <algorithm>
-#include <cmath>
 #include <vector>
 
 CapitalEngine::CapitalEngine() {
@@ -46,14 +43,6 @@ void CapitalEngine::main_loop() {
       CE::Runtime::env_flag_enabled("CE_STARTUP_SCREENSHOT");
   const bool startup_screenshot_cycle_enabled =
       CE::Runtime::env_flag_enabled("CE_STARTUP_SCREENSHOT_CYCLE");
-  const bool startup_welcome_animation_enabled = !startup_screenshot_cycle_enabled;
-
-  const auto welcome_started_at = std::chrono::steady_clock::now();
-  constexpr auto welcome_duration = std::chrono::milliseconds(1700);
-  bool welcome_shot_completed = !startup_welcome_animation_enabled;
-  if (startup_welcome_animation_enabled) {
-    resources->world._camera.set_orbit_view(28.0f, 30.0f, 0.86f);
-  }
 
   bool first_loop_screenshot_captured = !startup_screenshot_enabled;
   bool startup_screenshot_framed = !startup_screenshot_enabled;
@@ -65,37 +54,12 @@ void CapitalEngine::main_loop() {
   bool startup_screenshot_pending_capture = false;
   auto startup_screenshot_ready_at =
       std::chrono::steady_clock::now() + std::chrono::seconds(1);
-  if (startup_welcome_animation_enabled) {
-    startup_screenshot_ready_at =
-        std::max(startup_screenshot_ready_at, welcome_started_at + welcome_duration);
-  }
   auto startup_screenshot_capture_at = startup_screenshot_ready_at;
   Window &main_window = Window::get();
 
   while (!glfwWindowShouldClose(main_window.window)) {
     main_window.poll_input();
     resources->world._time.run();
-
-    if (!welcome_shot_completed) {
-      const auto now = std::chrono::steady_clock::now();
-      const auto elapsed = now - welcome_started_at;
-      const float t = std::clamp(
-          std::chrono::duration<float>(elapsed).count() /
-              std::chrono::duration<float>(welcome_duration).count(),
-          0.0f,
-          1.0f);
-      const float eased = 1.0f - std::pow(1.0f - t, 3.0f);
-
-      const float yaw = std::lerp(28.0f, 18.0f, eased);
-      const float pitch = std::lerp(30.0f, 87.0f, eased);
-      const float distance_scale = std::lerp(0.86f, 0.95f, eased);
-      resources->world._camera.set_orbit_view(yaw, pitch, distance_scale);
-
-      if (t >= 1.0f) {
-        welcome_shot_completed = true;
-        resources->world._camera.set_preset_view(4);
-      }
-    }
 
     draw_frame();
 

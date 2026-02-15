@@ -46,25 +46,21 @@ void main() {
     }
 
     vec3 normal = vec3(-1.0f, 0.0f, 0.0f);
-    vec3 faceColor = vec3(0.28f, 0.39f, 0.62f); // west
     float minD = dWest;
     if (dEast < minD) {
         minD = dEast;
         normal = vec3(1.0f, 0.0f, 0.0f);
-        faceColor = vec3(0.67f, 0.41f, 0.30f); // east
     }
     if (dNorth < minD) {
         minD = dNorth;
         normal = vec3(0.0f, -1.0f, 0.0f);
-        faceColor = vec3(0.30f, 0.58f, 0.36f); // north
     }
     if (dSouth < minD) {
         normal = vec3(0.0f, 1.0f, 0.0f);
-        faceColor = vec3(0.60f, 0.54f, 0.30f); // south
     }
 
     vec3 lightDirection = normalize(ubo.light.rgb - inWorldPos);
-    float diffuse = max(dot(normal, lightDirection), 0.0f);
-    vec3 boxLit = faceColor * (0.35f + diffuse * 0.65f);
+    float diffuse = abs(dot(normal, lightDirection));
+    vec3 boxLit = boxBase * (0.22f + diffuse * 0.78f);
     outColor = vec4(boxLit, 1.0f);
 }

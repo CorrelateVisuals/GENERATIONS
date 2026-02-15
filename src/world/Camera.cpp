@@ -101,7 +101,7 @@ void Camera::set_preset_view(uint32_t preset_index) {
       Log::text("{ Cam }", "Preset 3: Close Side Straight");
       break;
     case 4:
-      set_orbit_view(18.0f, 87.0f, 0.95f);
+      set_orbit_view(18.0f, 87.0f, 0.70f);
       Log::text("{ Cam }", "Preset 4: Top Down");
       break;
     default:
