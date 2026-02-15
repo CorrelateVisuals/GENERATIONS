@@ -25,6 +25,15 @@ private:
                uint32_t image_index,
                const std::function<void()> &recreate_swapchain);
 
+  VkSubmitInfo create_compute_submit_info(uint32_t frame_index) const;
+  VkSubmitInfo create_graphics_submit_info(uint32_t frame_index) const;
+  void prepare_graphics_command(uint32_t frame_index, uint32_t image_index);
+  VkPresentInfoKHR create_present_info(uint32_t frame_index, uint32_t image_index) const;
+  void wait_and_reset_fence(const VkFence &fence) const;
+  void prepare_compute_command(uint32_t frame_index);
+  void handle_present_result(VkResult result, const std::function<void()> &recreate_swapchain) const;
+  bool handle_acquire_result(VkResult result, const std::function<void()> &recreate_swapchain) const;
+
   VulkanMechanics &mechanics_;
   Resources &resources_;
   Pipelines &pipelines_;
