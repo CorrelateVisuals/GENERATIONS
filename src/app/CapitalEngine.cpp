@@ -173,12 +173,9 @@ void CapitalEngine::handle_mouse_click(Window &window) {
   // Check if left mouse button was clicked
   const glm::vec2 &clickPos = window.mouse.button_click[GLFW_MOUSE_BUTTON_LEFT].position;
   
-  // Track last click position to detect new clicks
-  static glm::vec2 lastClickPos = glm::vec2(-1.0f, -1.0f);
-  
   // Only process if this is a new click (position changed)
-  if (clickPos != lastClickPos && clickPos.x >= 0.0f && clickPos.y >= 0.0f) {
-    lastClickPos = clickPos;
+  if (clickPos != last_click_position && clickPos.x >= 0.0f && clickPos.y >= 0.0f) {
+    last_click_position = clickPos;
     
     // Convert normalized coordinates [0,1] to screen pixels
     const int screenWidth = static_cast<int>(window.display.width);

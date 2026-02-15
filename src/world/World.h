@@ -82,4 +82,8 @@ public:
   void set_cell_color(int cellIndex, const glm::vec4 &color);
   void highlight_cell(int cellIndex);
   void reset_cell_color(int cellIndex);
+
+  // Getters for picking examples
+  const Grid& get_grid() const { return _grid; }
+  const UniformBufferObject& get_ubo() const { return _ubo; }
 };

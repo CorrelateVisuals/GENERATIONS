@@ -39,11 +39,11 @@ int find_clicked_cell_raycasting(float mouseX, float mouseY,
 
     int closestCell = -1;
     float closestDist = FLT_MAX;
-    const float cellSize = world._ubo.cell_size;
+    const float cellSize = world.get_ubo().cell_size;
 
     // Test all cells for intersection
-    for (size_t i = 0; i < world._grid.cells.size(); ++i) {
-        glm::vec3 cellPos = glm::vec3(world._grid.cells[i].instance_position);
+    for (size_t i = 0; i < world.get_grid().cells.size(); ++i) {
+        glm::vec3 cellPos = glm::vec3(world.get_grid().cells[i].instance_position);
         
         // Create AABB for cell
         glm::vec3 aabbMin = cellPos - glm::vec3(cellSize * 0.5f);
@@ -71,9 +71,9 @@ int find_clicked_cell_raycasting(float mouseX, float mouseY,
 // Useful when you already have a world position (e.g., from depth buffer)
 
 int world_position_to_cell_index(const glm::vec3 &worldPos, const World &world) {
-    const float cellSize = world._ubo.cell_size;
-    const int gridWidth = world._ubo.grid_xy.x;
-    const int gridHeight = world._ubo.grid_xy.y;
+    const float cellSize = world.get_ubo().cell_size;
+    const int gridWidth = world.get_ubo().grid_xy.x;
+    const int gridHeight = world.get_ubo().grid_xy.y;
 
     // Convert world position to grid coordinates
     int gridX = static_cast<int>((worldPos.x / cellSize) + gridWidth / 2.0f);
@@ -96,8 +96,8 @@ int find_nearest_cell(const glm::vec3 &worldPos, const World &world) {
     int closestCell = -1;
     float closestDist = FLT_MAX;
 
-    for (size_t i = 0; i < world._grid.cells.size(); ++i) {
-        glm::vec3 cellPos = glm::vec3(world._grid.cells[i].instance_position);
+    for (size_t i = 0; i < world.get_grid().cells.size(); ++i) {
+        glm::vec3 cellPos = glm::vec3(world.get_grid().cells[i].instance_position);
         float dist = glm::distance(worldPos, cellPos);
 
         if (dist < closestDist) {
@@ -135,8 +135,8 @@ std::vector<int> select_cells_in_rectangle(float x1, float y1, float x2, float y
 
             CellPicking::GridPickResult result = CellPicking::pick_grid_cell(
                 testX, testY, view, projection,
-                world._ubo.grid_xy.x, world._ubo.grid_xy.y,
-                world._ubo.cell_size,
+                world.get_ubo().grid_xy.x, world.get_ubo().grid_xy.y,
+                world.get_ubo().cell_size,
                 screenWidth, screenHeight, 0.0f);
 
             if (result.hit) {
@@ -174,8 +174,8 @@ int detect_hover_cell(float mouseX, float mouseY,
                       float currentTime) {
     CellPicking::GridPickResult result = CellPicking::pick_grid_cell(
         mouseX, mouseY, view, projection,
-        world._ubo.grid_xy.x, world._ubo.grid_xy.y,
-        world._ubo.cell_size,
+        world.get_ubo().grid_xy.x, world.get_ubo().grid_xy.y,
+        world.get_ubo().cell_size,
         screenWidth, screenHeight, 0.0f);
 
     int hoveredCell = result.hit ? result.cellIndex : -1;
@@ -198,9 +198,11 @@ int detect_hover_cell(float mouseX, float mouseY,
 // ============================================================================
 // Example 7: Advanced Color Manipulation
 // ============================================================================
+// NOTE: These examples use static state for demonstration purposes.
+// In production code, consider managing state differently (e.g., class members)
 
 void cycle_cell_colors(World &world, int cellIndex) {
-    if (cellIndex < 0 || cellIndex >= static_cast<int>(world._grid.cells.size())) {
+    if (cellIndex < 0 || cellIndex >= static_cast<int>(world.get_grid().cells.size())) {
         return;
     }
 
@@ -225,15 +227,15 @@ void cycle_cell_colors(World &world, int cellIndex) {
 
 void paint_cells_in_radius(World &world, int centerCellIndex, float radius, 
                            const glm::vec4 &color) {
-    if (centerCellIndex < 0 || centerCellIndex >= static_cast<int>(world._grid.cells.size())) {
+    if (centerCellIndex < 0 || centerCellIndex >= static_cast<int>(world.get_grid().cells.size())) {
         return;
     }
 
-    glm::vec3 centerPos = glm::vec3(world._grid.cells[centerCellIndex].instance_position);
+    glm::vec3 centerPos = glm::vec3(world.get_grid().cells[centerCellIndex].instance_position);
     int paintedCount = 0;
 
-    for (size_t i = 0; i < world._grid.cells.size(); ++i) {
-        glm::vec3 cellPos = glm::vec3(world._grid.cells[i].instance_position);
+    for (size_t i = 0; i < world.get_grid().cells.size(); ++i) {
+        glm::vec3 cellPos = glm::vec3(world.get_grid().cells[i].instance_position);
         float dist = glm::distance(centerPos, cellPos);
 
         if (dist <= radius) {

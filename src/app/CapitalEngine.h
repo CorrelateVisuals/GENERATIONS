@@ -26,6 +26,7 @@ private:
 
   uint32_t last_presented_image_index{0};
   uint32_t last_submitted_frame_index{0};
+  glm::vec2 last_click_position{-1.0f, -1.0f};  // Track last click for change detection
 
   void recreate_swapchain();
   void draw_frame();
