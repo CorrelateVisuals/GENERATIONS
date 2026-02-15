@@ -34,6 +34,8 @@ layout(push_constant, std430) uniform PushConstants {
 } pushConstants;
 
 // Hash and noise functions for procedural terrain generation
+// Hash function for procedural noise generation
+// Magic numbers chosen for good distribution properties
 float hash21(vec2 p) {
     return fract(sin(dot(p, vec2(127.1f, 311.7f))) * 43758.5453f);
 }
@@ -123,7 +125,9 @@ void main() {
     // Calculate vertex position in grid space
     float x = startX + float(globalX) / subdivisions;
     float y = startY + float(globalY) / subdivisions;
-    float z = ubo.waterRules.w;  // absolute height from waterRules.w
+    // Note: waterRules.w stores the absolute_height (base surface Z position)
+    // This is the starting Z before terrain height is applied
+    float z = ubo.waterRules.w;
     
     // Calculate terrain height and apply it
     vec2 p = vec2(x, y);

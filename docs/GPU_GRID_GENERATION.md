@@ -98,7 +98,7 @@ Make grid generation method configurable:
 ## Current Limitations
 
 1. **Not Yet Active**: Shader exists but not dispatched in execution loop
-2. **Double Height Application**: Would need to update Landscape.vert to use pre-computed heights
+2. **Double Height Application**: If activated without updating Landscape.vert, terrain height would be applied twice (once by GridGeneration.comp during initialization, and again by Landscape.vert every frame), resulting in incorrect doubled terrain elevation. Solution: Create a variant shader (e.g., LandscapeStaged.vert) that uses pre-computed heights from the buffer without re-applying terrain_height().
 3. **No Fallback**: CPU generation still used; GPU generation is additional infrastructure
 4. **Fixed at Init**: Terrain cannot be dynamically modified without re-dispatch
 

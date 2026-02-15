@@ -35,12 +35,7 @@ Resources::Resources(VulkanMechanics &mechanics, const CE::Runtime::TerrainSetti
                                       world._grid.point_count},
         sampler{descriptor_interface, command_interface, Lib::path("assets/Avatar.PNG")},
         storage_image{descriptor_interface, mechanics.swapchain.images},
-        grid_vertex_buffer{descriptor_interface,
-                           static_cast<size_t>(
-                               ((terrain_settings.grid_width - 1) * 
-                                std::max(terrain_settings.terrain_render_subdivisions, 1) + 1) *
-                               ((terrain_settings.grid_height - 1) * 
-                                std::max(terrain_settings.terrain_render_subdivisions, 1) + 1))} {
+        grid_vertex_buffer{descriptor_interface, terrain_settings.calculate_render_vertex_count()} {
   Log::text(Log::Style::header_guard);
   Log::text("{ /// }", "constructing Resources (start)");
   Log::text(Log::Style::header_guard);

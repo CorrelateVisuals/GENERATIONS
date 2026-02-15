@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <array>
+#include <algorithm>
 
 namespace CE::Runtime {
 
@@ -58,6 +59,15 @@ struct TerrainSettings {
 
   float blend_factor = 0.5f;
   float absolute_height = 0.0f;
+
+  // Helper function to calculate render grid vertex count
+  // This ensures consistent calculation between CPU and GPU code
+  size_t calculate_render_vertex_count() const {
+    const int subdivisions = std::max(terrain_render_subdivisions, 1);
+    const int render_width = (grid_width > 0) ? ((grid_width - 1) * subdivisions + 1) : 0;
+    const int render_height = (grid_height > 0) ? ((grid_height - 1) * subdivisions + 1) : 0;
+    return static_cast<size_t>(render_width) * static_cast<size_t>(render_height);
+  }
 };
 
 struct WorldSettings {
