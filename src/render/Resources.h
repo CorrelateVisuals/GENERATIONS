@@ -85,6 +85,19 @@ public:
     void create_descriptor_write(CE::DescriptorInterface &interface,
                                  std::array<CE::Image, MAX_FRAMES_IN_FLIGHT> &images);
   };
+
+  class GridVertexBuffer : public CE::Descriptor {
+  public:
+    CE::Buffer buffer;
+
+    GridVertexBuffer(CE::DescriptorInterface &descriptor_interface,
+                     const size_t vertex_count);
+
+  private:
+    void create(const size_t vertex_count);
+    void create_descriptor_write(CE::DescriptorInterface &interface, const size_t vertex_count);
+  };
+
   // GPU Interface
   CE::ShaderAccess::CommandResources
       commands;                          // virtual function to record command buffers
@@ -107,4 +120,5 @@ public:
   // Image Descriptors
   ImageSampler sampler;      // Texture vertex shader
   StorageImage storage_image; //  PostFX compute shader
+  GridVertexBuffer grid_vertex_buffer; // Grid generation compute shader
 };

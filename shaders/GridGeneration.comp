@@ -9,7 +9,7 @@ struct GridVertex {
     float _padding;   // alignment padding
 };
 
-layout(std430, binding = 3) writeonly buffer GridVertexBuffer {
+layout(std430, binding = 5) writeonly buffer GridVertexBuffer {
     GridVertex vertices[];
 };
 

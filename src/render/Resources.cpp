@@ -34,7 +34,13 @@ Resources::Resources(VulkanMechanics &mechanics, const CE::Runtime::TerrainSetti
                                     world._grid.cells,
                                       world._grid.point_count},
         sampler{descriptor_interface, command_interface, Lib::path("assets/Avatar.PNG")},
-        storage_image{descriptor_interface, mechanics.swapchain.images} {
+        storage_image{descriptor_interface, mechanics.swapchain.images},
+        grid_vertex_buffer{descriptor_interface,
+                           static_cast<size_t>(
+                               ((terrain_settings.grid_width - 1) * 
+                                std::max(terrain_settings.terrain_render_subdivisions, 1) + 1) *
+                               ((terrain_settings.grid_height - 1) * 
+                                std::max(terrain_settings.terrain_render_subdivisions, 1) + 1))} {
   Log::text(Log::Style::header_guard);
   Log::text("{ /// }", "constructing Resources (start)");
   Log::text(Log::Style::header_guard);
@@ -329,6 +335,64 @@ void Resources::StorageImage::create_descriptor_write(
     descriptorWrite.pBufferInfo = nullptr;
     descriptorWrite.pTexelBufferView = nullptr;
 
+    interface.descriptor_writes[i][my_index] = descriptorWrite;
+  }
+}
+
+Resources::GridVertexBuffer::GridVertexBuffer(CE::DescriptorInterface &descriptor_interface,
+                                               const size_t vertex_count) {
+  my_index = descriptor_interface.write_index;
+  descriptor_interface.write_index++;
+
+  set_layout_binding.binding = 5;
+  set_layout_binding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+  set_layout_binding.descriptorCount = 1;
+  set_layout_binding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT | VK_SHADER_STAGE_VERTEX_BIT;
+  descriptor_interface.set_layout_bindings[my_index] = set_layout_binding;
+
+  pool_size.type = set_layout_binding.descriptorType;
+  pool_size.descriptorCount = MAX_FRAMES_IN_FLIGHT;
+  descriptor_interface.pool_sizes.push_back(pool_size);
+
+  create(vertex_count);
+  create_descriptor_write(descriptor_interface, vertex_count);
+}
+
+void Resources::GridVertexBuffer::create(const size_t vertex_count) {
+  Log::text("{ 101 }", "Grid Vertex Storage Buffer");
+
+  // Each vertex is vec3 position + float padding = 16 bytes
+  VkDeviceSize bufferSize = 16 * vertex_count;
+
+  CE::Buffer::create(bufferSize,
+                     VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
+                         VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
+                         VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                     VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                     buffer);
+}
+
+void Resources::GridVertexBuffer::create_descriptor_write(CE::DescriptorInterface &interface,
+                                                           const size_t vertex_count) {
+  VkDescriptorBufferInfo bufferInfo{.buffer = buffer.buffer,
+                                    .offset = 0,
+                                    .range = 16 * vertex_count};
+
+  info.current_frame = bufferInfo;
+
+  VkWriteDescriptorSet descriptorWrite{};
+  descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+  descriptorWrite.pNext = nullptr;
+  descriptorWrite.dstSet = VK_NULL_HANDLE;
+  descriptorWrite.dstBinding = set_layout_binding.binding;
+  descriptorWrite.dstArrayElement = 0;
+  descriptorWrite.descriptorCount = set_layout_binding.descriptorCount;
+  descriptorWrite.descriptorType = set_layout_binding.descriptorType;
+  descriptorWrite.pImageInfo = nullptr;
+  descriptorWrite.pBufferInfo = &std::get<VkDescriptorBufferInfo>(info.current_frame);
+  descriptorWrite.pTexelBufferView = nullptr;
+
+  for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
     interface.descriptor_writes[i][my_index] = descriptorWrite;
   }
 }
