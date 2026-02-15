@@ -1,4 +1,5 @@
 #include <cstdint>
+#include <chrono>
 
 class Timer {
 public:
@@ -14,6 +15,7 @@ private:
   float speed{1.0f};
   float day_fraction{0.0f};
   static constexpr int hours_per_day{24};
-  const float target_duration{1.0f / (speed / hours_per_day)};
-  static constexpr float trigger_delay_under_speed = 100.0f;
+  float hour_accumulator{0.0f};
+  bool initialized{false};
+  std::chrono::steady_clock::time_point last_update_time{};
 };

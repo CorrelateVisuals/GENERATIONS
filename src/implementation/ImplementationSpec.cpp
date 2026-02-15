@@ -65,7 +65,7 @@ ImplementationSpec default_spec() {
   };
     spec.pipelines["TerrainBox"] = CE::Runtime::PipelineDefinition{
       .is_compute = false,
-      .shaders = {"LandscapeVert", "TerrainBoxFrag"},
+      .shaders = {"TerrainBoxSeamVert", "TerrainBoxFrag"},
   };
     spec.pipelines["Sky"] = CE::Runtime::PipelineDefinition{
       .is_compute = false,
@@ -78,8 +78,8 @@ ImplementationSpec default_spec() {
     };
 
     spec.execution_plan.pre_graphics_compute = {"Engine"};
-    spec.execution_plan.graphics = {"TerrainBox", "Landscape", "CellsFollower", "Cells", "Sky"};
-    spec.execution_plan.post_graphics_compute = {"PostFX"};
+    spec.execution_plan.graphics = {"Sky", "Landscape", "TerrainBox", "CellsFollower", "Cells"};
+    spec.execution_plan.post_graphics_compute = {};
 
   spec.draw_ops = {
       {"Cells", "instanced:cells"},

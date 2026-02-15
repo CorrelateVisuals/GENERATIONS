@@ -17,9 +17,17 @@ layout(binding = 0) uniform ParameterUBO {
     mat4 projection;
 } ubo;
 
+vec3 safe_normalize(vec3 v, vec3 fallback) {
+    float len2 = dot(v, v);
+    if (!(len2 > 1e-12)) {
+        return fallback;
+    }
+    return v * inversesqrt(len2);
+}
+
 void main() {
     float domeRadius = 170.0;
-    vec3 local = normalize(inPos) * domeRadius;
+    vec3 local = safe_normalize(inPos, vec3(0.0, 1.0, 0.0)) * domeRadius;
 
     // Remove camera translation so the dome stays centered on the viewer.
     mat4 viewNoTranslation = mat4(mat3(ubo.view));
@@ -27,5 +35,5 @@ void main() {
     vec4 clip = ubo.projection * viewNoTranslation * vec4(local, 1.0);
     // Force depth to far plane for skybox-style rendering.
     gl_Position = clip.xyww;
-    vDir = normalize(inPos);
+    vDir = safe_normalize(inPos, vec3(0.0, 1.0, 0.0));
 }

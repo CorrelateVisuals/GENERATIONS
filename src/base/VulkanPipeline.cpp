@@ -292,6 +292,15 @@ void CE::PipelinesConfiguration::create_pipelines(VkRenderPass &render_pass,
         colorBlendAttachment = CE::color_blend_attachment_state_false;
       }
 
+      if (pipelineName == "TerrainBox") {
+        rasterization.cullMode = VK_CULL_MODE_BACK_BIT;
+        rasterization.depthBiasEnable = VK_FALSE;
+        depthStencil.depthTestEnable = VK_TRUE;
+        depthStencil.depthWriteEnable = VK_TRUE;
+        depthStencil.depthCompareOp = VK_COMPARE_OP_LESS;
+        colorBlendAttachment = CE::color_blend_attachment_state_false;
+      }
+
       VkPipelineTessellationStateCreateInfo tessellationStateInfo{
           CE::tessellation_state_default};
       if (tesselationEnabled) {

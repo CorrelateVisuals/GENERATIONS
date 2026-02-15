@@ -1,10 +1,6 @@
 #version 450
 
-layout(location = 0) in vec4 inPosition;
-layout(location = 1) in vec3 inVertex;
-layout(location = 2) in vec3 inNormal;
-layout(location = 3) in vec4 inColor;
-layout(location = 4) in ivec4 inStates;
+layout(location = 0) in vec3 inPosition;
 
 layout (binding = 0) uniform ParameterUBO {
     vec4 light;
@@ -80,54 +76,19 @@ float terrain_height(vec2 p) {
     return habitableLowlands + mountainRelief * mountainMask + lowlandBias + 1.35f;
 }
 
-layout(location = 0) out vec4 fragColor;
-
-vec3 safe_normalize(vec3 v, vec3 fallback) {
-    float len2 = dot(v, v);
-    if (!(len2 > 1e-12f)) {
-        return fallback;
-    }
-    return v * inversesqrt(len2);
-}
+layout(location = 0) out vec3 outWorldPos;
 
 void main() {
-    bool aliveCell = (inStates.x == 1);
-    if (!aliveCell) {
-        fragColor = vec4(0.0f);
-        gl_Position = vec4(2.0f, 2.0f, 2.0f, 1.0f);
-        return;
-    }
+    vec2 p = inPosition.xy;
+    float height = terrain_height(p);
 
-    if (terrain_height(inPosition.xy) <= ubo.waterThreshold + ubo.waterRules.x) {
-        fragColor = vec4(0.0f);
-        gl_Position = vec4(2.0f, 2.0f, 2.0f, 1.0f);
-        return;
-    }
+    float baseSurfaceZ = ubo.waterRules.w;
+    float applyDisplacement = step(abs(inPosition.z - baseSurfaceZ), 0.0001f);
 
-    vec3 followerBase = inPosition.xyz;
-    float baseScale = max(inPosition.w * 1.20f, ubo.cellSize * 0.85f);
-    float followerScale = baseScale * 0.5f;
-    float lift = max(followerScale * 1.05f, 0.22f);
-    followerBase.z += terrain_height(inPosition.xy) + lift;
+    vec4 localPosition = vec4(inPosition.xyz, 1.0f);
+    localPosition.z += height * applyDisplacement;
 
-    vec4 position = vec4(followerBase + (inVertex.xyz * followerScale), 1.0f);
-    vec4 worldPosition = ubo.model * position;
-    vec4 viewPosition = ubo.view * worldPosition;
-    vec3 worldNormal = safe_normalize(mat3(ubo.model) * inNormal.xyz, vec3(0.0f, 0.0f, 1.0f));
-
-    vec3 lightDirection = safe_normalize(ubo.light.rgb - worldPosition.xyz, vec3(0.0f, 0.0f, 1.0f));
-    float diffuse = max(dot(worldNormal, lightDirection), 0.0f);
-
-    float bandedDiffuse = 0.95f;
-    if (diffuse < 0.25f) {
-        bandedDiffuse = 0.18f;
-    } else if (diffuse < 0.65f) {
-        bandedDiffuse = 0.45f;
-    }
-
-    float verticalFaceBoost = (1.0f - abs(worldNormal.z)) * 0.14f;
-    float lighting = min(bandedDiffuse + verticalFaceBoost, 1.0f);
-
-    fragColor = vec4(clamp(inColor.rgb * lighting, 0.0f, 1.0f), inColor.a);
-    gl_Position = ubo.projection * viewPosition;
+    vec4 worldPosition = ubo.model * localPosition;
+    outWorldPos = worldPosition.xyz;
+    gl_Position = ubo.projection * ubo.view * worldPosition;
 }

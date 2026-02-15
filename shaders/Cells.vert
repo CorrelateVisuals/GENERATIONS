@@ -82,6 +82,14 @@ float terrain_height(vec2 p) {
 
 layout(location = 0) out vec4 fragColor;
 
+vec3 safe_normalize(vec3 v, vec3 fallback) {
+    float len2 = dot(v, v);
+    if (!(len2 > 1e-12f)) {
+        return fallback;
+    }
+    return v * inversesqrt(len2);
+}
+
 void main() {
     bool aliveCell = (inStates.x == 1);
     if (!aliveCell) {
@@ -90,18 +98,7 @@ void main() {
         return;
     }
 
-    // Derive grid-anchored position from instance index.
-    vec2 gridStart = (vec2(ubo.gridXY) - vec2(1.0f)) * -0.5f;
-    uint instanceIndex = uint(gl_InstanceIndex);
-    uint gridWidth = uint(max(ubo.gridXY.x, 1));
-    vec2 gridXY = vec2(gridStart.x + float(instanceIndex % gridWidth),
-                       gridStart.y + float(instanceIndex / gridWidth));
-
-    // If compute relocated this cell (born underwater -> shore), use that position.
-    // Otherwise stay grid-anchored.
-    float gridH = terrain_height(gridXY);
-    bool gridUnderwater = gridH <= ubo.waterThreshold + ubo.waterRules.x;
-    vec2 anchoredXY = gridUnderwater ? inPosition.xy : gridXY;
+    vec2 anchoredXY = inPosition.xy;
 
     if (terrain_height(anchoredXY) <= ubo.waterThreshold + ubo.waterRules.x) {
         fragColor = vec4(0.0f);
@@ -117,9 +114,9 @@ void main() {
     vec4 position = vec4(cellBase + (inVertex.xyz * cellScale), 1.0f);
     vec4 worldPosition = ubo.model * position;
     vec4 viewPosition = ubo.view * worldPosition;
-    vec3 worldNormal = normalize(mat3(ubo.model) * inNormal.xyz);
+    vec3 worldNormal = safe_normalize(mat3(ubo.model) * inNormal.xyz, vec3(0.0f, 0.0f, 1.0f));
 
-    vec3 lightDirection = normalize(ubo.light.rgb - worldPosition.xyz);
+    vec3 lightDirection = safe_normalize(ubo.light.rgb - worldPosition.xyz, vec3(0.0f, 0.0f, 1.0f));
     float diffuse = max(dot(worldNormal, lightDirection), 0.0f);
 
     float bandedDiffuse = 0.95f;
@@ -132,6 +129,6 @@ void main() {
     float verticalFaceBoost = (1.0f - abs(worldNormal.z)) * 0.14f;
     float lighting = min(bandedDiffuse + verticalFaceBoost, 1.0f);
 
-    fragColor = vec4(inColor.rgb * lighting, inColor.a);
+    fragColor = vec4(clamp(inColor.rgb * lighting, 0.0f, 1.0f), inColor.a);
     gl_Position = ubo.projection * viewPosition;
 }

@@ -184,19 +184,20 @@ World::Grid::Grid(const CE::Runtime::TerrainSettings &terrain_settings,
   const float zBottom = absoluteHeight - box_depth;
 
   std::vector<uint32_t> boundary_loop{};
-  boundary_loop.reserve(static_cast<size_t>(2 * grid_width + 2 * grid_height - 4));
+  boundary_loop.reserve(static_cast<size_t>(2 * render_grid_width + 2 * render_grid_height - 4));
 
-  for (uint32_t col = 0; col < grid_width; ++col) {
+  for (uint32_t col = 0; col < render_grid_width; ++col) {
     boundary_loop.push_back(col);
   }
-  for (uint32_t row = 1; row < grid_height; ++row) {
-    boundary_loop.push_back(row * grid_width + (grid_width - 1));
+  for (uint32_t row = 1; row < render_grid_height; ++row) {
+    boundary_loop.push_back(row * render_grid_width + (render_grid_width - 1));
   }
-  for (int32_t col = static_cast<int32_t>(grid_width) - 2; col >= 0; --col) {
-    boundary_loop.push_back((grid_height - 1) * grid_width + static_cast<uint32_t>(col));
+  for (int32_t col = static_cast<int32_t>(render_grid_width) - 2; col >= 0; --col) {
+    boundary_loop.push_back((render_grid_height - 1) * render_grid_width +
+                            static_cast<uint32_t>(col));
   }
-  for (int32_t row = static_cast<int32_t>(grid_height) - 2; row >= 1; --row) {
-    boundary_loop.push_back(static_cast<uint32_t>(row) * grid_width);
+  for (int32_t row = static_cast<int32_t>(render_grid_height) - 2; row >= 1; --row) {
+    boundary_loop.push_back(static_cast<uint32_t>(row) * render_grid_width);
   }
 
   const uint32_t ring_count = static_cast<uint32_t>(boundary_loop.size());
@@ -206,10 +207,10 @@ World::Grid::Grid(const CE::Runtime::TerrainSettings &terrain_settings,
   box_indices.reserve(ring_count * 6 + 6);
 
   for (const uint32_t source_index : boundary_loop) {
-    box_vertices.push_back({glm::vec3(0.0f), coordinates[source_index]});
+    box_vertices.push_back({glm::vec3(0.0f), unique_vertices[source_index].vertex_position});
   }
   for (const uint32_t source_index : boundary_loop) {
-    glm::vec3 p = coordinates[source_index];
+    glm::vec3 p = unique_vertices[source_index].vertex_position;
     p.z = zBottom;
     box_vertices.push_back({glm::vec3(0.0f), p});
   }

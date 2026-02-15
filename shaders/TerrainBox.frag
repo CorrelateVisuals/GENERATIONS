@@ -14,13 +14,16 @@ layout (binding = 0) uniform ParameterUBO {
     mat4 projection;
 } ubo;
 
+vec3 sanitize_color(vec3 c, vec3 fallback) {
+    bool bad = isnan(c.x) || isnan(c.y) || isnan(c.z) ||
+               isinf(c.x) || isinf(c.y) || isinf(c.z);
+    if (bad) {
+        return fallback;
+    }
+    return clamp(c, 0.0f, 1.0f);
+}
+
 void main() {
     vec3 boxBase = vec3(0.34f, 0.34f, 0.36f);
-    vec3 dx = dFdx(inWorldPos);
-    vec3 dy = dFdy(inWorldPos);
-    vec3 normal = normalize(cross(dx, dy));
-    vec3 lightDirection = normalize(ubo.light.rgb - inWorldPos);
-    float diffuse = abs(dot(normal, lightDirection));
-    vec3 boxLit = boxBase * (0.22f + diffuse * 0.78f);
-    outColor = vec4(boxLit, 1.0f);
+    outColor = vec4(sanitize_color(boxBase, boxBase), 1.0f);
 }

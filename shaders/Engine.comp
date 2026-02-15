@@ -31,7 +31,10 @@ ivec2 gridXY = ubo.gridXY;
 
 uint globalID_x = gl_GlobalInvocationID.x;
 uint globalID_y = gl_GlobalInvocationID.y;
-uint index = globalID_y * gridXY.x + globalID_x % gridXY.x + (globalID_x / gridXY.x) * gridXY.y;
+uint gridWidth = uint(max(gridXY.x, 1));
+uint gridHeight = uint(max(gridXY.y, 1));
+uint totalCells = gridWidth * gridHeight;
+uint index = (globalID_y * gridWidth + (globalID_x % gridWidth) + (globalID_x / gridWidth) * gridHeight) % totalCells;
 
 const vec4 blue       = vec4(0.0, 0.0, 1.0, 1.0);
 const vec4 white      = vec4(1.0, 1.0, 1.0, 1.0);
@@ -131,6 +134,9 @@ int getNeighbourIndex(ivec2 offset) {
 }
 
 bool neighbourAlive(int index) {
+    if (index < 0 || uint(index) >= totalCells) {
+        return false;
+    }
     int currentLife = cellIn[index].states.x;
     bool aliveState = currentLife == alive;
     return aliveState;

@@ -1,7 +1,6 @@
 #include "Timer.h"
 
 #include <chrono>
-#include <thread>
 
 Timer::Timer(float init_speed) : speed{init_speed} {}
 
@@ -10,29 +9,29 @@ float Timer::get_day_fraction() const {
 }
 
 void Timer::run() {
-  static auto last_time = std::chrono::steady_clock::now();
-  static std::chrono::time_point<std::chrono::steady_clock> day_start =
-      std::chrono::steady_clock::now();
-
-  const auto current_time = std::chrono::steady_clock::now();
-
-  if (current_time - last_time >= std::chrono::duration<float>(1.0f / speed)) {
-    passed_hours++;
-    last_time = current_time;
+  const auto now = std::chrono::steady_clock::now();
+  if (!initialized) {
+    initialized = true;
+    last_update_time = now;
+    return;
   }
 
-  const std::chrono::duration<float> elapsed_time = current_time - day_start;
-  const std::chrono::duration<float> remaining_time =
-      std::chrono::duration<float>(target_duration) - elapsed_time;
-  const float elapsed_seconds = elapsed_time.count();
-  const float remaining_seconds = remaining_time.count();
+  const float delta_seconds = std::chrono::duration<float>(now - last_update_time).count();
+  last_update_time = now;
 
-  day_fraction = 1.0f - remaining_seconds / target_duration;
-
-  if (elapsed_time >= std::chrono::duration<float>(target_duration)) {
-    day_start = current_time;
+  if (speed <= 0.0f) {
+    day_fraction = 0.0f;
+    return;
   }
 
+  hour_accumulator += delta_seconds * speed;
 
-  return;
+  if (hour_accumulator >= 1.0f) {
+    const uint64_t advanced_hours = static_cast<uint64_t>(hour_accumulator);
+    passed_hours += advanced_hours;
+    hour_accumulator -= static_cast<float>(advanced_hours);
+  }
+
+  const float total_hours = static_cast<float>(passed_hours % hours_per_day) + hour_accumulator;
+  day_fraction = total_hours / static_cast<float>(hours_per_day);
 }
