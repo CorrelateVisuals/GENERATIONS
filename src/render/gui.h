@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <cstdint>
 
 #include <vulkan/vulkan.h>
 
@@ -13,6 +14,6 @@ struct StageStripConfig {
 };
 
 StageStripConfig get_stage_strip_config(const VkExtent2D &extent);
-std::array<const char *, 5> get_stage_strip_labels();
+const std::array<const char *, 5>& get_stage_strip_labels();
 
 } // namespace CE::RenderGUI

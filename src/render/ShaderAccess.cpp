@@ -303,7 +303,7 @@ void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
   }
 
   if (stage_strip_enabled) {
-    const std::array<const char *, 5> strip_labels = CE::RenderGUI::get_stage_strip_labels();
+    const std::array<const char *, 5> &strip_labels = CE::RenderGUI::get_stage_strip_labels();
     const uint32_t tile_count = static_cast<uint32_t>(strip_labels.size());
     const uint32_t padding = stage_strip.padding_px;
     const uint32_t strip_height = stage_strip.strip_height_px;
