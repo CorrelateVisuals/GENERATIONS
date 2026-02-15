@@ -37,7 +37,7 @@ struct TerrainSettings {
   int grid_height = 100;
   uint32_t alive_cells = 2000;
   float cell_size = 0.5f;
-  float terrain_box_depth = 30.0f;
+  float terrain_box_depth = 10.0f;
 
   float layer1_roughness = 0.4f;
   int layer1_octaves = 10;

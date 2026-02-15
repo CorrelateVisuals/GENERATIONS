@@ -9,7 +9,7 @@ ImplementationSpec default_spec() {
   spec.terrain.grid_height = 140;
   spec.terrain.alive_cells = 10000;
   spec.terrain.cell_size = 0.5f;
-  spec.terrain.terrain_box_depth = 30.0f;
+  spec.terrain.terrain_box_depth = 10.0f;
   spec.terrain.layer1_roughness = 0.4f;
   spec.terrain.layer1_octaves = 10;
   spec.terrain.layer1_scale = 2.2f;
@@ -64,7 +64,7 @@ ImplementationSpec default_spec() {
   };
     spec.pipelines["TerrainBox"] = CE::Runtime::PipelineDefinition{
       .is_compute = false,
-      .shaders = {"TerrainBoxVert", "TerrainBoxFrag"},
+      .shaders = {"LandscapeVert", "TerrainBoxFrag"},
   };
     spec.pipelines["Sky"] = CE::Runtime::PipelineDefinition{
       .is_compute = false,

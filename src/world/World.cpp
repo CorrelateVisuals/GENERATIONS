@@ -166,25 +166,65 @@ World::Grid::Grid(const CE::Runtime::TerrainSettings &terrain_settings,
   const float zTop = absoluteHeight;
   const float zBottom = absoluteHeight - box_depth;
 
-    box_vertices = {
-      {glm::vec3(0.0f), glm::vec3(xMin, yMin, zTop)},
-      {glm::vec3(0.0f), glm::vec3(xMax, yMin, zTop)},
-      {glm::vec3(0.0f), glm::vec3(xMax, yMax, zTop)},
-      {glm::vec3(0.0f), glm::vec3(xMin, yMax, zTop)},
-      {glm::vec3(0.0f), glm::vec3(xMin, yMin, zBottom)},
-      {glm::vec3(0.0f), glm::vec3(xMax, yMin, zBottom)},
-      {glm::vec3(0.0f), glm::vec3(xMax, yMax, zBottom)},
-      {glm::vec3(0.0f), glm::vec3(xMin, yMax, zBottom)},
-    };
+  std::vector<uint32_t> boundary_loop{};
+  boundary_loop.reserve(static_cast<size_t>(2 * grid_width + 2 * grid_height - 4));
 
-    // 5 rectangles = bottom + four sides.
-    box_indices = {
-      4, 6, 5, 4, 7, 6,
-      0, 4, 1, 1, 4, 5,
-      1, 5, 2, 2, 5, 6,
-      2, 6, 3, 3, 6, 7,
-      3, 7, 0, 0, 7, 4,
-    };
+  for (uint32_t col = 0; col < grid_width; ++col) {
+    boundary_loop.push_back(col);
+  }
+  for (uint32_t row = 1; row < grid_height; ++row) {
+    boundary_loop.push_back(row * grid_width + (grid_width - 1));
+  }
+  for (int32_t col = static_cast<int32_t>(grid_width) - 2; col >= 0; --col) {
+    boundary_loop.push_back((grid_height - 1) * grid_width + static_cast<uint32_t>(col));
+  }
+  for (int32_t row = static_cast<int32_t>(grid_height) - 2; row >= 1; --row) {
+    boundary_loop.push_back(static_cast<uint32_t>(row) * grid_width);
+  }
+
+  const uint32_t ring_count = static_cast<uint32_t>(boundary_loop.size());
+  box_vertices.clear();
+  box_indices.clear();
+  box_vertices.reserve(ring_count * 2 + 4);
+  box_indices.reserve(ring_count * 6 + 6);
+
+  for (const uint32_t source_index : boundary_loop) {
+    box_vertices.push_back({glm::vec3(0.0f), coordinates[source_index]});
+  }
+  for (const uint32_t source_index : boundary_loop) {
+    glm::vec3 p = coordinates[source_index];
+    p.z = zBottom;
+    box_vertices.push_back({glm::vec3(0.0f), p});
+  }
+
+  for (uint32_t i = 0; i < ring_count; ++i) {
+    const uint32_t j = (i + 1) % ring_count;
+    const uint32_t top_i = i;
+    const uint32_t top_j = j;
+    const uint32_t bottom_i = ring_count + i;
+    const uint32_t bottom_j = ring_count + j;
+
+    box_indices.push_back(top_i);
+    box_indices.push_back(bottom_i);
+    box_indices.push_back(top_j);
+
+    box_indices.push_back(top_j);
+    box_indices.push_back(bottom_i);
+    box_indices.push_back(bottom_j);
+  }
+
+  const uint32_t bottom_base = static_cast<uint32_t>(box_vertices.size());
+  box_vertices.push_back({glm::vec3(0.0f), glm::vec3(xMin, yMin, zBottom)});
+  box_vertices.push_back({glm::vec3(0.0f), glm::vec3(xMax, yMin, zBottom)});
+  box_vertices.push_back({glm::vec3(0.0f), glm::vec3(xMax, yMax, zBottom)});
+  box_vertices.push_back({glm::vec3(0.0f), glm::vec3(xMin, yMax, zBottom)});
+
+  box_indices.push_back(bottom_base + 0);
+  box_indices.push_back(bottom_base + 2);
+  box_indices.push_back(bottom_base + 1);
+  box_indices.push_back(bottom_base + 0);
+  box_indices.push_back(bottom_base + 3);
+  box_indices.push_back(bottom_base + 2);
 
   create_vertex_buffer(command_buffer, command_pool, queue, unique_vertices);
   create_index_buffer(command_buffer, command_pool, queue, indices);
