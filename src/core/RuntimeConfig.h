@@ -61,6 +61,12 @@ struct TerrainSettings {
 struct WorldSettings {
   float timer_speed = 25.0f;
   float water_threshold = 0.1f;
+  // Water border is established at: water_threshold + water_dead_zone_margin.
+  float water_dead_zone_margin = 2.4f;
+  // Width of the valid shore spawning band above the water border.
+  float water_shore_band_width = 1.2f;
+  // Visual highlight thickness for the water border.
+  float water_border_highlight_width = 0.08f;
   std::array<float, 4> light_pos{0.0f, 20.0f, 20.0f, 0.0f};
 
   float zoom_speed = 0.5f;

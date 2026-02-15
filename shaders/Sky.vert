@@ -11,6 +11,7 @@ layout(binding = 0) uniform ParameterUBO {
     ivec2 gridXY;
     float waterThreshold;
     float cellSize;
+    vec4 waterRules;
     mat4 model;
     mat4 view;
     mat4 projection;

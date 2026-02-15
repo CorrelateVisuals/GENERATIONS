@@ -34,6 +34,7 @@ public:
   void set_pose(const glm::vec3 &new_position,
                 const glm::vec3 &look_at,
                 const glm::vec3 &up_hint = glm::vec3(0.0f, 0.0f, 1.0f));
+  void set_orbit_view(float yaw_degrees, float pitch_degrees, float distance_scale);
   void set_preset_view(uint32_t preset_index);
   bool get_arcball_horizon_lock() const {
     return arcball_horizon_lock;

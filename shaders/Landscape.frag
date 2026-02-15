@@ -8,6 +8,7 @@ layout (binding = 0) uniform ParameterUBO {
     ivec2 gridXY;
     float waterThreshold;
     float cellSize;
+    vec4 waterRules;
     mat4 model;
     mat4 view;
     mat4 projection;
@@ -66,14 +67,19 @@ vec3 terrainColor(float heightFromWater, float slope, vec2 worldXZ) {
 
     vec3 deepWater = vec3(0.15f, 0.24f, 0.29f);
     vec3 shallowWater = vec3(0.24f, 0.33f, 0.37f);
-    float depthToShore = clamp((-heightFromWater + shoreWidth) / (shoreWidth * 2.0f), 0.0f, 1.0f);
+    float gameplayHeightFromWater = heightFromWater - ubo.waterRules.x;
+    float depthToShore = clamp((-gameplayHeightFromWater + shoreWidth) / (shoreWidth * 2.0f), 0.0f, 1.0f);
     vec3 water = mix(shallowWater, deepWater, depthToShore);
 
-    float waterBlend = (1.0f - smoothstep(-shoreWidth, 0.0f, heightFromWater)) * 0.72f;
+    float waterBlend = (1.0f - smoothstep(-shoreWidth, 0.0f, gameplayHeightFromWater)) * 0.72f;
     vec3 color = mix(land, water, waterBlend);
 
-    float foam = 1.0f - smoothstep(0.0f, shoreWidth * 0.7f, abs(heightFromWater));
+    float foam = 1.0f - smoothstep(0.0f, shoreWidth * 0.7f, abs(gameplayHeightFromWater));
     color = mix(color, vec3(0.83f, 0.86f, 0.89f), foam * waterBlend * 0.28f);
+
+    // Explicit border highlight where gameplay water is established.
+    float waterBorder = 1.0f - smoothstep(0.0f, ubo.waterRules.z, abs(gameplayHeightFromWater));
+    color = mix(color, vec3(0.70f, 0.78f, 0.84f), waterBorder * 0.45f);
 
     return color;
 }

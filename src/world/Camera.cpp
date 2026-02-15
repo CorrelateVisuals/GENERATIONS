@@ -56,7 +56,9 @@ void Camera::set_pose(const glm::vec3 &new_position,
   sync_arcball_from_current_view(true);
 }
 
-void Camera::set_preset_view(uint32_t preset_index) {
+void Camera::set_orbit_view(float yaw_degrees,
+                            float pitch_degrees,
+                            float distance_scale) {
   mode = Mode::Arcball;
 
   const float base_distance =
@@ -66,45 +68,45 @@ void Camera::set_preset_view(uint32_t preset_index) {
                  arcball_min_distance,
                  arcball_max_distance);
 
-  auto apply_orbit_preset = [&](float yaw_degrees,
-                                float pitch_degrees,
-                                float distance_scale) {
-    const float yaw = glm::radians(yaw_degrees);
-    const float pitch = glm::radians(pitch_degrees);
-    const float distance = std::clamp(base_distance * distance_scale,
-                                      arcball_min_distance,
-                                      arcball_max_distance);
+  const float yaw = glm::radians(yaw_degrees);
+  const float pitch = glm::radians(std::clamp(pitch_degrees, -89.0f, 89.0f));
+  const float distance = std::clamp(base_distance * distance_scale,
+                                    arcball_min_distance,
+                                    arcball_max_distance);
 
-    const glm::vec3 orbit_dir{std::cos(pitch) * std::cos(yaw),
-                              std::cos(pitch) * std::sin(yaw),
-                              std::sin(pitch)};
-    set_pose(arcball_target + orbit_dir * distance, arcball_target);
-  };
+  const glm::vec3 orbit_dir{std::cos(pitch) * std::cos(yaw),
+                            std::cos(pitch) * std::sin(yaw),
+                            std::sin(pitch)};
+  set_pose(arcball_target + orbit_dir * distance, arcball_target);
+
+  arcball_cursor_initialized = false;
+  arcball_left_was_down = false;
+  arcball_right_was_down = false;
+}
+
+void Camera::set_preset_view(uint32_t preset_index) {
+  mode = Mode::Arcball;
 
   switch (preset_index) {
     case 1:
-      apply_orbit_preset(28.0f, 16.0f, 0.78f);
-      Log::text("{ Cam }", "Preset 1: Cinematic 45deg");
+      set_orbit_view(28.0f, 28.0f, 0.82f);
+      Log::text("{ Cam }", "Preset 1: Close Low Angle");
       break;
     case 2:
-      apply_orbit_preset(8.0f, 24.0f, 0.84f);
-      Log::text("{ Cam }", "Preset 2: Front Slice");
+      set_orbit_view(0.0f, 12.0f, 0.86f);
+      Log::text("{ Cam }", "Preset 2: Close Front Straight");
       break;
     case 3:
-      apply_orbit_preset(98.0f, 24.0f, 0.84f);
-      Log::text("{ Cam }", "Preset 3: Side Slice");
+      set_orbit_view(90.0f, 12.0f, 0.86f);
+      Log::text("{ Cam }", "Preset 3: Close Side Straight");
       break;
     case 4:
-      apply_orbit_preset(32.0f, 58.0f, 0.86f);
+      set_orbit_view(18.0f, 87.0f, 1.05f);
       Log::text("{ Cam }", "Preset 4: Top Down");
       break;
     default:
       break;
   }
-
-  arcball_cursor_initialized = false;
-  arcball_left_was_down = false;
-  arcball_right_was_down = false;
 }
 
 void Camera::toggle_mode() {

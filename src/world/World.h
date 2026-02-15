@@ -35,10 +35,12 @@ public:
     glm::ivec2 grid_xy;
     float water_threshold;
     float cell_size;
+    // x: dead-zone margin, y: shore band width, z: border highlight width, w: reserved
+    glm::vec4 water_rules{2.4f, 1.2f, 0.08f, 0.0f};
     alignas(16) ModelViewProjection mvp{};
 
-    UniformBufferObject(glm::vec4 l, glm::ivec2 xy, float w, float s)
-      : light(l), grid_xy(xy), water_threshold(w), cell_size(s){};
+    UniformBufferObject(glm::vec4 l, glm::ivec2 xy, float w, float s, glm::vec4 rules)
+      : light(l), grid_xy(xy), water_threshold(w), cell_size(s), water_rules(rules){};
   };
 
   struct Grid : public Geometry {

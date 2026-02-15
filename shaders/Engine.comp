@@ -19,6 +19,7 @@ layout (binding = 0) uniform ParameterUBO {
     ivec2 gridXY;
     float waterThreshold;
     float cellSize;
+    vec4 waterRules;
     mat4 model;
     mat4 view;
     mat4 projection;
@@ -176,17 +177,13 @@ vec2 gridBasePosition(uint cellIndex) {
                 startY + float(cellIndex / uint(gridXY.x)));
 }
 
-// Gameplay water mask: treat the blue/green lowlands as water as requested.
-// This is intentionally wider than the strict water threshold.
-const float visualShoreMargin = 2.0;
-
 bool is_underwater_at(vec2 xy) {
-    return terrain_height(xy) <= ubo.waterThreshold + visualShoreMargin;
+    return terrain_height(xy) <= ubo.waterThreshold + ubo.waterRules.x;
 }
 
 bool is_shoreline_at(vec2 xy) {
     float h = terrain_height(xy) - ubo.waterThreshold;
-    return h > visualShoreMargin && h <= visualShoreMargin + 1.2;
+    return h > ubo.waterRules.x && h <= ubo.waterRules.x + ubo.waterRules.y;
 }
 
 vec2 nearest_shore_position(vec2 startXY) {

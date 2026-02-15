@@ -11,6 +11,7 @@ layout (binding = 0) uniform ParameterUBO {
     ivec2 gridXY;
     float waterThreshold;
     float cellSize;
+    vec4 waterRules;
     mat4 model;
     mat4 view;
     mat4 projection;
@@ -92,8 +93,7 @@ void main() {
         return;
     }
 
-    const float waterCullMargin = 2.0f;
-    if (terrain_height(inPosition.xy) <= ubo.waterThreshold + waterCullMargin) {
+    if (terrain_height(inPosition.xy) <= ubo.waterThreshold + ubo.waterRules.x) {
         fragColor = vec4(0.0f);
         gl_Position = vec4(2.0f, 2.0f, 2.0f, 1.0f);
         return;

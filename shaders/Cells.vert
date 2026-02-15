@@ -11,6 +11,7 @@ layout (binding = 0) uniform ParameterUBO {
     ivec2 gridXY;
     float waterThreshold;
     float cellSize;
+    vec4 waterRules;
     mat4 model;
     mat4 view;
     mat4 projection;
@@ -99,11 +100,10 @@ void main() {
     // If compute relocated this cell (born underwater -> shore), use that position.
     // Otherwise stay grid-anchored.
     float gridH = terrain_height(gridXY);
-    const float waterCullMargin = 2.0f;
-    bool gridUnderwater = gridH <= ubo.waterThreshold + waterCullMargin;
+    bool gridUnderwater = gridH <= ubo.waterThreshold + ubo.waterRules.x;
     vec2 anchoredXY = gridUnderwater ? inPosition.xy : gridXY;
 
-    if (terrain_height(anchoredXY) <= ubo.waterThreshold + waterCullMargin) {
+    if (terrain_height(anchoredXY) <= ubo.waterThreshold + ubo.waterRules.x) {
         fragColor = vec4(0.0f);
         gl_Position = vec4(2.0f, 2.0f, 2.0f, 1.0f);
         return;
