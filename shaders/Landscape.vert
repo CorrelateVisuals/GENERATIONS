@@ -88,9 +88,12 @@ layout(location = 1) out vec3 outWorldNormal;
 void main() {
     vec2 p = inPosition.xy;
     float height = terrain_height(p);
+    float baseSurfaceZ = ubo.waterRules.w;
+    float surfaceEpsilon = max(ubo.cellSize * 0.25f, 0.001f);
+    float applyDisplacement = step(abs(inPosition.z - baseSurfaceZ), surfaceEpsilon);
 
     vec4 localPosition = vec4(inPosition.xyz, 1.0f);
-    localPosition.z += height;
+    localPosition.z += height * applyDisplacement;
 
     vec4 worldPosition = model * localPosition;
     vec4 viewPosition = view * worldPosition;
@@ -100,7 +103,8 @@ void main() {
     float hR = terrain_height(p + vec2(eps, 0.0f));
     float hD = terrain_height(p - vec2(0.0f, eps));
     float hU = terrain_height(p + vec2(0.0f, eps));
-    vec3 normalLocal = normalize(vec3(hL - hR, hD - hU, 2.0f * eps));
+    vec3 terrainNormal = normalize(vec3(hL - hR, hD - hU, 2.0f * eps));
+    vec3 normalLocal = mix(vec3(0.0f, 0.0f, -1.0f), terrainNormal, applyDisplacement);
     vec3 worldNormal = normalize(mat3(model) * normalLocal);
 
     outWorldPos = worldPosition.xyz;

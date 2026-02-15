@@ -58,7 +58,7 @@ World::World(VkCommandBuffer &command_buffer,
            glm::vec4(CE::Runtime::get_world_settings().water_dead_zone_margin,
              CE::Runtime::get_world_settings().water_shore_band_width,
              CE::Runtime::get_world_settings().water_border_highlight_width,
-             0.0f)),
+             terrain_settings.absolute_height)),
       _camera(CE::Runtime::get_world_settings().zoom_speed,
         CE::Runtime::get_world_settings().panning_speed,
         CE::Runtime::get_world_settings().field_of_view,
@@ -132,6 +132,10 @@ World::Grid::Grid(const CE::Runtime::TerrainSettings &terrain_settings,
   const float startX = (size.x - 1) / -2.0f;
   const float startY = (size.y - 1) / -2.0f;
   const float absoluteHeight = terrain_settings.absolute_height;
+  const float box_depth =
+      std::max(terrain_settings.cell_size * 18.0f,
+               std::max(static_cast<float>(size.x), static_cast<float>(size.y)) *
+                   terrain_settings.cell_size * 0.35f);
   for (uint_fast32_t i = 0; i < point_count; ++i) {
     point_ids[i] = i;
 
@@ -147,7 +151,107 @@ World::Grid::Grid(const CE::Runtime::TerrainSettings &terrain_settings,
     cells[i].color = is_alive ? white : grey;
     cells[i].states = is_alive ? alive : dead;
   }
-  indices = create_grid_polygons(point_ids, static_cast<int>(size.x));
+
+  const uint32_t grid_width = static_cast<uint32_t>(size.x);
+  const uint32_t grid_height = static_cast<uint32_t>(size.y);
+
+  indices = create_grid_polygons(point_ids, static_cast<int>(grid_width));
+
+  const uint32_t bottom_base = static_cast<uint32_t>(unique_vertices.size());
+  unique_vertices.reserve(unique_vertices.size() + point_count);
+  for (uint_fast32_t i = 0; i < point_count; ++i) {
+    const glm::vec3 bottom_position{
+        coordinates[i].x,
+        coordinates[i].y,
+        coordinates[i].z - box_depth,
+    };
+    add_vertex_position(bottom_position);
+  }
+
+  // Bottom face (opposite winding of top face)
+  for (uint32_t row = 0; row < grid_height - 1; ++row) {
+    for (uint32_t col = 0; col < grid_width - 1; ++col) {
+      const uint32_t top_left = row * grid_width + col;
+      const uint32_t top_right = top_left + 1;
+      const uint32_t bottom_left = (row + 1) * grid_width + col;
+      const uint32_t bottom_right = bottom_left + 1;
+
+      indices.push_back(bottom_base + top_left);
+      indices.push_back(bottom_base + bottom_left);
+      indices.push_back(bottom_base + top_right);
+
+      indices.push_back(bottom_base + top_right);
+      indices.push_back(bottom_base + bottom_left);
+      indices.push_back(bottom_base + bottom_right);
+    }
+  }
+
+  // North wall (y min, outward -Y)
+  for (uint32_t col = 0; col < grid_width - 1; ++col) {
+    const uint32_t t0 = col;
+    const uint32_t t1 = col + 1;
+    const uint32_t b0 = bottom_base + t0;
+    const uint32_t b1 = bottom_base + t1;
+
+    indices.push_back(t0);
+    indices.push_back(b0);
+    indices.push_back(t1);
+
+    indices.push_back(t1);
+    indices.push_back(b0);
+    indices.push_back(b1);
+  }
+
+  // South wall (y max, outward +Y)
+  const uint32_t south_row = grid_height - 1;
+  for (uint32_t col = 0; col < grid_width - 1; ++col) {
+    const uint32_t t0 = south_row * grid_width + col;
+    const uint32_t t1 = t0 + 1;
+    const uint32_t b0 = bottom_base + t0;
+    const uint32_t b1 = bottom_base + t1;
+
+    indices.push_back(t0);
+    indices.push_back(t1);
+    indices.push_back(b0);
+
+    indices.push_back(t1);
+    indices.push_back(b1);
+    indices.push_back(b0);
+  }
+
+  // West wall (x min, outward -X)
+  for (uint32_t row = 0; row < grid_height - 1; ++row) {
+    const uint32_t t0 = row * grid_width;
+    const uint32_t t1 = (row + 1) * grid_width;
+    const uint32_t b0 = bottom_base + t0;
+    const uint32_t b1 = bottom_base + t1;
+
+    indices.push_back(t0);
+    indices.push_back(t1);
+    indices.push_back(b0);
+
+    indices.push_back(t1);
+    indices.push_back(b1);
+    indices.push_back(b0);
+  }
+
+  // East wall (x max, outward +X)
+  const uint32_t east_col = grid_width - 1;
+  for (uint32_t row = 0; row < grid_height - 1; ++row) {
+    const uint32_t t0 = row * grid_width + east_col;
+    const uint32_t t1 = (row + 1) * grid_width + east_col;
+    const uint32_t b0 = bottom_base + t0;
+    const uint32_t b1 = bottom_base + t1;
+
+    indices.push_back(t0);
+    indices.push_back(b0);
+    indices.push_back(t1);
+
+    indices.push_back(t1);
+    indices.push_back(b0);
+    indices.push_back(b1);
+  }
+
   create_vertex_buffer(command_buffer, command_pool, queue, unique_vertices);
   create_index_buffer(command_buffer, command_pool, queue, indices);
 }

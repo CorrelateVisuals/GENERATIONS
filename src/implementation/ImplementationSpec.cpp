@@ -28,9 +28,9 @@ ImplementationSpec default_spec() {
 
   spec.world.timer_speed = 25.0f;
   spec.world.water_threshold = 0.1f;
-  spec.world.water_dead_zone_margin = 2.4f;
-  spec.world.water_shore_band_width = 1.2f;
-  spec.world.water_border_highlight_width = 0.08f;
+  spec.world.water_dead_zone_margin = 2.5f;
+  spec.world.water_shore_band_width = 1.0f;
+  spec.world.water_border_highlight_width = 0.10f;
   spec.world.light_pos = {0.0f, 20.0f, 20.0f, 0.0f};
   spec.world.zoom_speed = 0.15f;
   spec.world.panning_speed = 0.3f;

@@ -52,7 +52,7 @@ void CapitalEngine::main_loop() {
   constexpr auto welcome_duration = std::chrono::milliseconds(1700);
   bool welcome_shot_completed = !startup_welcome_animation_enabled;
   if (startup_welcome_animation_enabled) {
-    resources->world._camera.set_orbit_view(28.0f, 30.0f, 0.95f);
+    resources->world._camera.set_orbit_view(28.0f, 30.0f, 0.86f);
   }
 
   bool first_loop_screenshot_captured = !startup_screenshot_enabled;
@@ -88,7 +88,7 @@ void CapitalEngine::main_loop() {
 
       const float yaw = std::lerp(28.0f, 18.0f, eased);
       const float pitch = std::lerp(30.0f, 87.0f, eased);
-      const float distance_scale = std::lerp(0.95f, 1.05f, eased);
+      const float distance_scale = std::lerp(0.86f, 0.95f, eased);
       resources->world._camera.set_orbit_view(yaw, pitch, distance_scale);
 
       if (t >= 1.0f) {
