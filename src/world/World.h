@@ -4,6 +4,7 @@
 #include "io/Library.h"
 #include "core/Timer.h"
 #include "core/RuntimeConfig.h"
+#include "CellPicking.h"
 
 #include <algorithm>
 #include <array>
@@ -74,4 +75,11 @@ public:
   UniformBufferObject _ubo;
   Camera _camera;
   Timer _time;
+
+  // Cell picking functionality
+  CellPicking::GridPickResult pick_cell_at_screen_position(float screenX, float screenY,
+                                                            int screenWidth, int screenHeight);
+  void set_cell_color(int cellIndex, const glm::vec4 &color);
+  void highlight_cell(int cellIndex);
+  void reset_cell_color(int cellIndex);
 };

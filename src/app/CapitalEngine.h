@@ -30,4 +30,5 @@ private:
   void recreate_swapchain();
   void draw_frame();
   void take_screenshot(const std::string &tag = "");
+  void handle_mouse_click(Window &window);
 };

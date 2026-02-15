@@ -104,6 +104,9 @@ void CapitalEngine::main_loop() {
       take_screenshot();
     }
 
+    // Handle mouse clicks for cell picking
+    handle_mouse_click(main_window);
+
     if (main_window.is_escape_pressed()) {
       break;
     }
@@ -164,4 +167,37 @@ void CapitalEngine::take_screenshot(const std::string &tag) {
                           resources->commands.pool,
                           mechanics.queues.graphics_queue,
                           filename);
+}
+
+void CapitalEngine::handle_mouse_click(Window &window) {
+  // Check if left mouse button was clicked
+  const glm::vec2 &clickPos = window.mouse.button_click[GLFW_MOUSE_BUTTON_LEFT].position;
+  
+  // Track last click position to detect new clicks
+  static glm::vec2 lastClickPos = glm::vec2(-1.0f, -1.0f);
+  
+  // Only process if this is a new click (position changed)
+  if (clickPos != lastClickPos && clickPos.x >= 0.0f && clickPos.y >= 0.0f) {
+    lastClickPos = clickPos;
+    
+    // Convert normalized coordinates [0,1] to screen pixels
+    const int screenWidth = static_cast<int>(window.display.width);
+    const int screenHeight = static_cast<int>(window.display.height);
+    const float screenX = clickPos.x * static_cast<float>(screenWidth);
+    const float screenY = clickPos.y * static_cast<float>(screenHeight);
+    
+    // Perform cell picking
+    CellPicking::GridPickResult result = resources->world.pick_cell_at_screen_position(
+        screenX, screenY, screenWidth, screenHeight);
+    
+    if (result.hit) {
+      Log::text("{ PICK }", 
+                "Clicked cell at grid [", result.cellX, ",", result.cellY, "]",
+                "index:", result.cellIndex,
+                "world pos:", result.worldPosition.x, result.worldPosition.y, result.worldPosition.z);
+      
+      // Highlight the clicked cell
+      resources->world.highlight_cell(result.cellIndex);
+    }
+  }
 }

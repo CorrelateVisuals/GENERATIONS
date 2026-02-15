@@ -275,3 +275,30 @@ World::Grid::set_cells_alive_randomly(uint_fast32_t number_of_cells) {
   std::sort(cell_ids.begin(), cell_ids.end());
   return cell_ids;
 }
+
+CellPicking::GridPickResult World::pick_cell_at_screen_position(float screenX, float screenY,
+                                                                 int screenWidth,
+                                                                 int screenHeight) {
+  return CellPicking::pick_grid_cell(screenX, screenY, _ubo.mvp.view, _ubo.mvp.projection,
+                                     _ubo.grid_xy.x, _ubo.grid_xy.y, _ubo.cell_size,
+                                     screenWidth, screenHeight, 0.0f);
+}
+
+void World::set_cell_color(int cellIndex, const glm::vec4 &color) {
+  if (cellIndex >= 0 && cellIndex < static_cast<int>(_grid.cells.size())) {
+    _grid.cells[cellIndex].color = color;
+  }
+}
+
+void World::highlight_cell(int cellIndex) {
+  // Set cell to a bright red highlight color
+  set_cell_color(cellIndex, glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
+}
+
+void World::reset_cell_color(int cellIndex) {
+  if (cellIndex >= 0 && cellIndex < static_cast<int>(_grid.cells.size())) {
+    // Reset to the original color based on cell state
+    // The shader will compute the correct color based on states
+    _grid.cells[cellIndex].color = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
+  }
+}
