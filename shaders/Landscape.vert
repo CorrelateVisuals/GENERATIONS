@@ -1,17 +1,10 @@
 #version 450
+#extension GL_GOOGLE_include_directive : enable
 
 layout(location = 0) in vec3 inPosition;
 
-layout (binding = 0) uniform ParameterUBO {
-    vec4 light;
-    ivec2 gridXY;
-    float waterThreshold;
-    float cellSize;
-    vec4 waterRules;
-    mat4 model;
-    mat4 view;
-    mat4 projection;
-} ubo;
+#define UBO_LIGHT_NAME light
+#include "ParameterUBO.glsl"
 vec4 light = ubo.light;
 ivec2 gridXY = ubo.gridXY;
 mat4 model = ubo.model;
@@ -82,6 +75,14 @@ float terrain_height(vec2 p) {
     return habitableLowlands + mountainRelief * mountainMask + lowlandBias + 1.35f;
 }
 
+vec3 safe_normalize(vec3 v, vec3 fallback) {
+    float len2 = dot(v, v);
+    if (!(len2 > 1e-12f)) {
+        return fallback;
+    }
+    return v * inversesqrt(len2);
+}
+
 layout(location = 0) out vec3 outWorldPos;
 layout(location = 1) out vec3 outWorldNormal;
 
@@ -117,9 +118,13 @@ void main() {
     float dHdx = (hR - hL) / dx;
     float dHdy = (hU - hD) / dy;
 
-    vec3 terrainNormal = normalize(vec3(-dHdx, -dHdy, 1.0f));
+    vec3 terrainNormal = safe_normalize(vec3(-dHdx, -dHdy, 1.0f), vec3(0.0f, 0.0f, 1.0f));
+    float rightEdgeDist = gridMax.x - p.x;
+    float rightEdgeFade = smoothstep(0.0f, 10.0f, rightEdgeDist);
+    terrainNormal = safe_normalize(mix(vec3(0.0f, 0.0f, 1.0f), terrainNormal, rightEdgeFade),
+                                   vec3(0.0f, 0.0f, 1.0f));
     vec3 normalLocal = mix(vec3(0.0f, 0.0f, -1.0f), terrainNormal, applyDisplacement);
-    vec3 worldNormal = normalize(mat3(model) * normalLocal);
+    vec3 worldNormal = safe_normalize(mat3(model) * normalLocal, vec3(0.0f, 0.0f, 1.0f));
 
     outWorldPos = worldPosition.xyz;
     outWorldNormal = worldNormal;

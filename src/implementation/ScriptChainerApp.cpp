@@ -14,7 +14,7 @@ void ScriptChainerApp::run() {
   CE::Runtime::set_terrain_settings(spec.terrain);
   CE::Runtime::set_world_settings(spec.world);
   CE::Runtime::set_pipeline_definitions(spec.pipelines);
-  CE::Runtime::set_pipeline_execution_plan(spec.execution_plan);
+  CE::Runtime::set_render_graph(spec.render_graph);
   CE::Runtime::set_graphics_draw_ops(spec.draw_ops);
 
   Log::text("Runtime implementation config installed (pure C++).");

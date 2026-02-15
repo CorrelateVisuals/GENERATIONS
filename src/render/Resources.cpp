@@ -124,9 +124,9 @@ void Resources::UniformBuffer::update(World &world, const VkExtent2D extent) {
   ubo.light = world._ubo.light;
   ubo.grid_xy = glm::vec2(static_cast<uint32_t>(world._grid.size.x),
                           static_cast<uint32_t>(world._grid.size.y));
-  ubo.mvp.model = world._camera.set_model();
-  ubo.mvp.view = world._camera.set_view();
-  ubo.mvp.projection = world._camera.set_projection(extent);
+  ubo.model = world._camera.set_model();
+  ubo.view = world._camera.set_view();
+  ubo.projection = world._camera.set_projection(extent);
 
   std::memcpy(buffer.mapped, &ubo, sizeof(ubo));
 }

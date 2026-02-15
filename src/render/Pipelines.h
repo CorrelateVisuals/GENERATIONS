@@ -45,7 +45,17 @@ public:
     default_work_groups(const std::string &pipeline_name,
                         const Vec2UintFast16 grid_size,
                         const VkExtent2D &swapchain_extent) {
+      if (pipeline_name.rfind("Compute", 0) == 0) {
+        return {static_cast<uint32_t>(grid_size.x + 31) / 32,
+                static_cast<uint32_t>(grid_size.y + 31) / 32,
+                1};
+      }
       if (pipeline_name == "Engine") {
+        return {static_cast<uint32_t>(grid_size.x + 31) / 32,
+                static_cast<uint32_t>(grid_size.y + 31) / 32,
+                1};
+      }
+      if (pipeline_name == "SeedCells") {
         return {static_cast<uint32_t>(grid_size.x + 31) / 32,
                 static_cast<uint32_t>(grid_size.y + 31) / 32,
                 1};
@@ -59,20 +69,16 @@ public:
     }
 
     static CE::PipelinesConfiguration::Graphics
-    make_graphics(const std::string &draw_op, const std::vector<std::string> &shaders) {
-      const bool is_cells_instanced =
-          draw_op == "cells_instanced" || draw_op == "instanced:cells";
-      if (is_cells_instanced) {
+    make_graphics(const CE::Runtime::DrawOpId draw_op,
+                  const std::vector<std::string> &shaders) {
+      if (draw_op == CE::Runtime::DrawOpId::InstancedCells) {
         return Graphics{.shaders = shaders,
                         .vertex_attributes = World::Cell::get_attribute_description(),
                         .vertex_bindings = World::Cell::get_binding_description()};
       }
 
-      const bool uses_grid_geometry =
-          draw_op == "grid_indexed" || draw_op == "grid_wireframe" ||
-          draw_op == "indexed:grid" || draw_op == "vertices:grid" ||
-          draw_op == "indexed:grid_box";
-      if (uses_grid_geometry) {
+      if (draw_op == CE::Runtime::DrawOpId::IndexedGrid ||
+          draw_op == CE::Runtime::DrawOpId::IndexedGridBox) {
         return Graphics{.shaders = shaders,
                         .vertex_attributes = World::Grid::get_attribute_description(),
                         .vertex_bindings = World::Grid::get_binding_description()};
@@ -102,8 +108,10 @@ public:
             continue;
           }
 
-          const std::string *draw_op = CE::Runtime::get_graphics_draw_op(pipeline_name);
-          const std::string draw_selector = draw_op ? *draw_op : "rectangle_indexed";
+          CE::Runtime::DrawOpId draw_selector = CE::Runtime::get_graphics_draw_op_id(pipeline_name);
+          if (draw_selector == CE::Runtime::DrawOpId::Unknown) {
+            draw_selector = CE::Runtime::DrawOpId::IndexedRectangle;
+          }
           pipeline_map.emplace(pipeline_name,
                                make_graphics(draw_selector, definition.shaders));
         }

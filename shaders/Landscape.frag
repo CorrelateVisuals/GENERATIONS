@@ -1,18 +1,11 @@
 #version 450
+#extension GL_GOOGLE_include_directive : enable
 
 layout(location = 0) in vec3 inWorldPos;
 layout(location = 1) in vec3 inWorldNormal;
 
-layout (binding = 0) uniform ParameterUBO {
-    vec4 light;
-    ivec2 gridXY;
-    float waterThreshold;
-    float cellSize;
-    vec4 waterRules;
-    mat4 model;
-    mat4 view;
-    mat4 projection;
-} ubo;
+#define UBO_LIGHT_NAME light
+#include "ParameterUBO.glsl"
 
 layout(location = 0) out vec4 outColor;
 
@@ -53,11 +46,11 @@ float noise2(vec2 p) {
 }
 
 vec3 pixelTerrainPalette(float heightRelativeToWater) {
-    vec3 sand   = vec3(0.72f, 0.66f, 0.50f);
-    vec3 grassA = vec3(0.46f, 0.58f, 0.41f);
-    vec3 grassB = vec3(0.34f, 0.47f, 0.36f);
-    vec3 rock   = vec3(0.43f, 0.42f, 0.44f);
-    vec3 snow   = vec3(0.80f, 0.82f, 0.84f);
+    vec3 sand   = vec3(0.80f, 0.72f, 0.45f);
+    vec3 grassA = vec3(0.38f, 0.58f, 0.36f);
+    vec3 grassB = vec3(0.28f, 0.45f, 0.30f);
+    vec3 rock   = vec3(0.38f, 0.37f, 0.39f);
+    vec3 snow   = vec3(0.85f, 0.87f, 0.90f);
 
     float h = clamp((heightRelativeToWater + 0.8f) / 7.0f, 0.0f, 1.0f);
 
@@ -91,8 +84,8 @@ vec3 terrainColor(float heightFromWater, float slope, vec2 worldXZ) {
     float detail = noise2(xr * 0.11f);
     land *= 0.96f + (detail * 0.08f * edgeFade * rightEdgeFade);
 
-    vec3 deepWater = vec3(0.15f, 0.24f, 0.29f);
-    vec3 shallowWater = vec3(0.24f, 0.33f, 0.37f);
+    vec3 deepWater = vec3(0.12f, 0.20f, 0.30f);
+    vec3 shallowWater = vec3(0.20f, 0.30f, 0.42f);
     float gameplayHeightFromWater = heightFromWater - ubo.waterRules.x;
     float depthToShore = clamp((-gameplayHeightFromWater + shoreWidth) / (shoreWidth * 2.0f), 0.0f, 1.0f);
     vec3 water = mix(shallowWater, deepWater, depthToShore);

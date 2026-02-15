@@ -13,11 +13,13 @@ public:
         arcball_min_distance(2.0f), arcball_max_distance(300.0f), arcball_yaw(0.0f),
         arcball_pitch(0.0f), arcball_rotate_speed(1.4f), arcball_pan_speed(pan),
         arcball_zoom_speed(zoom), arcball_tumble_mult(1.0f), arcball_pan_mult(1.0f),
-        arcball_dolly_mult(1.0f), arcball_preset_reference_distance(glm::length(pos)),
-        arcball_horizon_lock(true),
+        arcball_dolly_mult(1.0f), arcball_pan_scalar(0.5f), arcball_zoom_scalar(0.1f),
+        arcball_smoothing(0.2f), arcball_distance_pan_scale(0.8f),
+        arcball_distance_zoom_scale(0.6f),
+        arcball_preset_reference_distance(glm::length(pos)), arcball_horizon_lock(true),
         arcball_use_configured_target(false), arcball_cursor_initialized(false),
         arcball_left_was_down(false), arcball_right_was_down(false),
-        arcball_last_cursor(0.0f, 0.0f) {}
+        arcball_last_cursor(0.0f, 0.0f), arcball_smoothed_delta(0.0f, 0.0f) {}
 
   void set_mode(Mode new_mode) {
     mode = new_mode;
@@ -28,6 +30,11 @@ public:
   void toggle_mode();
   void configure_arcball(const glm::vec3 &target, float scene_radius);
   void configure_arcball_multipliers(float tumble, float pan, float dolly);
+  void configure_arcball_response(float smoothing,
+                                  float pan_scalar,
+                                  float zoom_scalar,
+                                  float distance_pan_scale,
+                                  float distance_zoom_scale);
   void set_arcball_horizon_lock(bool enabled) {
     arcball_horizon_lock = enabled;
   }
@@ -81,6 +88,11 @@ private:
   float arcball_tumble_mult;
   float arcball_pan_mult;
   float arcball_dolly_mult;
+  float arcball_pan_scalar;
+  float arcball_zoom_scalar;
+  float arcball_smoothing;
+  float arcball_distance_pan_scale;
+  float arcball_distance_zoom_scale;
   float arcball_preset_reference_distance;
   bool arcball_horizon_lock;
   bool arcball_use_configured_target;
@@ -88,6 +100,7 @@ private:
   bool arcball_left_was_down;
   bool arcball_right_was_down;
   glm::vec2 arcball_last_cursor;
+  glm::vec2 arcball_smoothed_delta;
 
   VkExtent2D cached_extent{0, 0};
   glm::mat4 cached_projection{};

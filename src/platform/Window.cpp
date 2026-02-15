@@ -57,6 +57,16 @@ bool Window::consume_screenshot_pressed() {
   return true;
 }
 
+bool Window::consume_left_click(glm::vec2 &normalized_position) {
+  if (!left_click_pending) {
+    return false;
+  }
+
+  normalized_position = left_click_position;
+  left_click_pending = false;
+  return true;
+}
+
 void Window::set_mouse() {
   int newState = GLFW_RELEASE;
   static int buttonType = -1;
@@ -119,6 +129,10 @@ void Window::set_mouse() {
       }
       case GLFW_RELEASE: {
         pressTime = (newState == GLFW_PRESS) ? static_cast<float>(glfwGetTime()) : 0.0f;
+        if (newState == GLFW_PRESS && buttonType == GLFW_MOUSE_BUTTON_LEFT) {
+          left_click_position = glm::vec2{x, y};
+          left_click_pending = true;
+        }
         break;
       }
     }

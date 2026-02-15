@@ -6,6 +6,14 @@
         "true": true,
         "nm": true,
         "set": true,
-        "/usr/bin/c++": true
+        "/usr/bin/c++": true,
+        "/^latest=\\(ls -1t /tmp/ce_no_timeout\\*\\.log 2>/dev/null \\| head -n 1\\); echo \"LATEST:\\$latest\"; if test -n \"\\$latest\"; grep -nE \"Preset 4\\|Validation Error\\|VUID\\|!ERROR!\\|Swapchain created\\|Stage strip\" \"\\$latest\" \\| head -n 120; else echo \"No /tmp/ce_no_timeout\\*\\.log found\"; end$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^set latest \\(ls -1t /tmp/ce_no_timeout\\*\\.log 2>/dev/null \\| head -n 1\\); echo \"LATEST:\\$latest\"; if test -n \"\\$latest\"; grep -nE \"Preset 4\\|Validation Error\\|VUID\\|!ERROR!\\|Swapchain created\\|Stage strip\" \"\\$latest\" \\| head -n 120; else echo \"No /tmp/ce_no_timeout\\*\\.log found\"; end$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
     }
 }

@@ -5,7 +5,7 @@
 
 #include <algorithm>
 #include <cmath>
-#include <random>
+#include <limits>
 
 namespace {
 GEOMETRY_SHAPE resolve_shape(const int value, const GEOMETRY_SHAPE fallback) {
@@ -76,6 +76,12 @@ World::World(VkCommandBuffer &command_buffer,
       CE::Runtime::get_world_settings().arcball_tumble_mult,
       CE::Runtime::get_world_settings().arcball_pan_mult,
       CE::Runtime::get_world_settings().arcball_dolly_mult);
+    _camera.configure_arcball_response(
+      CE::Runtime::get_world_settings().arcball_smoothing,
+      CE::Runtime::get_world_settings().arcball_pan_scalar,
+      CE::Runtime::get_world_settings().arcball_zoom_scalar,
+      CE::Runtime::get_world_settings().arcball_distance_pan_scale,
+      CE::Runtime::get_world_settings().arcball_distance_zoom_scale);
     _camera.set_preset_view(4);
 
   Log::text("{ wWw }", "constructing World");
@@ -118,15 +124,10 @@ World::Grid::Grid(const CE::Runtime::TerrainSettings &terrain_settings,
   : size(glm::ivec2(terrain_settings.grid_width, terrain_settings.grid_height)),
     initial_alive_cells(terrain_settings.alive_cells),
     point_count(size.x * size.y) {
-  std::vector<bool> is_alive_indices(point_count, false);
-  std::vector<uint_fast32_t> alive_cell_indices = set_cells_alive_randomly(initial_alive_cells);
-  for (int alive_index : alive_cell_indices) {
-    is_alive_indices[alive_index] = true;
-  }
-
-  const glm::vec4 white{1.0f, 1.0f, 1.0f, 1.0f};
   const glm::vec4 grey{0.5f, 0.5f, 0.5f, 1.0f};
-  const glm::ivec4 alive{1, -1, 0, -1};
+  const int encoded_alive_target =
+      static_cast<int>(std::min<uint_fast32_t>(initial_alive_cells,
+                                               static_cast<uint_fast32_t>(std::numeric_limits<int>::max())));
   const glm::ivec4 dead{-1, -1, 0, -1};
 
   const float startX = (size.x - 1) / -2.0f;
@@ -139,14 +140,12 @@ World::Grid::Grid(const CE::Runtime::TerrainSettings &terrain_settings,
 
     coordinates[i] = {(startX + i % size.x), (startY + i / size.x), absoluteHeight};
 
-    const bool is_alive = is_alive_indices[i];
-
     cells[i].instance_position = {(startX + i % size.x),
                     (startY + i / size.x),
                     absoluteHeight,
-                    is_alive ? terrain_settings.cell_size * 1.6f : 0.0f};
-    cells[i].color = is_alive ? white : grey;
-    cells[i].states = is_alive ? alive : dead;
+                    0.0f};
+    cells[i].color = grey;
+    cells[i].states = {dead.x, encoded_alive_target, dead.z, dead.w};
   }
 
   const uint32_t grid_width = static_cast<uint32_t>(size.x);
@@ -257,21 +256,4 @@ std::vector<VkVertexInputAttributeDescription> World::Grid::get_attribute_descri
        VK_FORMAT_R32G32B32_SFLOAT,
        static_cast<uint32_t>(offsetof(Grid::Vertex, vertex_position))}};
   return attributes;
-}
-
-std::vector<uint_fast32_t>
-World::Grid::set_cells_alive_randomly(uint_fast32_t number_of_cells) {
-  const uint_fast32_t targetCount =
-      std::min<uint_fast32_t>(number_of_cells, static_cast<uint_fast32_t>(point_count));
-
-  std::vector<uint_fast32_t> cell_ids(point_count);
-  std::iota(cell_ids.begin(), cell_ids.end(), 0);
-
-  std::random_device random;
-  std::mt19937 generate(random());
-  std::shuffle(cell_ids.begin(), cell_ids.end(), generate);
-
-  cell_ids.resize(targetCount);
-  std::sort(cell_ids.begin(), cell_ids.end());
-  return cell_ids;
 }

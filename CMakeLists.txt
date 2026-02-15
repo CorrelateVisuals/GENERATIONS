@@ -71,8 +71,26 @@ add_custom_target(architecture_check
     COMMENT "Checking folder dependency boundaries"
 )
 
+add_custom_command(
+    OUTPUT
+        ${PROJECT_SOURCE_DIR}/src/core/ShaderInterface.h
+        ${PROJECT_SOURCE_DIR}/shaders/ParameterUBO.glsl
+    COMMAND ${Python3_EXECUTABLE} ${PROJECT_SOURCE_DIR}/tools/generate_shader_interface.py
+    DEPENDS
+        ${PROJECT_SOURCE_DIR}/src/core/ParameterUBO.schema
+        ${PROJECT_SOURCE_DIR}/tools/generate_shader_interface.py
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+    COMMENT "Generating shader interface from schema"
+)
+
+add_custom_target(shader_interface DEPENDS
+    ${PROJECT_SOURCE_DIR}/src/core/ShaderInterface.h
+    ${PROJECT_SOURCE_DIR}/shaders/ParameterUBO.glsl
+)
+
 add_executable(CapitalEngine ${CAPITALENGINE_SOURCES})
 add_dependencies(CapitalEngine architecture_check)
+add_dependencies(CapitalEngine shader_interface)
 
 target_link_libraries(CapitalEngine glfw)
 target_link_libraries(CapitalEngine vulkan)

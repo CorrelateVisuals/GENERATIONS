@@ -3,6 +3,7 @@
 #include "core/RuntimeConfig.h"
 #include "io/Screenshot.h"
 #include "platform/Window.h"
+#include "render/gui.h"
 
 #include <chrono>
 #include <filesystem>
@@ -39,6 +40,15 @@ void CapitalEngine::main_loop() {
   Log::text("{ Main Loop }");
   Log::measure_elapsed_time();
 
+  CE::RenderGUI::log_stage_strip_tiles();
+
+  const bool camera_tuning_enabled =
+      CE::Runtime::env_flag_enabled("CE_CAMERA_TUNING");
+  if (camera_tuning_enabled) {
+    Log::text("{ Cam }",
+              "Camera tuning enabled (T toggle, ,/. select, [] adjust)");
+  }
+
   const bool startup_screenshot_enabled =
       CE::Runtime::env_flag_enabled("CE_STARTUP_SCREENSHOT");
   const bool startup_screenshot_cycle_enabled =
@@ -59,6 +69,54 @@ void CapitalEngine::main_loop() {
 
   while (!glfwWindowShouldClose(main_window.window)) {
     main_window.poll_input();
+
+    glm::vec2 left_click_position{0.0f, 0.0f};
+    if (main_window.consume_left_click(left_click_position)) {
+      const int32_t clicked_tile_index =
+          CE::RenderGUI::find_stage_strip_tile_index(mechanics.swapchain.extent,
+                                                     left_click_position.x,
+                                                     left_click_position.y);
+      if (clicked_tile_index >= 0) {
+        const CE::RenderGUI::StageStripTile *tile =
+            CE::RenderGUI::get_stage_strip_tile(static_cast<size_t>(clicked_tile_index));
+        if (tile) {
+          // Check if this is a preset tile
+          if (tile->preset_index >= 0) {
+            resources->world._camera.set_preset_view(
+                static_cast<uint32_t>(tile->preset_index));
+            Log::text("{ >>> }", "Stage strip preset: " + tile->label);
+          } else if (!tile->pipelines.empty()) {
+            // This is a render pipeline tile
+            CE::Runtime::RenderGraph updated_graph{};
+            if (const CE::Runtime::RenderGraph *existing_graph =
+                    CE::Runtime::get_render_graph()) {
+              updated_graph = *existing_graph;
+            }
+
+            std::vector<CE::Runtime::RenderNode> retained_nodes{};
+            retained_nodes.reserve(updated_graph.nodes.size());
+            for (const CE::Runtime::RenderNode &node : updated_graph.nodes) {
+              if (node.stage != CE::Runtime::RenderStage::Graphics) {
+                retained_nodes.push_back(node);
+              }
+            }
+
+            for (const std::string &pipeline_name : tile->pipelines) {
+              retained_nodes.push_back(CE::Runtime::RenderNode{
+                  .stage = CE::Runtime::RenderStage::Graphics,
+                  .pipeline = pipeline_name,
+                  .draw_op = CE::Runtime::get_graphics_draw_op_id(pipeline_name),
+              });
+            }
+
+            updated_graph.nodes = std::move(retained_nodes);
+            CE::Runtime::set_render_graph(updated_graph);
+            Log::text("{ >>> }", "Stage strip selected: " + tile->label);
+          }
+        }
+      }
+    }
+
     resources->world._time.run();
     mechanics.main_device.maybe_log_gpu_runtime_sample();
 

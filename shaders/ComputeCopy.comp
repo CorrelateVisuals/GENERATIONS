@@ -1,0 +1,42 @@
+#version 450
+#extension GL_EXT_shader_explicit_arithmetic_types_int64 : enable
+#extension GL_GOOGLE_include_directive : enable
+
+struct Cell {
+    vec4 position;
+    vec3 vertPosition;
+    vec3 normal;
+    vec4 color;
+    ivec4 states;
+};
+
+layout(std430, binding = 1) readonly buffer CellSSBOIn {
+    Cell cellIn[];
+};
+layout(std430, binding = 2) buffer CellSSBOOut {
+    Cell cellOut[];
+};
+
+layout(local_size_x = 32, local_size_y = 32, local_size_z = 1) in;
+layout(push_constant, std430) uniform pushConstant {
+    uint64_t passedHours;
+    float dayFraction;
+};
+
+#include "ParameterUBO.glsl"
+
+void main() {
+    const uint gridWidth = uint(max(ubo.gridXY.x, 1));
+    const uint gridHeight = uint(max(ubo.gridXY.y, 1));
+    const uint totalCells = gridWidth * gridHeight;
+
+    const uint gx = gl_GlobalInvocationID.x;
+    const uint gy = gl_GlobalInvocationID.y;
+    const uint index = (gy * gridWidth + (gx % gridWidth) + (gx / gridWidth) * gridHeight) % totalCells;
+
+    if (index >= totalCells) {
+        return;
+    }
+
+    cellOut[index] = cellIn[index];
+}

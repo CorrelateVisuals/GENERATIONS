@@ -1,19 +1,12 @@
 #version 450
+#extension GL_GOOGLE_include_directive : enable
 
 layout(location = 0) in vec3 inPosition;
 layout(location = 1) in vec3 inColor;
 layout(location = 2) in vec2 inTexCoord;
 
-layout (binding = 0) uniform ParameterUBO {
-    vec4 light;
-    ivec2 gridXY;
-    float waterThreshold;
-    float cellSize;
-    vec4 waterRules;
-    mat4 model;
-    mat4 view;
-    mat4 projection;
-} ubo;
+#define UBO_LIGHT_NAME light
+#include "ParameterUBO.glsl"
 ivec2 gridXY = ubo.gridXY;
 mat4 model = ubo.model;
 mat4 view = ubo.view;

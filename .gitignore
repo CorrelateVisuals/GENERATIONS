@@ -1,6 +1,9 @@
 # Folders
 x64/
 .venv/
+build/
+bin/
+.vs/
 
 # Prerequisites
 *.d
@@ -93,4 +96,4 @@ src/Resources.cpp~RF2898af96.TMP
 src/Pipelines.cpp~RF2d4a8dbf.TMP
 src/Pipelines.cpp~RF2d5653aa.TMP
 src/CAPITAL-engine.vcxproj.filters
-/screenshot
+/screenshot/

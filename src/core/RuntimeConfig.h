@@ -1,11 +1,26 @@
 #pragma once
 
 #include <unordered_map>
+#include <cstdint>
 #include <string>
 #include <vector>
 #include <array>
+#include <string_view>
 
 namespace CE::Runtime {
+
+enum class DrawOpId : uint8_t {
+  Unknown = 0,
+  InstancedCells,
+  IndexedGrid,
+  IndexedGridBox,
+  IndexedRectangle,
+  IndexedCube,
+  SkyDome,
+};
+
+DrawOpId draw_op_from_string(std::string_view draw_op);
+const char *to_string(DrawOpId draw_op);
 
 // Parses an environment-style boolean string.
 //
@@ -24,6 +39,22 @@ struct PipelineExecutionPlan {
   std::vector<std::string> pre_graphics_compute{};
   std::vector<std::string> graphics{};
   std::vector<std::string> post_graphics_compute{};
+};
+
+enum class RenderStage : uint8_t {
+  PreCompute = 0,
+  Graphics,
+  PostCompute,
+};
+
+struct RenderNode {
+  RenderStage stage{RenderStage::Graphics};
+  std::string pipeline{};
+  DrawOpId draw_op{DrawOpId::Unknown};
+};
+
+struct RenderGraph {
+  std::vector<RenderNode> nodes{};
 };
 
 struct PipelineDefinition {
@@ -71,15 +102,20 @@ struct WorldSettings {
   float water_border_highlight_width = 0.08f;
   std::array<float, 4> light_pos{0.0f, 20.0f, 20.0f, 0.0f};
 
-  float zoom_speed = 0.5f;
-  float panning_speed = 1.2f;
-  float field_of_view = 40.0f;
-  float near_clipping = 0.1f;
-  float far_clipping = 1000.0f;
+  float zoom_speed = 0.15f;
+  float panning_speed = 0.3f;
+  float field_of_view = 35.0f;
+  float near_clipping = 0.25f;
+  float far_clipping = 800.0f;
   std::array<float, 3> camera_position{0.0f, 0.0f, 60.0f};
-  float arcball_tumble_mult = 0.9f;
-  float arcball_pan_mult = 0.85f;
-  float arcball_dolly_mult = 0.8f;
+  float arcball_tumble_mult = 0.7f;
+  float arcball_pan_mult = 0.9f;
+  float arcball_dolly_mult = 0.85f;
+  float arcball_pan_scalar = 0.5f;
+  float arcball_zoom_scalar = 0.1f;
+  float arcball_smoothing = 0.2f;
+  float arcball_distance_pan_scale = 0.8f;
+  float arcball_distance_zoom_scale = 0.6f;
 
   int cube_shape = 1;
   int rectangle_shape = 0;
@@ -88,6 +124,8 @@ struct WorldSettings {
 
 void set_pipeline_execution_plan(const PipelineExecutionPlan &plan);
 const PipelineExecutionPlan *get_pipeline_execution_plan();
+void set_render_graph(const RenderGraph &graph);
+const RenderGraph *get_render_graph();
 
 void set_pipeline_definitions(
   const std::unordered_map<std::string, PipelineDefinition> &definitions);
@@ -101,6 +139,8 @@ const WorldSettings &get_world_settings();
 
 void set_graphics_draw_ops(const std::unordered_map<std::string, std::string> &draw_ops);
 const std::string *get_graphics_draw_op(const std::string &pipeline_name);
+void set_graphics_draw_op_ids(const std::unordered_map<std::string, DrawOpId> &draw_ops);
+DrawOpId get_graphics_draw_op_id(const std::string &pipeline_name);
 
 void clear_pipeline_execution_plan();
 

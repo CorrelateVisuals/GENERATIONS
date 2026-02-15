@@ -7,11 +7,14 @@
 
 #include "Camera.h"
 #include "core/Log.h"
+#include "core/RuntimeConfig.h"
 #include "platform/Window.h"
 
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <iomanip>
+#include <sstream>
 
 void Camera::configure_arcball(const glm::vec3 &target, float scene_radius) {
   arcball_target = target;
@@ -33,6 +36,18 @@ void Camera::configure_arcball_multipliers(float tumble, float pan, float dolly)
   arcball_tumble_mult = std::max(tumble, 0.01f);
   arcball_pan_mult = std::max(pan, 0.01f);
   arcball_dolly_mult = std::max(dolly, 0.01f);
+}
+
+void Camera::configure_arcball_response(float smoothing,
+                                        float pan_scalar,
+                                        float zoom_scalar,
+                                        float distance_pan_scale,
+                                        float distance_zoom_scale) {
+  arcball_smoothing = std::clamp(smoothing, 0.0f, 1.0f);
+  arcball_pan_scalar = std::max(pan_scalar, 0.01f);
+  arcball_zoom_scalar = std::max(zoom_scalar, 0.01f);
+  arcball_distance_pan_scale = std::max(distance_pan_scale, 0.0f);
+  arcball_distance_zoom_scale = std::max(distance_zoom_scale, 0.0f);
 }
 
 void Camera::set_pose(const glm::vec3 &new_position,
@@ -101,7 +116,7 @@ void Camera::set_preset_view(uint32_t preset_index) {
       Log::text("{ Cam }", "Preset 3: Close Side Straight");
       break;
     case 4:
-      set_orbit_view(18.0f, 87.0f, 0.70f);
+      set_orbit_view(10.0f, 87.0f, 0.75f);
       Log::text("{ Cam }", "Preset 4: Top Down");
       break;
     default:
@@ -179,18 +194,25 @@ void Camera::apply_arcball_mode(const glm::vec2 &previous_cursor,
                                 const float viewport_width,
                                 const float viewport_height) {
   const glm::vec3 worldUp = glm::vec3(0.0f, 0.0f, 1.0f);
-  constexpr float arcball_pan_scalar = 0.5f;
-  constexpr float arcball_zoom_scalar = 0.1f;
-  constexpr float dead_zone = 0.0008f;
-  constexpr float response_max_drag = 0.06f;
-  constexpr float pole_limit = 0.985f;
+  constexpr float dead_zone = 0.0004f;
+  constexpr float response_max_drag = 0.035f;
+  constexpr float pole_limit = 0.96f;
   const float safe_height = std::max(viewport_height, 1.0f);
   const float safe_width = std::max(viewport_width, 1.0f);
   const float safe_min_axis = std::max(std::min(safe_width, safe_height), 1.0f);
   const glm::vec2 cursor_delta = current_cursor - previous_cursor;
+  const bool any_pressed = left_pressed || right_pressed || middle_pressed;
+  if (!any_pressed) {
+    arcball_smoothed_delta = glm::vec2(0.0f, 0.0f);
+  }
+
+  const float smoothing_factor = std::clamp(arcball_smoothing, 0.0f, 1.0f);
+  const glm::vec2 smoothed_delta =
+      glm::mix(arcball_smoothed_delta, cursor_delta, smoothing_factor);
+  arcball_smoothed_delta = smoothed_delta;
 
   if (left_pressed) {
-    const glm::vec2 normalized_delta = cursor_delta / safe_min_axis;
+    const glm::vec2 normalized_delta = smoothed_delta / safe_min_axis;
     const float drag_magnitude = glm::length(normalized_delta);
 
     if (drag_magnitude > dead_zone) {
@@ -201,22 +223,33 @@ void Camera::apply_arcball_mode(const glm::vec2 &previous_cursor,
         -normalized_delta.y * arcball_rotate_speed * arcball_tumble_mult * response;
 
       glm::vec3 orbitOffset = position - arcball_target;
+
+      // Compute right axis from current camera state BEFORE any rotation.
+      // Using worldUp fails when looking straight down (front ≈ worldUp).
+      glm::vec3 rightAxis = glm::cross(front, up);
+      if (glm::length2(rightAxis) < 1e-10f) {
+        rightAxis = glm::cross(front, worldUp);
+      }
+      if (glm::length2(rightAxis) < 1e-10f) {
+        rightAxis = glm::vec3(1.0f, 0.0f, 0.0f);
+      }
+      rightAxis = glm::normalize(rightAxis);
+
+      // Apply pitch first (around camera right axis)
+      const glm::quat pitchRotation = glm::angleAxis(pitchAngle, rightAxis);
+      glm::vec3 pitchedOffset = pitchRotation * orbitOffset;
+      const glm::vec3 pitchedFront = glm::normalize(-pitchedOffset);
+
+      // Allow pitch that moves away from the pole; block only deeper into it.
+      const float currentPoleDot = std::abs(glm::dot(glm::normalize(-orbitOffset), worldUp));
+      const float pitchedPoleDot = std::abs(glm::dot(pitchedFront, worldUp));
+      if (pitchedPoleDot < pole_limit || pitchedPoleDot <= currentPoleDot) {
+        orbitOffset = pitchedOffset;
+      }
+
+      // Apply yaw (around world up axis)
       const glm::quat yawRotation = glm::angleAxis(yawAngle, worldUp);
       orbitOffset = yawRotation * orbitOffset;
-
-      const glm::vec3 frontAfterYaw = glm::normalize(-orbitOffset);
-      glm::vec3 rightAxis = glm::cross(frontAfterYaw, worldUp);
-      if (glm::length2(rightAxis) > 1e-10f) {
-        rightAxis = glm::normalize(rightAxis);
-
-        const glm::quat pitchRotation = glm::angleAxis(pitchAngle, rightAxis);
-        const glm::vec3 pitchedOffset = pitchRotation * orbitOffset;
-        const glm::vec3 pitchedFront = glm::normalize(-pitchedOffset);
-
-        if (std::abs(glm::dot(pitchedFront, worldUp)) < pole_limit) {
-          orbitOffset = pitchedOffset;
-        }
-      }
 
       position = arcball_target + orbitOffset;
     }
@@ -228,19 +261,34 @@ void Camera::apply_arcball_mode(const glm::vec2 &previous_cursor,
 
   if (right_pressed) {
     const float viewScale =
-        (2.0f * arcball_distance * std::tan(glm::radians(field_of_view) * 0.5f)) /
-        safe_height;
+      (2.0f * arcball_distance * std::tan(glm::radians(field_of_view) * 0.5f)) /
+      safe_height;
+    const float distance_ratio = arcball_distance /
+      std::max(arcball_preset_reference_distance, 0.001f);
+    const float pan_distance_scale = std::clamp(
+      1.0f + (distance_ratio - 1.0f) * arcball_distance_pan_scale, 0.25f, 3.5f);
     const float panScale =
-        viewScale * arcball_pan_speed * arcball_pan_scalar * arcball_pan_mult;
+      viewScale * arcball_pan_speed * arcball_pan_scalar * arcball_pan_mult *
+      pan_distance_scale;
     const glm::vec3 translation =
-        (-cursor_delta.x * panScale) * viewRight + (-cursor_delta.y * panScale) * viewUp;
+      (-smoothed_delta.x * panScale) * viewRight +
+      (-smoothed_delta.y * panScale) * viewUp;
     position += translation;
     arcball_target += translation;
   }
 
   if (middle_pressed) {
-    arcball_distance +=
-        cursor_delta.y * arcball_zoom_speed * arcball_zoom_scalar * arcball_dolly_mult;
+    const float distance_ratio = arcball_distance /
+      std::max(arcball_preset_reference_distance, 0.001f);
+    const float dolly_distance_scale = std::clamp(
+      1.0f + (distance_ratio - 1.0f) * arcball_distance_zoom_scale, 0.25f, 3.5f);
+    // Exponential zoom: multiply distance by a factor instead of adding
+    // linearly. This gives natural-feeling zoom (fast when far, slow when close).
+    const float zoom_input =
+      smoothed_delta.y * arcball_zoom_speed * arcball_zoom_scalar *
+      arcball_dolly_mult * dolly_distance_scale;
+    const float zoom_factor = std::exp(zoom_input * 0.01f);
+    arcball_distance *= zoom_factor;
     arcball_distance =
         std::clamp(arcball_distance, arcball_min_distance, arcball_max_distance);
     position = arcball_target - viewFront * arcball_distance;
@@ -270,6 +318,14 @@ void Camera::apply_arcball_mode(const glm::vec2 &previous_cursor,
 void Camera::update() {
   static bool camera_toggle_down = false;
   static bool horizon_toggle_down = false;
+  static bool tuning_enabled = CE::Runtime::env_flag_enabled("CE_CAMERA_TUNING");
+  static bool tuning_mode = false;
+  static bool tuning_toggle_down = false;
+  static bool tuning_prev_down = false;
+  static bool tuning_next_down = false;
+  static bool tuning_decrease_down = false;
+  static bool tuning_increase_down = false;
+  static int tuning_index = 0;
   static std::array<bool, 4> preset_toggle_down{false, false, false, false};
 
   const std::array<std::pair<int, uint32_t>, 4> preset_keys{{
@@ -304,6 +360,130 @@ void Camera::update() {
     input_changed = true;
   }
   horizon_toggle_down = horizon_down;
+
+  if (tuning_enabled) {
+    const bool tuning_toggle = glfwGetKey(Window::get().window, GLFW_KEY_T) == GLFW_PRESS;
+    if (tuning_toggle && !tuning_toggle_down) {
+      tuning_mode = !tuning_mode;
+      Log::text("{ Cam }", tuning_mode ? "Tuning: On" : "Tuning: Off");
+    }
+    tuning_toggle_down = tuning_toggle;
+  } else {
+    tuning_mode = false;
+    tuning_toggle_down = false;
+  }
+
+  if (tuning_enabled && tuning_mode) {
+    static const std::array<const char *, 11> tuning_labels = {
+        "FOV",
+        "Near Clip",
+        "Far Clip",
+        "Arcball Smoothing",
+        "Pan Scalar",
+        "Zoom Scalar",
+        "Distance Pan",
+        "Distance Zoom",
+        "Tumble Mult",
+        "Pan Mult",
+        "Dolly Mult",
+    };
+
+    auto log_tuning_value = [&](const char *label, float value) {
+      std::ostringstream stream;
+      stream << std::fixed << std::setprecision(3) << value;
+      Log::text("{ Cam }", std::string("Tune ") + label + " = " + stream.str());
+    };
+
+    auto get_value = [&]() -> float {
+      switch (tuning_index) {
+        case 0: return field_of_view;
+        case 1: return near_clipping;
+        case 2: return far_clipping;
+        case 3: return arcball_smoothing;
+        case 4: return arcball_pan_scalar;
+        case 5: return arcball_zoom_scalar;
+        case 6: return arcball_distance_pan_scale;
+        case 7: return arcball_distance_zoom_scale;
+        case 8: return arcball_tumble_mult;
+        case 9: return arcball_pan_mult;
+        case 10: return arcball_dolly_mult;
+        default: return 0.0f;
+      }
+    };
+
+    auto apply_delta = [&](float delta) {
+      switch (tuning_index) {
+        case 0:
+          field_of_view = std::clamp(field_of_view + delta, 20.0f, 90.0f);
+          break;
+        case 1:
+          near_clipping = std::clamp(near_clipping + delta, 0.01f, far_clipping - 0.05f);
+          break;
+        case 2:
+          far_clipping = std::max(far_clipping + delta, near_clipping + 0.1f);
+          break;
+        case 3:
+          arcball_smoothing = std::clamp(arcball_smoothing + delta, 0.0f, 1.0f);
+          break;
+        case 4:
+          arcball_pan_scalar = std::max(arcball_pan_scalar + delta, 0.01f);
+          break;
+        case 5:
+          arcball_zoom_scalar = std::max(arcball_zoom_scalar + delta, 0.01f);
+          break;
+        case 6:
+          arcball_distance_pan_scale = std::clamp(arcball_distance_pan_scale + delta, 0.0f, 2.5f);
+          break;
+        case 7:
+          arcball_distance_zoom_scale = std::clamp(arcball_distance_zoom_scale + delta, 0.0f, 2.5f);
+          break;
+        case 8:
+          arcball_tumble_mult = std::max(arcball_tumble_mult + delta, 0.01f);
+          break;
+        case 9:
+          arcball_pan_mult = std::max(arcball_pan_mult + delta, 0.01f);
+          break;
+        case 10:
+          arcball_dolly_mult = std::max(arcball_dolly_mult + delta, 0.01f);
+          break;
+      }
+      input_changed = true;
+      log_tuning_value(tuning_labels[tuning_index], get_value());
+    };
+
+    const bool tuning_prev = glfwGetKey(Window::get().window, GLFW_KEY_COMMA) == GLFW_PRESS;
+    if (tuning_prev && !tuning_prev_down) {
+      tuning_index = (tuning_index + static_cast<int>(tuning_labels.size()) - 1) %
+                     static_cast<int>(tuning_labels.size());
+      log_tuning_value(tuning_labels[tuning_index], get_value());
+    }
+    tuning_prev_down = tuning_prev;
+
+    const bool tuning_next = glfwGetKey(Window::get().window, GLFW_KEY_PERIOD) == GLFW_PRESS;
+    if (tuning_next && !tuning_next_down) {
+      tuning_index = (tuning_index + 1) % static_cast<int>(tuning_labels.size());
+      log_tuning_value(tuning_labels[tuning_index], get_value());
+    }
+    tuning_next_down = tuning_next;
+
+    const bool tuning_decrease =
+        glfwGetKey(Window::get().window, GLFW_KEY_LEFT_BRACKET) == GLFW_PRESS;
+    if (tuning_decrease && !tuning_decrease_down) {
+      const float step = (tuning_index == 0 || tuning_index == 2) ? 1.0f :
+                         (tuning_index == 1 ? 0.02f : 0.05f);
+      apply_delta(-step);
+    }
+    tuning_decrease_down = tuning_decrease;
+
+    const bool tuning_increase =
+        glfwGetKey(Window::get().window, GLFW_KEY_RIGHT_BRACKET) == GLFW_PRESS;
+    if (tuning_increase && !tuning_increase_down) {
+      const float step = (tuning_index == 0 || tuning_index == 2) ? 1.0f :
+                         (tuning_index == 1 ? 0.02f : 0.05f);
+      apply_delta(step);
+    }
+    tuning_increase_down = tuning_increase;
+  }
 
   if (mode == Mode::Arcball) {
     double xpos(0.0), ypos(0.0);

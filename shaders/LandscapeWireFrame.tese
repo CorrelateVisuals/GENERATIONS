@@ -1,4 +1,5 @@
 #version 450
+#extension GL_GOOGLE_include_directive : enable
 
 layout(triangles, equal_spacing, cw) in;
 
@@ -7,16 +8,8 @@ layout (location = 1) in vec3 inWorldNormal[];
 
 layout (location = 0) out vec3 outWorldPos;
 
-layout (binding = 0) uniform ParameterUBO {
-    vec4 light;
-    ivec2 gridXY;
-    float waterThreshold;
-    float cellSize;
-    vec4 waterRules;
-    mat4 model;
-    mat4 view;
-    mat4 projection;
-} ubo;
+#define UBO_LIGHT_NAME light
+#include "ParameterUBO.glsl"
 
 void main(void){
 

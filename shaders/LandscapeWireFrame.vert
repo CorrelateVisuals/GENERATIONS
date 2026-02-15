@@ -1,17 +1,10 @@
 #version 450
+#extension GL_GOOGLE_include_directive : enable
 
 layout(location = 0) in vec3 inPosition;
 
-layout (binding = 0) uniform ParameterUBO {
-    vec4 light;
-    ivec2 gridXY;
-    float waterThreshold;
-    float cellSize;
-    vec4 waterRules;
-    mat4 model;
-    mat4 view;
-    mat4 projection;
-} ubo;
+#define UBO_LIGHT_NAME light
+#include "ParameterUBO.glsl"
 
 float hash21(vec2 p) {
     return fract(sin(dot(p, vec2(127.1f, 311.7f))) * 43758.5453f);

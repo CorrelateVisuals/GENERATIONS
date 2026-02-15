@@ -53,12 +53,15 @@ public:
     return escape_pressed;
   }
   bool consume_screenshot_pressed();
+  bool consume_left_click(glm::vec2 &normalized_position);
 
 private:
   void set_mouse();
   bool escape_pressed{false};
   bool screenshot_key_down{false};
   bool screenshot_pressed{false};
+  bool left_click_pending{false};
+  glm::vec2 left_click_position{0.0f, 0.0f};
 
   Window();
   ~Window();

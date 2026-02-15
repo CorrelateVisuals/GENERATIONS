@@ -1,19 +1,12 @@
 #version 450
+#extension GL_GOOGLE_include_directive : enable
 
 layout(location = 0) in vec3 inPosition;
 layout(location = 1) in vec3 inColor;
 layout(location = 2) in vec2 inTexCoord;
 
-layout (binding = 0) uniform ParameterUBO {
-    vec4 light;
-    ivec2 gridXY;
-    float waterThreshold;
-    float cellSize;
-    vec4 waterRules;
-    mat4 model;
-    mat4 view;
-    mat4 projection;
-} ubo;
+#define UBO_LIGHT_NAME light
+#include "ParameterUBO.glsl"
 vec4 light = ubo.light;
 ivec2 gridXY = ubo.gridXY;
 mat4 model = ubo.model;
@@ -32,7 +25,7 @@ vec4 viewPosition = view * worldPosition;
 layout(location = 0) out vec4 fragColor;
 
 void main() {
-    fragColor = vec4(0.14f, 0.23f, 0.28f, 1.0f);
+    fragColor = vec4(0.12f, 0.20f, 0.30f, 1.0f);
     gl_Position = projection * viewPosition;
 }
 

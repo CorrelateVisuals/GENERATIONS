@@ -1,5 +1,6 @@
 #version 450
 #extension GL_EXT_shader_explicit_arithmetic_types_int64 : enable
+#extension GL_GOOGLE_include_directive : enable
 
 struct Cell {
     vec4 position;  
@@ -17,16 +18,8 @@ layout(push_constant, std430) uniform pushConstant {
     float dayFraction;
 };
 
-layout (binding = 0) uniform ParameterUBO {
-    vec4 lightDirection;
-    ivec2 gridXY;
-    float waterThreshold;
-    float cellSize;
-    vec4 waterRules;
-    mat4 model;
-    mat4 view;
-    mat4 projection;
-} ubo;
+#define UBO_LIGHT_NAME lightDirection
+#include "ParameterUBO.glsl"
 ivec2 gridXY = ubo.gridXY;
 
 uint globalID_x = gl_GlobalInvocationID.x;

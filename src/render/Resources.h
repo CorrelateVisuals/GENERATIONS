@@ -107,4 +107,6 @@ public:
   // Image Descriptors
   ImageSampler sampler;      // Texture vertex shader
   StorageImage storage_image; //  PostFX compute shader
+
+  bool startup_seed_pending = true;
 };

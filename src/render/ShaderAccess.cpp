@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <string_view>
 #include <stdexcept>
+#include <vector>
 
 void CE::ShaderAccess::CommandResources::record_compute_command_buffer(
     Resources &resources, Pipelines &pipelines, const uint32_t frame_index) {
@@ -43,13 +44,43 @@ void CE::ShaderAccess::CommandResources::record_compute_command_buffer(
                      resources.push_constant.size,
                      resources.push_constant.data.data());
 
+  const CE::Runtime::RenderGraph *render_graph = CE::Runtime::get_render_graph();
   const CE::Runtime::PipelineExecutionPlan *plan = CE::Runtime::get_pipeline_execution_plan();
-  const std::vector<std::string> empty_compute{};
-  const std::vector<std::string> &pre_compute =
-      (plan && !plan->pre_graphics_compute.empty()) ? plan->pre_graphics_compute
-                                                     : empty_compute;
+  std::vector<std::string> pre_compute;
+  if (render_graph) {
+    for (const CE::Runtime::RenderNode &node : render_graph->nodes) {
+      if (node.stage == CE::Runtime::RenderStage::PreCompute) {
+        pre_compute.push_back(node.pipeline);
+      }
+    }
+  } else if (plan) {
+    pre_compute = plan->pre_graphics_compute;
+  }
 
-  for (const std::string &pipeline_name : pre_compute) {
+  const bool run_startup_seed = resources.startup_seed_pending;
+  if (run_startup_seed) {
+    pre_compute.insert(pre_compute.begin(), "SeedCells");
+  }
+
+  const auto insert_compute_barrier = [&](VkCommandBuffer buffer) {
+    VkMemoryBarrier barrier{};
+    barrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
+    barrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_SHADER_READ_BIT;
+    barrier.dstAccessMask = VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_SHADER_READ_BIT;
+    vkCmdPipelineBarrier(buffer,
+                         VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+                         VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+                         0,
+                         1,
+                         &barrier,
+                         0,
+                         nullptr,
+                         0,
+                         nullptr);
+  };
+
+  for (std::size_t i = 0; i < pre_compute.size(); ++i) {
+    const std::string &pipeline_name = pre_compute[i];
     vkCmdBindPipeline(command_buffer,
                       VK_PIPELINE_BIND_POINT_COMPUTE,
                       pipelines.config.get_pipeline_object_by_name(pipeline_name));
@@ -57,6 +88,13 @@ void CE::ShaderAccess::CommandResources::record_compute_command_buffer(
     const std::array<uint32_t, 3> &work_groups =
         pipelines.config.get_work_groups_by_name(pipeline_name);
     vkCmdDispatch(command_buffer, work_groups[0], work_groups[1], work_groups[2]);
+    if (i + 1 < pre_compute.size()) {
+      insert_compute_barrier(command_buffer);
+    }
+  }
+
+  if (run_startup_seed) {
+    resources.startup_seed_pending = false;
   }
 
   CE::vulkan_result(vkEndCommandBuffer, command_buffer);
@@ -101,10 +139,15 @@ void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
   vkCmdSetViewport(command_buffer, 0, 1, &viewport);
 
   VkRect2D scissor{.offset = {0, 0}, .extent = swapchain.extent};
-  const CE::RenderGUI::StageStripConfig stage_strip =
-      CE::RenderGUI::get_stage_strip_config(swapchain.extent);
-  const bool stage_strip_enabled =
-      stage_strip.enabled && swapchain.extent.height > (stage_strip.strip_height_px + 1);
+  const bool stage_strip_potentially_enabled = CE::RenderGUI::is_stage_strip_enabled();
+  bool stage_strip_enabled = false;
+  CE::RenderGUI::StageStripConfig stage_strip{};
+
+  if (stage_strip_potentially_enabled) {
+    stage_strip = CE::RenderGUI::get_stage_strip_config(swapchain.extent);
+    stage_strip_enabled =
+        stage_strip.enabled && swapchain.extent.height > (stage_strip.strip_height_px + 1);
+  }
 
   if (stage_strip_enabled) {
     VkRect2D scene_scissor{
@@ -244,52 +287,51 @@ void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
               0);
   };
 
-  const CE::Runtime::PipelineExecutionPlan *plan = CE::Runtime::get_pipeline_execution_plan();
-  const std::vector<std::string> empty_graphics{};
-  const std::vector<std::string> &graphics_order =
-      (plan && !plan->graphics.empty()) ? plan->graphics : empty_graphics;
-
-  for (const std::string &pipeline_name : graphics_order) {
-    const std::string *draw_op = CE::Runtime::get_graphics_draw_op(pipeline_name);
-    if (!draw_op) {
-      continue;
-    }
-
-    if (*draw_op == "cells_instanced" || *draw_op == "instanced:cells") {
+  const auto draw_pipeline_from_draw_op_id = [&](const std::string &pipeline_name,
+                                                 const CE::Runtime::DrawOpId draw_op_id) {
+    if (draw_op_id == CE::Runtime::DrawOpId::InstancedCells) {
       draw_cells(pipeline_name);
-      continue;
+      return;
     }
 
-    if (*draw_op == "grid_indexed" || *draw_op == "grid_wireframe" ||
-        *draw_op == "indexed:grid") {
+    if (draw_op_id == CE::Runtime::DrawOpId::IndexedGrid) {
       draw_grid_indexed(pipeline_name);
-      continue;
+      return;
     }
 
-    if (*draw_op == "indexed:grid_box") {
+    if (draw_op_id == CE::Runtime::DrawOpId::IndexedGridBox) {
       draw_grid_box_indexed(pipeline_name);
-      continue;
+      return;
     }
 
-    if (*draw_op == "rectangle_indexed" || *draw_op == "indexed:rectangle") {
+    if (draw_op_id == CE::Runtime::DrawOpId::IndexedRectangle) {
       draw_rectangle_indexed(pipeline_name);
-      continue;
+      return;
     }
 
-    if (*draw_op == "indexed:cube") {
+    if (draw_op_id == CE::Runtime::DrawOpId::IndexedCube) {
       draw_cube_indexed(pipeline_name);
-      continue;
+      return;
     }
 
-    if (*draw_op == "sky_dome") {
+    if (draw_op_id == CE::Runtime::DrawOpId::SkyDome) {
       draw_sky_dome(pipeline_name);
-      continue;
+      return;
+    }
+  };
+
+  const auto draw_pipeline_from_draw_op_string = [&](const std::string &pipeline_name,
+                                                      const std::string &draw_op) {
+    const CE::Runtime::DrawOpId draw_op_id = CE::Runtime::draw_op_from_string(draw_op);
+    if (draw_op_id != CE::Runtime::DrawOpId::Unknown) {
+      draw_pipeline_from_draw_op_id(pipeline_name, draw_op_id);
+      return;
     }
 
     constexpr std::string_view indexed_prefix = "indexed:";
-    if (draw_op->starts_with(indexed_prefix)) {
+    if (draw_op.starts_with(indexed_prefix)) {
       const std::string_view target =
-          std::string_view(*draw_op).substr(indexed_prefix.size());
+          std::string_view(draw_op).substr(indexed_prefix.size());
       if (target == "grid") {
         draw_grid_indexed(pipeline_name);
       } else if (target == "grid_box") {
@@ -300,59 +342,119 @@ void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
         draw_rectangle_indexed(pipeline_name);
       }
     }
+  };
+
+  const auto draw_pipeline_by_name = [&](const std::string &pipeline_name) {
+    const CE::Runtime::DrawOpId draw_op_id = CE::Runtime::get_graphics_draw_op_id(pipeline_name);
+    if (draw_op_id != CE::Runtime::DrawOpId::Unknown) {
+      draw_pipeline_from_draw_op_id(pipeline_name, draw_op_id);
+      return;
+    }
+
+    const std::string *draw_op = CE::Runtime::get_graphics_draw_op(pipeline_name);
+    if (draw_op) {
+      draw_pipeline_from_draw_op_string(pipeline_name, *draw_op);
+    }
+  };
+
+  const CE::Runtime::PipelineExecutionPlan *legacy_plan =
+      CE::Runtime::get_pipeline_execution_plan();
+  const CE::Runtime::RenderGraph *graphics_render_graph = CE::Runtime::get_render_graph();
+  if (graphics_render_graph) {
+    for (const CE::Runtime::RenderNode &node : graphics_render_graph->nodes) {
+      if (node.stage != CE::Runtime::RenderStage::Graphics) {
+        continue;
+      }
+      if (node.draw_op != CE::Runtime::DrawOpId::Unknown) {
+        draw_pipeline_from_draw_op_id(node.pipeline, node.draw_op);
+      } else {
+        draw_pipeline_by_name(node.pipeline);
+      }
+    }
+  } else {
+    if (legacy_plan) {
+      for (const std::string &pipeline_name : legacy_plan->graphics) {
+        draw_pipeline_by_name(pipeline_name);
+      }
+    }
   }
 
   if (stage_strip_enabled) {
-    const std::array<const char *, 5> strip_labels = CE::RenderGUI::get_stage_strip_labels();
-    const uint32_t tile_count = static_cast<uint32_t>(strip_labels.size());
-    const uint32_t padding = stage_strip.padding_px;
-    const uint32_t strip_height = stage_strip.strip_height_px;
-    const uint32_t reserved_padding = padding * (tile_count + 1);
-    const uint32_t usable_width =
-        (swapchain.extent.width > reserved_padding) ? (swapchain.extent.width - reserved_padding)
-                                                    : swapchain.extent.width;
-    const uint32_t tile_width = std::max<uint32_t>(usable_width / tile_count, 1);
-    const uint32_t tile_height =
-        std::max<uint32_t>((strip_height > 2 * padding) ? (strip_height - 2 * padding)
-                                                         : strip_height,
-                           1);
+    const std::vector<CE::RenderGUI::StageStripTile> &strip_tiles =
+        CE::RenderGUI::get_stage_strip_tiles();
+    if (!strip_tiles.empty()) {
+      const uint32_t tile_count = static_cast<uint32_t>(strip_tiles.size());
+      const uint32_t padding = stage_strip.padding_px;
+      const uint32_t strip_height = stage_strip.strip_height_px;
+      const uint32_t reserved_padding = padding * 2;
+      const uint32_t usable_width =
+          (swapchain.extent.width > reserved_padding) ? (swapchain.extent.width - reserved_padding)
+                                                      : swapchain.extent.width;
 
-    for (uint32_t tile = 0; tile < tile_count; ++tile) {
-      const uint32_t tile_x = padding + tile * (tile_width + padding);
-      const uint32_t clamped_width =
-          std::min<uint32_t>(tile_width, swapchain.extent.width - std::min(tile_x, swapchain.extent.width));
+      // Calculate max tiles per row based on available width (minimum 60px per tile)
+      const uint32_t tile_width_min = 60;
+      const uint32_t max_tiles_per_row =
+          std::max<uint32_t>(usable_width / (tile_width_min + padding), 1);
+      const uint32_t tiles_per_row = std::min(max_tiles_per_row, tile_count);
+      const uint32_t tile_width = usable_width / tiles_per_row;
+      const uint32_t tile_height =
+          std::max<uint32_t>((strip_height > 2 * padding) ? (strip_height - 2 * padding)
+                                                           : strip_height,
+                             1);
 
-      VkViewport tile_viewport{.x = static_cast<float>(tile_x),
-                               .y = static_cast<float>(padding),
-                               .width = static_cast<float>(clamped_width),
-                               .height = static_cast<float>(tile_height),
-                               .minDepth = 0.0f,
-                               .maxDepth = 1.0f};
-      vkCmdSetViewport(command_buffer, 0, 1, &tile_viewport);
+      // Store original viewport for restoration
+      const VkViewport original_viewport = viewport;
 
-      VkRect2D tile_scissor{.offset = {static_cast<int32_t>(tile_x), static_cast<int32_t>(padding)},
-                            .extent = {.width = clamped_width, .height = tile_height}};
-      vkCmdSetScissor(command_buffer, 0, 1, &tile_scissor);
+      const float tile_aspect = static_cast<float>(tile_width) / static_cast<float>(tile_height);
+      const float scene_aspect = static_cast<float>(swapchain.extent.width) / static_cast<float>(swapchain.extent.height);
 
-      if (tile == 0) {
-        draw_grid_indexed("LandscapeDebug");
-      } else if (tile == 1) {
-        draw_grid_indexed("LandscapeStage1");
-      } else if (tile == 2) {
-        draw_grid_indexed("LandscapeStage2");
-      } else if (tile == 3) {
-        draw_grid_indexed("Landscape");
-      } else {
-        draw_sky_dome("Sky");
-        draw_grid_indexed("Landscape");
-        draw_grid_box_indexed("TerrainBox");
-        draw_cells("CellsFollower");
-        draw_cells("Cells");
+      for (uint32_t tile_idx = 0; tile_idx < tile_count; ++tile_idx) {
+        uint32_t row = tile_idx / tiles_per_row;
+        uint32_t col = tile_idx % tiles_per_row;
+
+        const uint32_t tile_x = padding + col * (tile_width + padding);
+        const uint32_t tile_y = padding + row * (tile_height + padding);
+        const uint32_t clamped_width =
+            std::min<uint32_t>(tile_width, swapchain.extent.width - std::min(tile_x, swapchain.extent.width));
+
+        // Calculate aspect-ratio preserving viewport
+        float viewport_width = static_cast<float>(clamped_width);
+        float viewport_height = static_cast<float>(tile_height);
+        float viewport_x = static_cast<float>(tile_x);
+        float viewport_y = static_cast<float>(tile_y);
+
+        // Fit scene content into tile with proper aspect ratio
+        if (tile_aspect < scene_aspect) {
+          // Tile is narrower than scene - constrain by width
+          viewport_height = viewport_width / scene_aspect;
+          viewport_y += (static_cast<float>(tile_height) - viewport_height) * 0.5f;
+        } else {
+          // Tile is wider than scene - constrain by height
+          viewport_width = viewport_height * scene_aspect;
+          viewport_x += (static_cast<float>(clamped_width) - viewport_width) * 0.5f;
+        }
+
+        VkViewport tile_viewport{.x = viewport_x,
+                                 .y = viewport_y,
+                                 .width = viewport_width,
+                                 .height = viewport_height,
+                                 .minDepth = 0.0f,
+                                 .maxDepth = 1.0f};
+        vkCmdSetViewport(command_buffer, 0, 1, &tile_viewport);
+
+        VkRect2D tile_scissor{.offset = {static_cast<int32_t>(tile_x), static_cast<int32_t>(tile_y)},
+                              .extent = {.width = clamped_width, .height = tile_height}};
+        vkCmdSetScissor(command_buffer, 0, 1, &tile_scissor);
+
+        const CE::RenderGUI::StageStripTile &tile_config = strip_tiles[tile_idx];
+        for (const std::string &pipeline_name : tile_config.pipelines) {
+          draw_pipeline_by_name(pipeline_name);
+        }
       }
-    }
 
-    vkCmdSetViewport(command_buffer, 0, 1, &viewport);
-    vkCmdSetScissor(command_buffer, 0, 1, &scissor);
+      vkCmdSetViewport(command_buffer, 0, 1, &original_viewport);
+      vkCmdSetScissor(command_buffer, 0, 1, &scissor);
+    }
   }
 
   vkCmdEndRenderPass(command_buffer);
@@ -360,10 +462,18 @@ void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
   //       This is part of an image memory barrier (i.e., vkCmdPipelineBarrier
   //       with the VkImageMemoryBarrier parameter set)
 
-  const std::vector<std::string> empty_post_compute{};
-  const std::vector<std::string> &post_compute =
-      (plan && !plan->post_graphics_compute.empty()) ? plan->post_graphics_compute
-                                                      : empty_post_compute;
+  std::vector<std::string> post_compute;
+  if (graphics_render_graph) {
+    for (const CE::Runtime::RenderNode &node : graphics_render_graph->nodes) {
+      if (node.stage == CE::Runtime::RenderStage::PostCompute) {
+        post_compute.push_back(node.pipeline);
+      }
+    }
+  } else {
+    if (legacy_plan) {
+      post_compute = legacy_plan->post_graphics_compute;
+    }
+  }
 
   if (!post_compute.empty()) {
     swapchain.images[image_index].transition_layout(command_buffer,
@@ -389,13 +499,34 @@ void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
                        resources.push_constant.size,
                        resources.push_constant.data.data());
 
-    for (const std::string &pipeline_name : post_compute) {
+    const auto insert_compute_barrier = [&](VkCommandBuffer buffer) {
+      VkMemoryBarrier barrier{};
+      barrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
+      barrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_SHADER_READ_BIT;
+      barrier.dstAccessMask = VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_SHADER_READ_BIT;
+      vkCmdPipelineBarrier(buffer,
+                           VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+                           VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+                           0,
+                           1,
+                           &barrier,
+                           0,
+                           nullptr,
+                           0,
+                           nullptr);
+    };
+
+    for (std::size_t i = 0; i < post_compute.size(); ++i) {
+      const std::string &pipeline_name = post_compute[i];
       vkCmdBindPipeline(command_buffer,
                         VK_PIPELINE_BIND_POINT_COMPUTE,
                         pipelines.config.get_pipeline_object_by_name(pipeline_name));
       const std::array<uint32_t, 3> &work_groups =
           pipelines.config.get_work_groups_by_name(pipeline_name);
       vkCmdDispatch(command_buffer, work_groups[0], work_groups[1], work_groups[2]);
+      if (i + 1 < post_compute.size()) {
+        insert_compute_barrier(command_buffer);
+      }
     }
 
     swapchain.images[image_index].transition_layout(command_buffer,

@@ -1,6 +1,7 @@
 #include <glm/glm.hpp>
 
 #include "Library.h"
+#include "core/RuntimeConfig.h"
 
 std::string Lib::path(const std::string &linux_path) {
 #ifdef _WIN32
@@ -24,10 +25,13 @@ std::string Lib::if_shader_compile(std::string shader_path) {
     return shader_path;
   } else {
 #ifdef _WIN32
-  const std::string glslang_validator = "glslangValidator.exe -V ";
+    std::string glslang_validator = "glslangValidator.exe -V -Ishaders ";
 #else
-    const std::string glslang_validator = "glslangValidator -V ";
+    std::string glslang_validator = "glslangValidator -V -Ishaders ";
 #endif
+    if (CE::Runtime::env_flag_enabled("CE_DEBUG_ENABLE_CELL_INSTANCE_VERTEX_SANITIZATION_GUARDS")) {
+      glslang_validator += "-DCE_DEBUG_ENABLE_CELL_INSTANCE_VERTEX_SANITIZATION_GUARDS=1 ";
+    }
     shader_path.insert(0, glslang_validator);
     return shader_path;
   }

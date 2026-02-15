@@ -1,4 +1,5 @@
 #version 450
+#extension GL_GOOGLE_include_directive : enable
 
 layout(location = 0) in vec4 inPosition;
 layout(location = 1) in vec3 inVertex;
@@ -6,16 +7,8 @@ layout(location = 2) in vec3 inNormal;
 layout(location = 3) in vec4 inColor;
 layout(location = 4) in ivec4 inStates;
 
-layout (binding = 0) uniform ParameterUBO {
-    vec4 light;
-    ivec2 gridXY;
-    float waterThreshold;
-    float cellSize;
-    vec4 waterRules;
-    mat4 model;
-    mat4 view;
-    mat4 projection;
-} ubo;
+#define UBO_LIGHT_NAME light
+#include "ParameterUBO.glsl"
 
 float hash21(vec2 p) {
     return fract(sin(dot(p, vec2(127.1f, 311.7f))) * 43758.5453f);
@@ -90,6 +83,16 @@ vec3 safe_normalize(vec3 v, vec3 fallback) {
     return v * inversesqrt(len2);
 }
 
+bool bad_vec3(vec3 v) {
+    return isnan(v.x) || isnan(v.y) || isnan(v.z) ||
+           isinf(v.x) || isinf(v.y) || isinf(v.z);
+}
+
+bool bad_vec4(vec4 v) {
+    return isnan(v.x) || isnan(v.y) || isnan(v.z) || isnan(v.w) ||
+           isinf(v.x) || isinf(v.y) || isinf(v.z) || isinf(v.w);
+}
+
 void main() {
     bool aliveCell = (inStates.x == 1);
     if (!aliveCell) {
@@ -108,10 +111,25 @@ void main() {
     float baseScale = max(inPosition.w * 1.20f, ubo.cellSize * 0.85f);
     float followerScale = baseScale * 0.5f;
     float lift = max(followerScale * 1.05f, 0.22f);
-    followerBase.z += terrain_height(inPosition.xy) + lift;
+    float separation = max(ubo.cellSize * 0.06f, 0.02f);
+    followerBase.z += terrain_height(inPosition.xy) + lift + separation;
 
     vec4 position = vec4(followerBase + (inVertex.xyz * followerScale), 1.0f);
+#ifdef CE_DEBUG_ENABLE_CELL_INSTANCE_VERTEX_SANITIZATION_GUARDS
+    if (bad_vec3(followerBase) || bad_vec3(inVertex) || bad_vec4(position) || bad_vec3(inNormal)) {
+        fragColor = vec4(0.0f);
+        gl_Position = vec4(2.0f, 2.0f, 2.0f, 1.0f);
+        return;
+    }
+#endif
     vec4 worldPosition = ubo.model * position;
+#ifdef CE_DEBUG_ENABLE_CELL_INSTANCE_VERTEX_SANITIZATION_GUARDS
+    if (bad_vec4(worldPosition)) {
+        fragColor = vec4(0.0f);
+        gl_Position = vec4(2.0f, 2.0f, 2.0f, 1.0f);
+        return;
+    }
+#endif
     vec4 viewPosition = ubo.view * worldPosition;
     vec3 worldNormal = safe_normalize(mat3(ubo.model) * inNormal.xyz, vec3(0.0f, 0.0f, 1.0f));
 
