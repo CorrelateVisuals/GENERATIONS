@@ -10,6 +10,7 @@
 #include "platform/Window.h"
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 
 void Camera::configure_arcball(const glm::vec3 &target, float scene_radius) {
@@ -25,12 +26,85 @@ void Camera::configure_arcball(const glm::vec3 &target, float scene_radius) {
   arcball_distance = std::clamp(safe_radius * default_distance_radius_scale,
                                 arcball_min_distance,
                                 arcball_max_distance);
+  arcball_preset_reference_distance = arcball_distance;
 }
 
 void Camera::configure_arcball_multipliers(float tumble, float pan, float dolly) {
   arcball_tumble_mult = std::max(tumble, 0.01f);
   arcball_pan_mult = std::max(pan, 0.01f);
   arcball_dolly_mult = std::max(dolly, 0.01f);
+}
+
+void Camera::set_pose(const glm::vec3 &new_position,
+                      const glm::vec3 &look_at,
+                      const glm::vec3 &up_hint) {
+  position = new_position;
+
+  const glm::vec3 look_vector = look_at - new_position;
+  if (glm::length2(look_vector) > 1e-10f) {
+    front = glm::normalize(look_vector);
+  }
+
+  glm::vec3 right_axis = glm::cross(front, up_hint);
+  if (glm::length2(right_axis) > 1e-10f) {
+    right_axis = glm::normalize(right_axis);
+    up = glm::normalize(glm::cross(right_axis, front));
+  }
+
+  arcball_target = look_at;
+  arcball_use_configured_target = true;
+  sync_arcball_from_current_view(true);
+}
+
+void Camera::set_preset_view(uint32_t preset_index) {
+  mode = Mode::Arcball;
+
+  const float base_distance =
+      std::clamp(arcball_preset_reference_distance > 0.0f
+                     ? arcball_preset_reference_distance
+                     : (arcball_distance > 0.0f ? arcball_distance : arcball_min_distance * 1.8f),
+                 arcball_min_distance,
+                 arcball_max_distance);
+
+  auto apply_orbit_preset = [&](float yaw_degrees,
+                                float pitch_degrees,
+                                float distance_scale) {
+    const float yaw = glm::radians(yaw_degrees);
+    const float pitch = glm::radians(pitch_degrees);
+    const float distance = std::clamp(base_distance * distance_scale,
+                                      arcball_min_distance,
+                                      arcball_max_distance);
+
+    const glm::vec3 orbit_dir{std::cos(pitch) * std::cos(yaw),
+                              std::cos(pitch) * std::sin(yaw),
+                              std::sin(pitch)};
+    set_pose(arcball_target + orbit_dir * distance, arcball_target);
+  };
+
+  switch (preset_index) {
+    case 1:
+      apply_orbit_preset(28.0f, 16.0f, 0.78f);
+      Log::text("{ Cam }", "Preset 1: Cinematic 45deg");
+      break;
+    case 2:
+      apply_orbit_preset(8.0f, 24.0f, 0.84f);
+      Log::text("{ Cam }", "Preset 2: Front Slice");
+      break;
+    case 3:
+      apply_orbit_preset(98.0f, 24.0f, 0.84f);
+      Log::text("{ Cam }", "Preset 3: Side Slice");
+      break;
+    case 4:
+      apply_orbit_preset(32.0f, 58.0f, 0.86f);
+      Log::text("{ Cam }", "Preset 4: Top Down");
+      break;
+    default:
+      break;
+  }
+
+  arcball_cursor_initialized = false;
+  arcball_left_was_down = false;
+  arcball_right_was_down = false;
 }
 
 void Camera::toggle_mode() {
@@ -102,7 +176,7 @@ void Camera::apply_arcball_mode(const glm::vec2 &previous_cursor,
                                 const bool middle_pressed,
                                 const float viewport_width,
                                 const float viewport_height) {
-  const glm::vec3 worldUp = glm::vec3(0.0f, -1.0f, 0.0f);
+  const glm::vec3 worldUp = glm::vec3(0.0f, 0.0f, 1.0f);
   constexpr float arcball_pan_scalar = 0.5f;
   constexpr float arcball_zoom_scalar = 0.1f;
   constexpr float dead_zone = 0.0008f;
@@ -194,6 +268,25 @@ void Camera::apply_arcball_mode(const glm::vec2 &previous_cursor,
 void Camera::update() {
   static bool camera_toggle_down = false;
   static bool horizon_toggle_down = false;
+  static std::array<bool, 4> preset_toggle_down{false, false, false, false};
+
+  const std::array<std::pair<int, uint32_t>, 4> preset_keys{{
+      {GLFW_KEY_1, 1},
+      {GLFW_KEY_2, 2},
+      {GLFW_KEY_3, 3},
+      {GLFW_KEY_4, 4},
+  }};
+
+  for (size_t i = 0; i < preset_keys.size(); ++i) {
+    const bool preset_down =
+        glfwGetKey(Window::get().window, preset_keys[i].first) == GLFW_PRESS;
+    if (preset_down && !preset_toggle_down[i]) {
+      set_preset_view(preset_keys[i].second);
+      input_changed = true;
+    }
+    preset_toggle_down[i] = preset_down;
+  }
+
   const bool toggle_down = glfwGetKey(Window::get().window, GLFW_KEY_C) == GLFW_PRESS;
   if (toggle_down && !camera_toggle_down) {
     toggle_mode();

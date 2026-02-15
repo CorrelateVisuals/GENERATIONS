@@ -23,6 +23,8 @@ void main() {
     // Remove camera translation so the dome stays centered on the viewer.
     mat4 viewNoTranslation = mat4(mat3(ubo.view));
 
-    gl_Position = ubo.projection * viewNoTranslation * vec4(local, 1.0);
+    vec4 clip = ubo.projection * viewNoTranslation * vec4(local, 1.0);
+    // Force depth to far plane for skybox-style rendering.
+    gl_Position = clip.xyww;
     vDir = normalize(inPos);
 }

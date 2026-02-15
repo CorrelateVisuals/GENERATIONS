@@ -5,6 +5,7 @@
 #include "render/Resources.h"
 
 #include <memory>
+#include <string>
 
 class CapitalEngine {
 public:
@@ -28,5 +29,5 @@ private:
 
   void recreate_swapchain();
   void draw_frame();
-  void take_screenshot();
+  void take_screenshot(const std::string &tag = "");
 };

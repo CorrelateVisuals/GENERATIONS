@@ -13,7 +13,8 @@ public:
         arcball_min_distance(2.0f), arcball_max_distance(300.0f), arcball_yaw(0.0f),
         arcball_pitch(0.0f), arcball_rotate_speed(1.4f), arcball_pan_speed(pan),
         arcball_zoom_speed(zoom), arcball_tumble_mult(1.0f), arcball_pan_mult(1.0f),
-        arcball_dolly_mult(1.0f), arcball_horizon_lock(true),
+        arcball_dolly_mult(1.0f), arcball_preset_reference_distance(glm::length(pos)),
+        arcball_horizon_lock(true),
         arcball_use_configured_target(false), arcball_cursor_initialized(false),
         arcball_left_was_down(false), arcball_right_was_down(false),
         arcball_last_cursor(0.0f, 0.0f) {}
@@ -30,6 +31,10 @@ public:
   void set_arcball_horizon_lock(bool enabled) {
     arcball_horizon_lock = enabled;
   }
+  void set_pose(const glm::vec3 &new_position,
+                const glm::vec3 &look_at,
+                const glm::vec3 &up_hint = glm::vec3(0.0f, 0.0f, 1.0f));
+  void set_preset_view(uint32_t preset_index);
   bool get_arcball_horizon_lock() const {
     return arcball_horizon_lock;
   }
@@ -45,8 +50,8 @@ private:
   float near_clipping;
   float far_clipping;
   glm::vec3 position;
-  glm::vec3 front{0.0f, 0.0f, -1.0f};
-  glm::vec3 up{0.0f, -1.0f, 0.0f};
+  glm::vec3 front{0.0f, 1.0f, -0.35f};
+  glm::vec3 up{0.0f, 0.0f, 1.0f};
 
   void apply_panning_mode(const glm::vec2 &left_button_delta,
                           const glm::vec2 &right_button_delta);
@@ -75,6 +80,7 @@ private:
   float arcball_tumble_mult;
   float arcball_pan_mult;
   float arcball_dolly_mult;
+  float arcball_preset_reference_distance;
   bool arcball_horizon_lock;
   bool arcball_use_configured_target;
   bool arcball_cursor_initialized;

@@ -72,6 +72,7 @@ World::World(VkCommandBuffer &command_buffer,
       CE::Runtime::get_world_settings().arcball_tumble_mult,
       CE::Runtime::get_world_settings().arcball_pan_mult,
       CE::Runtime::get_world_settings().arcball_dolly_mult);
+    _camera.set_preset_view(4);
 
   Log::text("{ wWw }", "constructing World");
 }
@@ -119,10 +120,10 @@ World::Grid::Grid(const CE::Runtime::TerrainSettings &terrain_settings,
     is_alive_indices[alive_index] = true;
   }
 
-  const glm::vec4 red{1.0f, 0.0f, 0.0f, 1.0f};
-  const glm::vec4 blue{0.0f, 0.0f, 1.0f, 1.0f};
-  const glm::ivec4 alive{1, 0, 0, 0};
-  const glm::ivec4 dead{-1, 0, 0, 0};
+  const glm::vec4 white{1.0f, 1.0f, 1.0f, 1.0f};
+  const glm::vec4 grey{0.5f, 0.5f, 0.5f, 1.0f};
+  const glm::ivec4 alive{1, -1, 0, -1};
+  const glm::ivec4 dead{-1, -1, 0, -1};
 
   const float startX = (size.x - 1) / -2.0f;
   const float startY = (size.y - 1) / -2.0f;
@@ -139,7 +140,7 @@ World::Grid::Grid(const CE::Runtime::TerrainSettings &terrain_settings,
                     (startY + i / size.x),
                     absoluteHeight,
                     is_alive ? terrain_settings.cell_size * 1.6f : 0.0f};
-    cells[i].color = is_alive ? blue : red;
+    cells[i].color = is_alive ? white : grey;
     cells[i].states = is_alive ? alive : dead;
   }
   indices = create_grid_polygons(point_ids, static_cast<int>(size.x));

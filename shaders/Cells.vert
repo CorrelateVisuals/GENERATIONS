@@ -89,11 +89,25 @@ void main() {
         return;
     }
 
+    // Derive grid-anchored position from instance index.
     vec2 gridStart = (vec2(ubo.gridXY) - vec2(1.0f)) * -0.5f;
     uint instanceIndex = uint(gl_InstanceIndex);
     uint gridWidth = uint(max(ubo.gridXY.x, 1));
-    vec2 anchoredXY = vec2(gridStart.x + float(instanceIndex % gridWidth),
-                           gridStart.y + float(instanceIndex / gridWidth));
+    vec2 gridXY = vec2(gridStart.x + float(instanceIndex % gridWidth),
+                       gridStart.y + float(instanceIndex / gridWidth));
+
+    // If compute relocated this cell (born underwater -> shore), use that position.
+    // Otherwise stay grid-anchored.
+    float gridH = terrain_height(gridXY);
+    const float waterCullMargin = 2.0f;
+    bool gridUnderwater = gridH <= ubo.waterThreshold + waterCullMargin;
+    vec2 anchoredXY = gridUnderwater ? inPosition.xy : gridXY;
+
+    if (terrain_height(anchoredXY) <= ubo.waterThreshold + waterCullMargin) {
+        fragColor = vec4(0.0f);
+        gl_Position = vec4(2.0f, 2.0f, 2.0f, 1.0f);
+        return;
+    }
 
     vec3 cellBase = vec3(anchoredXY, inPosition.z);
     float cellScale = max(inPosition.w * 1.20f, ubo.cellSize * 0.85f);

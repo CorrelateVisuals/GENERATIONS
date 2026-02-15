@@ -285,9 +285,9 @@ void CE::PipelinesConfiguration::create_pipelines(VkRenderPass &render_pass,
       if (pipelineName == "Sky") {
         rasterization.cullMode = VK_CULL_MODE_NONE;
         rasterization.depthBiasEnable = VK_FALSE;
-        depthStencil.depthTestEnable = VK_FALSE;
+        depthStencil.depthTestEnable = VK_TRUE;
         depthStencil.depthWriteEnable = VK_FALSE;
-        depthStencil.depthCompareOp = VK_COMPARE_OP_ALWAYS;
+        depthStencil.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
         colorBlendAttachment = CE::color_blend_attachment_state_false;
       }
 

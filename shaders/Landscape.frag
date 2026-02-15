@@ -69,7 +69,7 @@ vec3 terrainColor(float heightFromWater, float slope, vec2 worldXZ) {
     float depthToShore = clamp((-heightFromWater + shoreWidth) / (shoreWidth * 2.0f), 0.0f, 1.0f);
     vec3 water = mix(shallowWater, deepWater, depthToShore);
 
-    float waterBlend = (1.0f - smoothstep(-shoreWidth, shoreWidth, heightFromWater)) * 0.72f;
+    float waterBlend = (1.0f - smoothstep(-shoreWidth, 0.0f, heightFromWater)) * 0.72f;
     vec3 color = mix(land, water, waterBlend);
 
     float foam = 1.0f - smoothstep(0.0f, shoreWidth * 0.7f, abs(heightFromWater));

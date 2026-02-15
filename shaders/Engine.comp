@@ -33,6 +33,69 @@ const vec4 blue       = vec4(0.0, 0.0, 1.0, 1.0);
 const vec4 white      = vec4(1.0, 1.0, 1.0, 1.0);
 const vec4 grey      = vec4(0.5, 0.5, 0.5, 1.0);
 
+float hash21(vec2 p) {
+    return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+}
+
+float noise2(vec2 p) {
+    vec2 i = floor(p);
+    vec2 f = fract(p);
+    float a = hash21(i);
+    float b = hash21(i + vec2(1.0, 0.0));
+    float c = hash21(i + vec2(0.0, 1.0));
+    float d = hash21(i + vec2(1.0, 1.0));
+    vec2 u = f * f * (3.0 - 2.0 * f);
+    return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
+}
+
+float fbm(vec2 p) {
+    float value = 0.0;
+    float amplitude = 0.5;
+    for (int i = 0; i < 5; ++i) {
+        value += amplitude * noise2(p);
+        p = p * 2.02 + vec2(11.5, 7.2);
+        amplitude *= 0.5;
+    }
+    return value;
+}
+
+float ridged_fbm(vec2 p) {
+    float value = 0.0;
+    float amplitude = 0.5;
+    for (int i = 0; i < 5; ++i) {
+        float n = noise2(p);
+        float ridge = 1.0 - abs(2.0 * n - 1.0);
+        value += ridge * amplitude;
+        p = p * 2.1 + vec2(9.2, 3.4);
+        amplitude *= 0.5;
+    }
+    return value;
+}
+
+float terrain_height(vec2 p) {
+    mat2 rot = mat2(0.866, -0.5, 0.5, 0.866);
+    vec2 pr = rot * p;
+    vec2 q = pr * 0.065;
+    vec2 warp = vec2(
+        fbm(q * 1.15 + vec2(4.0, 1.7)),
+        fbm(q * 1.15 + vec2(7.2, 3.5)));
+    q += warp * 0.75;
+
+    float broad = fbm(q * 0.62) * 3.6;
+    float base = fbm(q * 1.05) * 2.2;
+    float ridge = ridged_fbm(q * 2.0) * 4.2;
+    float crags = pow(max(ridged_fbm(q * 4.7), 0.0), 1.8) * 1.15;
+    float macro = (sin(pr.x * 0.028) + sin(pr.y * 0.024)) * 0.85;
+    float detail = fbm(q * 7.6) * 0.26;
+
+    float mountainMask = smoothstep(0.52, 0.80, ridged_fbm(q * 0.95));
+    float habitableLowlands = broad + base + macro;
+    float mountainRelief = ridge + crags + detail;
+    float lowlandBias = -0.55 * (1.0 - mountainMask);
+
+    return habitableLowlands + mountainRelief * mountainMask + lowlandBias + 1.35;
+}
+
 const int alive         =  1;
 const int dead          = -1;
 float sizeAlive         = ubo.cellSize;
@@ -113,6 +176,107 @@ vec2 gridBasePosition(uint cellIndex) {
                 startY + float(cellIndex / uint(gridXY.x)));
 }
 
+// Gameplay water mask: treat the blue/green lowlands as water as requested.
+// This is intentionally wider than the strict water threshold.
+const float visualShoreMargin = 2.0;
+
+bool is_underwater_at(vec2 xy) {
+    return terrain_height(xy) <= ubo.waterThreshold + visualShoreMargin;
+}
+
+bool is_shoreline_at(vec2 xy) {
+    float h = terrain_height(xy) - ubo.waterThreshold;
+    return h > visualShoreMargin && h <= visualShoreMargin + 1.2;
+}
+
+vec2 nearest_shore_position(vec2 startXY) {
+    if (!is_underwater_at(startXY)) {
+        return startXY;
+    }
+
+    vec2 gridStart = (vec2(gridXY) - vec2(1.0)) * -0.5;
+    vec2 local = startXY - gridStart;
+    ivec2 baseCell = ivec2(round(local));
+    baseCell = clamp(baseCell, ivec2(0), gridXY - ivec2(1));
+
+    float bestDist2 = 1e20;
+    vec2 bestXY = startXY;
+
+    const int maxRadius = 6;
+    for (int radius = 1; radius <= maxRadius; ++radius) {
+        for (int oy = -radius; oy <= radius; ++oy) {
+            for (int ox = -radius; ox <= radius; ++ox) {
+                if (abs(ox) != radius && abs(oy) != radius) {
+                    continue;
+                }
+
+                ivec2 c = baseCell + ivec2(ox, oy);
+                if (c.x < 0 || c.y < 0 || c.x >= gridXY.x || c.y >= gridXY.y) {
+                    continue;
+                }
+
+                vec2 candidateXY = gridStart + vec2(c);
+                if (!is_shoreline_at(candidateXY)) {
+                    continue;
+                }
+
+                vec2 d = candidateXY - startXY;
+                float dist2 = dot(d, d);
+                if (dist2 < bestDist2) {
+                    bestDist2 = dist2;
+                    bestXY = candidateXY;
+                }
+            }
+        }
+        if (bestDist2 < 1e19) {
+            break;
+        }
+    }
+
+    if (bestDist2 < 1e19) {
+        return bestXY;
+    }
+
+    // Fallback: if no shore found in local radius (large lakes/ocean),
+    // search the full grid so cells never remain underwater when land exists.
+    for (int y = 0; y < gridXY.y; ++y) {
+        for (int x = 0; x < gridXY.x; ++x) {
+            vec2 candidateXY = gridStart + vec2(float(x), float(y));
+            if (!is_shoreline_at(candidateXY)) {
+                continue;
+            }
+
+            vec2 d = candidateXY - startXY;
+            float dist2 = dot(d, d);
+            if (dist2 < bestDist2) {
+                bestDist2 = dist2;
+                bestXY = candidateXY;
+            }
+        }
+    }
+
+    // Final fallback: if no shoreline band exists nearby, use nearest dry land.
+    if (bestDist2 >= 1e19) {
+        for (int y = 0; y < gridXY.y; ++y) {
+            for (int x = 0; x < gridXY.x; ++x) {
+                vec2 candidateXY = gridStart + vec2(float(x), float(y));
+                if (is_underwater_at(candidateXY)) {
+                    continue;
+                }
+
+                vec2 d = candidateXY - startXY;
+                float dist2 = dot(d, d);
+                if (dist2 < bestDist2) {
+                    bestDist2 = dist2;
+                    bestXY = candidateXY;
+                }
+            }
+        }
+    }
+
+    return bestXY;
+}
+
 vec4 moveTowardsTarget(vec4 sourcePos, int neighbourIndex, float cycleT) {
     if (neighbourIndex < 0) {
         return sourcePos;
@@ -135,7 +299,6 @@ vec4 moveTowardsTarget(vec4 sourcePos, int neighbourIndex, float cycleT) {
 bool aliveCell          = inStates.x == alive;
 bool deadCell           = inStates.x == dead;
 float waterHeightOffset = 0.1;
-bool underWater         = false;
 
 bool live(int neighbours) { return (aliveCell && (neighbours == 3 || neighbours == 2)) || (deadCell && neighbours == 3); }
 bool die(int neighbours)  { return (aliveCell && (neighbours < 2 || neighbours > 3)); }
@@ -149,6 +312,7 @@ void simulate(out Cell cell) {
     bool cycleEnd = cycleHour == cycleSize;
 
     vec2 baseXY = gridBasePosition(index);
+    vec2 shoreBaseXY = nearest_shore_position(baseXY);
     vec4 basePosOn = vec4(baseXY, inPos.z, sizeAlive);
 
     int storedTarget = inStates.y;
@@ -159,7 +323,9 @@ void simulate(out Cell cell) {
     }
     vec4 movedPosOn = moveTowardsTarget(basePosOn, targetIndex, cycleT);
 
-    if (underWater) {   
+    bool underWaterBase = is_underwater_at(baseXY);
+
+    if (underWaterBase && aliveCell) {
        cell = Cell(inPosOff, inVertPos, inNormal, grey, setState(dead, -1) ); 
    } else if (!cycleEnd) {
         // During the day: no Conway birth/death transitions, only neighbour-follow motion.
@@ -167,9 +333,19 @@ void simulate(out Cell cell) {
                          : Cell(inPosOff, inVertPos, inNormal, grey, setState(dead, -1));
     } else {
         // End of cycle: apply Conway once, reset alive cells to base grid anchor.
-        cell = live(neighbours) ?   Cell(basePosOn, inVertPos, inNormal, white, setState(alive, -1) ) :
-               die(neighbours) ?    Cell(inPosOff, inVertPos, inNormal, grey, setState(dead, -1) ) :
-                                    Cell(inPosOff, inVertPos, inNormal, inColor, setState(dead, -1) );
+        if (live(neighbours)) {
+            if (underWaterBase) {
+                bool shoreAvailable = !is_underwater_at(shoreBaseXY);
+                vec4 bornPos = vec4(shoreBaseXY, inPos.z, sizeAlive);
+                cell = shoreAvailable ? Cell(bornPos, inVertPos, inNormal, white, setState(alive, -1))
+                                      : Cell(inPosOff, inVertPos, inNormal, grey, setState(dead, -1));
+            } else {
+                cell = Cell(basePosOn, inVertPos, inNormal, white, setState(alive, -1));
+            }
+        } else {
+            cell = die(neighbours) ?    Cell(inPosOff, inVertPos, inNormal, grey, setState(dead, -1) ) :
+                                        Cell(inPosOff, inVertPos, inNormal, inColor, setState(dead, -1) );
+        }
     }
 }
 

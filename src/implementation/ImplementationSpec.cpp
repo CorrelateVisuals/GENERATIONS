@@ -68,7 +68,7 @@ ImplementationSpec default_spec() {
       .work_groups = {0, 0, 0},
     };
 
-    spec.execution_plan.graphics = {"Sky", "Landscape", "CellsFollower", "Cells"};
+    spec.execution_plan.graphics = {"Landscape", "CellsFollower", "Cells", "Sky"};
     spec.execution_plan.post_graphics_compute = {"Engine"};
 
   spec.draw_ops = {

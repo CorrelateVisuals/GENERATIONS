@@ -92,6 +92,13 @@ void main() {
         return;
     }
 
+    const float waterCullMargin = 2.0f;
+    if (terrain_height(inPosition.xy) <= ubo.waterThreshold + waterCullMargin) {
+        fragColor = vec4(0.0f);
+        gl_Position = vec4(2.0f, 2.0f, 2.0f, 1.0f);
+        return;
+    }
+
     vec3 followerBase = inPosition.xyz;
     float baseScale = max(inPosition.w * 1.20f, ubo.cellSize * 0.85f);
     float followerScale = baseScale * 0.5f;
