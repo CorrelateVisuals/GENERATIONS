@@ -101,10 +101,18 @@ void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
   vkCmdSetViewport(command_buffer, 0, 1, &viewport);
 
   VkRect2D scissor{.offset = {0, 0}, .extent = swapchain.extent};
-  const CE::RenderGUI::StageStripConfig stage_strip =
-      CE::RenderGUI::get_stage_strip_config(swapchain.extent);
-  const bool stage_strip_enabled =
-      stage_strip.enabled && swapchain.extent.height > (stage_strip.strip_height_px + 1);
+  
+  // Early check if stage strip is disabled to avoid expensive config calculation
+  const bool stage_strip_potentially_enabled = CE::RenderGUI::is_stage_strip_enabled();
+  
+  bool stage_strip_enabled = false;
+  CE::RenderGUI::StageStripConfig stage_strip{};
+  
+  if (stage_strip_potentially_enabled) {
+    stage_strip = CE::RenderGUI::get_stage_strip_config(swapchain.extent);
+    stage_strip_enabled = stage_strip.enabled && 
+                         swapchain.extent.height > (stage_strip.strip_height_px + 1);
+  }
 
   if (stage_strip_enabled) {
     VkRect2D scene_scissor{

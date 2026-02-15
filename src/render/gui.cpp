@@ -70,4 +70,9 @@ const std::array<const char *, 5>& get_stage_strip_labels() {
   return labels;
 }
 
+bool is_stage_strip_enabled() {
+  s_config_cache.init_once();
+  return s_config_cache.enabled;
+}
+
 } // namespace CE::RenderGUI

@@ -15,5 +15,6 @@ struct StageStripConfig {
 
 StageStripConfig get_stage_strip_config(const VkExtent2D &extent);
 const std::array<const char *, 5>& get_stage_strip_labels();
+bool is_stage_strip_enabled();
 
 } // namespace CE::RenderGUI
