@@ -96,13 +96,15 @@ void Resources::UniformBuffer::create_buffer() {
               &buffer.mapped);
 }
 
-void Resources::UniformBuffer::create_descriptor_write(CE::DescriptorInterface &interface) {
+VkDescriptorBufferInfo Resources::UniformBuffer::create_buffer_info() const {
   VkDescriptorBufferInfo bufferInfo{};
   bufferInfo.buffer = buffer.buffer;
   bufferInfo.offset = 0;
   bufferInfo.range = sizeof(World::UniformBufferObject);
-  info.current_frame = bufferInfo;
+  return bufferInfo;
+}
 
+VkWriteDescriptorSet Resources::UniformBuffer::create_write_descriptor_set() const {
   VkWriteDescriptorSet descriptorWrite{};
   descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
   descriptorWrite.pNext = nullptr;
@@ -114,7 +116,12 @@ void Resources::UniformBuffer::create_descriptor_write(CE::DescriptorInterface &
   descriptorWrite.pImageInfo = nullptr;
   descriptorWrite.pBufferInfo = &std::get<VkDescriptorBufferInfo>(info.current_frame);
   descriptorWrite.pTexelBufferView = nullptr;
+  return descriptorWrite;
+}
 
+void Resources::UniformBuffer::create_descriptor_write(CE::DescriptorInterface &interface) {
+  info.current_frame = create_buffer_info();
+  VkWriteDescriptorSet descriptorWrite = create_write_descriptor_set();
   for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
     interface.descriptor_writes[i][my_index] = descriptorWrite;
   }
@@ -155,56 +162,46 @@ Resources::StorageBuffer::StorageBuffer(CE::DescriptorInterface &descriptor_inte
   create_descriptor_write(descriptor_interface, quantity);
 }
 
+void Resources::StorageBuffer::map_and_copy_data(CE::Buffer &buffer, const auto &object, VkDeviceSize size) {
+  void *data;
+  vkMapMemory(CE::Device::base_device->logical_device, buffer.memory, 0, size, 0, &data);
+  std::memcpy(data, object.data(), static_cast<size_t>(size));
+  vkUnmapMemory(CE::Device::base_device->logical_device, buffer.memory);
+}
+
+CE::Buffer Resources::StorageBuffer::create_staging_buffer(const auto &object, const size_t quantity) {
+  CE::Buffer stagingResources;
+  VkDeviceSize bufferSize = sizeof(World::Cell) * quantity;
+  CE::Buffer::create(bufferSize,
+                     VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                     VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                     stagingResources);
+  map_and_copy_data(stagingResources, object, bufferSize);
+  return stagingResources;
+}
+
+void Resources::StorageBuffer::create_device_buffer(const CE::CommandInterface &command_interface,
+                                                     const CE::Buffer &staging,
+                                                     VkDeviceSize size,
+                                                     CE::Buffer &target) {
+  CE::Buffer::create(static_cast<VkDeviceSize>(size),
+                     VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                     VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                     target);
+  CE::Buffer::copy(staging.buffer, target.buffer, size,
+                   command_interface.command_buffer,
+                   command_interface.command_pool,
+                   command_interface.queue);
+}
+
 void Resources::StorageBuffer::create(const CE::CommandInterface &command_interface,
                                       const auto &object,
                                       const size_t quantity) {
   Log::text("{ 101 }", "Shader Storage Buffers");
-
-  // Create a staging buffer used to upload data to the gpu
-  CE::Buffer stagingResources;
+  CE::Buffer stagingResources = create_staging_buffer(object, quantity);
   VkDeviceSize bufferSize = sizeof(World::Cell) * quantity;
-
-  CE::Buffer::create(bufferSize,
-                     VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                     VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                         VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                     stagingResources);
-
-  void *data;
-  vkMapMemory(CE::Device::base_device->logical_device,
-              stagingResources.memory,
-              0,
-              bufferSize,
-              0,
-              &data);
-  std::memcpy(data, object.data(), static_cast<size_t>(bufferSize));
-  vkUnmapMemory(CE::Device::base_device->logical_device, stagingResources.memory);
-
-  CE::Buffer::create(static_cast<VkDeviceSize>(bufferSize),
-                     VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
-                         VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
-                         VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-                     VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                     buffer_in);
-  CE::Buffer::copy(stagingResources.buffer,
-                   buffer_in.buffer,
-                   bufferSize,
-                   command_interface.command_buffer,
-                   command_interface.command_pool,
-                   command_interface.queue);
-
-  CE::Buffer::create(static_cast<VkDeviceSize>(bufferSize),
-                     VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
-                         VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
-                         VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-                     VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                     buffer_out);
-  CE::Buffer::copy(stagingResources.buffer,
-                   buffer_out.buffer,
-                   bufferSize,
-                   command_interface.command_buffer,
-                   command_interface.command_pool,
-                   command_interface.queue);
+  create_device_buffer(command_interface, stagingResources, bufferSize, buffer_in);
+  create_device_buffer(command_interface, stagingResources, bufferSize, buffer_out);
 }
 
 void Resources::StorageBuffer::create_descriptor_write(CE::DescriptorInterface &interface,

@@ -48,6 +48,8 @@ public:
     World::UniformBufferObject &ubo;
     void create_buffer();
     void create_descriptor_write(CE::DescriptorInterface &interface);
+    VkDescriptorBufferInfo create_buffer_info() const;
+    VkWriteDescriptorSet create_write_descriptor_set() const;
   };
 
   class StorageBuffer : public CE::Descriptor {
@@ -65,6 +67,12 @@ public:
                 const auto &object,
                 const size_t quantity);
     void create_descriptor_write(CE::DescriptorInterface &interface, const size_t quantity);
+    CE::Buffer create_staging_buffer(const auto &object, const size_t quantity);
+    void create_device_buffer(const CE::CommandInterface &command_interface,
+                               const CE::Buffer &staging,
+                               VkDeviceSize size,
+                               CE::Buffer &target);
+    void map_and_copy_data(CE::Buffer &buffer, const auto &object, VkDeviceSize size);
   };
 
   class ImageSampler : public CE::Descriptor {
