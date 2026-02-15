@@ -4,20 +4,17 @@
 
 #include <algorithm>
 #include <cstdlib>
+#include <mutex>
 
 namespace CE::RenderGUI {
 
 // Cache for stage strip configuration
 struct ConfigCache {
-  bool initialized = false;
   bool enabled = true;
   int32_t custom_height = -1;
   int32_t custom_padding = -1;
   
-  void init_once() {
-    if (initialized) return;
-    initialized = true;
-    
+  void init() {
     const char *enabled_raw = std::getenv("CE_RENDER_STAGE_STRIP");
     enabled = enabled_raw ? CE::Runtime::env_truthy(enabled_raw) : true;
     
@@ -40,9 +37,10 @@ struct ConfigCache {
 };
 
 static ConfigCache s_config_cache;
+static std::once_flag s_init_flag;
 
 StageStripConfig get_stage_strip_config(const VkExtent2D &extent) {
-  s_config_cache.init_once();
+  std::call_once(s_init_flag, []() { s_config_cache.init(); });
   
   StageStripConfig config{};
   config.enabled = s_config_cache.enabled;
@@ -71,7 +69,7 @@ const std::array<const char *, 5>& get_stage_strip_labels() {
 }
 
 bool is_stage_strip_enabled() {
-  s_config_cache.init_once();
+  std::call_once(s_init_flag, []() { s_config_cache.init(); });
   return s_config_cache.enabled;
 }
 
