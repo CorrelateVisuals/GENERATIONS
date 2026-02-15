@@ -72,20 +72,24 @@ vec3 terrainColor(float heightFromWater, float slope, vec2 worldXZ) {
     mat2 rot = mat2(0.866f, -0.5f, 0.5f, 0.866f);
     vec2 xr = rot * worldXZ;
 
-    vec3 land = pixelTerrainPalette(heightFromWater);
-    vec3 rock = vec3(0.43f, 0.42f, 0.44f);
-    float rockMix = smoothstep(0.28f, 0.78f, slope);
-    land = mix(land, rock, rockMix * 0.7f);
-
     vec2 gridMin = (vec2(ubo.gridXY) - vec2(1.0f)) * -0.5f;
     vec2 gridMax = gridMin + vec2(ubo.gridXY) - vec2(1.0f);
+    float rightEdgeDist = gridMax.x - worldXZ.x;
+    float rightEdgeFade = smoothstep(0.0f, 10.0f, rightEdgeDist);
+
+    vec3 land = pixelTerrainPalette(heightFromWater);
+    vec3 rock = vec3(0.43f, 0.42f, 0.44f);
+    float stabilizedSlope = mix(0.0f, slope, rightEdgeFade);
+    float rockMix = smoothstep(0.28f, 0.78f, stabilizedSlope);
+    land = mix(land, rock, rockMix * 0.7f);
+
     float edgeDistX = min(worldXZ.x - gridMin.x, gridMax.x - worldXZ.x);
     float edgeDistY = min(worldXZ.y - gridMin.y, gridMax.y - worldXZ.y);
     float edgeDist = min(edgeDistX, edgeDistY);
     float edgeFade = smoothstep(0.5f, 3.0f, edgeDist);
 
     float detail = noise2(xr * 0.11f);
-    land *= 0.96f + (detail * 0.08f * edgeFade);
+    land *= 0.96f + (detail * 0.08f * edgeFade * rightEdgeFade);
 
     vec3 deepWater = vec3(0.15f, 0.24f, 0.29f);
     vec3 shallowWater = vec3(0.24f, 0.33f, 0.37f);
@@ -115,6 +119,14 @@ void main() {
     if (normal.z < 0.0f) {
         normal = -normal;
     }
+
+    vec2 gridMin = (vec2(ubo.gridXY) - vec2(1.0f)) * -0.5f;
+    vec2 gridMax = gridMin + vec2(ubo.gridXY) - vec2(1.0f);
+    float rightEdgeDist = gridMax.x - inWorldPos.x;
+    float rightEdgeFade = smoothstep(0.0f, 10.0f, rightEdgeDist);
+    normal = safe_normalize(mix(vec3(0.0f, 0.0f, 1.0f), normal, rightEdgeFade),
+                            vec3(0.0f, 0.0f, 1.0f));
+
     vec3 lightDirection = safe_normalize(ubo.light.rgb - inWorldPos, vec3(0.0f, 0.0f, 1.0f));
     float heightFromWater = inWorldPos.z - ubo.waterThreshold;
     float slope = 1.0f - clamp(normal.z, 0.0f, 1.0f);

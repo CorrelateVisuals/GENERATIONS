@@ -1,6 +1,6 @@
 # GENERATIONS
 
-![GENERATIONS Cover](assets/CoverCapture.PNG)
+![GENERATIONS Cover](assets/TerrainCover_20260215.png)
 
 <p align="left">
 	<img src="assets/branding/vulkan.svg" alt="Vulkan" height="104" />
@@ -13,9 +13,9 @@
 GENERATIONS is a Vulkan-native simulation runtime built for reliable, high-throughput GPU workloads.
 It is powered by CAPITAL Engine and designed around one idea: keep the stack lean, explicit, and fast enough to support serious compute-driven interactive systems.
 
-Today, the project runs a real-time cellular simulation and renders it through a modern graphics + compute pipeline with strong separation between platform, rendering, and world logic.
+Today, the project runs a real-time cellular simulation with the latest terrain pass, rendered through a modern graphics + compute pipeline with strong separation between platform, rendering, and world logic.
 
-![Runtime Snapshot](assets/LandscapeCapture.PNG)
+![Runtime Snapshot](assets/TerrainRuntime_20260215.png)
 
 ## Why this project exists
 
