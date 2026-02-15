@@ -73,6 +73,9 @@ public:
                                VkDeviceSize size,
                                CE::Buffer &target);
     void map_and_copy_data(CE::Buffer &buffer, const auto &object, VkDeviceSize size);
+    VkDescriptorBufferInfo create_buffer_info(uint32_t frame_index, const size_t quantity) const;
+    VkWriteDescriptorSet create_write_set(uint32_t frame_index) const;
+    void update_descriptor_writes(CE::DescriptorInterface &interface, uint32_t frame_index, const VkWriteDescriptorSet &desc_write);
   };
 
   class ImageSampler : public CE::Descriptor {
@@ -92,6 +95,10 @@ public:
                  std::array<CE::Image, MAX_FRAMES_IN_FLIGHT> &images);
     void create_descriptor_write(CE::DescriptorInterface &interface,
                                  std::array<CE::Image, MAX_FRAMES_IN_FLIGHT> &images);
+  
+  private:
+    VkDescriptorImageInfo create_image_info(uint32_t frame_index, std::array<CE::Image, MAX_FRAMES_IN_FLIGHT> &images) const;
+    VkWriteDescriptorSet create_write_set(uint32_t frame_index) const;
   };
   // GPU Interface
   CE::ShaderAccess::CommandResources

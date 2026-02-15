@@ -64,22 +64,29 @@ void ValidationLayers::setup_debug_messenger(VkInstance instance) {
     throw std::runtime_error("\n!ERROR! Failed to set up debug messenger!");
 }
 
-bool ValidationLayers::check_validation_layer_support() {
+std::vector<std::string> ValidationLayers::get_available_layer_names() const {
   uint32_t layer_count;
   vkEnumerateInstanceLayerProperties(&layer_count, nullptr);
-
   std::vector<VkLayerProperties> available_layers(layer_count);
   vkEnumerateInstanceLayerProperties(&layer_count, available_layers.data());
-
-  std::set<std::string> available_layer_names;
+  std::vector<std::string> layer_names;
   for (const auto &layer : available_layers) {
-    available_layer_names.insert(layer.layerName);
+    layer_names.push_back(layer.layerName);
   }
+  return layer_names;
+}
 
+bool ValidationLayers::are_all_layers_available(const std::vector<std::string> &available) const {
+  std::set<std::string> available_set(available.begin(), available.end());
   for (const auto &layer_name : validation) {
-    if (!available_layer_names.contains(layer_name)) {
+    if (!available_set.contains(layer_name)) {
       return false;
     }
   }
   return true;
+}
+
+bool ValidationLayers::check_validation_layer_support() {
+  std::vector<std::string> available_layer_names = get_available_layer_names();
+  return are_all_layers_available(available_layer_names);
 }

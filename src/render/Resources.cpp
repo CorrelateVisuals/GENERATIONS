@@ -204,31 +204,44 @@ void Resources::StorageBuffer::create(const CE::CommandInterface &command_interf
   create_device_buffer(command_interface, stagingResources, bufferSize, buffer_out);
 }
 
+VkDescriptorBufferInfo Resources::StorageBuffer::create_buffer_info(uint32_t frame_index, const size_t quantity) const {
+  VkDescriptorBufferInfo bufferInfo{
+      .buffer = !frame_index ? buffer_in.buffer : buffer_out.buffer,
+      .offset = 0,
+      .range = sizeof(World::Cell) * quantity};
+  return bufferInfo;
+}
+
+VkWriteDescriptorSet Resources::StorageBuffer::create_write_set(uint32_t frame_index) const {
+  VkWriteDescriptorSet descriptorWrite{};
+  descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+  descriptorWrite.pNext = nullptr;
+  descriptorWrite.dstSet = VK_NULL_HANDLE;
+  descriptorWrite.dstBinding = static_cast<uint32_t>(frame_index ? 2 : 1);
+  descriptorWrite.dstArrayElement = 0;
+  descriptorWrite.descriptorCount = set_layout_binding.descriptorCount;
+  descriptorWrite.descriptorType = set_layout_binding.descriptorType;
+  descriptorWrite.pImageInfo = nullptr;
+  descriptorWrite.pTexelBufferView = nullptr;
+  return descriptorWrite;
+}
+
+void Resources::StorageBuffer::update_descriptor_writes(CE::DescriptorInterface &interface, uint32_t frame_index, const VkWriteDescriptorSet &desc_write) {
+  VkWriteDescriptorSet descriptorWrite = desc_write;
+  descriptorWrite.pBufferInfo = &std::get<VkDescriptorBufferInfo>(info.current_frame);
+  interface.descriptor_writes[frame_index][my_index] = descriptorWrite;
+  descriptorWrite.dstBinding = static_cast<uint32_t>(frame_index ? 1 : 2);
+  descriptorWrite.pBufferInfo = &std::get<VkDescriptorBufferInfo>(info.previous_frame);
+  interface.descriptor_writes[frame_index][my_index + 1] = descriptorWrite;
+}
+
 void Resources::StorageBuffer::create_descriptor_write(CE::DescriptorInterface &interface,
                                                        const size_t quantity) {
   for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-    VkDescriptorBufferInfo bufferInfo{.buffer = !i ? buffer_in.buffer : buffer_out.buffer,
-                                      .offset = 0,
-                                      .range = sizeof(World::Cell) * quantity};
-
+    VkDescriptorBufferInfo bufferInfo = create_buffer_info(i, quantity);
     !i ? info.current_frame = bufferInfo : info.previous_frame = bufferInfo;
-
-    VkWriteDescriptorSet descriptorWrite{};
-    descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    descriptorWrite.pNext = nullptr;
-    descriptorWrite.dstSet = VK_NULL_HANDLE;
-    descriptorWrite.dstBinding = static_cast<uint32_t>(i ? 2 : 1);
-    descriptorWrite.dstArrayElement = 0;
-    descriptorWrite.descriptorCount = set_layout_binding.descriptorCount;
-    descriptorWrite.descriptorType = set_layout_binding.descriptorType;
-    descriptorWrite.pImageInfo = nullptr;
-    descriptorWrite.pBufferInfo = &std::get<VkDescriptorBufferInfo>(info.current_frame);
-    descriptorWrite.pTexelBufferView = nullptr;
-
-    interface.descriptor_writes[i][my_index] = descriptorWrite;
-    descriptorWrite.dstBinding = static_cast<uint32_t>(i ? 1 : 2);
-    descriptorWrite.pBufferInfo = &std::get<VkDescriptorBufferInfo>(info.previous_frame);
-    interface.descriptor_writes[i][my_index + 1] = descriptorWrite;
+    VkWriteDescriptorSet descriptorWrite = create_write_set(i);
+    update_descriptor_writes(interface, i, descriptorWrite);
   }
 };
 
@@ -303,29 +316,36 @@ Resources::StorageImage::StorageImage(
   create_descriptor_write(interface, images);
 }
 
+VkDescriptorImageInfo Resources::StorageImage::create_image_info(uint32_t frame_index, std::array<CE::Image, MAX_FRAMES_IN_FLIGHT> &images) const {
+  VkDescriptorImageInfo imageInfo{
+      .sampler = VK_NULL_HANDLE,
+      .imageView = images[frame_index].view,
+      .imageLayout = VK_IMAGE_LAYOUT_GENERAL};
+  return imageInfo;
+}
+
+VkWriteDescriptorSet Resources::StorageImage::create_write_set(uint32_t frame_index) const {
+  VkWriteDescriptorSet descriptorWrite{};
+  descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+  descriptorWrite.pNext = nullptr;
+  descriptorWrite.dstSet = VK_NULL_HANDLE;
+  descriptorWrite.dstBinding = set_layout_binding.binding;
+  descriptorWrite.dstArrayElement = 0;
+  descriptorWrite.descriptorCount = set_layout_binding.descriptorCount;
+  descriptorWrite.descriptorType = set_layout_binding.descriptorType;
+  descriptorWrite.pImageInfo = &std::get<VkDescriptorImageInfo>(!frame_index ? info.current_frame : info.previous_frame);
+  descriptorWrite.pBufferInfo = nullptr;
+  descriptorWrite.pTexelBufferView = nullptr;
+  return descriptorWrite;
+}
+
 void Resources::StorageImage::create_descriptor_write(
     CE::DescriptorInterface &interface,
     std::array<CE::Image, MAX_FRAMES_IN_FLIGHT> &images) {
   for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-    VkDescriptorImageInfo imageInfo{.sampler = VK_NULL_HANDLE,
-                                    .imageView = images[i].view,
-                                    .imageLayout = VK_IMAGE_LAYOUT_GENERAL};
-
+    VkDescriptorImageInfo imageInfo = create_image_info(i, images);
     !i ? info.current_frame = imageInfo : info.previous_frame = imageInfo;
-
-    VkWriteDescriptorSet descriptorWrite{};
-    descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    descriptorWrite.pNext = nullptr;
-    descriptorWrite.dstSet = VK_NULL_HANDLE;
-    descriptorWrite.dstBinding = set_layout_binding.binding;
-    descriptorWrite.dstArrayElement = 0;
-    descriptorWrite.descriptorCount = set_layout_binding.descriptorCount;
-    descriptorWrite.descriptorType = set_layout_binding.descriptorType;
-    descriptorWrite.pImageInfo =
-        &std::get<VkDescriptorImageInfo>(!i ? info.current_frame : info.previous_frame);
-    descriptorWrite.pBufferInfo = nullptr;
-    descriptorWrite.pTexelBufferView = nullptr;
-
+    VkWriteDescriptorSet descriptorWrite = create_write_set(i);
     interface.descriptor_writes[i][my_index] = descriptorWrite;
   }
 }

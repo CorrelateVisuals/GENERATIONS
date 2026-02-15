@@ -29,6 +29,8 @@ public:
   void destroy_debug_utils_messenger_ext(VkInstance instance,
                                          VkDebugUtilsMessengerEXT debug_messenger,
                                          const VkAllocationCallbacks *allocator);
+  std::vector<std::string> get_available_layer_names() const;
+  bool are_all_layers_available(const std::vector<std::string> &available) const;
 
 private:
   static void log_validation_message(const std::string &message,
