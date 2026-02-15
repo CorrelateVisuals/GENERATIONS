@@ -120,8 +120,18 @@ void main() {
     vec3 worldNormal = normalize(mat3(ubo.model) * inNormal.xyz);
 
     vec3 lightDirection = normalize(ubo.light.rgb - worldPosition.xyz);
-    float diffuseIntensity = max(dot(worldNormal, lightDirection), 0.42f);
+    float diffuse = max(dot(worldNormal, lightDirection), 0.0f);
 
-    fragColor = inColor * diffuseIntensity;
+    float bandedDiffuse = 0.95f;
+    if (diffuse < 0.25f) {
+        bandedDiffuse = 0.18f;
+    } else if (diffuse < 0.65f) {
+        bandedDiffuse = 0.45f;
+    }
+
+    float verticalFaceBoost = (1.0f - abs(worldNormal.z)) * 0.14f;
+    float lighting = min(bandedDiffuse + verticalFaceBoost, 1.0f);
+
+    fragColor = vec4(inColor.rgb * lighting, inColor.a);
     gl_Position = ubo.projection * viewPosition;
 }
