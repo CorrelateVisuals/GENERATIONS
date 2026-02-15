@@ -1,5 +1,6 @@
 #pragma once
 
+#include <chrono>
 #include <optional>
 #include <string>
 #include <vector>
@@ -71,6 +72,8 @@ public:
     destroy_device();
   }
 
+  void maybe_log_gpu_runtime_sample();
+
 protected:
   VkPhysicalDeviceFeatures features{};
   void pick_physical_device(const InitializeVulkan &init_vulkan,
@@ -81,6 +84,10 @@ protected:
 
 private:
   VkPhysicalDeviceProperties properties_{};
+  bool memory_budget_supported_{false};
+  VkDeviceSize device_local_heap_total_bytes_{0};
+  std::chrono::steady_clock::time_point last_gpu_runtime_log_{};
+  bool gpu_runtime_log_initialized_{false};
   std::vector<const char *> extensions_{VK_KHR_SWAPCHAIN_EXTENSION_NAME};
   static std::vector<VkDevice> destroyed_devices;
 

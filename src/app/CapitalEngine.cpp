@@ -60,6 +60,7 @@ void CapitalEngine::main_loop() {
   while (!glfwWindowShouldClose(main_window.window)) {
     main_window.poll_input();
     resources->world._time.run();
+    mechanics.main_device.maybe_log_gpu_runtime_sample();
 
     draw_frame();
 

@@ -1,9 +1,34 @@
 #include "ImplementationSpec.h"
 
+#include <cstdlib>
+
 namespace CE::Implementation {
+
+namespace {
+int parse_render_stage() {
+  const char *raw = std::getenv("CE_RENDER_STAGE");
+  if (!raw) {
+    return 4;
+  }
+
+  char *end = nullptr;
+  const long parsed = std::strtol(raw, &end, 10);
+  if (end == raw || *end != '\0') {
+    return 4;
+  }
+  if (parsed < 0) {
+    return 4;
+  }
+  if (parsed > 4) {
+    return 4;
+  }
+  return static_cast<int>(parsed);
+}
+}
 
 ImplementationSpec default_spec() {
   ImplementationSpec spec{};
+  const int render_stage = parse_render_stage();
 
   spec.terrain.grid_width = 140;
   spec.terrain.grid_height = 140;
@@ -63,6 +88,10 @@ ImplementationSpec default_spec() {
       .is_compute = false,
       .shaders = {"LandscapeVert", "LandscapeFrag"},
   };
+    spec.pipelines["LandscapeDebug"] = CE::Runtime::PipelineDefinition{
+      .is_compute = false,
+      .shaders = {"LandscapeVert", "LandscapeDebugFrag"},
+  };
     spec.pipelines["TerrainBox"] = CE::Runtime::PipelineDefinition{
       .is_compute = false,
       .shaders = {"TerrainBoxSeamVert", "TerrainBoxFrag"},
@@ -77,14 +106,29 @@ ImplementationSpec default_spec() {
       .work_groups = {0, 0, 0},
     };
 
-    spec.execution_plan.pre_graphics_compute = {"Engine"};
-    spec.execution_plan.graphics = {"Sky", "Landscape", "TerrainBox", "CellsFollower", "Cells"};
+    spec.execution_plan.pre_graphics_compute = {};
+    spec.execution_plan.graphics = {"LandscapeDebug"};
     spec.execution_plan.post_graphics_compute = {};
+
+    if (render_stage >= 1) {
+      spec.execution_plan.graphics = {"Landscape"};
+    }
+    if (render_stage >= 2) {
+      spec.execution_plan.graphics = {"Landscape", "TerrainBox"};
+    }
+    if (render_stage >= 3) {
+      spec.execution_plan.graphics = {"Sky", "Landscape", "TerrainBox"};
+    }
+    if (render_stage >= 4) {
+      spec.execution_plan.pre_graphics_compute = {"Engine"};
+      spec.execution_plan.graphics = {"Sky", "Landscape", "TerrainBox", "CellsFollower", "Cells"};
+    }
 
   spec.draw_ops = {
       {"Cells", "instanced:cells"},
       {"CellsFollower", "instanced:cells"},
       {"Landscape", "indexed:grid"},
+      {"LandscapeDebug", "indexed:grid"},
         {"TerrainBox", "indexed:grid_box"},
       {"Sky", "sky_dome"},
   };

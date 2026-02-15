@@ -294,7 +294,10 @@ void CE::PipelinesConfiguration::create_pipelines(VkRenderPass &render_pass,
 
       if (pipelineName == "TerrainBox") {
         rasterization.cullMode = VK_CULL_MODE_BACK_BIT;
-        rasterization.depthBiasEnable = VK_FALSE;
+        rasterization.depthBiasEnable = VK_TRUE;
+        rasterization.depthBiasConstantFactor = 1.0f;
+        rasterization.depthBiasSlopeFactor = 1.0f;
+        rasterization.depthBiasClamp = 0.0f;
         depthStencil.depthTestEnable = VK_TRUE;
         depthStencil.depthWriteEnable = VK_TRUE;
         depthStencil.depthCompareOp = VK_COMPARE_OP_LESS;

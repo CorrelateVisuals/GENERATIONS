@@ -14,8 +14,6 @@ layout (binding = 0) uniform ParameterUBO {
     mat4 projection;
 } ubo;
 
-layout(binding = 3) uniform sampler2D texSampler;
-
 layout(location = 0) out vec4 outColor;
 
 vec3 safe_normalize(vec3 v, vec3 fallback) {
@@ -79,8 +77,15 @@ vec3 terrainColor(float heightFromWater, float slope, vec2 worldXZ) {
     float rockMix = smoothstep(0.28f, 0.78f, slope);
     land = mix(land, rock, rockMix * 0.7f);
 
-    float detail = noise2(xr * 0.18f) * 0.6f + noise2(xr * 0.72f) * 0.4f;
-    land *= 0.92f + detail * 0.16f;
+    vec2 gridMin = (vec2(ubo.gridXY) - vec2(1.0f)) * -0.5f;
+    vec2 gridMax = gridMin + vec2(ubo.gridXY) - vec2(1.0f);
+    float edgeDistX = min(worldXZ.x - gridMin.x, gridMax.x - worldXZ.x);
+    float edgeDistY = min(worldXZ.y - gridMin.y, gridMax.y - worldXZ.y);
+    float edgeDist = min(edgeDistX, edgeDistY);
+    float edgeFade = smoothstep(0.5f, 3.0f, edgeDist);
+
+    float detail = noise2(xr * 0.11f);
+    land *= 0.96f + (detail * 0.08f * edgeFade);
 
     vec3 deepWater = vec3(0.15f, 0.24f, 0.29f);
     vec3 shallowWater = vec3(0.24f, 0.33f, 0.37f);

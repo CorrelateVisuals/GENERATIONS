@@ -90,6 +90,13 @@ vec3 safe_normalize(vec3 v, vec3 fallback) {
     return v * inversesqrt(len2);
 }
 
+vec2 grid_base_position(uint cellIndex) {
+    float startX = (float(ubo.gridXY.x) - 1.0f) * -0.5f;
+    float startY = (float(ubo.gridXY.y) - 1.0f) * -0.5f;
+    return vec2(startX + float(cellIndex % uint(ubo.gridXY.x)),
+                startY + float(cellIndex / uint(ubo.gridXY.x)));
+}
+
 void main() {
     bool aliveCell = (inStates.x == 1);
     if (!aliveCell) {
@@ -98,7 +105,7 @@ void main() {
         return;
     }
 
-    vec2 anchoredXY = inPosition.xy;
+    vec2 anchoredXY = grid_base_position(gl_InstanceIndex);
 
     if (terrain_height(anchoredXY) <= ubo.waterThreshold + ubo.waterRules.x) {
         fragColor = vec4(0.0f);

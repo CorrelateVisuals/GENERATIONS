@@ -83,6 +83,14 @@ Current flags used by the runtime:
 - `CE_STARTUP_SCREENSHOT`: capture one startup screenshot when truthy
 - `CE_GPU_TRACE`: enable detailed GPU trace logging when truthy
 
+GPU log tuning flags:
+
+- `CE_GPU_LOG`: master switch for GPU logs (`on`/`off`), default `on`
+- `CE_GPU_LOG_STARTUP`: startup GPU snapshot logs (`on`/`off`), default `on`
+- `CE_GPU_LOG_PERIODIC`: periodic runtime GPU samples in main loop (`on`/`off`), default `off`
+- `CE_GPU_LOG_FREQ_MS`: periodic sample interval in milliseconds (minimum `250`), default `5000`
+- `CE_GPU_LOG_DETAILS`: GPU log detail mode (`basic` or `detailed`), default `basic`
+
 Console/terminal behavior:
 
 - `NO_COLOR` disables ANSI log colors
