@@ -5,6 +5,10 @@
 
 Timer::Timer(float init_speed) : speed{init_speed} {}
 
+float Timer::get_day_fraction() const {
+  return day_fraction;
+}
+
 void Timer::run() {
   static auto last_time = std::chrono::steady_clock::now();
   static std::chrono::time_point<std::chrono::steady_clock> day_start =

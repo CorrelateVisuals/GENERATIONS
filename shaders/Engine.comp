@@ -12,7 +12,10 @@ struct Cell {
 layout(std430, binding = 1) readonly buffer CellSSBOIn {Cell cellIn[ ]; };
 layout(std430, binding = 2) buffer CellSSBOOut {Cell cellOut[ ]; };
 layout (local_size_x = 32, local_size_y = 32, local_size_z = 1) in;
-layout(push_constant, std430) uniform pushConstant { uint64_t passedHours; };
+layout(push_constant, std430) uniform pushConstant {
+    uint64_t passedHours;
+    float dayFraction;
+};
 
 layout (binding = 0) uniform ParameterUBO {
     vec4 lightDirection;
@@ -314,7 +317,7 @@ vec4 colorIncrement     = inColor + vec4(float((passedHours % cycleSize + 1)) / 
 void simulate(out Cell cell) {
     int neighbours  = cycleNeighbours(1);
     int cycleHour = int(passedHours % cycleSize) + 1;
-    float cycleT = clamp(float(cycleHour) / float(cycleSize), 0.0, 1.0);
+    float cycleT = clamp(dayFraction, 0.0, 1.0);
     bool cycleStart = cycleHour == 1;
     bool cycleEnd = cycleHour == cycleSize;
 

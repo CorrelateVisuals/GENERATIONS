@@ -23,6 +23,7 @@ void VulkanMechanics::Swapchain::recreate(const VkSurfaceKHR &surface,
                                           Pipelines &pipelines,
                                           Resources &resources) {
   CE::Swapchain::recreate(surface, queues, sync_objects);
+  pipelines.config.refresh_dynamic_work_groups(resources.world._grid.size, extent);
     resources.msaa_image.create_resources(CE_MULTISAMPLE_IMAGE, extent, image_format);
     resources.depth_image.create_resources(
       CE_DEPTH_IMAGE, extent, CE::Image::find_depth_format());

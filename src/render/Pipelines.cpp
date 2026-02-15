@@ -12,7 +12,8 @@ Pipelines::Pipelines(VulkanMechanics &mechanics, Resources &resources)
              graphics.layout,
              compute.layout,
              resources.msaa_image.info.samples,
-             resources.world._grid.size} {
+              resources.world._grid.size,
+              mechanics.swapchain.extent} {
   Log::text("{ === }", "constructing Pipelines");
 }
 

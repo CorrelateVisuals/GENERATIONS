@@ -23,6 +23,7 @@ struct PushConstants {
   PushConstants(VkShaderStageFlags stage, uint32_t data_size, uint32_t data_offset);
   virtual ~PushConstants() = default;
   void set_data(const uint64_t &value);
+  void set_data(const uint64_t &value, float fraction);
 };
 
 class PipelineLayout {

@@ -42,15 +42,17 @@ public:
 
   struct Configuration : public CE::PipelinesConfiguration {
     static std::array<uint32_t, 3>
-    default_work_groups(const std::string &pipeline_name, const Vec2UintFast16 grid_size) {
+    default_work_groups(const std::string &pipeline_name,
+                        const Vec2UintFast16 grid_size,
+                        const VkExtent2D &swapchain_extent) {
       if (pipeline_name == "Engine") {
         return {static_cast<uint32_t>(grid_size.x + 31) / 32,
                 static_cast<uint32_t>(grid_size.y + 31) / 32,
                 1};
       }
       if (pipeline_name == "PostFX") {
-        return {static_cast<uint32_t>(Window::get().display.width + 15) / 16,
-          static_cast<uint32_t>(Window::get().display.height + 15) / 16,
+        return {static_cast<uint32_t>(swapchain_extent.width + 15) / 16,
+          static_cast<uint32_t>(swapchain_extent.height + 15) / 16,
                 1};
       }
       return {1, 1, 1};
@@ -84,14 +86,15 @@ public:
             const VkPipelineLayout &graphics_layout,
             const VkPipelineLayout &compute_layout,
             VkSampleCountFlagBits &msaa_samples,
-            const Vec2UintFast16 grid_size) {
+            const Vec2UintFast16 grid_size,
+            const VkExtent2D &swapchain_extent) {
       const auto &runtime_definitions = CE::Runtime::get_pipeline_definitions();
       if (!runtime_definitions.empty()) {
         for (const auto &[pipeline_name, definition] : runtime_definitions) {
           if (definition.is_compute) {
             std::array<uint32_t, 3> work_groups = definition.work_groups;
             if (work_groups[0] == 0 || work_groups[1] == 0 || work_groups[2] == 0) {
-              work_groups = default_work_groups(pipeline_name, grid_size);
+              work_groups = default_work_groups(pipeline_name, grid_size, swapchain_extent);
             }
             pipeline_map.emplace(pipeline_name,
                                  Compute{.shaders = definition.shaders,
@@ -138,13 +141,44 @@ public:
             "PostFX",
             Compute{
                 .shaders = {"Comp"},
-          .work_groups = {static_cast<uint32_t>(Window::get().display.width + 15) / 16,
-              static_cast<uint32_t>(Window::get().display.height + 15) / 16,
+          .work_groups = {static_cast<uint32_t>(swapchain_extent.width + 15) / 16,
+            static_cast<uint32_t>(swapchain_extent.height + 15) / 16,
                                1}});
       }
 
       compile_shaders();
       create_pipelines(render_pass, graphics_layout, compute_layout, msaa_samples);
+    }
+
+    void refresh_dynamic_work_groups(const Vec2UintFast16 grid_size,
+                                     const VkExtent2D &swapchain_extent) {
+      const auto &runtime_definitions = CE::Runtime::get_pipeline_definitions();
+      for (auto &[pipeline_name, variant] : pipeline_map) {
+        if (!std::holds_alternative<Compute>(variant)) {
+          continue;
+        }
+
+        auto &compute = std::get<Compute>(variant);
+        if (runtime_definitions.empty()) {
+          compute.work_groups = default_work_groups(pipeline_name, grid_size, swapchain_extent);
+          continue;
+        }
+
+        const auto definition_it = runtime_definitions.find(pipeline_name);
+        if (definition_it == runtime_definitions.end()) {
+          continue;
+        }
+
+        const CE::Runtime::PipelineDefinition &definition = definition_it->second;
+        const bool uses_dynamic_groups = definition.work_groups[0] == 0 ||
+                                         definition.work_groups[1] == 0 ||
+                                         definition.work_groups[2] == 0;
+        compute.work_groups = uses_dynamic_groups
+                                  ? default_work_groups(pipeline_name,
+                                                        grid_size,
+                                                        swapchain_extent)
+                                  : definition.work_groups;
+      }
     }
   };
 

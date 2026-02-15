@@ -8,6 +8,7 @@ public:
   uint64_t passed_hours{0};
 
   void run();
+  float get_day_fraction() const;
 
 private:
   float speed{1.0f};

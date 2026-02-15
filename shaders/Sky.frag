@@ -4,7 +4,8 @@ layout(location = 0) in vec3 vDir;
 layout(location = 0) out vec4 outColor;
 
 void main() {
-    float h = clamp(vDir.y * 0.5 + 0.5, 0.0, 1.0);
+    vec3 dir = normalize(vDir);
+    float h = clamp(dir.y * 0.5 + 0.5, 0.0, 1.0);
 
     vec3 horizon = vec3(0.76, 0.86, 0.97);
     vec3 zenith = vec3(0.20, 0.39, 0.73);
@@ -13,15 +14,9 @@ void main() {
     vec3 base = mix(nadir, horizon, smoothstep(0.0, 0.45, h));
     base = mix(base, zenith, smoothstep(0.35, 1.0, h));
 
-    float broadCloudBand =
-        0.5
-        + 0.25 * sin(vDir.x * 8.0 + vDir.y * 3.2)
-        + 0.25 * sin(vDir.z * 7.0 - vDir.y * 2.4);
-    base += vec3(0.035, 0.03, 0.02) * broadCloudBand * smoothstep(0.2, 0.95, h);
-
     // Soft stylized sun glow for a pleasant atmosphere.
     vec3 sunDir = normalize(vec3(0.25, 0.82, 0.52));
-    float sun = pow(max(dot(normalize(vDir), sunDir), 0.0), 22.0);
+    float sun = pow(max(dot(dir, sunDir), 0.0), 22.0);
     vec3 sky = base + vec3(1.0, 0.88, 0.66) * sun * 0.34;
 
     outColor = vec4(sky, 1.0);

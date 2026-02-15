@@ -9,6 +9,7 @@ ImplementationSpec default_spec() {
   spec.terrain.grid_height = 140;
   spec.terrain.alive_cells = 10000;
   spec.terrain.cell_size = 0.5f;
+  spec.terrain.terrain_render_subdivisions = 2;
   spec.terrain.terrain_box_depth = 10.0f;
   spec.terrain.layer1_roughness = 0.4f;
   spec.terrain.layer1_octaves = 10;
@@ -76,8 +77,9 @@ ImplementationSpec default_spec() {
       .work_groups = {0, 0, 0},
     };
 
+    spec.execution_plan.pre_graphics_compute = {"Engine"};
     spec.execution_plan.graphics = {"TerrainBox", "Landscape", "CellsFollower", "Cells", "Sky"};
-    spec.execution_plan.post_graphics_compute = {"Engine"};
+    spec.execution_plan.post_graphics_compute = {"PostFX"};
 
   spec.draw_ops = {
       {"Cells", "instanced:cells"},

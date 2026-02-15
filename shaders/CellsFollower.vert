@@ -84,10 +84,7 @@ layout(location = 0) out vec4 fragColor;
 
 void main() {
     bool aliveCell = (inStates.x == 1);
-    const int cycleSize = 24;
-    bool cycleEnd = (inStates.z == cycleSize);
-    bool nearCycleWrap = (inStates.z >= cycleSize - 1) || (inStates.z <= 1);
-    if (!aliveCell || cycleEnd || nearCycleWrap) {
+    if (!aliveCell) {
         fragColor = vec4(0.0f);
         gl_Position = vec4(2.0f, 2.0f, 2.0f, 1.0f);
         return;

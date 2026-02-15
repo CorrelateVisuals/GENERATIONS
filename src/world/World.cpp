@@ -151,13 +151,30 @@ World::Grid::Grid(const CE::Runtime::TerrainSettings &terrain_settings,
 
   const uint32_t grid_width = static_cast<uint32_t>(size.x);
   const uint32_t grid_height = static_cast<uint32_t>(size.y);
+  const uint32_t render_subdivisions =
+      static_cast<uint32_t>(std::max(terrain_settings.terrain_render_subdivisions, 1));
+  const uint32_t render_grid_width =
+      (grid_width > 0) ? ((grid_width - 1) * render_subdivisions + 1) : 0;
+  const uint32_t render_grid_height =
+      (grid_height > 0) ? ((grid_height - 1) * render_subdivisions + 1) : 0;
 
-  unique_vertices.reserve(unique_vertices.size() + point_count);
-  for (uint_fast32_t i = 0; i < point_count; ++i) {
-    add_vertex_position(coordinates[i]);
+  std::vector<uint32_t> render_point_ids;
+  render_point_ids.reserve(static_cast<size_t>(render_grid_width) * render_grid_height);
+  unique_vertices.reserve(unique_vertices.size() + render_point_ids.capacity());
+
+  for (uint32_t row = 0; row < render_grid_height; ++row) {
+    const float y = startY +
+                    static_cast<float>(row) / static_cast<float>(render_subdivisions);
+    for (uint32_t col = 0; col < render_grid_width; ++col) {
+      const float x = startX +
+                      static_cast<float>(col) / static_cast<float>(render_subdivisions);
+      add_vertex_position({x, y, absoluteHeight});
+      render_point_ids.push_back(
+          static_cast<uint32_t>(render_point_ids.size()));
+    }
   }
 
-  indices = create_grid_polygons(point_ids, grid_width);
+  indices = create_grid_polygons(render_point_ids, render_grid_width);
 
   const float xMin = startX;
   const float xMax = startX + static_cast<float>(size.x - 1);

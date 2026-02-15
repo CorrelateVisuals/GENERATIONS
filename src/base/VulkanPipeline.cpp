@@ -8,6 +8,7 @@
 #include <array>
 #include <algorithm>
 #include <chrono>
+#include <cstring>
 #include <filesystem>
 #include <fstream>
 #include <stdexcept>
@@ -590,4 +591,12 @@ CE::PushConstants::PushConstants(VkShaderStageFlags stage,
 
 void CE::PushConstants::set_data(const uint64_t &value) {
   this->data = {value};
+}
+
+void CE::PushConstants::set_data(const uint64_t &value, float fraction) {
+  std::fill(data.begin(), data.end(), 0);
+  std::memcpy(data.data(), &value, sizeof(uint64_t));
+  std::memcpy(reinterpret_cast<uint8_t *>(data.data()) + sizeof(uint64_t),
+              &fraction,
+              sizeof(float));
 }

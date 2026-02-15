@@ -30,7 +30,8 @@ void CE::ShaderAccess::CommandResources::record_compute_command_buffer(
                           0,
                           nullptr);
 
-  resources.push_constant.set_data(resources.world._time.passed_hours);
+  resources.push_constant.set_data(resources.world._time.passed_hours,
+                                   resources.world._time.get_day_fraction());
 
   vkCmdPushConstants(command_buffer,
                      pipelines.compute.layout,
@@ -128,8 +129,8 @@ void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
                       pipelines.config.get_pipeline_object_by_name(pipeline_name));
     VkDeviceSize offsets_0[]{0, 0};
 
-    VkBuffer current_shader_storage_buffer[] = {resources.shader_storage.buffer_in.buffer,
-                                                resources.shader_storage.buffer_out.buffer};
+    VkBuffer current_shader_storage_buffer[] = {resources.shader_storage.buffer_out.buffer,
+                          resources.shader_storage.buffer_in.buffer};
 
     VkBuffer vertex_buffers_0[] = {current_shader_storage_buffer[frame_index],
                                    resources.world._cube.vertex_buffer.buffer};
@@ -309,7 +310,8 @@ void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
                             0,
                             nullptr);
 
-    resources.push_constant.set_data(resources.world._time.passed_hours);
+    resources.push_constant.set_data(resources.world._time.passed_hours,
+                     resources.world._time.get_day_fraction());
     vkCmdPushConstants(command_buffer,
                        pipelines.compute.layout,
                        resources.push_constant.shader_stage,
