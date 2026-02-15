@@ -113,6 +113,11 @@ ImplementationSpec default_spec() {
       .shaders = {"PostFXComp"},
       .work_groups = {0, 0, 0},
     };
+    spec.pipelines["GridGeneration"] = CE::Runtime::PipelineDefinition{
+      .is_compute = true,
+      .shaders = {"GridGenerationComp"},
+      .work_groups = {0, 0, 0},
+    };
 
     spec.execution_plan.pre_graphics_compute = {};
     spec.execution_plan.graphics = {"LandscapeDebug"};
