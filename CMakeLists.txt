@@ -25,7 +25,7 @@ add_compile_options(
 )
 
 include_directories(${PROJECT_SOURCE_DIR}/src)
-include_directories(${PROJECT_SOURCE_DIR}/stb)
+include_directories(${PROJECT_SOURCE_DIR}/libraries)
 
 
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
@@ -42,11 +42,19 @@ file(GLOB SHADERS ${SHADER_DIR}/*.vert ${SHADER_DIR}/*.frag ${SHADER_DIR}/*.comp
 
 find_package(Vulkan)
 
+if(NOT Vulkan_GLSLC_EXECUTABLE)
+    find_program(GLSLC_EXECUTABLE glslangValidator)
+    if(GLSLC_EXECUTABLE)
+        set(Vulkan_GLSLC_EXECUTABLE ${GLSLC_EXECUTABLE})
+        set(GLSLC_FLAGS -V)
+    endif()
+endif()
+
 foreach(SHADER IN LISTS SHADERS)
     get_filename_component(FILENAME ${SHADER} NAME)
     string(REPLACE "shader." "" new_name ${FILENAME})
     add_custom_command(OUTPUT ${SHADER_DIR}/${new_name}.spv
-        COMMAND ${Vulkan_GLSLC_EXECUTABLE} ${SHADER} -o ${SHADER_DIR}/${new_name}.spv
+        COMMAND ${Vulkan_GLSLC_EXECUTABLE} ${GLSLC_FLAGS} ${SHADER} -o ${SHADER_DIR}/${new_name}.spv
         DEPENDS ${SHADER}
         COMMENT "Compiling ${FILENAME}")
     list(APPEND SPV_SHADERS ${SHADER_DIR}/${new_name}.spv)
