@@ -128,11 +128,11 @@ Performance reports are printed every 300 frames (~5 seconds at 60fps) showing:
 ┌─────────────────────────────────────────────────────────┐
 │           GPU Profiler Report                           │
 ├─────────────────────────────────────────────────────────┤
-│ GPU_Buffer_Copy                               0.023 ms [GPU]
-│ Buffer::copy                                  0.156 ms [CPU]
-│ VkFence_Wait                                  0.012 ms [CPU]
-│ GPU_Buffer_To_Image                           0.045 ms [GPU]
-│ Buffer::copy_to_image                         0.198 ms [CPU]
+│ GPU_Buffer_Copy                              0.023 ms [GPU]
+│ Buffer::copy                                 0.156 ms [CPU]
+│ VkFence_Wait                                 0.012 ms [CPU]
+│ GPU_Buffer_To_Image                          0.045 ms [GPU]
+│ Buffer::copy_to_image                        0.198 ms [CPU]
 ├─────────────────────────────────────────────────────────┤
 │ Total GPU time:      0.068 ms
 │ Total CPU time:      0.366 ms
