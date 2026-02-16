@@ -25,12 +25,7 @@ Resources::Resources(VulkanMechanics& mechanics, Pipelines& pipelines)
 
       // Descriptors
       descriptorInterface(),
-      uniform{descriptorInterface, world._ubo},
-      shaderStorage{descriptorInterface, commandInterface, world._grid.cells,
-                    world._grid.pointCount},
-      sampler{descriptorInterface, commandInterface,
-              Lib::path("assets/Avatar.PNG")},
-      storageImage{descriptorInterface, mechanics.swapchain.images}
+      uniform{descriptorInterface, world._ubo}
 
 {
   Log::text(Log::Style::headerGuard);
@@ -105,12 +100,9 @@ void Resources::UniformBuffer::createDescriptorWrite(
 };
 
 void Resources::UniformBuffer::update(World& world, const VkExtent2D extent) {
-  ubo.light = world._ubo.light;
-  ubo.gridXY = glm::vec2(static_cast<uint32_t>(world._grid.size.x),
-                         static_cast<uint32_t>(world._grid.size.y));
-  ubo.mvp.model = world._camera.setModel();
-  ubo.mvp.view = world._camera.setView();
-  ubo.mvp.projection = world._camera.setProjection(extent);
+  ubo.model = glm::mat4(1.0f);
+  ubo.view = glm::mat4(1.0f);
+  ubo.projection = glm::mat4(1.0f);
 
   std::memcpy(buffer.mapped, &ubo, sizeof(ubo));
 }

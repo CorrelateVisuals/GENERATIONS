@@ -98,9 +98,4 @@ class Resources {
 
   // Descriptors
   UniformBuffer uniform;        // UniformParameters world details
-  StorageBuffer shaderStorage;  // FeedbackLoop compute shader
-
-  // Image Descriptors
-  ImageSampler sampler;       // Texture vertex shader
-  StorageImage storageImage;  //  PostFX compute shader
 };

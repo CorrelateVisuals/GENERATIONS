@@ -24,9 +24,6 @@ void CapitalEngine::mainLoop() {
   while (!glfwWindowShouldClose(Window::get().window)) {
     glfwPollEvents();
 
-    Window::get().setMouse();
-    resources.world._time.run();
-
     vkDeviceWaitIdle(mechanics.mainDevice.logical);
     drawFrame();
 
@@ -42,39 +39,6 @@ void CapitalEngine::mainLoop() {
 }
 
 void CapitalEngine::drawFrame() {
-  // Compute submission
-  vkWaitForFences(
-      mechanics.mainDevice.logical, 1,
-      &mechanics.syncObjects
-           .computeInFlightFences[mechanics.syncObjects.currentFrame],
-      VK_TRUE, UINT64_MAX);
-
-  resources.uniform.update(resources.world, mechanics.swapchain.extent);
-
-  vkResetFences(
-      mechanics.mainDevice.logical, 1,
-      &mechanics.syncObjects
-           .computeInFlightFences[mechanics.syncObjects.currentFrame]);
-
-  vkResetCommandBuffer(
-      resources.commands.compute[mechanics.syncObjects.currentFrame], 0);
-  resources.commands.recordComputeCommandBuffer(resources, pipelines, mechanics.syncObjects.currentFrame);
-
-  VkSubmitInfo computeSubmitInfo{
-      .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-      .commandBufferCount = 1,
-      .pCommandBuffers =
-          &resources.commands.compute[mechanics.syncObjects.currentFrame],
-      .signalSemaphoreCount = 1,
-      .pSignalSemaphores =
-          &mechanics.syncObjects
-               .computeFinishedSemaphores[mechanics.syncObjects.currentFrame]};
-
-  CE::VULKAN_RESULT(
-      vkQueueSubmit, mechanics.queues.compute, 1, &computeSubmitInfo,
-      mechanics.syncObjects
-          .computeInFlightFences[mechanics.syncObjects.currentFrame]);
-
   // Graphics submission
   vkWaitForFences(
       mechanics.mainDevice.logical, 1,
@@ -111,11 +75,8 @@ void CapitalEngine::drawFrame() {
 
   std::vector<VkSemaphore> waitSemaphores{
       mechanics.syncObjects
-          .computeFinishedSemaphores[mechanics.syncObjects.currentFrame],
-      mechanics.syncObjects
           .imageAvailableSemaphores[mechanics.syncObjects.currentFrame]};
   std::vector<VkPipelineStageFlags> waitStages{
-      VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
       VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
 
   VkSubmitInfo graphicsSubmitInfo{
