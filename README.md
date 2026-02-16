@@ -81,7 +81,7 @@ Current flags used by the runtime:
 
 - `CE_SCRIPT_ONLY`: run implementation setup only, skip main engine loop when truthy
 - `CE_STARTUP_SCREENSHOT`: capture one startup screenshot when truthy
-- `CE_GPU_TRACE`: enable detailed GPU trace logging when truthy
+- `CE_GPU_TRACE`: enable detailed GPU trace logging and profiling when truthy
 
 GPU log tuning flags:
 
@@ -94,6 +94,50 @@ GPU log tuning flags:
 Console/terminal behavior:
 
 - `NO_COLOR` disables ANSI log colors
+
+## GPU Profiler
+
+The GPU profiler provides lightweight monitoring of GPU-CPU communication, buffer transfers, and synchronization waits.
+
+**Features:**
+- GPU timestamp queries for precise GPU operation timing
+- CPU-side timing for synchronization waits
+- Automatic tracking of buffer copies and transfers
+- Periodic performance reports
+
+**Usage:**
+
+Enable GPU profiling by setting the `CE_GPU_TRACE` environment variable:
+
+```bash
+CE_GPU_TRACE=1 ./bin/CapitalEngine
+```
+
+When enabled, the profiler automatically tracks:
+- Buffer copy operations (GPU_Buffer_Copy, Buffer::copy)
+- Buffer-to-image transfers (GPU_Buffer_To_Image, Buffer::copy_to_image)
+- Fence wait times (VkFence_Wait)
+
+Performance reports are printed every 300 frames (~5 seconds at 60fps) showing:
+- Individual event timings in milliseconds
+- Event type (GPU or CPU)
+- Total GPU and CPU time per reporting period
+
+**Example Output:**
+```
+┌─────────────────────────────────────────────────────────┐
+│           GPU Profiler Report                           │
+├─────────────────────────────────────────────────────────┤
+│ GPU_Buffer_Copy                               0.023 ms [GPU]
+│ Buffer::copy                                  0.156 ms [CPU]
+│ VkFence_Wait                                  0.012 ms [CPU]
+│ GPU_Buffer_To_Image                           0.045 ms [GPU]
+│ Buffer::copy_to_image                         0.198 ms [CPU]
+├─────────────────────────────────────────────────────────┤
+│ Total GPU time:      0.068 ms
+│ Total CPU time:      0.366 ms
+└─────────────────────────────────────────────────────────┘
+```
 
 ## Build and run (Linux)
 
