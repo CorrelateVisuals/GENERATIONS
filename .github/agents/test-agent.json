@@ -1,0 +1,37 @@
+{
+  "name": "Test Agent",
+  "specialty": "Validation and Testing",
+  "description": "Executes tests, validates functionality, and ensures simulation accuracy",
+  "capabilities": [
+    "Vulkan validation layer testing",
+    "Simulation accuracy verification",
+    "Performance benchmarking",
+    "Memory leak detection",
+    "GPU compatibility testing"
+  ],
+  "route_tasks": [
+    "Run validation layers",
+    "Execute simulation tests",
+    "Benchmark performance metrics",
+    "Check for memory leaks",
+    "Validate GPU operations"
+  ],
+  "tools": [
+    "Vulkan validation layers",
+    "valgrind",
+    "gprof",
+    "Custom test scripts"
+  ],
+  "scheduled_tasks": [
+    {
+      "task": "Weekly regression testing",
+      "frequency": "weekly",
+      "description": "Run full test suite to catch regressions"
+    },
+    {
+      "task": "Daily smoke tests",
+      "frequency": "daily",
+      "description": "Quick validation of core functionality"
+    }
+  ]
+}

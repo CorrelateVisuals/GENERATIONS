@@ -1,0 +1,36 @@
+# GENERATIONS Agent Crontab
+# All times are in UTC
+# Format: minute hour day month day-of-week command
+
+# Build Agent Tasks
+# Nightly Build Validation - Daily at 2:00 AM UTC
+0 2 * * * /home/runner/work/GENERATIONS/GENERATIONS/.github/agents/manage-schedule.sh run build-agent "Nightly build validation"
+
+# Test Agent Tasks
+# Daily Smoke Tests - Daily at 8:00 AM UTC
+0 8 * * * /home/runner/work/GENERATIONS/GENERATIONS/.github/agents/manage-schedule.sh run test-agent "Daily smoke tests"
+
+# Weekly Regression Testing - Every Sunday at 10:00 AM UTC
+0 10 * * 0 /home/runner/work/GENERATIONS/GENERATIONS/.github/agents/manage-schedule.sh run test-agent "Weekly regression testing"
+
+# Documentation Agent Tasks
+# API Documentation Generation - Every Monday at 9:00 AM UTC
+0 9 * * 1 /home/runner/work/GENERATIONS/GENERATIONS/.github/agents/manage-schedule.sh run documentation-agent "API docs generation"
+
+# Monthly Documentation Review - 1st of each month at 10:00 AM UTC
+0 10 1 * * /home/runner/work/GENERATIONS/GENERATIONS/.github/agents/manage-schedule.sh run documentation-agent "Monthly documentation review"
+
+# Code Quality Agent Tasks
+# Daily Code Quality Checks - Daily at 6:00 AM UTC
+0 6 * * * /home/runner/work/GENERATIONS/GENERATIONS/.github/agents/manage-schedule.sh run code-quality-agent "Daily code quality checks"
+
+# Weekly Full Codebase Scan - Every Saturday at 3:00 AM UTC
+0 3 * * 6 /home/runner/work/GENERATIONS/GENERATIONS/.github/agents/manage-schedule.sh run code-quality-agent "Weekly full codebase scan"
+
+# Asset Agent Tasks
+# Weekly Shader Optimization - Every Wednesday at 11:00 AM UTC
+0 11 * * 3 /home/runner/work/GENERATIONS/GENERATIONS/.github/agents/manage-schedule.sh run asset-agent "Shader optimization"
+
+# Monthly Asset Cleanup - Last day of month at 2:00 PM UTC
+# Note: This uses a helper script to determine the last day
+0 14 28-31 * * [ $(date -d tomorrow +\%d) -eq 1 ] && /home/runner/work/GENERATIONS/GENERATIONS/.github/agents/manage-schedule.sh run asset-agent "Asset cleanup"

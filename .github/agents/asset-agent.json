@@ -1,0 +1,37 @@
+{
+  "name": "Asset Agent",
+  "specialty": "Shader and Asset Management",
+  "description": "Manages shaders, textures, and other game assets with validation and optimization",
+  "capabilities": [
+    "Shader validation",
+    "Shader optimization",
+    "Asset organization",
+    "SPIR-V analysis",
+    "Resource usage tracking"
+  ],
+  "route_tasks": [
+    "Validate shader syntax",
+    "Optimize shader performance",
+    "Organize asset files",
+    "Track resource usage",
+    "Manage shader versions"
+  ],
+  "tools": [
+    "glslangValidator",
+    "spirv-opt",
+    "spirv-cross",
+    "Custom asset scripts"
+  ],
+  "scheduled_tasks": [
+    {
+      "task": "Shader optimization",
+      "frequency": "weekly",
+      "description": "Optimize shaders for better GPU performance"
+    },
+    {
+      "task": "Asset cleanup",
+      "frequency": "monthly",
+      "description": "Remove unused assets and organize asset directory"
+    }
+  ]
+}

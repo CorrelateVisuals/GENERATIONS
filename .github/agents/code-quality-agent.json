@@ -1,0 +1,37 @@
+{
+  "name": "Code Quality Agent",
+  "specialty": "Code Analysis and Quality Assurance",
+  "description": "Ensures code quality through static analysis, formatting checks, and best practices enforcement",
+  "capabilities": [
+    "Static code analysis",
+    "Code formatting validation",
+    "Naming convention enforcement",
+    "Code smell detection",
+    "Complexity analysis"
+  ],
+  "route_tasks": [
+    "Run static analyzers",
+    "Check code formatting",
+    "Validate naming conventions",
+    "Detect code duplications",
+    "Measure code complexity"
+  ],
+  "tools": [
+    "clang-format",
+    "clang-tidy",
+    "cppcheck",
+    "cpplint"
+  ],
+  "scheduled_tasks": [
+    {
+      "task": "Daily code quality checks",
+      "frequency": "daily",
+      "description": "Run static analysis on recent changes"
+    },
+    {
+      "task": "Weekly full codebase scan",
+      "frequency": "weekly",
+      "description": "Comprehensive code quality analysis of entire codebase"
+    }
+  ]
+}

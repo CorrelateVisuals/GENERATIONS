@@ -1,0 +1,36 @@
+{
+  "name": "Documentation Agent",
+  "specialty": "Documentation Maintenance and Generation",
+  "description": "Maintains project documentation, generates API docs, and keeps README files updated",
+  "capabilities": [
+    "API documentation generation",
+    "README maintenance",
+    "Architecture documentation",
+    "Code comment validation",
+    "Tutorial creation"
+  ],
+  "route_tasks": [
+    "Generate API documentation from code",
+    "Update README files",
+    "Validate documentation accuracy",
+    "Create getting started guides",
+    "Document new features"
+  ],
+  "tools": [
+    "Doxygen",
+    "Markdown",
+    "Git"
+  ],
+  "scheduled_tasks": [
+    {
+      "task": "Monthly documentation review",
+      "frequency": "monthly",
+      "description": "Review and update all documentation for accuracy"
+    },
+    {
+      "task": "API docs generation",
+      "frequency": "weekly",
+      "description": "Regenerate API documentation from code comments"
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "name": "Build Agent",
+  "specialty": "Compilation and Build Management",
+  "description": "Manages project compilation, build processes, and binary generation across different platforms",
+  "capabilities": [
+    "CMake configuration",
+    "Cross-platform compilation (Linux/Windows)",
+    "Shader compilation (GLSL to SPIR-V)",
+    "Dependency management",
+    "Build artifact management"
+  ],
+  "route_tasks": [
+    "Compile source files",
+    "Generate executable binaries",
+    "Compile GLSL shaders to .spv files",
+    "Validate build configurations",
+    "Clean build artifacts"
+  ],
+  "tools": [
+    "cmake",
+    "make",
+    "glslangValidator",
+    "Visual Studio (Windows)",
+    "gcc/g++ (Linux)"
+  ],
+  "scheduled_tasks": [
+    {
+      "task": "Nightly build validation",
+      "frequency": "daily",
+      "description": "Full clean build to ensure compilation integrity"
+    },
+    {
+      "task": "Shader recompilation",
+      "frequency": "on-change",
+      "description": "Recompile shaders when source files change"
+    }
+  ]
+}
