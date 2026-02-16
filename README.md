@@ -48,6 +48,36 @@ Executing: Go to the project root directory **GENERATIONS**:
 ./bin/CapitalEngine
 ```
 
+## Automated Agents
+
+GENERATIONS uses a system of specialized agents to automate development, testing, and maintenance tasks. Each agent has specific responsibilities and runs on a predefined schedule.
+
+See [schedule.md](schedule.md) for the complete agent schedule and task descriptions.
+
+### Available Agents
+- **Build Agent**: Manages compilation and builds
+- **Test Agent**: Runs validation and tests
+- **Documentation Agent**: Maintains project documentation
+- **Code Quality Agent**: Ensures code quality standards
+- **Asset Agent**: Manages shaders and assets
+
+### Managing Agent Schedules
+```bash
+# List all agents
+./.github/agents/manage-schedule.sh list
+
+# Show agent details
+./.github/agents/manage-schedule.sh show build-agent
+
+# Run a task manually
+./.github/agents/manage-schedule.sh run build-agent "Nightly build validation"
+
+# Validate cron configuration
+./.github/agents/manage-schedule.sh validate
+```
+
+For more information, see [.github/agents/README.md](.github/agents/README.md).
+
 
 
 Build on the tutorial series by *Sascha Willems*: [Vulkan tutorial](https://vulkan-tutorial.com/Introduction).

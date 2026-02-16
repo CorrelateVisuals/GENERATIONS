@@ -100,3 +100,6 @@ src/CAPITAL-engine.vcxproj.filters
 src/CAPITAL-engine.vcxproj.filters
 src/CAPITAL-engine.vcxproj.filters
 src/CAPITAL-engine.vcxproj.filters
+
+# Agent logs
+.github/agents/logs/
