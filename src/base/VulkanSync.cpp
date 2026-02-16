@@ -1,6 +1,7 @@
 #include "VulkanSync.h"
 #include "VulkanUtils.h"
 
+#include "../core/GpuProfiler.h"
 #include "../core/Log.h"
 
 #include <algorithm>
@@ -185,12 +186,17 @@ void CE::CommandBuffers::end_singular_commands(const VkCommandPool &command_pool
               uploadFence);
   }
 
+  GpuProfiler::instance().begin_cpu_event("VkFence_Wait");
+
   const VkResult waitResult =
       vkWaitForFences(Device::base_device->logical_device,
               1,
               &uploadFence,
               VK_TRUE,
               UINT64_MAX);
+
+  GpuProfiler::instance().end_cpu_event("VkFence_Wait");
+
   Log::text("{ ..1 }", "Single Time fence wait result", waitResult);
   if (waitResult != VK_SUCCESS) {
     vkDestroyFence(Device::base_device->logical_device, uploadFence, nullptr);

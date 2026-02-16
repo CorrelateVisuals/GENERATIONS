@@ -1,4 +1,5 @@
 #include "CapitalEngine.h"
+#include "core/GpuProfiler.h"
 #include "core/Log.h"
 #include "core/RuntimeConfig.h"
 #include "io/Screenshot.h"
@@ -57,12 +58,26 @@ void CapitalEngine::main_loop() {
   auto startup_screenshot_capture_at = startup_screenshot_ready_at;
   Window &main_window = Window::get();
 
+  // GPU profiler reporting setup
+  uint32_t profiler_frame_count = 0;
+  constexpr uint32_t PROFILER_REPORT_INTERVAL = 300; // Every 300 frames (~5 sec at 60fps)
+
   while (!glfwWindowShouldClose(main_window.window)) {
     main_window.poll_input();
     resources->world._time.run();
     mechanics.main_device.maybe_log_gpu_runtime_sample();
 
     draw_frame();
+
+    // Periodic GPU profiler reporting (if enabled via CE_GPU_TRACE)
+    if (CE::GpuProfiler::instance().is_enabled()) {
+      profiler_frame_count++;
+      if (profiler_frame_count >= PROFILER_REPORT_INTERVAL) {
+        CE::GpuProfiler::instance().print_report();
+        CE::GpuProfiler::instance().clear_events();
+        profiler_frame_count = 0;
+      }
+    }
 
     if (!first_loop_screenshot_captured &&
         std::chrono::steady_clock::now() >= startup_screenshot_ready_at) {

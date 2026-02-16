@@ -2,6 +2,7 @@
 #include "VulkanSync.h"
 #include "VulkanUtils.h"
 
+#include "../core/GpuProfiler.h"
 #include "../core/Log.h"
 
 #include <algorithm>
@@ -282,6 +283,10 @@ void CE::Device::create_logical_device(const InitializeVulkan &init_vulkan,
               "Logical Device created",
               this->logical_device);
   }
+
+  // Initialize GPU profiler after device creation
+  GpuProfiler::instance().init(this->logical_device, this->physical_device);
+
     vkGetDeviceQueue(this->logical_device,
        queues.indices.graphics_and_compute_family.value(),
                    0,
@@ -572,6 +577,9 @@ void CE::Device::destroy_device() {
   if (this->logical_device == VK_NULL_HANDLE) {
     return;
   }
+
+  // Cleanup GPU profiler before device destruction
+  GpuProfiler::instance().cleanup();
 
   bool is_device_destroyed = false;
   for (const VkDevice &device : destroyed_devices) {

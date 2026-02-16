@@ -5,6 +5,7 @@
 #include "VulkanSync.h"
 #include "VulkanUtils.h"
 
+#include "../core/GpuProfiler.h"
 #include "../core/Log.h"
 
 #include <cstring>
@@ -139,14 +140,24 @@ void CE::Buffer::copy(const VkBuffer &src_buffer,
               queue);
   }
 
+  GpuProfiler::instance().begin_cpu_event("Buffer::copy");
+
   CE::SingleUseCommands single_use_commands(command_pool, queue);
   VkCommandBuffer &single_use_command_buffer = single_use_commands.command_buffer();
+
+  GpuProfiler::instance().begin_event(single_use_command_buffer, "GPU_Buffer_Copy");
+
   VkBufferCopy copy_region{};
   copy_region.srcOffset = 0;
   copy_region.dstOffset = 0;
   copy_region.size = size;
   vkCmdCopyBuffer(single_use_command_buffer, src_buffer, dst_buffer, 1, &copy_region);
+
+  GpuProfiler::instance().end_event(single_use_command_buffer, "GPU_Buffer_Copy");
+
   single_use_commands.submit_and_wait();
+
+  GpuProfiler::instance().end_cpu_event("Buffer::copy");
 }
 
 void CE::Buffer::copy_to_image(const VkBuffer &buffer,
@@ -174,8 +185,13 @@ void CE::Buffer::copy_to_image(const VkBuffer &buffer,
               queue);
   }
 
+  GpuProfiler::instance().begin_cpu_event("Buffer::copy_to_image");
+
   CE::SingleUseCommands single_use_commands(command_pool, queue);
   VkCommandBuffer &single_use_command_buffer = single_use_commands.command_buffer();
+
+  GpuProfiler::instance().begin_event(single_use_command_buffer, "GPU_Buffer_To_Image");
+
   VkBufferImageCopy region{};
   region.bufferOffset = 0;
   region.bufferRowLength = 0;
@@ -193,7 +209,12 @@ void CE::Buffer::copy_to_image(const VkBuffer &buffer,
                          VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                          1,
                          &region);
+
+  GpuProfiler::instance().end_event(single_use_command_buffer, "GPU_Buffer_To_Image");
+
   single_use_commands.submit_and_wait();
+
+  GpuProfiler::instance().end_cpu_event("Buffer::copy_to_image");
 }
 
 void CE::Image::destroy_vulkan_images() {

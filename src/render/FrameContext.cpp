@@ -4,6 +4,7 @@
 #include "Pipelines.h"
 #include "Resources.h"
 #include "base/VulkanUtils.h"
+#include "core/GpuProfiler.h"
 #include "platform/Window.h"
 
 #include <array>
@@ -164,6 +165,9 @@ void FrameContext::draw_frame(uint32_t &last_presented_image_index,
 
   submit_graphics(frame_index, image_index);
   present(frame_index, image_index, recreate_swapchain);
+
+  // Resolve GPU profiler timestamps after frame submission
+  CE::GpuProfiler::instance().resolve_timestamps();
 
   last_presented_image_index = image_index;
   last_submitted_frame_index = frame_index;
