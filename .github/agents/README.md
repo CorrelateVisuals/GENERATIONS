@@ -7,9 +7,10 @@ This directory contains agent profiles that define specialized roles for develop
 These archetype agents are designed to be rotated during development and code review to ensure:
 - No architectural blind spots
 - Balanced consideration of performance, correctness, maintainability, and efficiency
-- Comprehensive expertise across C++, Vulkan, GLSL, and software architecture
+- Comprehensive expertise across C++, Vulkan, GLSL, software architecture, and user experience
+- Clear, accessible documentation that stays synchronized with code
 
-## The Four Archetypes
+## The Five Archetypes
 
 ### 1. [C++ Lead](cpp-lead.md)
 **Focus**: Real-time safety-critical systems engineering
@@ -39,6 +40,13 @@ The Refactorer ensures code is clean, readable, adheres to established standards
 
 **Key question**: "Is this code clear, maintainable, and properly architected for the long term?"
 
+### 5. [HPC Marketeer](hpc-marketeer.md)
+**Focus**: Documentation and user experience
+
+The HPC Marketeer understands what users want and identifies what's cumbersome or hard to understand. Expert at presenting software effectively and maintaining documentation to support it. README.md is home base, but extends to all repository documentation. Keeps docs clean so they're easy to update when code changes.
+
+**Key question**: "Will users understand this, and is the documentation accurate and up-to-date?"
+
 ## Coverage Matrix
 
 Together, these agents ensure comprehensive coverage:
@@ -54,6 +62,9 @@ Together, these agents ensure comprehensive coverage:
 | Resource management | Vulkan Guru | C++ Lead |
 | Code maintainability | Refactorer | All |
 | Long-term design | Refactorer | C++ Lead |
+| Documentation quality | HPC Marketeer | Refactorer |
+| User experience | HPC Marketeer | All |
+| Onboarding & setup | HPC Marketeer | C++ Lead |
 
 ## How to Use These Agents
 
@@ -62,7 +73,8 @@ When reviewing code or planning changes, consider each agent's perspective:
 1. **During development**: Rotate through agent perspectives to validate decisions
 2. **During code review**: Apply each agent's lens to ensure comprehensive review
 3. **When stuck**: Consult the agent most relevant to your current challenge
-4. **For major changes**: Ensure all four agents would approve the architectural direction
+4. **For major changes**: Ensure all five agents would approve the architectural direction
+5. **When documenting**: Let the HPC Marketeer review for clarity and user perspective
 
 ## Principles Shared by All Agents
 
@@ -80,5 +92,6 @@ When reviewing code or planning changes, consider each agent's perspective:
 2. **Vulkan Guru**: Optimize Vulkan resource usage and API patterns
 3. **Kernel Expert**: Move appropriate work to GPU shaders
 4. **Refactorer**: Ensure code is clean, well-documented, and architecturally sound
+5. **HPC Marketeer**: Update documentation, validate user-facing changes are clear
 
-This multi-perspective approach ensures the GENERATIONS engine remains reliable, high-performance, and maintainable.
+This multi-perspective approach ensures the GENERATIONS engine remains reliable, high-performance, maintainable, and accessible.
