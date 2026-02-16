@@ -85,20 +85,25 @@ void GpuProfiler::end_event(VkCommandBuffer cmd_buffer, const std::string &event
     return;
   }
 
-  const uint32_t query_index = query_count_;
+  const uint32_t begin_index = it->second;
+  const uint32_t end_index = query_count_;
   query_count_++;
 
   vkCmdWriteTimestamp(cmd_buffer,
                       VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
                       query_pool_,
-                      query_index);
+                      end_index);
 
-  // Store event info for later resolution
+  // Store event info with query indices for later resolution
   Event event;
   event.name = event_name;
   event.is_gpu_event = true;
-  // Will be filled in resolve_timestamps()
+  event.begin_query_index = begin_index;
+  event.end_query_index = end_index;
   events_.push_back(event);
+
+  // Remove from pending map
+  begin_query_indices_.erase(it);
 }
 
 void GpuProfiler::begin_cpu_event(const std::string &event_name) {
@@ -154,26 +159,23 @@ void GpuProfiler::resolve_timestamps() {
     return;
   }
 
-  // Update GPU events with actual timestamps
-  uint32_t event_index = 0;
-  for (const auto &[name, begin_index] : begin_query_indices_) {
-    if (event_index < events_.size() && events_[event_index].is_gpu_event) {
-      const uint32_t end_index = begin_index + 1;
-      if (end_index < timestamps.size()) {
-        events_[event_index].begin_timestamp = timestamps[begin_index];
-        events_[event_index].end_timestamp = timestamps[end_index];
-        const uint64_t delta = timestamps[end_index] - timestamps[begin_index];
-        events_[event_index].duration_ms =
+  // Update GPU events with actual timestamps using stored query indices
+  for (auto &event : events_) {
+    if (event.is_gpu_event) {
+      if (event.begin_query_index < timestamps.size() &&
+          event.end_query_index < timestamps.size()) {
+        event.begin_timestamp = timestamps[event.begin_query_index];
+        event.end_timestamp = timestamps[event.end_query_index];
+        const uint64_t delta = event.end_timestamp - event.begin_timestamp;
+        event.duration_ms =
             static_cast<double>(delta) * static_cast<double>(timestamp_period_) / 1e6;
       }
-      event_index++;
     }
   }
 
   // Reset query pool for next frame
   vkResetQueryPool(device_, query_pool_, 0, query_count_);
   query_count_ = 0;
-  begin_query_indices_.clear();
 }
 
 const std::vector<GpuProfiler::Event> &GpuProfiler::get_events() const {
@@ -203,9 +205,7 @@ void GpuProfiler::print_report() const {
          << event.duration_ms << " ms";
     line << " [" << (event.is_gpu_event ? "GPU" : "CPU") << "]";
 
-    // Pad to align with box
-    const std::string line_str = line.str();
-    Log::text(line_str);
+    Log::text(line.str());
 
     if (event.is_gpu_event) {
       total_gpu_time += event.duration_ms;
@@ -216,15 +216,15 @@ void GpuProfiler::print_report() const {
 
   Log::text("├─────────────────────────────────────────────────────────┤");
 
-  std::ostringstream summary;
-  summary << "│ Total GPU time: " << std::setw(10) << std::fixed << std::setprecision(3)
-          << total_gpu_time << " ms";
-  Log::text(summary.str());
+  std::ostringstream gpu_summary;
+  gpu_summary << "│ Total GPU time: " << std::setw(10) << std::fixed << std::setprecision(3)
+              << total_gpu_time << " ms";
+  Log::text(gpu_summary.str());
 
-  summary.str("");
-  summary << "│ Total CPU time: " << std::setw(10) << std::fixed << std::setprecision(3)
-          << total_cpu_time << " ms";
-  Log::text(summary.str());
+  std::ostringstream cpu_summary;
+  cpu_summary << "│ Total CPU time: " << std::setw(10) << std::fixed << std::setprecision(3)
+              << total_cpu_time << " ms";
+  Log::text(cpu_summary.str());
 
   Log::text("└─────────────────────────────────────────────────────────┘");
 }

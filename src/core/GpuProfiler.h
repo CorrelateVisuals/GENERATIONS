@@ -28,6 +28,8 @@ public:
     uint64_t end_timestamp{0};
     double duration_ms{0.0};
     bool is_gpu_event{true};
+    uint32_t begin_query_index{0};
+    uint32_t end_query_index{0};
   };
 
   static GpuProfiler &instance();
