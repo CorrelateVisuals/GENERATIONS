@@ -32,9 +32,27 @@ This is the shared baseline that applies to all GENERATIONS agents.
 ## Escalation Rule
 If an agent finds a concern outside its specialty, hand over to the relevant specialist agent and keep findings short and actionable.
 
+## Guild System
+Agents belong to **guilds** — cross-role specializations with shared procedures and vocabulary.
+- Guild files: `.github/agents/guilds/*.md`
+- Procedure log: `.github/agents/procedures.md`
+- When a guild procedure exists for a task pattern, **use it** instead of inventing a new approach.
+- When you discover a reusable pattern, record it in your output under `## Procedure Recording`.
+
+## Structured Handoff Format
+All TODO handoffs must follow this format for machine-parseable handoff:
+```
+### <Agent Name> TODOs
+- [ ] `<file path>` — <one-line action> [RISK: low|med|high]
+- [ ] `<file path>` — <one-line action> [RISK: low|med|high]
+- [ ] GUILD:<guild-name> — <cross-role action requiring guild procedure>
+```
+
 ## Standard Output Format (all agents)
 1. Main task outcome (for the current manual task)
 2. Secondary task outcomes
 3. Risks and constraints
-4. Actionable TODOs (file-scoped when possible)
+4. Actionable TODOs (file-scoped, use Structured Handoff Format)
 5. Handoff note to next agent
+6. Code Proposal
+7. Procedure Recording (optional — only when a new reusable pattern was discovered)

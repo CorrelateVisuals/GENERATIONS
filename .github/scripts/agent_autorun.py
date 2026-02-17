@@ -12,6 +12,7 @@ from urllib import request
 
 ROOT = Path(os.environ.get("GITHUB_WORKSPACE", ".")).resolve()
 AGENTS_DIR = ROOT / ".github" / "agents"
+GUILDS_DIR = AGENTS_DIR / "guilds"
 RUNS_DIR = AGENTS_DIR / "runs"
 PROPOSALS_DIR = AGENTS_DIR / "proposals"
 
@@ -76,6 +77,32 @@ def read_capped(path: Path, max_chars: int = 3000) -> str:
     head = content[: max_chars // 2]
     tail = content[-max_chars // 2 :]
     return f"{head}\n\n... [truncated] ...\n\n{tail}"
+
+
+AGENT_GUILDS: Dict[str, List[str]] = {
+    "C++ Lead": ["performance.md", "architecture.md"],
+    "Vulkan Guru": ["performance.md", "gpu-pipeline.md"],
+    "Kernel Expert": ["performance.md", "gpu-pipeline.md"],
+    "Refactorer": ["architecture.md"],
+    "HPC Marketeer": [],
+    "Party": [],
+}
+
+
+def load_guild_context(agent_name: str) -> str:
+    guild_files = AGENT_GUILDS.get(agent_name, [])
+    if not guild_files:
+        return ""
+    parts = []
+    for gf in guild_files:
+        path = GUILDS_DIR / gf
+        content = read_text(path)
+        if content:
+            parts.append(content)
+    procedures = read_text(AGENTS_DIR / "procedures.md")
+    if procedures.strip():
+        parts.append(procedures)
+    return "\n\n".join(parts) if parts else ""
 
 
 def call_llm(prompt: str) -> str:
@@ -207,6 +234,7 @@ def build_agent_prompt(
     previous_outputs: Dict[str, str],
     incoming_todos: str,
     agent_name: str,
+    guild_context: str = "",
 ) -> str:
     prev_parts = []
     for name, txt in previous_outputs.items():
@@ -214,6 +242,12 @@ def build_agent_prompt(
         prev_parts.append(f"## {name} Output\n{trimmed}")
     prev = "\n\n".join(prev_parts)
     incoming_trimmed = incoming_todos[:1500] if len(incoming_todos) > 1500 else incoming_todos
+    guild_section = ""
+    if guild_context:
+        guild_section = f"""
+# Guild Context (shared procedures and vocabulary)
+{guild_context[:3000]}
+"""
     return f"""
 You are running inside the GENERATIONS multi-agent pipeline.
 
@@ -222,7 +256,7 @@ You are running inside the GENERATIONS multi-agent pipeline.
 
 # Agent Profile
 {profile_md}
-
+{guild_section}
 # Active Task
 {task_md}
 
@@ -239,9 +273,10 @@ Return markdown with these exact sections:
 1) Main Task Outcome
 2) Secondary Task Outcomes
 3) Risks and Constraints
-4) Actionable TODOs
+4) Actionable TODOs (use Structured Handoff Format from base rules)
 5) Handoff Note
 6) Code Proposal
+7) Procedure Recording (only if you discovered a new reusable pattern)
 """.strip()
 
 
@@ -572,6 +607,7 @@ def main() -> None:
 
     for name, filename in sequence:
         profile_md = read_text(AGENTS_DIR / filename)
+        guild_context = load_guild_context(name)
         prompt = build_agent_prompt(
             base_md,
             profile_md,
@@ -580,6 +616,7 @@ def main() -> None:
             outputs,
             handoff_todos,
             name,
+            guild_context,
         )
         result = call_llm(prompt)
         outputs[name] = result
@@ -598,6 +635,21 @@ def main() -> None:
 
     RUNS_DIR.mkdir(parents=True, exist_ok=True)
     PROPOSALS_DIR.mkdir(parents=True, exist_ok=True)
+
+    # Extract and append new procedures discovered by agents
+    procedures_path = AGENTS_DIR / "procedures.md"
+    new_procedures = []
+    for name, _ in sequence:
+        output = outputs.get(name, "")
+        m = re.search(r"7\) Procedure Recording([\s\S]*?)(?:\n## |\Z)", output, flags=re.IGNORECASE)
+        if m:
+            proc_text = m.group(1).strip()
+            if proc_text and "no new" not in proc_text.lower() and "none" not in proc_text.lower() and len(proc_text) > 20:
+                new_procedures.append(f"\n### From {name} ({today}, {task_id})\n{proc_text}\n")
+    if new_procedures:
+        with open(procedures_path, "a", encoding="utf-8") as f:
+            for proc in new_procedures:
+                f.write(proc)
 
     report_path = RUNS_DIR / f"{today}-choice-a.md"
     proposal_md_path = PROPOSALS_DIR / f"{today}-{task_id.lower()}-proposal.md"
