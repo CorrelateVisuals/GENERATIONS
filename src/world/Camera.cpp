@@ -23,10 +23,16 @@ void Camera::configure_arcball(const glm::vec3 &target, float scene_radius) {
   const float safe_radius = std::max(scene_radius, 0.1f);
   constexpr float min_distance_radius_scale = 0.35f;
   constexpr float max_distance_radius_scale = 14.0f;
-  constexpr float default_distance_radius_scale = 2.8f;
+
+  const float configured_distance =
+      arcball_distance > 0.0f
+          ? arcball_distance
+          : std::max(glm::length(position - arcball_target), 1.0f);
+
   arcball_min_distance = std::max(safe_radius * min_distance_radius_scale, 1.0f);
-  arcball_max_distance = safe_radius * max_distance_radius_scale;
-  arcball_distance = std::clamp(safe_radius * default_distance_radius_scale,
+  arcball_max_distance = std::max(safe_radius * max_distance_radius_scale,
+                                  configured_distance * 2.0f);
+  arcball_distance = std::clamp(configured_distance,
                                 arcball_min_distance,
                                 arcball_max_distance);
   arcball_preset_reference_distance = arcball_distance;

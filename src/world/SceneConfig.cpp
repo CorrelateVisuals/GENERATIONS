@@ -14,6 +14,9 @@ constexpr int kMaxRenderStage = 5;
 constexpr const char *kDefaultPreset = "default";
 constexpr const char *kPresetComputeOnly = "compute_only";
 constexpr const char *kPresetComputeChain = "compute_chain";
+constexpr const char *kEnvPreComputePipelines = "CE_SCENE_PRECOMPUTE";
+constexpr const char *kEnvGraphicsPipelines = "CE_SCENE_GRAPHICS";
+constexpr const char *kEnvPostComputePipelines = "CE_SCENE_POSTCOMPUTE";
 
 const std::vector<std::string> kDefaultComputeChain = {
     "ComputeInPlace",
@@ -105,6 +108,44 @@ std::string workload_preset() {
   return preset;
 }
 
+void append_stage_nodes(SceneConfig &spec,
+                        const CE::Runtime::RenderStage stage,
+                        const std::vector<std::string> &pipelines) {
+  for (const std::string &pipeline : pipelines) {
+    CE::Runtime::DrawOpId draw_op = CE::Runtime::DrawOpId::Unknown;
+    if (stage == CE::Runtime::RenderStage::Graphics) {
+      const auto draw_it = spec.draw_ops.find(pipeline);
+      if (draw_it != spec.draw_ops.end()) {
+        draw_op = CE::Runtime::draw_op_from_string(draw_it->second);
+      }
+    }
+
+    spec.render_graph.nodes.push_back(CE::Runtime::RenderNode{
+        .stage = stage,
+        .pipeline = pipeline,
+        .draw_op = draw_op,
+    });
+  }
+}
+
+void apply_graph_overrides(SceneConfig &spec) {
+  const std::vector<std::string> pre_compute =
+      split_csv(std::getenv(kEnvPreComputePipelines));
+  const std::vector<std::string> graphics =
+      split_csv(std::getenv(kEnvGraphicsPipelines));
+  const std::vector<std::string> post_compute =
+      split_csv(std::getenv(kEnvPostComputePipelines));
+
+  if (pre_compute.empty() && graphics.empty() && post_compute.empty()) {
+    return;
+  }
+
+  spec.render_graph.nodes.clear();
+  append_stage_nodes(spec, CE::Runtime::RenderStage::PreCompute, pre_compute);
+  append_stage_nodes(spec, CE::Runtime::RenderStage::Graphics, graphics);
+  append_stage_nodes(spec, CE::Runtime::RenderStage::PostCompute, post_compute);
+}
+
 } // namespace
 
 SceneConfig SceneConfig::defaults() {
@@ -113,19 +154,40 @@ SceneConfig SceneConfig::defaults() {
   const std::string preset = workload_preset();
   const std::vector<std::string> compute_chain = split_csv(std::getenv("CE_COMPUTE_CHAIN"));
 
+  spec.terrain.grid_width = 25;
+  spec.terrain.grid_height = 25;
+  spec.terrain.alive_cells = CE::Runtime::kDefaultAliveCells;
+  spec.terrain.cell_size = 0.5f;
+  spec.terrain.terrain_render_subdivisions = 1;
   spec.terrain.terrain_box_depth = 14.0f;
+  spec.terrain.layer1_roughness = 0.4f;
+  spec.terrain.layer1_octaves = 10;
+  spec.terrain.layer1_scale = 2.2f;
   spec.terrain.layer1_amplitude = 16.0f;
   spec.terrain.layer1_exponent = 2.8f;
   spec.terrain.layer1_frequency = 1.6f;
+  spec.terrain.layer1_height_offset = 0.0f;
+  spec.terrain.layer2_roughness = 1.0f;
+  spec.terrain.layer2_octaves = 10;
+  spec.terrain.layer2_scale = 2.2f;
   spec.terrain.layer2_amplitude = 3.0f;
   spec.terrain.layer2_exponent = 1.5f;
   spec.terrain.layer2_frequency = 2.4f;
+  spec.terrain.layer2_height_offset = 0.0f;
   spec.terrain.blend_factor = 0.45f;
+  spec.terrain.absolute_height = 0.0f;
+
+  spec.world.timer_speed = 25.0f;
+  spec.world.water_threshold = 0.1f;
   spec.world.water_dead_zone_margin = 2.5f;
   spec.world.water_shore_band_width = 1.0f;
   spec.world.water_border_highlight_width = 0.10f;
+  spec.world.light_pos = {0.0f, 20.0f, 20.0f, 0.0f};
   spec.world.zoom_speed = 0.2f;
   spec.world.panning_speed = 0.4f;
+  spec.world.field_of_view = 35.0f;
+  spec.world.near_clipping = 0.25f;
+  spec.world.far_clipping = 800.0f;
   spec.world.camera_position = {0.0f, 0.0f, 80.0f};
   spec.world.arcball_tumble_mult = 1.0f;
   spec.world.arcball_pan_mult = 1.4f;
@@ -135,6 +197,9 @@ SceneConfig SceneConfig::defaults() {
   spec.world.arcball_smoothing = 0.25f;
   spec.world.arcball_distance_pan_scale = 0.9f;
   spec.world.arcball_distance_zoom_scale = 0.8f;
+  spec.world.cube_shape = 1;
+  spec.world.rectangle_shape = 0;
+  spec.world.sphere_shape = 2;
 
   spec.pipelines["Cells"] = CE::Runtime::PipelineDefinition{
       .is_compute = false,
@@ -207,6 +272,42 @@ SceneConfig SceneConfig::defaults() {
       .work_groups = {0, 0, 0},
   };
 
+    spec.assembly.resources = {
+      CE::Runtime::ResourceDefinition{
+        .name = "UniformBuffer",
+        .type = "ubo",
+        .input = "World::UniformBufferObject",
+        .output = "DescriptorSet[0]",
+      },
+      CE::Runtime::ResourceDefinition{
+        .name = "StorageBufferIn",
+        .type = "ssbo",
+        .input = "World::Grid::cells",
+        .output = "DescriptorSet[1]",
+      },
+      CE::Runtime::ResourceDefinition{
+        .name = "StorageBufferOut",
+        .type = "ssbo",
+        .input = "Compute pipelines",
+        .output = "DescriptorSet[2]",
+      },
+      CE::Runtime::ResourceDefinition{
+        .name = "StorageImage",
+        .type = "storage_image",
+        .input = "Swapchain image",
+        .output = "DescriptorSet[4]",
+      },
+    };
+
+    spec.assembly.shader_binaries = {
+      CE::Runtime::ShaderBinaryRoute{.source = "shaders/Engine.comp", .binary = "shaders/EngineComp.spv"},
+      CE::Runtime::ShaderBinaryRoute{.source = "shaders/SeedCells.comp", .binary = "shaders/SeedCells.comp.spv"},
+      CE::Runtime::ShaderBinaryRoute{.source = "shaders/Landscape.vert", .binary = "shaders/LandscapeVert.spv"},
+      CE::Runtime::ShaderBinaryRoute{.source = "shaders/Landscape.frag", .binary = "shaders/LandscapeFrag.spv"},
+      CE::Runtime::ShaderBinaryRoute{.source = "shaders/Cells.vert", .binary = "shaders/CellsVert.spv"},
+      CE::Runtime::ShaderBinaryRoute{.source = "shaders/Cells.frag", .binary = "shaders/CellsFrag.spv"},
+    };
+
   spec.draw_ops = {
       {"Cells", "instanced:cells"},
       {"CellsFollower", "instanced:cells"},
@@ -226,13 +327,7 @@ SceneConfig SceneConfig::defaults() {
         compute_chain.empty() ? kDefaultComputeChain : compute_chain;
 
     spec.render_graph.nodes.clear();
-    for (const std::string &pipeline : active_chain) {
-      spec.render_graph.nodes.push_back(CE::Runtime::RenderNode{
-          .stage = CE::Runtime::RenderStage::PreCompute,
-          .pipeline = pipeline,
-          .draw_op = CE::Runtime::DrawOpId::Unknown,
-      });
-    }
+    append_stage_nodes(spec, CE::Runtime::RenderStage::PreCompute, active_chain);
   } else {
     std::vector<std::string> graphics_pipelines = kStage0GraphicsPipelines;
     std::vector<std::string> pre_compute_pipelines{};
@@ -252,27 +347,11 @@ SceneConfig SceneConfig::defaults() {
     }
 
     spec.render_graph.nodes.clear();
-    for (const std::string &pipeline : pre_compute_pipelines) {
-      spec.render_graph.nodes.push_back(CE::Runtime::RenderNode{
-          .stage = CE::Runtime::RenderStage::PreCompute,
-          .pipeline = pipeline,
-          .draw_op = CE::Runtime::DrawOpId::Unknown,
-      });
-    }
-
-    for (const std::string &pipeline : graphics_pipelines) {
-      const auto draw_it = spec.draw_ops.find(pipeline);
-      const CE::Runtime::DrawOpId draw_op =
-          (draw_it != spec.draw_ops.end())
-              ? CE::Runtime::draw_op_from_string(draw_it->second)
-              : CE::Runtime::DrawOpId::Unknown;
-      spec.render_graph.nodes.push_back(CE::Runtime::RenderNode{
-          .stage = CE::Runtime::RenderStage::Graphics,
-          .pipeline = pipeline,
-          .draw_op = draw_op,
-      });
-    }
+    append_stage_nodes(spec, CE::Runtime::RenderStage::PreCompute, pre_compute_pipelines);
+    append_stage_nodes(spec, CE::Runtime::RenderStage::Graphics, graphics_pipelines);
   }
+
+  apply_graph_overrides(spec);
 
   return spec;
 }
@@ -281,6 +360,7 @@ void SceneConfig::apply_to_runtime() const {
   CE::Runtime::set_terrain_settings(terrain);
   CE::Runtime::set_world_settings(world);
   CE::Runtime::set_pipeline_definitions(pipelines);
+  CE::Runtime::set_scene_assembly(assembly);
   CE::Runtime::set_render_graph(render_graph);
   CE::Runtime::set_graphics_draw_ops(draw_ops);
 }

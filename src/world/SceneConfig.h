@@ -11,6 +11,7 @@ struct SceneConfig {
   CE::Runtime::TerrainSettings terrain{};
   CE::Runtime::WorldSettings world{};
   std::unordered_map<std::string, CE::Runtime::PipelineDefinition> pipelines{};
+  CE::Runtime::SceneAssembly assembly{};
   CE::Runtime::RenderGraph render_graph{};
   std::unordered_map<std::string, std::string> draw_ops{};
 

@@ -72,12 +72,18 @@ Direct binary launch remains available:
 - `CE_WORKLOAD_PRESET=default|compute_only`: select workload strategy
 - `CE_COMPUTE_CHAIN=<csv>`: set compute pipeline order
 - `CE_RENDER_STAGE=<n>`: restrict stage selection via scene config
+- `CE_SCENE_PRECOMPUTE=<csv>`: override precompute graph nodes explicitly
+- `CE_SCENE_GRAPHICS=<csv>`: override graphics graph nodes explicitly
+- `CE_SCENE_POSTCOMPUTE=<csv>`: override postcompute graph nodes explicitly
 - `CE_STARTUP_SCREENSHOT=1`: capture startup screenshot
 - `CE_GPU_TRACE=1`: verbose GPU trace logging
 - `CE_CAMERA_TUNING=1`: enable camera tuning controls
 - `NO_COLOR=1`: disable ANSI-colored logs
 
 Truthy env values are centrally parsed by `CE::Runtime::env_truthy` and accept `1`, `true`, `on` (case-insensitive).
+
+Scene defaults are intentionally centralized in `src/world/SceneConfig.cpp`; `RuntimeConfig` now acts as the mutable runtime registry rather than owning scene default values.
+`SceneConfig` also centralizes assembly metadata (`resources`, `shader_binaries`) so pipeline graph, resource IO, and shader source→binary routing are maintained in one place.
 
 ## Build and run (Windows)
 

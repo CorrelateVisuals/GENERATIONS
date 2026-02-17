@@ -16,6 +16,9 @@ constexpr int kDefaultGridWidth = 10;
 constexpr int kDefaultGridHeight = 10;
 constexpr uint32_t kDefaultAliveCells = 50;
 
+constexpr const char *kEnvStartupScreenshot = "CE_STARTUP_SCREENSHOT";
+constexpr const char *kEnvStartupScreenshotCycle = "CE_STARTUP_SCREENSHOT_CYCLE";
+
 enum class DrawOpId : uint8_t {
   Unknown = 0,
   InstancedCells,
@@ -68,6 +71,23 @@ struct PipelineDefinition {
   bool is_compute = false;
   std::vector<std::string> shaders{};
   std::array<uint32_t, 3> work_groups{0, 0, 0};
+};
+
+struct ResourceDefinition {
+  std::string name{};
+  std::string type{};
+  std::string input{};
+  std::string output{};
+};
+
+struct ShaderBinaryRoute {
+  std::string source{};
+  std::string binary{};
+};
+
+struct SceneAssembly {
+  std::vector<ResourceDefinition> resources{};
+  std::vector<ShaderBinaryRoute> shader_binaries{};
 };
 
 struct TerrainSettings {
@@ -137,6 +157,8 @@ const RenderGraph *get_render_graph();
 void set_pipeline_definitions(
   const std::unordered_map<std::string, PipelineDefinition> &definitions);
 const std::unordered_map<std::string, PipelineDefinition> &get_pipeline_definitions();
+void set_scene_assembly(const SceneAssembly &assembly);
+const SceneAssembly &get_scene_assembly();
 
 void set_terrain_settings(const TerrainSettings &settings);
 const TerrainSettings &get_terrain_settings();

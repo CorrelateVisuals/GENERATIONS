@@ -12,6 +12,7 @@ namespace {
 std::optional<PipelineExecutionPlan> active_plan{};
 std::optional<RenderGraph> active_render_graph{};
 std::unordered_map<std::string, PipelineDefinition> active_pipeline_definitions{};
+SceneAssembly active_scene_assembly{};
 std::unordered_map<std::string, std::string> active_graphics_draw_ops{};
 std::unordered_map<std::string, DrawOpId> active_graphics_draw_op_ids{};
 TerrainSettings active_terrain_settings{};
@@ -107,6 +108,14 @@ const std::unordered_map<std::string, PipelineDefinition> &get_pipeline_definiti
   return active_pipeline_definitions;
 }
 
+void set_scene_assembly(const SceneAssembly &assembly) {
+  active_scene_assembly = assembly;
+}
+
+const SceneAssembly &get_scene_assembly() {
+  return active_scene_assembly;
+}
+
 void set_terrain_settings(const TerrainSettings &settings) {
   active_terrain_settings = settings;
 }
@@ -162,6 +171,7 @@ void clear_pipeline_execution_plan() {
   active_plan.reset();
   active_render_graph.reset();
   active_pipeline_definitions.clear();
+  active_scene_assembly = SceneAssembly{};
   active_graphics_draw_ops.clear();
   active_graphics_draw_op_ids.clear();
 }

@@ -56,9 +56,9 @@ void CapitalEngine::main_loop() {
   }
 
   const bool startup_screenshot_enabled =
-      CE::Runtime::env_flag_enabled("CE_STARTUP_SCREENSHOT");
+      CE::Runtime::env_flag_enabled(CE::Runtime::kEnvStartupScreenshot);
   const bool startup_screenshot_cycle_enabled =
-      CE::Runtime::env_flag_enabled("CE_STARTUP_SCREENSHOT_CYCLE");
+      CE::Runtime::env_flag_enabled(CE::Runtime::kEnvStartupScreenshotCycle);
 
   bool first_loop_screenshot_captured = !startup_screenshot_enabled;
   bool startup_screenshot_framed = !startup_screenshot_enabled;

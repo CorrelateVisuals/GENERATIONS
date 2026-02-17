@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+ROOT_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$ROOT_DIR"
 
-if [ ! -x "./bin/CapitalEngine" ]; then
-	echo "Binary not found: ./bin/CapitalEngine"
-	echo "Build first: cmake --build build --parallel \"\$(nproc)\""
+if [ ! -x "./out/bin/CapitalEngine" ]; then
+	echo "Binary not found: ./out/bin/CapitalEngine"
+	echo "Build first: cmake --preset dev && cmake --build --preset dev"
 	exit 1
 fi
 
@@ -24,7 +24,7 @@ cleanup() {
 trap cleanup EXIT INT TERM
 
 echo "[trace] starting CapitalEngine with CE_GPU_TRACE=1"
-CE_GPU_TRACE=1 ./bin/CapitalEngine &
+CE_GPU_TRACE=1 ./out/bin/CapitalEngine &
 APP_PID=$!
 
 echo "[trace] streaming GPU flow from log.txt"
