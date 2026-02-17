@@ -12,6 +12,8 @@ from urllib import request
 
 ROOT = Path(os.environ.get("GITHUB_WORKSPACE", ".")).resolve()
 AGENTS_DIR = ROOT / ".github" / "agents"
+PARTY_DIR = AGENTS_DIR / "party"
+TOWN_DIR = AGENTS_DIR / "town"
 GUILDS_DIR = AGENTS_DIR / "guilds"
 RUNS_DIR = AGENTS_DIR / "runs"
 PROPOSALS_DIR = AGENTS_DIR / "proposals"
@@ -99,7 +101,7 @@ def load_guild_context(agent_name: str) -> str:
         content = read_text(path)
         if content:
             parts.append(content)
-    procedures = read_text(AGENTS_DIR / "procedures.md")
+    procedures = read_text(TOWN_DIR / "procedures.md")
     if procedures.strip():
         parts.append(procedures)
     return "\n\n".join(parts) if parts else ""
@@ -661,10 +663,10 @@ def main() -> None:
             agent_only = ""
             agent_set = "C++ Lead,Vulkan Guru,Kernel Expert,Refactorer,HPC Marketeer"
 
-    base_md = read_text(AGENTS_DIR / "base.md")
-    readme_md = read_text(AGENTS_DIR / "README.md")
-    schedule_md = read_text(AGENTS_DIR / "schedule.md")
-    task_md_main = read_text(AGENTS_DIR / "current-task.md")
+    base_md = read_text(TOWN_DIR / "base.md")
+    readme_md = read_text(TOWN_DIR / "README.md")
+    schedule_md = read_text(TOWN_DIR / "schedule.md")
+    task_md_main = read_text(TOWN_DIR / "current-task.md")
 
     if TASK_MODE == "self":
         task_md = build_self_task(schedule_md, readme_md)
@@ -679,20 +681,20 @@ def main() -> None:
     scoped_code = build_scoped_code(scope_files)
 
     all_agents: List[Tuple[str, str]] = [
-        ("C++ Lead", "cpp-lead.md"),
-        ("Vulkan Guru", "vulkan-guru.md"),
-        ("Kernel Expert", "kernel-expert.md"),
-        ("Refactorer", "refactorer.md"),
-        ("HPC Marketeer", "hpc-marketeer.md"),
-        ("Party", "party.md"),
+        ("C++ Lead", "party/cpp-lead.md"),
+        ("Vulkan Guru", "party/vulkan-guru.md"),
+        ("Kernel Expert", "party/kernel-expert.md"),
+        ("Refactorer", "party/refactorer.md"),
+        ("HPC Marketeer", "party/hpc-marketeer.md"),
+        ("Party", "party/party.md"),
     ]
 
     sequence: List[Tuple[str, str]] = [
-        ("C++ Lead", "cpp-lead.md"),
-        ("Vulkan Guru", "vulkan-guru.md"),
-        ("Kernel Expert", "kernel-expert.md"),
-        ("Refactorer", "refactorer.md"),
-        ("HPC Marketeer", "hpc-marketeer.md"),
+        ("C++ Lead", "party/cpp-lead.md"),
+        ("Vulkan Guru", "party/vulkan-guru.md"),
+        ("Kernel Expert", "party/kernel-expert.md"),
+        ("Refactorer", "party/refactorer.md"),
+        ("HPC Marketeer", "party/hpc-marketeer.md"),
     ]
 
     selected_agent = normalize_agent_name(agent_only) if agent_only else ""
@@ -761,7 +763,7 @@ def main() -> None:
     PROPOSALS_DIR.mkdir(parents=True, exist_ok=True)
 
     # Extract and append new procedures discovered by agents
-    procedures_path = AGENTS_DIR / "procedures.md"
+    procedures_path = TOWN_DIR / "procedures.md"
     new_procedures = []
     for name, _ in sequence:
         output = outputs.get(name, "")

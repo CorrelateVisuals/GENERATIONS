@@ -35,7 +35,7 @@ If an agent finds a concern outside its specialty, hand over to the relevant spe
 ## Guild System
 Agents belong to **guilds** — cross-role specializations with shared procedures and vocabulary.
 - Guild files: `.github/agents/guilds/*.md`
-- Procedure log: `.github/agents/procedures.md`
+- Procedure log: `.github/agents/town/procedures.md`
 - When a guild procedure exists for a task pattern, **use it** instead of inventing a new approach.
 - When you discover a reusable pattern, record it in your output under `## Procedure Recording`.
 

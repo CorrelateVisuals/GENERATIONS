@@ -11,6 +11,8 @@ from urllib import request
 
 ROOT = Path(os.environ.get("GITHUB_WORKSPACE", ".")).resolve()
 AGENTS_DIR = ROOT / ".github" / "agents"
+PARTY_DIR = AGENTS_DIR / "party"
+TOWN_DIR = AGENTS_DIR / "town"
 RUNS_DIR = AGENTS_DIR / "runs"
 PROPOSALS_DIR = AGENTS_DIR / "proposals"
 
@@ -166,9 +168,9 @@ Rules for Code Proposal:
 
 def main() -> None:
     today = dt.date.today().isoformat()
-    base_md = read_text(AGENTS_DIR / "base.md")
-    readme_md = read_text(AGENTS_DIR / "README.md")
-    task_md = read_text(AGENTS_DIR / "current-task.md")
+    base_md = read_text(TOWN_DIR / "base.md")
+    readme_md = read_text(TOWN_DIR / "README.md")
+    task_md = read_text(TOWN_DIR / "current-task.md")
     task_id = extract_task_id(task_md)
 
     files = parse_scope_files(task_md)
@@ -179,11 +181,11 @@ def main() -> None:
     scoped_code = "\n\n".join(scoped_parts) if scoped_parts else "No in-scope files found."
 
     sequence: List[Tuple[str, str]] = [
-        ("C++ Lead", "cpp-lead.md"),
-        ("Vulkan Guru", "vulkan-guru.md"),
-        ("Kernel Expert", "kernel-expert.md"),
-        ("Refactorer", "refactorer.md"),
-        ("HPC Marketeer", "hpc-marketeer.md"),
+        ("C++ Lead", "party/cpp-lead.md"),
+        ("Vulkan Guru", "party/vulkan-guru.md"),
+        ("Kernel Expert", "party/kernel-expert.md"),
+        ("Refactorer", "party/refactorer.md"),
+        ("HPC Marketeer", "party/hpc-marketeer.md"),
     ]
 
     outputs: Dict[str, str] = {}
