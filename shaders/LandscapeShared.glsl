@@ -1,26 +1,6 @@
-#version 450
-#extension GL_GOOGLE_include_directive : enable
-
-#define UBO_LIGHT_NAME light
-#include "ParameterUBO.glsl"
-#include "LandscapeShared.glsl"
-
-void main() {
-    render_landscape_vertex(ubo.model, ubo.view, ubo.projection);
-}
-#version 450
-#extension GL_GOOGLE_include_directive : enable
+#pragma once
 
 layout(location = 0) in vec3 inPosition;
-
-#define UBO_LIGHT_NAME light
-#include "ParameterUBO.glsl"
-vec4 light = ubo.light;
-ivec2 gridXY = ubo.gridXY;
-mat4 model = ubo.model;
-mat4 view = ubo.view;
-mat4 projection = ubo.projection;
-float waterThreshold = ubo.waterThreshold;
 
 float hash21(vec2 p) {
     return fract(sin(dot(p, vec2(127.1f, 311.7f))) * 43758.5453f);
@@ -96,7 +76,7 @@ vec3 safe_normalize(vec3 v, vec3 fallback) {
 layout(location = 0) out vec3 outWorldPos;
 layout(location = 1) out vec3 outWorldNormal;
 
-void main() {
+void render_landscape_vertex(mat4 model, mat4 view, mat4 projection) {
     vec2 p = inPosition.xy;
     float height = terrain_height(p);
     float baseSurfaceZ = ubo.waterRules.w;
@@ -140,33 +120,3 @@ void main() {
     outWorldNormal = worldNormal;
     gl_Position = projection * viewPosition;
 }
-
-
-
-
-
-
-/*vec4 modifyColorContrast(vec4 color, float contrast) { return vec4(mix(vec3(0.5), color.rgb, contrast), color.a);}
-vec4 modifyColorGamma(vec4 color, float gamma) { return vec4(pow(color.rgb, vec3(gamma)), color.a);}
-*/
-
-
-/*{-1.0f, -1.0f,-1.0f},   // 0
-{1.0f, -1.0f, -1.0f},   // 1
-{-1.0f, 1.0f, -1.0f},   // 2
-{1.0f,  1.0f, -1.0f},   // 3
-{-1.0f,-1.0f,  1.0f},   // 4
-{1.0f, -1.0f,  1.0f},   // 5
-{-1.0f, 1.0f,  1.0f},   // 6
-{1.0f,  1.0f,  1.0f}};  // 7
-const vec3 cubeNormals[6] = { vec3( 0.0f, 0.0f,-1.0f),    // front
-                        vec3( 0.0f, 0.0f, 1.0f),    // back
-                        vec3(-1.0f, 0.0f, 0.0f),    // left
-                        vec3( 1.0f, 0.0f, 0.0f),    // right
-                        vec3( 0.0f, 1.0f, 0.0f),    // top
-                        vec3( 0.0f,-1.0f, 0.0f)};   // bottom
-const int cubeIndices[25] = {   0, 1, 2, 3, 6, 7, 4, 5,     // front and back faces
-                        2, 6, 0, 4, 1, 5, 3, 7,     // connecting strips
-                        2, 3, 6, 7, 4, 5, 0, 1,     // top and bottom faces
-                        2 };                        // degenerate triangle to start new strip*/
-

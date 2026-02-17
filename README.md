@@ -85,59 +85,6 @@ python3 tools/check_folder_dependencies.py
 find src -type f \( -name "*.cpp" -o -name "*.h" \) -print0 | xargs -0 clang-format -i
 ```
 
-**[src/world/RuntimeConfig.cpp](src/world/RuntimeConfig.cpp)** — add parsing for `"indexed:grid2"` in `draw_op_from_string()`.
-
-#### 7. Application entry
-
-**[src/engine/CapitalEngine.cpp](src/engine/CapitalEngine.cpp)** (L15–16) — currently fetches one `TerrainSettings` and passes it to `Resources`. Pass both terrain configs.
-
-#### 8. Shaders (no changes with UBO-per-draw)
-
-Every terrain shader reads `ubo.gridXY` and `ubo.model`. With the per-draw update approach, these values are correct for whichever grid is being drawn. **No shader source changes needed.**
-
-If switching to inter-grid compute (cells from grid1 affecting grid2), the compute shaders ([Engine.comp](shaders/Engine.comp), [ComputeInPlace.comp](shaders/ComputeInPlace.comp), etc.) would need additional SSBO bindings for the second grid's cell buffer.
-
-### Files checklist
-
-| File | Change required | Reason |
-|------|:-:|--------|
-| [src/World.h](src/World.h) | **Yes** | Add `Grid _grid2` member |
-| [src/World.cpp](src/World.cpp) | **Yes** | Construct `_grid2`, adjust camera bounding |
-| [src/world/Geometry.h](src/world/Geometry.h) | No | Reusable per-instance |
-| [src/world/Geometry.cpp](src/world/Geometry.cpp) | No | Reusable per-instance |
-| [src/world/Terrain.h](src/world/Terrain.h) | No | Stateless generator |
-| [src/world/Terrain.cpp](src/world/Terrain.cpp) | No | Stateless generator |
-| [src/resources/ShaderInterface.h](src/resources/ShaderInterface.h) | Maybe | Only if adding per-grid UBO fields |
-| [src/world/RuntimeConfig.h](src/world/RuntimeConfig.h) | **Yes** | Add `DrawOpId::IndexedGrid2` |
-| [src/world/RuntimeConfig.cpp](src/world/RuntimeConfig.cpp) | **Yes** | Parse new draw op strings |
-| [src/Resources.h](src/Resources.h) | **Yes** | Add second `StorageBuffer` |
-| [src/Resources.cpp](src/Resources.cpp) | **Yes** | Init second SSBO, per-grid UBO update |
-| [src/pipelines/ShaderAccess.cpp](src/pipelines/ShaderAccess.cpp) | **Yes** | Duplicate draw lambdas, bind grid2 buffers |
-| [src/Pipelines.h](src/Pipelines.h) | **Yes** | Handle two grid sizes for work groups |
-| [src/Pipelines.cpp](src/Pipelines.cpp) | **Yes** | Pass both grid sizes |
-| [src/vulkan_mechanics/Mechanics.cpp](src/vulkan_mechanics/Mechanics.cpp) | **Yes** | Both sizes on swapchain recreate |
-| [src/pipelines/FrameContext.h](src/pipelines/FrameContext.h) | No | No direct grid references |
-| [src/pipelines/FrameContext.cpp](src/pipelines/FrameContext.cpp) | No | No direct grid references |
-| [src/vulkan_base/VulkanCore.h](src/vulkan_base/VulkanCore.h) | **Yes** | Increase `NUM_DESCRIPTORS` (5 → 7) |
-| [src/world/SceneConfig.h](src/world/SceneConfig.h) | **Yes** | Add `TerrainSettings terrain2` |
-| [src/world/SceneConfig.cpp](src/world/SceneConfig.cpp) | **Yes** | Populate terrain2, render graph entries |
-| [src/engine/CapitalEngine.cpp](src/engine/CapitalEngine.cpp) | **Yes** | Pass both terrain configs |
-| [shaders/ParameterUBO.glsl](shaders/ParameterUBO.glsl) | Maybe | Only if UBO struct changes |
-| All `.vert` / `.frag` / `.comp` shaders | No* | UBO-per-draw update keeps them valid |
-
-\* No changes needed with the per-draw UBO update approach. Would need changes only if the UBO struct is modified or inter-grid compute is added.
-
-### Minimum viable insertion order
-
-1. **SceneConfig** — add `terrain2` settings, pipeline defs, draw ops, render graph entries
-2. **RuntimeConfig** — add `DrawOpId::IndexedGrid2` + parsing
-3. **World** — add `_grid2` member + construct with offset origin
-4. **VulkanCore** — bump `NUM_DESCRIPTORS`
-5. **Resources** — add second `StorageBuffer`, second SSBO init
-6. **ShaderAccess** — add draw lambdas for grid2, UBO memcpy between draws
-7. **Pipelines / Mechanics** — pass combined grid sizes
-8. **CapitalEngine** — pass both terrain settings through
-
 ## Thanks
 
 Big thanks to everyone contributing through GitHub issues, reviews, and code:
@@ -151,7 +98,4 @@ And gratitude to the open graphics ecosystem this project learns from and builds
 - https://vulkan-tutorial.com/
 - https://github.com/SaschaWillems/Vulkan
 - Khronos Vulkan documentation and tooling
-
----
-
 
