@@ -407,8 +407,6 @@ def build_guild_master_context() -> str:
     # 2. Agent profiles summary
     parts.append("## Current Class Profiles")
     for agent_file in sorted(PARTY_DIR.glob("*.md")):
-        if agent_file.name == "guild-master.md":
-            continue
         content = read_text(agent_file)
         # Take first 500 chars of each profile
         parts.append(f"### {agent_file.stem}")
@@ -418,6 +416,8 @@ def build_guild_master_context() -> str:
     # 3. Guild policies
     parts.append("## Current Guild Policies")
     for guild_file in sorted(GUILDS_DIR.glob("*.md")):
+        if guild_file.name == "guild-master.md":
+            continue
         content = read_text(guild_file)
         parts.append(f"### {guild_file.stem}")
         parts.append(content[:400] if len(content) > 400 else content)
@@ -912,7 +912,7 @@ def main() -> None:
         ("Kernel Expert", "party/kernel-expert.md"),
         ("Refactorer", "party/refactorer.md"),
         ("HPC Marketeer", "party/hpc-marketeer.md"),
-        ("Guild Master", "party/guild-master.md"),
+        ("Guild Master", "guilds/guild-master.md"),
     ]
 
     sequence: List[Tuple[str, str]] = [
@@ -1075,7 +1075,7 @@ def main() -> None:
     new_procedures = []
     for name, _ in sequence:
         output = outputs.get(name, "")
-        m = re.search(r"7\) Procedure Recording([\s\S]*?)(?:\n## |\Z)", output, flags=re.IGNORECASE)
+        m = re.search(r"[78]\) Procedure Recording([\s\S]*?)(?:\n## |\Z)", output, flags=re.IGNORECASE)
         if m:
             proc_text = m.group(1).strip()
             if proc_text and "no new" not in proc_text.lower() and "none" not in proc_text.lower() and len(proc_text) > 20:
@@ -1161,8 +1161,13 @@ def main() -> None:
     report_path.write_text("\n".join(report_lines).strip() + "\n", encoding="utf-8")
     proposal_md_path.write_text("\n".join(proposal_lines).strip() + "\n", encoding="utf-8")
 
-    patch_text = generate_patch(task_md, outputs, scope_rel)
-    proposal_patch_path.write_text(patch_text, encoding="utf-8")
+    macro_produces_patch = MACRO_DEFS.get(MACRO_MODE, {}).get("produces_patch", True)
+    if macro_produces_patch:
+        patch_text = generate_patch(task_md, outputs, scope_rel)
+        proposal_patch_path.write_text(patch_text, encoding="utf-8")
+    else:
+        patch_text = ""
+        proposal_patch_path.write_text("# No patch — this macro does not produce patches.\n", encoding="utf-8")
 
     apply_status = "not-requested"
     apply_message = ""

@@ -172,7 +172,7 @@ This multi-perspective approach ensures the GENERATIONS engine remains reliable,
 
 ## Governance Agent
 
-### [Guild Master](../party/guild-master.md)
+### [Guild Master](../guilds/guild-master.md)
 **Focus**: Class performance assessment, guild policy, and conflict arbitration
 
 The Guild Master reviews Factory metrics to assess how each agent class is performing. It proposes class changes (agent profile adjustments, guild reassignments) and guild policy changes (procedure updates, gate threshold tuning). It does not inspect source code directly.
