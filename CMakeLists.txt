@@ -72,7 +72,7 @@ add_custom_target(architecture_check
 
 add_custom_command(
     OUTPUT
-        ${PROJECT_SOURCE_DIR}/src/vulkan_resources/ShaderInterface.h
+        ${PROJECT_SOURCE_DIR}/src/vulkan_pipelines/ShaderInterface.h
         ${PROJECT_SOURCE_DIR}/shaders/ParameterUBO.glsl
     COMMAND ${Python3_EXECUTABLE} ${PROJECT_SOURCE_DIR}/tools/generate_shader_interface.py
     DEPENDS
@@ -83,7 +83,7 @@ add_custom_command(
 )
 
 add_custom_target(shader_interface DEPENDS
-    ${PROJECT_SOURCE_DIR}/src/vulkan_resources/ShaderInterface.h
+    ${PROJECT_SOURCE_DIR}/src/vulkan_pipelines/ShaderInterface.h
     ${PROJECT_SOURCE_DIR}/shaders/ParameterUBO.glsl
 )
 

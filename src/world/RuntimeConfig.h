@@ -69,7 +69,7 @@ struct PipelineDefinition {
 struct TerrainSettings {
   int grid_width = 50;
   int grid_height = 50;
-  uint32_t alive_cells = 800;
+  uint32_t alive_cells = 300;
   float cell_size = 0.5f;
   int terrain_render_subdivisions = 1;
   float terrain_box_depth = 10.0f;

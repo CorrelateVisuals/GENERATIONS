@@ -7,7 +7,7 @@
 #include "library/Library.h"
 #include "control/Timer.h"
 #include "world/RuntimeConfig.h"
-#include "vulkan_resources/ShaderInterface.h"
+#include "vulkan_pipelines/ShaderInterface.h"
 
 #include <algorithm>
 #include <array>
