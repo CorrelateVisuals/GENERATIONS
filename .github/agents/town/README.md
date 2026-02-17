@@ -92,6 +92,7 @@ This enables the same macro control from the GitHub web UI that local scripts pr
 - `./Think "<Command>"` runs independent theorycrafting (Guru, Expert, Refactorer in isolation).
 - Both commands print JSON containing links/paths to run report + proposal artifacts.
 - Additional guidance: `.github/agents/town/macros.md`.
+- Ready-to-use prompts: [prompt-catalog.md](prompt-catalog.md) — copy-paste `task_command` lines for each macro.
 
 ## The Five Archetypes
 
