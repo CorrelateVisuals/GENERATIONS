@@ -380,56 +380,159 @@ def load_guild_context(agent_name: str) -> str:
     return "\n\n".join(parts) if parts else ""
 
 
+GOVERNANCE_LOG = GUILDS_DIR / "governance-log.md"
+
+
 def build_guild_master_context() -> str:
-    """Build specialized context for Guild Master: metrics, agent profiles, guild policies."""
+    """Build specialized context for Guild Master: metrics, agent profiles, guild policies, run history."""
     parts = [
         "# Guild Master Context",
         "",
-        "The Guild Master does NOT analyze source code. Instead, review the following:",
+        "You are the Guild Master — the ONLY agent with authority to observe and set guild policies.",
+        "You do NOT analyze source code. You govern the agent pipeline.",
         "",
     ]
 
-    # 1. Factory metrics
-    trailing = load_trailing_metrics(days=7)
+    # 1. Factory metrics (full observation)
+    trailing = load_trailing_metrics(days=14)
     if trailing:
         parts.append(compute_metrics_summary(trailing))
         parts.append("")
-        # Raw recent metrics for detailed analysis (last 20 records)
-        parts.append("### Recent Metric Records (last 20)")
+        parts.append("### Recent Metric Records (last 30)")
         parts.append("```json")
-        for rec in trailing[-20:]:
+        for rec in trailing[-30:]:
             parts.append(json.dumps(rec, default=str))
         parts.append("```")
     else:
         parts.append("*No metrics data available yet. This is the first Guild Master run.*")
     parts.append("")
 
-    # 2. Agent profiles summary
+    # 2. Agent profiles (full — the GM needs to judge alignment)
     parts.append("## Current Class Profiles")
     for agent_file in sorted(PARTY_DIR.glob("*.md")):
         content = read_text(agent_file)
-        # Take first 500 chars of each profile
         parts.append(f"### {agent_file.stem}")
-        parts.append(content[:500] if len(content) > 500 else content)
+        parts.append(content[:1200] if len(content) > 1200 else content)
         parts.append("")
 
-    # 3. Guild policies
+    # 3. Guild membership map
+    parts.append("## Guild Membership Map")
+    for agent_name, guild_files in AGENT_GUILDS.items():
+        if agent_name == "Guild Master":
+            continue
+        guilds_str = ", ".join(guild_files) if guild_files else "(no guild)"
+        parts.append(f"- **{agent_name}** → {guilds_str}")
+    parts.append("")
+
+    # 4. Guild policies (FULL content — the GM sets these, needs to see everything)
     parts.append("## Current Guild Policies")
     for guild_file in sorted(GUILDS_DIR.glob("*.md")):
-        if guild_file.name == "guild-master.md":
+        if guild_file.name in ("guild-master.md", "governance-log.md"):
             continue
         content = read_text(guild_file)
         parts.append(f"### {guild_file.stem}")
-        parts.append(content[:400] if len(content) > 400 else content)
+        parts.append(content)
         parts.append("")
 
-    # 4. Procedures
+    # 5. Procedures (full)
     procedures = read_text(TOWN_DIR / "procedures.md")
     if procedures.strip():
         parts.append("## Current Procedures")
-        parts.append(procedures[:1500] if len(procedures) > 1500 else procedures)
+        parts.append(procedures[:3000] if len(procedures) > 3000 else procedures)
+    parts.append("")
+
+    # 6. Quality gate config (so GM can propose threshold changes with awareness)
+    gate_cfg = GATE_CONFIG
+    parts.append("## Current Quality Gate Config")
+    parts.append(f"- Dissent threshold: {gate_cfg.get('dissent_threshold', 0.5)}")
+    parts.append(f"- Max output chars: {gate_cfg.get('max_output_chars', 4000)}")
+    parts.append(f"- Halt on low confidence: {gate_cfg.get('halt_on_low_confidence', True)}")
+    parts.append(f"- Validate file refs: {gate_cfg.get('validate_file_refs', True)}")
+    parts.append("")
+
+    # 7. Governance history (previous decisions)
+    if GOVERNANCE_LOG.exists():
+        gov_log = read_text(GOVERNANCE_LOG)
+        parts.append("## Previous Governance Decisions")
+        # Show last 3000 chars of the log
+        parts.append(gov_log[-3000:] if len(gov_log) > 3000 else gov_log)
+    else:
+        parts.append("## Previous Governance Decisions")
+        parts.append("*No governance log yet. This is the first Guild Master assessment.*")
+    parts.append("")
+
+    # 8. Recent run reports (so GM sees what agents actually produced)
+    if RUNS_DIR.exists():
+        run_files = sorted(RUNS_DIR.glob("*.md"), reverse=True)[:3]
+        if run_files:
+            parts.append("## Recent Run Reports (last 3)")
+            for rf in run_files:
+                content = read_text(rf)
+                parts.append(f"### {rf.name}")
+                parts.append(content[:2000] if len(content) > 2000 else content)
+                parts.append("")
 
     return "\n".join(parts)
+
+
+def extract_guild_master_actions(output: str) -> Dict[str, List[str]]:
+    """Parse CLASS-CHANGE and GUILD-POLICY directives from Guild Master output."""
+    actions: Dict[str, List[str]] = {"class_changes": [], "guild_policies": []}
+    for line in output.split("\n"):
+        stripped = line.strip()
+        if stripped.startswith("CLASS-CHANGE:"):
+            actions["class_changes"].append(stripped)
+        elif stripped.startswith("GUILD-POLICY:"):
+            actions["guild_policies"].append(stripped)
+    return actions
+
+
+def apply_guild_master_actions(actions: Dict[str, List[str]], run_id: str) -> str:
+    """Write Guild Master decisions to the governance log. Returns summary of what was applied."""
+    if not actions["class_changes"] and not actions["guild_policies"]:
+        return "No governance actions to apply."
+
+    today = dt.date.today().isoformat()
+    entries = []
+
+    entries.append(f"\n## Assessment — {run_id} ({today})\n")
+
+    if actions["class_changes"]:
+        entries.append("### Class Change Directives")
+        entries.append("| # | Directive | Status |")
+        entries.append("|---|---|---|")
+        for i, cc in enumerate(actions["class_changes"], 1):
+            entries.append(f"| {i} | {cc} | LOGGED |")
+        entries.append("")
+
+    if actions["guild_policies"]:
+        entries.append("### Guild Policy Directives")
+        entries.append("| # | Directive | Status |")
+        entries.append("|---|---|---|")
+        for i, gp in enumerate(actions["guild_policies"], 1):
+            entries.append(f"| {i} | {gp} | LOGGED |")
+        entries.append("")
+
+        # Append policy items to procedures.md for visibility
+        procedures_path = TOWN_DIR / "procedures.md"
+        with open(procedures_path, "a", encoding="utf-8") as f:
+            f.write(f"\n### Guild Master Policy ({today}, {run_id})\n")
+            for gp in actions["guild_policies"]:
+                f.write(f"- {gp}\n")
+
+    log_text = "\n".join(entries)
+
+    # Create or append to governance log
+    if GOVERNANCE_LOG.exists():
+        with open(GOVERNANCE_LOG, "a", encoding="utf-8") as f:
+            f.write(log_text)
+    else:
+        header = "# Governance Log\n\nDecisions and directives issued by the Guild Master.\n"
+        GOVERNANCE_LOG.write_text(header + log_text, encoding="utf-8")
+
+    n_cc = len(actions["class_changes"])
+    n_gp = len(actions["guild_policies"])
+    return f"Governance log updated: {n_cc} class-change(s), {n_gp} guild-policy(ies) recorded."
 
 
 def _llm_request(prompt: str, temperature: float = 0.2) -> str:
@@ -1084,6 +1187,13 @@ def main() -> None:
         with open(procedures_path, "a", encoding="utf-8") as f:
             for proc in new_procedures:
                 f.write(proc)
+
+    # --- Guild Master governance: extract and apply policy decisions ---
+    gm_output = outputs.get("Guild Master", "")
+    if gm_output and not gm_output.startswith("*Skipped"):
+        gm_actions = extract_guild_master_actions(gm_output)
+        gov_summary = apply_guild_master_actions(gm_actions, run_id)
+        print(f"  🏛️  {gov_summary}")
 
     # --- Next-task preparation: agents recommend what to run next ---
     next_run_recs = extract_next_run(outputs)

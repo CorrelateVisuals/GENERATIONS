@@ -24,7 +24,9 @@ Example:
 ## Governance Override
 
 - **Guild Master** → governance officer, class performance assessor, policy authority
-- Scope: reviews Factory metrics, assesses agent class performance, proposes class and policy changes
+- **Guild Master** → governance officer, class performance assessor, policy authority
+- Scope: **observes** full system state (metrics, profiles, guilds, procedures, run history, governance log) and **sets** guild policies
+- Authority: `GUILD-POLICY:` directives are auto-applied to procedures.md; `CLASS-CHANGE:` directives are logged to governance-log.md
 - Constraint: Guild Master does **not** analyze source code directly
 - Trigger: `./Guild` macro or weekly scheduled assessment
 
