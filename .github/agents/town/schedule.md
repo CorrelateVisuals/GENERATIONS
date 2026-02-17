@@ -22,6 +22,28 @@ This file centralizes recurring agent responsibilities and gives schedule option
 | Kernel Expert | Review compute dispatch dimensions, shader IO/layout alignment, GPU-bound opportunities, shader perf hotspots |
 | Refactorer | Review naming/clarity, architectural boundaries, dead code removal opportunities, complexity hotspots |
 | HPC Marketeer | Review README/setup accuracy, docs drift from implementation, onboarding friction, release notes clarity |
+| Guild Master | Weekly class performance assessment, class change proposals, guild policy proposals, conflict arbitration |
+
+## Guild Master Weekly Assessment
+
+The Guild Master runs automatically every **Friday** (same window as HPC Marketeer synthesis).
+
+### What the Guild Master Reviews
+1. **Factory metrics** — trailing 7-day `metrics.jsonl` data
+2. **Agent profiles** — current class definitions in `party/*.md`
+3. **Guild policies** — current guild files in `guilds/*.md`
+4. **Procedures** — living patterns in `town/procedures.md`
+5. **Previous agent outputs** — if available from the same run
+
+### What the Guild Master Produces
+- **Class Performance Report** — per-agent scorecard (gate pass rate, retry rate, dissent ratio)
+- **Class Change Proposals** — profile adjustments, guild reassignments, directive modifications
+- **Guild Policy Proposals** — procedure updates, gate threshold changes, temperature tuning
+- **Arbitration Decisions** — resolves conflicting agent recommendations
+
+### Trigger
+- Automatic: Friday scheduled run (macro: Guild)
+- Manual: `gh workflow run agent-autonomous-run.yml --ref <branch> -f macro=Guild`
 
 ## Schedule Choices
 

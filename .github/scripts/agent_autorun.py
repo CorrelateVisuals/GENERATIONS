@@ -360,7 +360,7 @@ AGENT_GUILDS: Dict[str, List[str]] = {
     "Kernel Expert": ["performance.md", "gpu-pipeline.md"],
     "Refactorer": ["architecture.md"],
     "HPC Marketeer": [],
-    "Party": [],
+    "Guild Master": [],
 }
 
 
@@ -378,6 +378,58 @@ def load_guild_context(agent_name: str) -> str:
     if procedures.strip():
         parts.append(procedures)
     return "\n\n".join(parts) if parts else ""
+
+
+def build_guild_master_context() -> str:
+    """Build specialized context for Guild Master: metrics, agent profiles, guild policies."""
+    parts = [
+        "# Guild Master Context",
+        "",
+        "The Guild Master does NOT analyze source code. Instead, review the following:",
+        "",
+    ]
+
+    # 1. Factory metrics
+    trailing = load_trailing_metrics(days=7)
+    if trailing:
+        parts.append(compute_metrics_summary(trailing))
+        parts.append("")
+        # Raw recent metrics for detailed analysis (last 20 records)
+        parts.append("### Recent Metric Records (last 20)")
+        parts.append("```json")
+        for rec in trailing[-20:]:
+            parts.append(json.dumps(rec, default=str))
+        parts.append("```")
+    else:
+        parts.append("*No metrics data available yet. This is the first Guild Master run.*")
+    parts.append("")
+
+    # 2. Agent profiles summary
+    parts.append("## Current Class Profiles")
+    for agent_file in sorted(PARTY_DIR.glob("*.md")):
+        if agent_file.name == "guild-master.md":
+            continue
+        content = read_text(agent_file)
+        # Take first 500 chars of each profile
+        parts.append(f"### {agent_file.stem}")
+        parts.append(content[:500] if len(content) > 500 else content)
+        parts.append("")
+
+    # 3. Guild policies
+    parts.append("## Current Guild Policies")
+    for guild_file in sorted(GUILDS_DIR.glob("*.md")):
+        content = read_text(guild_file)
+        parts.append(f"### {guild_file.stem}")
+        parts.append(content[:400] if len(content) > 400 else content)
+        parts.append("")
+
+    # 4. Procedures
+    procedures = read_text(TOWN_DIR / "procedures.md")
+    if procedures.strip():
+        parts.append("## Current Procedures")
+        parts.append(procedures[:1500] if len(procedures) > 1500 else procedures)
+
+    return "\n".join(parts)
 
 
 def _llm_request(prompt: str, temperature: float = 0.2) -> str:
@@ -736,8 +788,10 @@ def normalize_agent_name(raw: str) -> str:
         "refactorer": "Refactorer",
         "hpc": "HPC Marketeer",
         "hpc marketeer": "HPC Marketeer",
-        "party": "Party",
-        "party++": "Party",
+        "guild": "Guild Master",
+        "guild master": "Guild Master",
+        "guildmaster": "Guild Master",
+        "master": "Guild Master",
     }
     return aliases.get(key, raw.strip())
 
@@ -835,7 +889,7 @@ def main() -> None:
         ("Kernel Expert", "party/kernel-expert.md"),
         ("Refactorer", "party/refactorer.md"),
         ("HPC Marketeer", "party/hpc-marketeer.md"),
-        ("Party", "party/party.md"),
+        ("Guild Master", "party/guild-master.md"),
     ]
 
     sequence: List[Tuple[str, str]] = [
@@ -862,8 +916,8 @@ def main() -> None:
             valid = ", ".join([name for name, _ in all_agents])
             raise SystemExit(f"Unknown AGENT_ONLY '{agent_only}'. Valid values: {valid}")
 
-    if selected_agent == "Party":
-        scoped_code = "Out of scope for Party agent by design. Party performs governance-only review over task framing and prior agent outputs."
+    if selected_agent == "Guild Master":
+        scoped_code = build_guild_master_context()
 
     is_think = is_independent_macro(MACRO_MODE)
     temperature = get_temperature(MACRO_MODE)

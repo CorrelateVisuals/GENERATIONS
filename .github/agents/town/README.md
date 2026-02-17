@@ -76,7 +76,7 @@ When using GitHub Models, also set:
 
 The workflow now supports macro-style execution via workflow_dispatch input:
 - Go to Actions → "Agent Autonomous Run" → Run workflow
-- Select macro from dropdown: `Charge`, `Position`, `Follow`, `Think`, `Party`, `lead++`, `agents++`
+- Select macro from dropdown: `Charge`, `Pull`, `Follow`, `Think`, `Guild`, `lead++`, `agents++`
 - Leave empty for full 5-agent sequence
 
 This enables the same macro control from the GitHub web UI that local scripts provide.
@@ -85,7 +85,7 @@ This enables the same macro control from the GitHub web UI that local scripts pr
 
 - `./lead++` runs only `C++ Lead` (uses `AGENT_ONLY="C++ Lead"`).
 - `./agents++` runs the full five-agent sequence.
-- `./Party` runs only `Party` (governance-only; no code analysis).
+- `./Guild` runs only `Guild Master` (weekly class assessment, policy proposals; no code analysis).
 - `./Charge "<Command>"` runs C++ Lead surgical execution for one command.
 - `./Pull "<Command>"` runs sequential recon pass (Lead, Guru, Expert, Refactorer).
 - `./Follow "<Command>"` runs full-cadence proposal pass for one command.
@@ -95,35 +95,35 @@ This enables the same macro control from the GitHub web UI that local scripts pr
 
 ## The Five Archetypes
 
-### 1. [C++ Lead](../party/../party/cpp-lead.md)
+### 1. [C++ Lead](../party/cpp-lead.md)
 **Focus**: Real-time safety-critical systems engineering
 
 The C++ Lead ensures that code is reliable, efficient, and maintainable. This agent brings modern C++ expertise with a focus on understanding the consequences of low-level implementation decisions. Elegant, readable solutions are preferred over unnecessary additions.
 
 **Key question**: "Is this the simplest, safest, most maintainable C++ implementation?"
 
-### 2. [Vulkan Guru](../party/../party/vulkan-guru.md)
+### 2. [Vulkan Guru](../party/vulkan-guru.md)
 **Focus**: Efficient and precise Vulkan API usage
 
 The Vulkan Guru maximizes the potential of the Vulkan API by reusing existing resources and inserting precision solutions. This agent sees possibilities for leveraging Vulkan features and prefers automation of common patterns.
 
 **Key question**: "Are we using Vulkan resources and features as efficiently as possible?"
 
-### 3. [Kernel Expert](../party/../party/kernel-expert.md)
+### 3. [Kernel Expert](../party/kernel-expert.md)
 **Focus**: GPU-first parallel computing and shader development
 
 The Kernel Expert thinks in parallel and speaks GLSL fluently. This agent sees shader inputs and outputs clearly and believes that if something can run on the GPU, it should. Creative and brilliant shader solutions are this agent's specialty.
 
 **Key question**: "Can this be done more efficiently on the GPU?"
 
-### 4. [Refactorer](../party/../party/refactorer.md)
+### 4. [Refactorer](../party/refactorer.md)
 **Focus**: Code quality, maintainability, and architectural integrity
 
 The Refactorer ensures code is clean, readable, adheres to established standards, and follows MVC principles. Less code is better, and long-term usability of the codebase is the primary concern.
 
 **Key question**: "Is this code clear, maintainable, and properly architected for the long term?"
 
-### 5. [HPC Marketeer](../party/../party/hpc-marketeer.md)
+### 5. [HPC Marketeer](../party/hpc-marketeer.md)
 **Focus**: Documentation and user experience
 
 The HPC Marketeer understands what users want and identifies what's cumbersome or hard to understand. Expert at presenting software effectively and maintaining documentation to support it. README.md is home base, but extends to all repository documentation. Keeps docs clean so they're easy to update when code changes.
@@ -172,9 +172,9 @@ This multi-perspective approach ensures the GENERATIONS engine remains reliable,
 
 ## Governance Agent
 
-### [Party](../party/party.md)
-**Focus**: Agent orchestration quality, consistency, and conflict arbitration
+### [Guild Master](../party/guild-master.md)
+**Focus**: Class performance assessment, guild policy, and conflict arbitration
 
-Party is a non-code governance agent. It checks if agent outputs contradict each other, overlap poorly, or create integration risk. It does not inspect source code directly.
+The Guild Master reviews Factory metrics to assess how each agent class is performing. It proposes class changes (agent profile adjustments, guild reassignments) and guild policy changes (procedure updates, gate threshold tuning). It does not inspect source code directly.
 
-**Key question**: "Do agent recommendations align, and if not, what is the safest resolution plan?"
+**Key question**: "Are the agents performing well, and what class or policy changes would improve the pipeline?"

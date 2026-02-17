@@ -51,13 +51,15 @@
         "Refactorer": "## Macro Directive: THINK (Independent)\nYou are theorycrafting ALONE. You do NOT see other agents' outputs.\nPropose YOUR approach from an architecture/structure perspective.\n- Approach description\n- Affected files and scope\n- Benefits and risks\n- Complexity: S / M / L\n- Recommended implementation sequence\nDo NOT write patches. This is strategy, not execution."
       }
     },
-    "Party": {
-      "description": "Governance-only review. No code analysis.",
-      "agents": ["Party"],
+    "Guild": {
+      "description": "Guild Master governance review. Assesses class performance, proposes class and policy changes.",
+      "agents": ["Guild Master"],
       "mode": "sequential",
       "produces_patch": false,
       "temperature": 0.1,
-      "directives": {}
+      "directives": {
+        "Guild Master": "## Macro Directive: GUILD (Weekly Assessment)\nYou are the Guild Master. Review Factory metrics and agent outputs.\n\nProduce these sections:\n\n### 1. Class Performance Report\nFor each agent class, score:\n- Gate pass rate (from metrics.jsonl)\n- Retry rate\n- DISSENT ratio (how often contradicted)\n- Output quality assessment\n- Specialization drift check\n\n### 2. Class Change Proposals\nFor underperforming or misaligned agents:\n- CLASS-CHANGE: <Agent> — <change> — <evidence>\nOnly propose with 3+ data points.\n\n### 3. Guild Policy Proposals\nFor system-wide improvements:\n- GUILD-POLICY: <name> — <change> — <rationale>\n\n### 4. Arbitration\nResolve any conflicting recommendations from the current run.\n\nDo NOT analyze source code. Your domain is agent governance."
+      }
     },
     "lead++": {
       "description": "Solo C++ Lead pass.",

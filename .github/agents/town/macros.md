@@ -23,9 +23,10 @@ Example:
 
 ## Governance Override
 
-- **Party** → governance-only controller for agent alignment
-- Scope: checks contradictions, overlap, missing ownership, and integration risk
-- Constraint: Party does **not** analyze source code directly
+- **Guild Master** → governance officer, class performance assessor, policy authority
+- Scope: reviews Factory metrics, assesses agent class performance, proposes class and policy changes
+- Constraint: Guild Master does **not** analyze source code directly
+- Trigger: `./Guild` macro or weekly scheduled assessment
 
 ## Macro Definitions
 

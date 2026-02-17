@@ -22,7 +22,7 @@ on:
           - Pull
           - Follow
           - Think
-          - Party
+          - Guild
           - lead++
           - agents++
       task_command:
