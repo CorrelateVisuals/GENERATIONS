@@ -1,0 +1,56 @@
+diff --git a/src/vulkan_base/VulkanBaseDescriptor.cpp b/src/vulkan_base/VulkanBaseDescriptor.cpp
+index 1234567..89abcdef 100644
+--- a/src/vulkan_base/VulkanBaseDescriptor.cpp
++++ b/src/vulkan_base/VulkanBaseDescriptor.cpp
+@@ -45,6 +45,16 @@ namespace CE {
+ 
+ BaseDescriptorInterface::~BaseDescriptorInterface() {
+   if (CE::BaseDevice::base_device) {
++    if (this->pool != VK_NULL_HANDLE) {
++      vkDestroyDescriptorPool(
++          CE::BaseDevice::base_device->logical_device, this->pool, nullptr);
++      this->pool = VK_NULL_HANDLE;
++    }
++    if (this->set_layout != VK_NULL_HANDLE) {
++      vkDestroyDescriptorSetLayout(
++          CE::BaseDevice::base_device->logical_device, this->set_layout, nullptr);
++      this->set_layout = VK_NULL_HANDLE;
++    }
+   }
+ }
+ 
+@@ -65,6 +75,12 @@ void CE::BaseDescriptorInterface::create_set_layout() {
+   if (active_descriptor_count_ > NUM_DESCRIPTORS) {
+     Log::error("Active descriptor count exceeds NUM_DESCRIPTORS");
+     return;
++  }
++
++  VkDescriptorSetLayoutCreateInfo layoutInfo{
++      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
++      .bindingCount = static_cast<uint32_t>(active_descriptor_count_),
++      .pBindings = set_layout_bindings.data()};
+ 
+   VkResult result = vkCreateDescriptorSetLayout(
+       CE::BaseDevice::base_device->logical_device, &layoutInfo, nullptr, &set_layout);
+@@ -80,7 +96,10 @@ void CE::BaseDescriptorInterface::create_set_layout() {
+ void CE::BaseDescriptorInterface::allocate_sets() {
+   static std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, set_layout);
+   VkDescriptorSetAllocateInfo allocateInfo{
+-      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
++      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
++      .descriptorPool = pool,
++      .descriptorSetCount = MAX_FRAMES_IN_FLIGHT,
++      .pSetLayouts = layouts.data()};
+ 
+   VkResult result = vkAllocateDescriptorSets(
+       CE::BaseDevice::base_device->logical_device, &allocateInfo, sets.data());
+@@ -95,7 +114,10 @@ void CE::BaseDescriptorInterface::update_sets() {
+   Log::debug("{ |=| }", "Update BaseDescriptor Sets");
+ 
+   for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+-    for (size_t descriptor_index = 0; descriptor_index < active_descriptor_count_; ++descriptor_index) {
++    for (size_t descriptor_index = 0; descriptor_index < active_descriptor_count_;
++         ++descriptor_index) {
+       auto &descriptor = descriptor_writes[i][descriptor_index];
+       descriptor.dstSet = this->sets[i];
+     }
