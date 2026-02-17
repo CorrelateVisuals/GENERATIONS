@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR=$(cd "$(dirname "$0")/.." && pwd)
+ROOT_DIR=$(cd "$(dirname "$0")/../.." && pwd)
 LOG_DIR="$ROOT_DIR/logs"
 REPORT_DATE=$(date +%Y%m%d)
 REPORT_FILE="$LOG_DIR/daily_report_${REPORT_DATE}.md"
@@ -24,7 +24,7 @@ echo "# Daily Repo Report - ${REPORT_DATE}" > "$REPORT_FILE"
 
   echo
   echo "## Architecture Boundary Check"
-  if python3 tools/check_folder_dependencies.py > /tmp/arch_check.log 2>&1; then
+  if python3 assets/tools/check_folder_dependencies.py > /tmp/arch_check.log 2>&1; then
     echo "- Status: OK"
   else
     echo "- Status: FAIL"
@@ -44,8 +44,8 @@ echo "# Daily Repo Report - ${REPORT_DATE}" > "$REPORT_FILE"
 
   echo
   echo "## Recent Shader Interface"
-  if [ -f src/base/ParameterUBO.schema ]; then
-    echo "\n\`\`\`\n$(cat src/base/ParameterUBO.schema)\n\`\`\`"
+  if [ -f src/vulkan_resources/ParameterUBO.schema ]; then
+    echo "\n\`\`\`\n$(cat src/vulkan_resources/ParameterUBO.schema)\n\`\`\`"
   fi
 } >> "$REPORT_FILE"
 

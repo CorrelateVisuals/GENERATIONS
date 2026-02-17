@@ -55,7 +55,7 @@ include_directories(${PROJECT_SOURCE_DIR}/src)
 include_directories(SYSTEM ${PROJECT_SOURCE_DIR}/libraries)
 
 
-set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/out/bin)
 
 file(GLOB_RECURSE CAPITALENGINE_SOURCES CONFIGURE_DEPENDS
     RELATIVE "${CMAKE_SOURCE_DIR}"
@@ -65,7 +65,7 @@ file(GLOB_RECURSE CAPITALENGINE_SOURCES CONFIGURE_DEPENDS
 find_package(Vulkan)
 
 add_custom_target(architecture_check
-    COMMAND ${Python3_EXECUTABLE} ${PROJECT_SOURCE_DIR}/tools/check_folder_dependencies.py
+    COMMAND ${Python3_EXECUTABLE} ${PROJECT_SOURCE_DIR}/assets/tools/check_folder_dependencies.py
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
     COMMENT "Checking folder dependency boundaries"
 )
@@ -74,10 +74,10 @@ add_custom_command(
     OUTPUT
         ${PROJECT_SOURCE_DIR}/src/vulkan_pipelines/ShaderInterface.h
         ${PROJECT_SOURCE_DIR}/shaders/ParameterUBO.glsl
-    COMMAND ${Python3_EXECUTABLE} ${PROJECT_SOURCE_DIR}/tools/generate_shader_interface.py
+    COMMAND ${Python3_EXECUTABLE} ${PROJECT_SOURCE_DIR}/assets/tools/generate_shader_interface.py
     DEPENDS
         ${PROJECT_SOURCE_DIR}/src/vulkan_resources/ParameterUBO.schema
-        ${PROJECT_SOURCE_DIR}/tools/generate_shader_interface.py
+        ${PROJECT_SOURCE_DIR}/assets/tools/generate_shader_interface.py
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
     COMMENT "Generating shader interface from schema"
 )

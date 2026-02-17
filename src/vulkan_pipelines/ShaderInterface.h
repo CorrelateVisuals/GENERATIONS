@@ -1,25 +1,18 @@
 #pragma once
 
-// CPU-side mirror of shader parameter layout.
-// Exists to guarantee host/shader alignment for shared UBO contract.
-
 #include <glm/glm.hpp>
 
 namespace CE::ShaderInterface {
 
-// Generated from src/vulkan_resources/ParameterUBO.schema. Do not edit by hand.
-struct ParameterUBO {
+struct alignas(16) ParameterUBO {
   glm::vec4 light{};
   glm::ivec2 grid_xy{};
-  float water_threshold{};
-  float cell_size{};
+  float water_threshold{0.0f};
+  float cell_size{0.0f};
   glm::vec4 water_rules{2.4f, 1.2f, 0.08f, 0.0f};
-  alignas(16) glm::mat4 model{};
-  alignas(16) glm::mat4 view{};
-  alignas(16) glm::mat4 projection{};
-
-  ParameterUBO(glm::vec4 l, glm::ivec2 xy, float w, float s, glm::vec4 rules)
-      : light(l), grid_xy(xy), water_threshold(w), cell_size(s), water_rules(rules) {}
+  glm::mat4 model{};
+  glm::mat4 view{};
+  glm::mat4 projection{};
 };
 
 } // namespace CE::ShaderInterface

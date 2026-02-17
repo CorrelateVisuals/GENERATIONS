@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+ROOT_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$ROOT_DIR"
 
-if [ ! -x "./bin/CapitalEngine" ]; then
-  echo "Binary not found: ./bin/CapitalEngine"
-  echo "Build first: cmake --build build --parallel \"\$(nproc)\""
+if [ ! -x "./out/bin/CapitalEngine" ]; then
+  echo "Binary not found: ./out/bin/CapitalEngine"
+  echo "Build first: cmake --preset dev && cmake --build --preset dev"
   exit 1
 fi
 
@@ -31,14 +31,14 @@ run_case() {
     CE_GPU_LOG_PERIODIC=on \
     CE_GPU_LOG_DETAILS=detailed \
     CE_GPU_LOG_FREQ_MS="$GPU_FREQ_MS" \
-    timeout --signal=INT --kill-after=3s "${DURATION_SECONDS}s" ./bin/CapitalEngine >"$log_path" 2>&1 || true
+    timeout --signal=INT --kill-after=3s "${DURATION_SECONDS}s" ./out/bin/CapitalEngine >"$log_path" 2>&1 || true
   else
     CE_WORKLOAD_PRESET="$workload_preset" \
     CE_GPU_LOG=on \
     CE_GPU_LOG_PERIODIC=on \
     CE_GPU_LOG_DETAILS=detailed \
     CE_GPU_LOG_FREQ_MS="$GPU_FREQ_MS" \
-    timeout --signal=INT --kill-after=3s "${DURATION_SECONDS}s" ./bin/CapitalEngine >"$log_path" 2>&1 || true
+    timeout --signal=INT --kill-after=3s "${DURATION_SECONDS}s" ./out/bin/CapitalEngine >"$log_path" 2>&1 || true
   fi
 
   echo "[stress] ${name} log: ${log_path}"

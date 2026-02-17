@@ -17,8 +17,8 @@ The project currently runs a Conway-style cellular simulation on terrain with co
 
 ## Current status (February 2026)
 
-- Linux build is green with CMake (`cmake -S . -B build && cmake --build build -j4`)
-- Runtime launch is verified from the generated binary (`./bin/CapitalEngine`)
+- Linux build is green with CMake (`cmake --preset dev && cmake --build --preset dev`)
+- Runtime launch is verified from root via `./run.sh`
 - Scene setup is authored in C++ via `src/world/SceneConfig.*`
 - Runtime config registry/env parsing lives in `src/world/RuntimeConfig.*`
 - Resource/world runtime objects are in `src/vulkan_resources/*`
@@ -53,9 +53,17 @@ src/
 ### Commands
 
 ```bash
-cmake -S . -B build -Wno-dev --log-level=NOTICE
-cmake --build build --parallel $(nproc)
-./bin/CapitalEngine
+cmake --preset dev
+cmake --build --preset dev
+./run.sh
+```
+
+This keeps generated build/runtime files under `out/` while still running commands from repository root.
+
+Direct binary launch remains available:
+
+```bash
+./out/bin/CapitalEngine
 ```
 
 ## Runtime modes and flags
@@ -78,7 +86,7 @@ Use `GENERATIONS.sln` (Visual Studio 2022, v143 toolset) with Vulkan SDK + GLFW 
 ## Developer checks
 
 ```bash
-python3 tools/check_folder_dependencies.py
+python3 assets/tools/check_folder_dependencies.py
 ```
 
 ```bash

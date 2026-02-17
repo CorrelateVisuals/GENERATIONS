@@ -76,7 +76,17 @@ def resolve_target_folder(
 
 
 def main() -> int:
-    repo_root = Path(__file__).resolve().parents[1]
+    script_path = Path(__file__).resolve()
+    repo_root: Path | None = None
+    for candidate in script_path.parents:
+        if (candidate / "CMakeLists.txt").exists() and (candidate / "src").exists():
+            repo_root = candidate
+            break
+
+    if repo_root is None:
+        print(f"ERROR: repository root not found from script path: {script_path}")
+        return 2
+
     src_root = repo_root / "src"
 
     if not src_root.exists():

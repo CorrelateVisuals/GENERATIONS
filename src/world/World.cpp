@@ -171,18 +171,21 @@ World::Grid::Grid(const CE::Runtime::TerrainSettings &terrain_settings,
                                                static_cast<uint_fast32_t>(std::numeric_limits<int>::max())));
   const glm::ivec4 dead{-1, -1, 0, -1};
 
-  const float startX = (size.x - 1) / -2.0f;
-  const float startY = (size.y - 1) / -2.0f;
+  const float cell_spacing = std::max(terrain_settings.cell_size, 1e-4f);
+  const float startX = static_cast<float>(size.x - 1) * cell_spacing / -2.0f;
+  const float startY = static_cast<float>(size.y - 1) * cell_spacing / -2.0f;
   const float absoluteHeight = terrain_settings.absolute_height;
   const float box_depth = std::max(terrain_settings.terrain_box_depth,
                                    terrain_settings.cell_size * 4.0f);
   for (uint_fast32_t i = 0; i < point_count; ++i) {
     point_ids[i] = i;
 
-    coordinates[i] = {(startX + i % size.x), (startY + i / size.x), absoluteHeight};
+    const float x = startX + static_cast<float>(i % size.x) * cell_spacing;
+    const float y = startY + static_cast<float>(i / size.x) * cell_spacing;
+    coordinates[i] = {x, y, absoluteHeight};
 
-    cells[i].instance_position = {(startX + i % size.x),
-                    (startY + i / size.x),
+    cells[i].instance_position = {x,
+                    y,
                     absoluteHeight,
                     0.0f};
     cells[i].color = grey;
@@ -204,10 +207,10 @@ World::Grid::Grid(const CE::Runtime::TerrainSettings &terrain_settings,
 
   for (uint32_t row = 0; row < render_grid_height; ++row) {
     const float y = startY +
-                    static_cast<float>(row) / static_cast<float>(render_subdivisions);
+                    (static_cast<float>(row) / static_cast<float>(render_subdivisions)) * cell_spacing;
     for (uint32_t col = 0; col < render_grid_width; ++col) {
       const float x = startX +
-                      static_cast<float>(col) / static_cast<float>(render_subdivisions);
+                      (static_cast<float>(col) / static_cast<float>(render_subdivisions)) * cell_spacing;
       add_vertex_position({x, y, absoluteHeight});
       render_point_ids.push_back(
           static_cast<uint32_t>(render_point_ids.size()));
@@ -217,9 +220,9 @@ World::Grid::Grid(const CE::Runtime::TerrainSettings &terrain_settings,
   indices = create_grid_polygons(render_point_ids, render_grid_width);
 
   const float xMin = startX;
-  const float xMax = startX + static_cast<float>(size.x - 1);
+  const float xMax = startX + static_cast<float>(size.x - 1) * cell_spacing;
   const float yMin = startY;
-  const float yMax = startY + static_cast<float>(size.y - 1);
+  const float yMax = startY + static_cast<float>(size.y - 1) * cell_spacing;
   const float zBottom = absoluteHeight - box_depth;
 
   std::vector<uint32_t> boundary_loop{};

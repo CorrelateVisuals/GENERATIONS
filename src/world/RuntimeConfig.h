@@ -12,6 +12,10 @@
 
 namespace CE::Runtime {
 
+constexpr int kDefaultGridWidth = 10;
+constexpr int kDefaultGridHeight = 10;
+constexpr uint32_t kDefaultAliveCells = 50;
+
 enum class DrawOpId : uint8_t {
   Unknown = 0,
   InstancedCells,
@@ -67,62 +71,62 @@ struct PipelineDefinition {
 };
 
 struct TerrainSettings {
-  int grid_width = 50;
-  int grid_height = 50;
-  uint32_t alive_cells = 300;
-  float cell_size = 0.5f;
-  int terrain_render_subdivisions = 1;
-  float terrain_box_depth = 10.0f;
+  int grid_width{};
+  int grid_height{};
+  uint32_t alive_cells{};
+  float cell_size{};
+  int terrain_render_subdivisions{};
+  float terrain_box_depth{};
 
-  float layer1_roughness = 0.4f;
-  int layer1_octaves = 10;
-  float layer1_scale = 2.2f;
-  float layer1_amplitude = 10.0f;
-  float layer1_exponent = 2.0f;
-  float layer1_frequency = 2.0f;
-  float layer1_height_offset = 0.0f;
+  float layer1_roughness{};
+  int layer1_octaves{};
+  float layer1_scale{};
+  float layer1_amplitude{};
+  float layer1_exponent{};
+  float layer1_frequency{};
+  float layer1_height_offset{};
 
-  float layer2_roughness = 1.0f;
-  int layer2_octaves = 10;
-  float layer2_scale = 2.2f;
-  float layer2_amplitude = 1.0f;
-  float layer2_exponent = 1.0f;
-  float layer2_frequency = 2.0f;
-  float layer2_height_offset = 0.0f;
+  float layer2_roughness{};
+  int layer2_octaves{};
+  float layer2_scale{};
+  float layer2_amplitude{};
+  float layer2_exponent{};
+  float layer2_frequency{};
+  float layer2_height_offset{};
 
-  float blend_factor = 0.5f;
-  float absolute_height = 0.0f;
+  float blend_factor{};
+  float absolute_height{};
 };
 
 struct WorldSettings {
-  float timer_speed = 25.0f;
-  float water_threshold = 0.1f;
+  float timer_speed{};
+  float water_threshold{};
   // Water border is established at: water_threshold + water_dead_zone_margin.
-  float water_dead_zone_margin = 2.4f;
+  float water_dead_zone_margin{};
   // Width of the valid shore spawning band above the water border.
-  float water_shore_band_width = 1.2f;
+  float water_shore_band_width{};
   // Visual highlight thickness for the water border.
-  float water_border_highlight_width = 0.08f;
-  std::array<float, 4> light_pos{0.0f, 20.0f, 20.0f, 0.0f};
+  float water_border_highlight_width{};
+  std::array<float, 4> light_pos{};
 
-  float zoom_speed = 0.15f;
-  float panning_speed = 0.3f;
-  float field_of_view = 35.0f;
-  float near_clipping = 0.25f;
-  float far_clipping = 800.0f;
-  std::array<float, 3> camera_position{0.0f, 0.0f, 60.0f};
-  float arcball_tumble_mult = 0.7f;
-  float arcball_pan_mult = 0.9f;
-  float arcball_dolly_mult = 0.85f;
-  float arcball_pan_scalar = 0.5f;
-  float arcball_zoom_scalar = 0.1f;
-  float arcball_smoothing = 0.2f;
-  float arcball_distance_pan_scale = 0.8f;
-  float arcball_distance_zoom_scale = 0.6f;
+  float zoom_speed{};
+  float panning_speed{};
+  float field_of_view{};
+  float near_clipping{};
+  float far_clipping{};
+  std::array<float, 3> camera_position{};
+  float arcball_tumble_mult{};
+  float arcball_pan_mult{};
+  float arcball_dolly_mult{};
+  float arcball_pan_scalar{};
+  float arcball_zoom_scalar{};
+  float arcball_smoothing{};
+  float arcball_distance_pan_scale{};
+  float arcball_distance_zoom_scale{};
 
-  int cube_shape = 1;
-  int rectangle_shape = 0;
-  int sphere_shape = 2;
+  int cube_shape{};
+  int rectangle_shape{};
+  int sphere_shape{};
 };
 
 void set_pipeline_execution_plan(const PipelineExecutionPlan &plan);

@@ -1,6 +1,6 @@
 {
     "chat.tools.terminal.autoApprove": {
-        "./bin/CapitalEngine": true,
+        "./out/bin/CapitalEngine": true,
         "cmake": true,
         "xdotool": true,
         "true": true,

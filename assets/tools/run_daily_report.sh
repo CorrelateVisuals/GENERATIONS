@@ -5,7 +5,7 @@ ROOT_DIR=$(cd "$(dirname "$0")/.." && pwd)
 cd "$ROOT_DIR"
 
 while true; do
-  ./tools/daily_report.sh
+  ./assets/tools/daily_report.sh
   # Sleep for 24 hours
   sleep 86400
  done
