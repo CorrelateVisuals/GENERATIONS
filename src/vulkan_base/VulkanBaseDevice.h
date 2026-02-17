@@ -10,14 +10,14 @@
 
 #include <vulkan/vulkan.h>
 
-#include "vulkan_base/ValidationLayers.h"
+#include "vulkan_base/VulkanBaseValidationLayers.h"
 #include "control/Window.h"
 
 namespace CE {
 
-class Swapchain;
+class BaseSwapchain;
 
-class Queues {
+class BaseQueues {
 public:
   VkQueue graphics_queue{};
   VkQueue compute_queue{};
@@ -33,24 +33,24 @@ public:
 
   FamilyIndices indices{};
 
-  Queues() = default;
-  virtual ~Queues() = default;
+  BaseQueues() = default;
+  virtual ~BaseQueues() = default;
   FamilyIndices find_queue_families(const VkPhysicalDevice &physical_device,
                                     const VkSurfaceKHR &surface) const;
 };
 
-class InitializeVulkan {
+class BaseInitializeVulkan {
 public:
   VkSurfaceKHR surface{};
   VkInstance instance{};
-  ValidationLayers validation{};
+  BaseValidationLayers validation{};
 
-  InitializeVulkan();
-  InitializeVulkan(const InitializeVulkan &) = delete;
-  InitializeVulkan &operator=(const InitializeVulkan &) = delete;
-  InitializeVulkan(InitializeVulkan &&) = delete;
-  InitializeVulkan &operator=(InitializeVulkan &&) = delete;
-  virtual ~InitializeVulkan();
+  BaseInitializeVulkan();
+  BaseInitializeVulkan(const BaseInitializeVulkan &) = delete;
+  BaseInitializeVulkan &operator=(const BaseInitializeVulkan &) = delete;
+  BaseInitializeVulkan(BaseInitializeVulkan &&) = delete;
+  BaseInitializeVulkan &operator=(BaseInitializeVulkan &&) = delete;
+  virtual ~BaseInitializeVulkan();
 
 private:
   void create_instance();
@@ -58,20 +58,20 @@ private:
   std::vector<const char *> get_required_extensions() const;
 };
 
-class Device {
+class BaseDevice {
 public:
   VkPhysicalDevice physical_device{VK_NULL_HANDLE};
   VkSampleCountFlagBits max_usable_sample_count{VK_SAMPLE_COUNT_1_BIT};
   VkDevice logical_device{VK_NULL_HANDLE};
 
-  static Device *base_device;
+  static BaseDevice *base_device;
 
-  Device() = default;
-  Device(const Device &) = delete;
-  Device &operator=(const Device &) = delete;
-  Device(Device &&) = delete;
-  Device &operator=(Device &&) = delete;
-  virtual ~Device() {
+  BaseDevice() = default;
+  BaseDevice(const BaseDevice &) = delete;
+  BaseDevice &operator=(const BaseDevice &) = delete;
+  BaseDevice(BaseDevice &&) = delete;
+  BaseDevice &operator=(BaseDevice &&) = delete;
+  virtual ~BaseDevice() {
     destroy_device();
   }
 
@@ -79,10 +79,10 @@ public:
 
 protected:
   VkPhysicalDeviceFeatures features{};
-  void pick_physical_device(const InitializeVulkan &init_vulkan,
-                            Queues &queues,
-                            Swapchain &swapchain);
-  void create_logical_device(const InitializeVulkan &init_vulkan, Queues &queues);
+  void pick_physical_device(const BaseInitializeVulkan &init_vulkan,
+                            BaseQueues &queues,
+                            BaseSwapchain &swapchain);
+  void create_logical_device(const BaseInitializeVulkan &init_vulkan, BaseQueues &queues);
   void destroy_device();
 
 private:
@@ -94,17 +94,17 @@ private:
   std::vector<const char *> extensions_{VK_KHR_SWAPCHAIN_EXTENSION_NAME};
   static std::vector<VkDevice> destroyed_devices;
 
-  std::vector<VkDeviceQueueCreateInfo> fill_queue_create_infos(const Queues &queues) const;
+  std::vector<VkDeviceQueueCreateInfo> fill_queue_create_infos(const BaseQueues &queues) const;
     VkDeviceCreateInfo
     get_device_create_info(const std::vector<VkDeviceQueueCreateInfo> &queue_create_infos)
       const;
-  void set_validation_layers(const InitializeVulkan &init_vulkan,
+  void set_validation_layers(const BaseInitializeVulkan &init_vulkan,
                              VkDeviceCreateInfo &create_info);
-  std::vector<VkPhysicalDevice> fill_devices(const InitializeVulkan &init_vulkan) const;
+  std::vector<VkPhysicalDevice> fill_devices(const BaseInitializeVulkan &init_vulkan) const;
   bool is_device_suitable(const VkPhysicalDevice &physical_device,
-                          Queues &queues,
-                          const InitializeVulkan &init_vulkan,
-                          Swapchain &swapchain);
+                          BaseQueues &queues,
+                          const BaseInitializeVulkan &init_vulkan,
+                          BaseSwapchain &swapchain);
   void get_max_usable_sample_count();
   bool check_device_extension_support(const VkPhysicalDevice &physical_device) const;
 };

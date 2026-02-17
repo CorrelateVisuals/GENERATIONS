@@ -1,15 +1,15 @@
-#include "ValidationLayers.h"
+#include "VulkanBaseValidationLayers.h"
 
 #include "engine/Log.h"
 
 #include <set>
 
-ValidationLayers::ValidationLayers()
+BaseValidationLayers::BaseValidationLayers()
   : debug_messenger{}, validation{"VK_LAYER_KHRONOS_validation"} {}
 
-ValidationLayers::~ValidationLayers() {}
+BaseValidationLayers::~BaseValidationLayers() {}
 
-void ValidationLayers::log_validation_message(const std::string &message,
+void BaseValidationLayers::log_validation_message(const std::string &message,
                                               const std::string &exclude_error) {
   if (message.find(exclude_error) != std::string::npos)
     return;
@@ -17,7 +17,7 @@ void ValidationLayers::log_validation_message(const std::string &message,
   Log::text("!!!!!!!", "Validation Layer: ", message, "\n");
 }
 
-VkResult ValidationLayers::create_debug_utils_messenger_ext(
+VkResult BaseValidationLayers::create_debug_utils_messenger_ext(
     VkInstance instance,
     const VkDebugUtilsMessengerCreateInfoEXT *create_info,
     const VkAllocationCallbacks *allocator,
@@ -30,7 +30,7 @@ VkResult ValidationLayers::create_debug_utils_messenger_ext(
   return func(instance, create_info, allocator, debug_messenger);
 }
 
-void ValidationLayers::destroy_debug_utils_messenger_ext(
+void BaseValidationLayers::destroy_debug_utils_messenger_ext(
     VkInstance instance,
     VkDebugUtilsMessengerEXT debug_messenger,
     const VkAllocationCallbacks *allocator) {
@@ -41,7 +41,7 @@ void ValidationLayers::destroy_debug_utils_messenger_ext(
   }
 }
 
-void ValidationLayers::populate_debug_messenger_create_info(
+void BaseValidationLayers::populate_debug_messenger_create_info(
     VkDebugUtilsMessengerCreateInfoEXT &create_info) {
   create_info = {.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
                 .messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
@@ -52,7 +52,7 @@ void ValidationLayers::populate_debug_messenger_create_info(
                 .pfnUserCallback = debug_callback};
 }
 
-void ValidationLayers::setup_debug_messenger(VkInstance instance) {
+void BaseValidationLayers::setup_debug_messenger(VkInstance instance) {
   if (!enable_validation_layers)
     return;
 
@@ -64,7 +64,7 @@ void ValidationLayers::setup_debug_messenger(VkInstance instance) {
     throw std::runtime_error("\n!ERROR! Failed to set up debug messenger!");
 }
 
-bool ValidationLayers::check_validation_layer_support() {
+bool BaseValidationLayers::check_validation_layer_support() {
   uint32_t layer_count;
   vkEnumerateInstanceLayerProperties(&layer_count, nullptr);
 

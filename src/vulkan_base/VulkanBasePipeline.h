@@ -11,57 +11,57 @@
 
 #include <vulkan/vulkan.h>
 
-#include "VulkanDescriptor.h"
-#include "VulkanSync.h"
+#include "VulkanBaseDescriptor.h"
+#include "VulkanBaseSync.h"
 
 namespace CE {
 
-struct PushConstants {
+struct BasePushConstants {
   VkShaderStageFlags shader_stage{};
   uint32_t count{};
   uint32_t offset{};
   uint32_t size{};
   std::array<uint64_t, 32> data{};
 
-  PushConstants(VkShaderStageFlags stage, uint32_t data_size, uint32_t data_offset);
-  virtual ~PushConstants() = default;
+  BasePushConstants(VkShaderStageFlags stage, uint32_t data_size, uint32_t data_offset);
+  virtual ~BasePushConstants() = default;
   void set_data(const uint64_t &value);
   void set_data(uint32_t value, float fraction);
   void set_data(const uint64_t &value, float fraction);
 };
 
-class PipelineLayout {
+class BasePipelineLayout {
 public:
   VkPipelineLayout layout{};
 
-  PipelineLayout() = default;
-  PipelineLayout(const PipelineLayout &) = delete;
-  PipelineLayout &operator=(const PipelineLayout &) = delete;
-  PipelineLayout(PipelineLayout &&) = delete;
-  PipelineLayout &operator=(PipelineLayout &&) = delete;
-  virtual ~PipelineLayout();
+  BasePipelineLayout() = default;
+  BasePipelineLayout(const BasePipelineLayout &) = delete;
+  BasePipelineLayout &operator=(const BasePipelineLayout &) = delete;
+  BasePipelineLayout(BasePipelineLayout &&) = delete;
+  BasePipelineLayout &operator=(BasePipelineLayout &&) = delete;
+  virtual ~BasePipelineLayout();
   void create_layout(const VkDescriptorSetLayout &set_layout);
   void create_layout(const VkDescriptorSetLayout &set_layout,
-                     const PushConstants &push_constants);
+                     const BasePushConstants &push_constants);
 };
 
-class RenderPass {
+class BaseRenderPass {
 public:
   VkRenderPass render_pass{};
 
-  RenderPass() = default;
-  RenderPass(const RenderPass &) = delete;
-  RenderPass &operator=(const RenderPass &) = delete;
-  RenderPass(RenderPass &&) = delete;
-  RenderPass &operator=(RenderPass &&) = delete;
-  virtual ~RenderPass();
+  BaseRenderPass() = default;
+  BaseRenderPass(const BaseRenderPass &) = delete;
+  BaseRenderPass &operator=(const BaseRenderPass &) = delete;
+  BaseRenderPass(BaseRenderPass &&) = delete;
+  BaseRenderPass &operator=(BaseRenderPass &&) = delete;
+  virtual ~BaseRenderPass();
   void create(VkSampleCountFlagBits msaa_image_samples, VkFormat swapchain_image_format);
-  void create_framebuffers(CE::Swapchain &swapchain,
+  void create_framebuffers(CE::BaseSwapchain &swapchain,
                            const VkImageView &msaa_view,
                            const VkImageView &depth_view) const;
 };
 
-class PipelinesConfiguration {
+class BasePipelinesConfiguration {
 public:
 #define PIPELINE_OBJECTS                                                                 \
   VkPipeline pipeline{};                                                                 \
@@ -78,12 +78,12 @@ public:
   };
 #undef PIPELINE_OBJECTS
 
-  PipelinesConfiguration() = default;
-  PipelinesConfiguration(const PipelinesConfiguration &) = delete;
-  PipelinesConfiguration &operator=(const PipelinesConfiguration &) = delete;
-  PipelinesConfiguration(PipelinesConfiguration &&) = delete;
-  PipelinesConfiguration &operator=(PipelinesConfiguration &&) = delete;
-  virtual ~PipelinesConfiguration();
+  BasePipelinesConfiguration() = default;
+  BasePipelinesConfiguration(const BasePipelinesConfiguration &) = delete;
+  BasePipelinesConfiguration &operator=(const BasePipelinesConfiguration &) = delete;
+  BasePipelinesConfiguration(BasePipelinesConfiguration &&) = delete;
+  BasePipelinesConfiguration &operator=(BasePipelinesConfiguration &&) = delete;
+  virtual ~BasePipelinesConfiguration();
   void create_pipelines(VkRenderPass &render_pass,
                         const VkPipelineLayout &graphics_layout,
                         const VkPipelineLayout &compute_layout,

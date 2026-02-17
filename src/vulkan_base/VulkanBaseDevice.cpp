@@ -1,6 +1,6 @@
-#include "VulkanDevice.h"
-#include "VulkanSync.h"
-#include "VulkanUtils.h"
+#include "VulkanBaseDevice.h"
+#include "VulkanBaseSync.h"
+#include "VulkanBaseUtils.h"
 
 #include "engine/Log.h"
 
@@ -15,8 +15,8 @@
 #include <set>
 #include <stdexcept>
 
-CE::Device *CE::Device::base_device = nullptr;
-std::vector<VkDevice> CE::Device::destroyed_devices;
+CE::BaseDevice *CE::BaseDevice::base_device = nullptr;
+std::vector<VkDevice> CE::BaseDevice::destroyed_devices;
 
 namespace {
 
@@ -265,9 +265,9 @@ void log_physical_device_snapshot(const VkPhysicalDevice &physical_device,
 
 } // namespace
 
-void CE::Device::create_logical_device(const InitializeVulkan &init_vulkan,
-                     Queues &queues) {
-  Log::text("{ +++ }", "Logical Device");
+void CE::BaseDevice::create_logical_device(const BaseInitializeVulkan &init_vulkan,
+                     BaseQueues &queues) {
+  Log::text("{ +++ }", "Logical BaseDevice");
 
   const std::vector<VkDeviceQueueCreateInfo> queue_create_infos =
       fill_queue_create_infos(queues);
@@ -279,7 +279,7 @@ void CE::Device::create_logical_device(const InitializeVulkan &init_vulkan,
   if (gpu_log_settings().enabled && gpu_log_settings().startup) {
     Log::text("{ GPU }",
               Log::function_name(__func__),
-              "Logical Device created",
+              "Logical BaseDevice created",
               this->logical_device);
   }
     vkGetDeviceQueue(this->logical_device,
@@ -307,10 +307,10 @@ void CE::Device::create_logical_device(const InitializeVulkan &init_vulkan,
       queues.present_queue);
 }
 
-void CE::Device::pick_physical_device(const InitializeVulkan &init_vulkan,
-                    Queues &queues,
-                    Swapchain &swapchain) {
-  Log::text("{ ### }", "Physical Device");
+void CE::BaseDevice::pick_physical_device(const BaseInitializeVulkan &init_vulkan,
+                    BaseQueues &queues,
+                    BaseSwapchain &swapchain) {
+  Log::text("{ ### }", "Physical BaseDevice");
   std::vector<VkPhysicalDevice> devices = fill_devices(init_vulkan);
   const GpuLogSettings &gpu_log = gpu_log_settings();
   const bool startup_gpu_logs = gpu_log.enabled && gpu_log.startup;
@@ -384,7 +384,7 @@ void CE::Device::pick_physical_device(const InitializeVulkan &init_vulkan,
   }
 }
 
-void CE::Device::maybe_log_gpu_runtime_sample() {
+void CE::BaseDevice::maybe_log_gpu_runtime_sample() {
   const GpuLogSettings &gpu_log = gpu_log_settings();
   if (!gpu_log.enabled || !gpu_log.periodic ||
       this->physical_device == VK_NULL_HANDLE) {
@@ -438,7 +438,7 @@ void CE::Device::maybe_log_gpu_runtime_sample() {
 }
 
 std::vector<VkDeviceQueueCreateInfo>
-CE::Device::fill_queue_create_infos(const Queues &queues) const {
+CE::BaseDevice::fill_queue_create_infos(const BaseQueues &queues) const {
   std::vector<VkDeviceQueueCreateInfo> queue_create_infos{};
   const std::set<uint32_t> unique_queue_families = {
       queues.indices.graphics_and_compute_family.value(),
@@ -456,7 +456,7 @@ CE::Device::fill_queue_create_infos(const Queues &queues) const {
   return queue_create_infos;
 }
 
-VkDeviceCreateInfo CE::Device::get_device_create_info(
+VkDeviceCreateInfo CE::BaseDevice::get_device_create_info(
     const std::vector<VkDeviceQueueCreateInfo> &queue_create_infos) const {
   VkDeviceCreateInfo create_info{
       .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
@@ -469,7 +469,7 @@ VkDeviceCreateInfo CE::Device::get_device_create_info(
   return create_info;
 }
 
-void CE::Device::set_validation_layers(const InitializeVulkan &init_vulkan,
+void CE::BaseDevice::set_validation_layers(const BaseInitializeVulkan &init_vulkan,
                                        VkDeviceCreateInfo &create_info) {
   if (init_vulkan.validation.enable_validation_layers) {
     create_info.enabledLayerCount =
@@ -479,7 +479,7 @@ void CE::Device::set_validation_layers(const InitializeVulkan &init_vulkan,
 }
 
 std::vector<VkPhysicalDevice>
-CE::Device::fill_devices(const InitializeVulkan &init_vulkan) const {
+CE::BaseDevice::fill_devices(const BaseInitializeVulkan &init_vulkan) const {
   uint32_t device_count(0);
   vkEnumeratePhysicalDevices(init_vulkan.instance, &device_count, nullptr);
 
@@ -492,11 +492,11 @@ CE::Device::fill_devices(const InitializeVulkan &init_vulkan) const {
   return devices;
 }
 
-bool CE::Device::is_device_suitable(const VkPhysicalDevice &physical_device,
-                                    Queues &queues,
-                                    const InitializeVulkan &init_vulkan,
-                                    Swapchain &swapchain) {
-  Log::text(Log::Style::char_leader, "Is Device Suitable");
+bool CE::BaseDevice::is_device_suitable(const VkPhysicalDevice &physical_device,
+                                    BaseQueues &queues,
+                                    const BaseInitializeVulkan &init_vulkan,
+                                    BaseSwapchain &swapchain) {
+  Log::text(Log::Style::char_leader, "Is BaseDevice Suitable");
 
   queues.indices =
       queues.find_queue_families(physical_device, init_vulkan.surface);
@@ -504,7 +504,7 @@ bool CE::Device::is_device_suitable(const VkPhysicalDevice &physical_device,
 
   bool swapchain_adequate = false;
   if (extensions_supported) {
-    Swapchain::SupportDetails swapchain_support =
+    BaseSwapchain::SupportDetails swapchain_support =
       swapchain.check_support(physical_device, init_vulkan.surface);
     swapchain_adequate =
       !swapchain_support.formats.empty() &&
@@ -521,7 +521,7 @@ bool CE::Device::is_device_suitable(const VkPhysicalDevice &physical_device,
          swapchain_adequate;
 }
 
-void CE::Device::get_max_usable_sample_count() {
+void CE::BaseDevice::get_max_usable_sample_count() {
   vkGetPhysicalDeviceProperties(this->physical_device, &this->properties_);
   const VkSampleCountFlags counts =
       this->properties_.limits.framebufferColorSampleCounts &
@@ -537,9 +537,9 @@ void CE::Device::get_max_usable_sample_count() {
   return;
 }
 
-bool CE::Device::check_device_extension_support(
+bool CE::BaseDevice::check_device_extension_support(
     const VkPhysicalDevice &physical_device) const {
-  Log::text(Log::Style::char_leader, "Check Device Extension Support");
+  Log::text(Log::Style::char_leader, "Check BaseDevice Extension Support");
   uint32_t extension_count(0);
   vkEnumerateDeviceExtensionProperties(
       physical_device, nullptr, &extension_count, nullptr);
@@ -568,7 +568,7 @@ bool CE::Device::check_device_extension_support(
   return required_extensions.empty();
 }
 
-void CE::Device::destroy_device() {
+void CE::BaseDevice::destroy_device() {
   if (this->logical_device == VK_NULL_HANDLE) {
     return;
   }
@@ -582,28 +582,28 @@ void CE::Device::destroy_device() {
   }
   if (!is_device_destroyed) {
     Log::text(
-        "{ +++ }", "Destroy Device", this->logical_device, "@", &this->logical_device);
+        "{ +++ }", "Destroy BaseDevice", this->logical_device, "@", &this->logical_device);
     extensions_.clear();
     vkDestroyDevice(this->logical_device, nullptr);
     destroyed_devices.push_back(this->logical_device);
-    if (Device::base_device == this) {
-      Device::base_device = nullptr;
+    if (BaseDevice::base_device == this) {
+      BaseDevice::base_device = nullptr;
     }
     this->logical_device = VK_NULL_HANDLE;
   } else {
-    if (Device::base_device == this) {
-      Device::base_device = nullptr;
+    if (BaseDevice::base_device == this) {
+      BaseDevice::base_device = nullptr;
     }
     this->logical_device = VK_NULL_HANDLE;
   }
 }
 
-CE::Queues::FamilyIndices
-CE::Queues::find_queue_families(const VkPhysicalDevice &physical_device,
+CE::BaseQueues::FamilyIndices
+CE::BaseQueues::find_queue_families(const VkPhysicalDevice &physical_device,
                               const VkSurfaceKHR &surface) const {
   Log::text(Log::Style::char_leader, "Find Queue Families");
 
-  CE::Queues::FamilyIndices indices{};
+  CE::BaseQueues::FamilyIndices indices{};
   uint32_t queue_family_count(0);
   vkGetPhysicalDeviceQueueFamilyProperties(
       physical_device, &queue_family_count, nullptr);
@@ -636,14 +636,14 @@ CE::Queues::find_queue_families(const VkPhysicalDevice &physical_device,
   return indices;
 }
 
-CE::InitializeVulkan::InitializeVulkan() {
+CE::BaseInitializeVulkan::BaseInitializeVulkan() {
   Log::text("{ VkI }", "constructing Initialize Vulkan");
   create_instance();
   this->validation.setup_debug_messenger(this->instance);
   create_surface(Window::get().window);
 }
 
-CE::InitializeVulkan::~InitializeVulkan() {
+CE::BaseInitializeVulkan::~BaseInitializeVulkan() {
   Log::text("{ VkI }", "destructing Initialize Vulkan");
   if (this->validation.enable_validation_layers) {
     this->validation.destroy_debug_utils_messenger_ext(
@@ -653,7 +653,7 @@ CE::InitializeVulkan::~InitializeVulkan() {
   vkDestroyInstance(this->instance, nullptr);
 }
 
-void CE::InitializeVulkan::create_instance() {
+void CE::BaseInitializeVulkan::create_instance() {
   Log::text("{ VkI }", "Vulkan Instance");
     if (this->validation.enable_validation_layers &&
       !this->validation.check_validation_layer_support()) {
@@ -698,13 +698,13 @@ void CE::InitializeVulkan::create_instance() {
     CE::vulkan_result(vkCreateInstance, &create_info, nullptr, &this->instance);
 }
 
-void CE::InitializeVulkan::create_surface(GLFWwindow *window) {
+void CE::BaseInitializeVulkan::create_surface(GLFWwindow *window) {
   Log::text("{ [ ] }", "Surface");
     CE::vulkan_result(
       glfwCreateWindowSurface, this->instance, window, nullptr, &this->surface);
 }
 
-std::vector<const char *> CE::InitializeVulkan::get_required_extensions() const {
+std::vector<const char *> CE::BaseInitializeVulkan::get_required_extensions() const {
   uint32_t glfw_extension_count(0);
   const char **glfw_extensions;
   glfw_extensions = glfwGetRequiredInstanceExtensions(&glfw_extension_count);

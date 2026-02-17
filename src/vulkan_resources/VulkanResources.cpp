@@ -23,7 +23,7 @@ VulkanResources::VulkanResources(VulkanMechanics &mechanics, const CE::Runtime::
         depth_image{
           CE_DEPTH_IMAGE,
           mechanics.swapchain.extent,
-          CE::Image::find_depth_format()},
+          CE::BaseImage::find_depth_format()},
         msaa_image{CE_MULTISAMPLE_IMAGE,
                 mechanics.swapchain.extent,
             mechanics.swapchain.image_format},
@@ -47,13 +47,13 @@ VulkanResources::~VulkanResources() {
 }
 
 CE::ShaderAccess::CommandResources::CommandResources(
-    const CE::Queues::FamilyIndices &family_indices) {
+    const CE::BaseQueues::FamilyIndices &family_indices) {
   create_pool(family_indices);
   create_buffers(graphics);
   create_buffers(compute);
 }
 
-VulkanResources::UniformBuffer::UniformBuffer(CE::DescriptorInterface &interface,
+VulkanResources::UniformBuffer::UniformBuffer(CE::BaseDescriptorInterface &interface,
                                         World::UniformBufferObject &u)
     : ubo(u) {
   my_index = interface.write_index;
@@ -81,13 +81,13 @@ void VulkanResources::UniformBuffer::create_buffer() {
   Log::text("{ 101 }", MAX_FRAMES_IN_FLIGHT, "Uniform Buffers");
   VkDeviceSize bufferSize = sizeof(World::UniformBufferObject);
 
-  CE::Buffer::create(bufferSize,
+  CE::BaseBuffer::create(bufferSize,
                      VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
                      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                          VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                      buffer);
 
-  vkMapMemory(CE::Device::base_device->logical_device,
+  vkMapMemory(CE::BaseDevice::base_device->logical_device,
               buffer.memory,
               0,
               bufferSize,
@@ -95,7 +95,7 @@ void VulkanResources::UniformBuffer::create_buffer() {
               &buffer.mapped);
 }
 
-void VulkanResources::UniformBuffer::create_descriptor_write(CE::DescriptorInterface &interface) {
+void VulkanResources::UniformBuffer::create_descriptor_write(CE::BaseDescriptorInterface &interface) {
   VkDescriptorBufferInfo bufferInfo{};
   bufferInfo.buffer = buffer.buffer;
   bufferInfo.offset = 0;
@@ -130,8 +130,8 @@ void VulkanResources::UniformBuffer::update(World &world, const VkExtent2D exten
   std::memcpy(buffer.mapped, &ubo, sizeof(ubo));
 }
 
-VulkanResources::StorageBuffer::StorageBuffer(CE::DescriptorInterface &descriptor_interface,
-                                        const CE::CommandInterface &command_interface,
+VulkanResources::StorageBuffer::StorageBuffer(CE::BaseDescriptorInterface &descriptor_interface,
+                                        const CE::BaseCommandInterface &command_interface,
                                         const auto &object,
                                         const size_t quantity) {
   my_index = descriptor_interface.write_index;
@@ -154,50 +154,50 @@ VulkanResources::StorageBuffer::StorageBuffer(CE::DescriptorInterface &descripto
   create_descriptor_write(descriptor_interface, quantity);
 }
 
-void VulkanResources::StorageBuffer::create(const CE::CommandInterface &command_interface,
+void VulkanResources::StorageBuffer::create(const CE::BaseCommandInterface &command_interface,
                                       const auto &object,
                                       const size_t quantity) {
   Log::text("{ 101 }", "Shader Storage Buffers");
 
-  CE::Buffer stagingResources;
+  CE::BaseBuffer stagingResources;
   VkDeviceSize bufferSize = sizeof(World::Cell) * quantity;
 
-  CE::Buffer::create(bufferSize,
+  CE::BaseBuffer::create(bufferSize,
                      VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                          VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                      stagingResources);
 
   void *data;
-  vkMapMemory(CE::Device::base_device->logical_device,
+  vkMapMemory(CE::BaseDevice::base_device->logical_device,
               stagingResources.memory,
               0,
               bufferSize,
               0,
               &data);
   std::memcpy(data, object.data(), static_cast<size_t>(bufferSize));
-  vkUnmapMemory(CE::Device::base_device->logical_device, stagingResources.memory);
+  vkUnmapMemory(CE::BaseDevice::base_device->logical_device, stagingResources.memory);
 
-  CE::Buffer::create(static_cast<VkDeviceSize>(bufferSize),
+  CE::BaseBuffer::create(static_cast<VkDeviceSize>(bufferSize),
                      VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
                          VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
                          VK_BUFFER_USAGE_TRANSFER_DST_BIT,
                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
                      buffer_in);
-  CE::Buffer::copy(stagingResources.buffer,
+  CE::BaseBuffer::copy(stagingResources.buffer,
                    buffer_in.buffer,
                    bufferSize,
                    command_interface.command_buffer,
                    command_interface.command_pool,
                    command_interface.queue);
 
-  CE::Buffer::create(static_cast<VkDeviceSize>(bufferSize),
+  CE::BaseBuffer::create(static_cast<VkDeviceSize>(bufferSize),
                      VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
                          VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
                          VK_BUFFER_USAGE_TRANSFER_DST_BIT,
                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
                      buffer_out);
-  CE::Buffer::copy(stagingResources.buffer,
+  CE::BaseBuffer::copy(stagingResources.buffer,
                    buffer_out.buffer,
                    bufferSize,
                    command_interface.command_buffer,
@@ -205,7 +205,7 @@ void VulkanResources::StorageBuffer::create(const CE::CommandInterface &command_
                    command_interface.queue);
 }
 
-void VulkanResources::StorageBuffer::create_descriptor_write(CE::DescriptorInterface &interface,
+void VulkanResources::StorageBuffer::create_descriptor_write(CE::BaseDescriptorInterface &interface,
                                                        const size_t quantity) {
   for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
     VkDescriptorBufferInfo bufferInfo{.buffer = !i ? buffer_in.buffer : buffer_out.buffer,
@@ -233,8 +233,8 @@ void VulkanResources::StorageBuffer::create_descriptor_write(CE::DescriptorInter
   }
 };
 
-VulkanResources::ImageSampler::ImageSampler(CE::DescriptorInterface &interface,
-                    const CE::CommandInterface &command_interface,
+VulkanResources::ImageSampler::ImageSampler(CE::BaseDescriptorInterface &interface,
+                    const CE::BaseCommandInterface &command_interface,
                     const std::string &texture_path)
   : texture_image(texture_path) {
   my_index = interface.write_index;
@@ -261,7 +261,7 @@ VulkanResources::ImageSampler::ImageSampler(CE::DescriptorInterface &interface,
   create_descriptor_write(interface);
 }
 
-void VulkanResources::ImageSampler::create_descriptor_write(CE::DescriptorInterface &interface) {
+void VulkanResources::ImageSampler::create_descriptor_write(CE::BaseDescriptorInterface &interface) {
   VkDescriptorImageInfo imageInfo{.sampler = texture_image.sampler,
                                   .imageView = texture_image.view,
                                   .imageLayout =
@@ -286,8 +286,8 @@ void VulkanResources::ImageSampler::create_descriptor_write(CE::DescriptorInterf
 }
 
 VulkanResources::StorageImage::StorageImage(
-    CE::DescriptorInterface &interface,
-    std::array<CE::Image, MAX_FRAMES_IN_FLIGHT> &images) {
+    CE::BaseDescriptorInterface &interface,
+    std::array<CE::BaseImage, MAX_FRAMES_IN_FLIGHT> &images) {
   my_index = interface.write_index;
   interface.write_index++;
 
@@ -305,8 +305,8 @@ VulkanResources::StorageImage::StorageImage(
 }
 
 void VulkanResources::StorageImage::create_descriptor_write(
-    CE::DescriptorInterface &interface,
-    std::array<CE::Image, MAX_FRAMES_IN_FLIGHT> &images) {
+    CE::BaseDescriptorInterface &interface,
+    std::array<CE::BaseImage, MAX_FRAMES_IN_FLIGHT> &images) {
   for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
     VkDescriptorImageInfo imageInfo{.sampler = VK_NULL_HANDLE,
                                     .imageView = images[i].view,

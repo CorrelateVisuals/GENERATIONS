@@ -24,6 +24,26 @@ GEOMETRY_SHAPE resolve_shape(const int value, const GEOMETRY_SHAPE fallback) {
     return fallback;
   }
 }
+
+uint32_t seed_hash_u32(uint32_t value) {
+  value ^= value >> 16;
+  value *= 0x7feb352du;
+  value ^= value >> 15;
+  value *= 0x846ca68bu;
+  value ^= value >> 16;
+  return value;
+}
+
+uint32_t seeded_alive_count(const uint32_t grid_width,
+                           const uint32_t grid_height,
+                           const uint32_t target_alive) {
+  const uint32_t total_cells = grid_width * grid_height;
+  if (total_cells == 0) {
+    return 0;
+  }
+
+  return std::min(target_alive, total_cells);
+}
 } // namespace
 
 World::World(VkCommandBuffer &command_buffer,
@@ -125,6 +145,27 @@ World::Grid::Grid(const CE::Runtime::TerrainSettings &terrain_settings,
     initial_alive_cells(terrain_settings.alive_cells),
     point_count(size.x * size.y) {
   const glm::vec4 grey{0.5f, 0.5f, 0.5f, 1.0f};
+    const uint32_t requested_alive_cells = static_cast<uint32_t>(initial_alive_cells);
+    const uint32_t total_cells_u32 = static_cast<uint32_t>(point_count);
+    const uint32_t clamped_alive_target = std::min(requested_alive_cells, total_cells_u32);
+    const uint32_t predicted_seeded_alive =
+      seeded_alive_count(static_cast<uint32_t>(size.x),
+               static_cast<uint32_t>(size.y),
+               clamped_alive_target);
+
+    Log::text("{ DBG }",
+        "alive_cells cfg",
+        requested_alive_cells,
+        "clamped",
+        clamped_alive_target,
+        "grid_total",
+        total_cells_u32,
+        "predicted_seeded_alive",
+        predicted_seeded_alive,
+        "seed_error",
+        static_cast<int64_t>(predicted_seeded_alive) -
+          static_cast<int64_t>(clamped_alive_target));
+
   const int encoded_alive_target =
       static_cast<int>(std::min<uint_fast32_t>(initial_alive_cells,
                                                static_cast<uint_fast32_t>(std::numeric_limits<int>::max())));

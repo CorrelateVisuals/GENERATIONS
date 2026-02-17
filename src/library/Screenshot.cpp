@@ -21,8 +21,8 @@ void CE::Screenshot::capture(const VkImage &src_image,
   VkDeviceSize imageSize = static_cast<VkDeviceSize>(extent.width) *
                            static_cast<VkDeviceSize>(extent.height) *
                            static_cast<VkDeviceSize>(4);
-  Buffer staging_buffer{};
-  Buffer::create(imageSize,
+  BaseBuffer staging_buffer{};
+  BaseBuffer::create(imageSize,
                  VK_BUFFER_USAGE_TRANSFER_DST_BIT,
                  VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                      VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
@@ -35,11 +35,11 @@ void CE::Screenshot::capture(const VkImage &src_image,
 }
 
 void CE::Screenshot::copy_image_to_buffer(const VkImage &src_image,
-                                          Buffer &dst_buffer,
+                                          BaseBuffer &dst_buffer,
                                        const VkExtent2D &extent,
                                        const VkCommandPool &command_pool,
                                        const VkQueue &queue) {
-  CE::SingleUseCommands single_use_commands(command_pool, queue);
+  CE::BaseSingleUseCommands single_use_commands(command_pool, queue);
   VkCommandBuffer &command_buffer = single_use_commands.command_buffer();
 
   VkImageMemoryBarrier barrier{};
@@ -105,13 +105,13 @@ void CE::Screenshot::copy_image_to_buffer(const VkImage &src_image,
   single_use_commands.submit_and_wait();
 }
 
-void CE::Screenshot::save_buffer_to_file(const Buffer &buffer,
+void CE::Screenshot::save_buffer_to_file(const BaseBuffer &buffer,
                                          const VkExtent2D &extent,
                                          const VkFormat &format,
                                          const std::string &filename) {
   void *data{};
   vkMapMemory(
-      Device::base_device->logical_device, buffer.memory, 0, VK_WHOLE_SIZE, 0, &data);
+      BaseDevice::base_device->logical_device, buffer.memory, 0, VK_WHOLE_SIZE, 0, &data);
 
   std::vector<uint8_t> pixels(extent.width * extent.height * 4);
   memcpy(pixels.data(), data, pixels.size());
@@ -123,7 +123,7 @@ void CE::Screenshot::save_buffer_to_file(const Buffer &buffer,
     }
   }
 
-  vkUnmapMemory(Device::base_device->logical_device, buffer.memory);
+  vkUnmapMemory(BaseDevice::base_device->logical_device, buffer.memory);
 
   const int width = static_cast<int>(extent.width);
   const int height = static_cast<int>(extent.height);

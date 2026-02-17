@@ -7,7 +7,7 @@
 #include "library/Library.h"
 #include "control/Window.h"
 #include "world/World.h"
-#include "vulkan_base/VulkanPipeline.h"
+#include "vulkan_base/VulkanBasePipeline.h"
 #include "world/RuntimeConfig.h"
 
 class VulkanMechanics;
@@ -22,28 +22,28 @@ public:
 	Pipelines &operator=(Pipelines &&) = delete;
 	~Pipelines();
 
-	struct ComputeLayout : public CE::PipelineLayout {
-		ComputeLayout(CE::DescriptorInterface &interface, CE::PushConstants &push_constant) {
+	struct ComputeLayout : public CE::BasePipelineLayout {
+		ComputeLayout(CE::BaseDescriptorInterface &interface, CE::BasePushConstants &push_constant) {
 			create_layout(interface.set_layout, push_constant);
 		}
 	};
 
-	struct GraphicsLayout : public CE::PipelineLayout {
-		GraphicsLayout(CE::DescriptorInterface &interface) {
+	struct GraphicsLayout : public CE::BasePipelineLayout {
+		GraphicsLayout(CE::BaseDescriptorInterface &interface) {
 			create_layout(interface.set_layout);
 		}
 	};
 
-	struct Render : public CE::RenderPass {
-		Render(CE::Swapchain &swapchain,
-					 const CE::Image &msaa_image,
+	struct Render : public CE::BaseRenderPass {
+		Render(CE::BaseSwapchain &swapchain,
+					 const CE::BaseImage &msaa_image,
 					 const VkImageView &depth_view) {
 			create(msaa_image.info.samples, swapchain.image_format);
 			create_framebuffers(swapchain, msaa_image.view, depth_view);
 		}
 	};
 
-	struct Configuration : public CE::PipelinesConfiguration {
+	struct Configuration : public CE::BasePipelinesConfiguration {
 		static constexpr uint32_t ceil_div(const uint32_t value, const uint32_t divisor) {
 			return (value + divisor - 1) / divisor;
 		}
@@ -76,7 +76,7 @@ public:
 			return {1, 1, 1};
 		}
 
-		static CE::PipelinesConfiguration::Graphics
+		static CE::BasePipelinesConfiguration::Graphics
 		make_graphics(const CE::Runtime::DrawOpId draw_op,
 									const std::vector<std::string> &shaders) {
 			if (draw_op == CE::Runtime::DrawOpId::InstancedCells) {

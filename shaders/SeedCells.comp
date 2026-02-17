@@ -28,6 +28,54 @@ uint hash_u32(uint x) {
     return x;
 }
 
+uint ceil_log2_u32(uint x) {
+    uint bits = 0u;
+    uint value = max(x - 1u, 1u);
+    while (value > 0u) {
+        value >>= 1u;
+        bits += 1u;
+    }
+    return bits;
+}
+
+uint feistel_permute(uint value, uint half_bits, uint key) {
+    uint mask = (1u << half_bits) - 1u;
+    uint left = value >> half_bits;
+    uint right = value & mask;
+
+    for (uint round = 0u; round < 5u; ++round) {
+        uint round_key = key + 0x9e3779b9u * (round + 1u);
+        uint f = hash_u32(right ^ round_key) & mask;
+        uint new_left = right;
+        uint new_right = (left ^ f) & mask;
+        left = new_left;
+        right = new_right;
+    }
+
+    return (left << half_bits) | right;
+}
+
+uint permute_to_range(uint index, uint total_cells, uint seed) {
+    if (total_cells <= 1u) {
+        return 0u;
+    }
+
+    uint log2_cells = ceil_log2_u32(total_cells);
+    uint half_bits = (log2_cells + 1u) / 2u;
+    uint domain_bits = half_bits * 2u;
+    uint domain_size = 1u << domain_bits;
+
+    uint value = index;
+    for (uint iter = 0u; iter < 16u; ++iter) {
+        value = feistel_permute(value, half_bits, seed + 0x85ebca6bu * iter);
+        if (value < total_cells) {
+            return value;
+        }
+    }
+
+    return value % total_cells;
+}
+
 void main() {
     uint gridWidth = uint(max(ubo.gridXY.x, 1));
     uint gridHeight = uint(max(ubo.gridXY.y, 1));
@@ -42,19 +90,10 @@ void main() {
 
     uint encodedTarget = uint(max(cellA[index].states.y, 0));
     uint targetAlive = min(encodedTarget, totalCells);
-
-    float aliveRatio = float(targetAlive) / float(totalCells);
-    uint threshold = uint(clamp(aliveRatio, 0.0, 1.0) * 4294967295.0);
-
     uint seed = hash_u32(totalCells ^ 0x9e3779b9u);
-    uint mixed = index;
-    mixed ^= x * 73856093u;
-    mixed ^= y * 19349663u;
-    mixed ^= seed;
-    mixed = hash_u32(mixed);
-    mixed = hash_u32(mixed ^ (x << 16) ^ y);
+    uint permuted = permute_to_range(index, totalCells, seed);
 
-    bool isAlive = mixed <= threshold;
+    bool isAlive = permuted < targetAlive;
 
     Cell seeded = cellA[index];
     seeded.position.w = isAlive ? (ubo.cellSize * 1.6) : 0.0;

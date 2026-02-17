@@ -12,22 +12,22 @@ namespace CE {
 
 enum IMAGE_RESOURCE_TYPES { CE_DEPTH_IMAGE = 0, CE_MULTISAMPLE_IMAGE = 1 };
 
-class Buffer {
+class BaseBuffer {
 public:
   VkBuffer buffer{};
   VkDeviceMemory memory{};
   void *mapped{};
 
-  Buffer() = default;
-  Buffer(const Buffer &) = delete;
-  Buffer &operator=(const Buffer &) = delete;
-  Buffer(Buffer &&) = delete;
-  Buffer &operator=(Buffer &&) = delete;
-  virtual ~Buffer();
+  BaseBuffer() = default;
+  BaseBuffer(const BaseBuffer &) = delete;
+  BaseBuffer &operator=(const BaseBuffer &) = delete;
+  BaseBuffer(BaseBuffer &&) = delete;
+  BaseBuffer &operator=(BaseBuffer &&) = delete;
+  virtual ~BaseBuffer();
   static void create(const VkDeviceSize &size,
                      const VkBufferUsageFlags &usage,
                      const VkMemoryPropertyFlags &properties,
-                     Buffer &buffer);
+                     BaseBuffer &buffer);
   static void copy(const VkBuffer &src_buffer,
                    VkBuffer &dst_buffer,
                    const VkDeviceSize size,
@@ -43,7 +43,7 @@ public:
                             const VkQueue &queue);
 };
 
-class Image {
+class BaseImage {
 public:
   VkImage image{};
   VkDeviceMemory memory{};
@@ -65,22 +65,22 @@ public:
                          .pQueueFamilyIndices = nullptr,
                          .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED};
 
-  Image() = default;
-  Image(IMAGE_RESOURCE_TYPES image_type,
+  BaseImage() = default;
+  BaseImage(IMAGE_RESOURCE_TYPES image_type,
         const VkExtent2D &extent,
         const VkFormat format) {
     create_resources(image_type, extent, format);
   }
-  Image(const std::string &texture_path) {
+  BaseImage(const std::string &texture_path) {
     path = texture_path;
   }
 
-  Image(const Image &) = delete;
-  Image &operator=(const Image &) = delete;
-  Image(Image &&) = delete;
-  Image &operator=(Image &&) = delete;
+  BaseImage(const BaseImage &) = delete;
+  BaseImage &operator=(const BaseImage &) = delete;
+  BaseImage(BaseImage &&) = delete;
+  BaseImage &operator=(BaseImage &&) = delete;
 
-  virtual ~Image() {
+  virtual ~BaseImage() {
     destroy_vulkan_images();
   };
 

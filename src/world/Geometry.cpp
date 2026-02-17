@@ -4,7 +4,7 @@
 #include "Geometry.h"
 #include "library/Library.h"
 #include "engine/Log.h"
-#include "vulkan_base/VulkanDevice.h"
+#include "vulkan_base/VulkanBaseDevice.h"
 
 #include <filesystem>
 #include <glm/gtc/constants.hpp>
@@ -289,15 +289,15 @@ void Geometry::create_vertex_buffer(VkCommandBuffer &command_buffer,
                                     const VkCommandPool &command_pool,
                                     const VkQueue &queue,
                                     const std::vector<Vertex> &vertices,
-                                    CE::Buffer &target_buffer) {
+                                    CE::BaseBuffer &target_buffer) {
   if (vertices.empty()) {
     return;
   }
 
-  CE::Buffer stagingResources;
+  CE::BaseBuffer stagingResources;
   VkDeviceSize bufferSize = sizeof(Vertex) * vertices.size();
 
-  CE::Buffer::create(bufferSize,
+  CE::BaseBuffer::create(bufferSize,
                      VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                          VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
@@ -307,7 +307,7 @@ void Geometry::create_vertex_buffer(VkCommandBuffer &command_buffer,
   if (Log::gpu_trace_enabled()) {
     Log::text("{ MAP }", "Map staging vertex memory", stagingResources.memory, bufferSize);
   }
-  vkMapMemory(CE::Device::base_device->logical_device,
+  vkMapMemory(CE::BaseDevice::base_device->logical_device,
               stagingResources.memory,
               0,
               bufferSize,
@@ -320,14 +320,14 @@ void Geometry::create_vertex_buffer(VkCommandBuffer &command_buffer,
   if (Log::gpu_trace_enabled()) {
     Log::text("{ MAP }", "Unmap staging vertex memory", stagingResources.memory);
   }
-  vkUnmapMemory(CE::Device::base_device->logical_device, stagingResources.memory);
+  vkUnmapMemory(CE::BaseDevice::base_device->logical_device, stagingResources.memory);
 
-  CE::Buffer::create(bufferSize,
+  CE::BaseBuffer::create(bufferSize,
                      VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
                      target_buffer);
 
-  CE::Buffer::copy(stagingResources.buffer,
+  CE::BaseBuffer::copy(stagingResources.buffer,
                    target_buffer.buffer,
                    bufferSize,
                    command_buffer,
@@ -346,15 +346,15 @@ void Geometry::create_index_buffer(VkCommandBuffer &command_buffer,
                                    const VkCommandPool &command_pool,
                                    const VkQueue &queue,
                                    const std::vector<uint32_t> &index_data,
-                                   CE::Buffer &target_buffer) {
+                                   CE::BaseBuffer &target_buffer) {
   if (index_data.empty()) {
     return;
   }
 
-  CE::Buffer stagingResources;
+  CE::BaseBuffer stagingResources;
   VkDeviceSize bufferSize = sizeof(uint32_t) * index_data.size();
 
-  CE::Buffer::create(bufferSize,
+  CE::BaseBuffer::create(bufferSize,
                      VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                          VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
@@ -364,7 +364,7 @@ void Geometry::create_index_buffer(VkCommandBuffer &command_buffer,
   if (Log::gpu_trace_enabled()) {
     Log::text("{ MAP }", "Map staging index memory", stagingResources.memory, bufferSize);
   }
-  vkMapMemory(CE::Device::base_device->logical_device,
+  vkMapMemory(CE::BaseDevice::base_device->logical_device,
               stagingResources.memory,
               0,
               bufferSize,
@@ -377,14 +377,14 @@ void Geometry::create_index_buffer(VkCommandBuffer &command_buffer,
   if (Log::gpu_trace_enabled()) {
     Log::text("{ MAP }", "Unmap staging index memory", stagingResources.memory);
   }
-  vkUnmapMemory(CE::Device::base_device->logical_device, stagingResources.memory);
+  vkUnmapMemory(CE::BaseDevice::base_device->logical_device, stagingResources.memory);
 
-  CE::Buffer::create(bufferSize,
+  CE::BaseBuffer::create(bufferSize,
                      VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
                      target_buffer);
 
-  CE::Buffer::copy(stagingResources.buffer,
+  CE::BaseBuffer::copy(stagingResources.buffer,
                    target_buffer.buffer,
                    bufferSize,
                    command_buffer,

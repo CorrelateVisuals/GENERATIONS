@@ -17,16 +17,16 @@ VulkanMechanics::~VulkanMechanics() {
   Log::text("{ Vk. }", "destructing Vulkan Mechanics");
 }
 
-void VulkanMechanics::Swapchain::recreate(const VkSurfaceKHR &surface,
-                                          const CE::Queues &queues,
-                                          SynchronizationObjects &sync_objects,
+void VulkanMechanics::BaseSwapchain::recreate(const VkSurfaceKHR &surface,
+                                          const CE::BaseQueues &queues,
+                                          BaseSynchronizationObjects &sync_objects,
                                           Pipelines &pipelines,
                                           VulkanResources &resources) {
-  CE::Swapchain::recreate(surface, queues, sync_objects);
+  CE::BaseSwapchain::recreate(surface, queues, sync_objects);
   pipelines.config.refresh_dynamic_work_groups(resources.world._grid.size, extent);
     resources.msaa_image.create_resources(CE_MULTISAMPLE_IMAGE, extent, image_format);
     resources.depth_image.create_resources(
-      CE_DEPTH_IMAGE, extent, CE::Image::find_depth_format());
+      CE_DEPTH_IMAGE, extent, CE::BaseImage::find_depth_format());
   pipelines.render.create_framebuffers(
       *this, resources.msaa_image.view, resources.depth_image.view);
 

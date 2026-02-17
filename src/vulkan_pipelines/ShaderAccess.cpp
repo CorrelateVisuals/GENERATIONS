@@ -2,7 +2,7 @@
 #include "Pipelines.h"
 #include "vulkan_resources/VulkanResources.h"
 #include "control/gui.h"
-#include "vulkan_base/VulkanUtils.h"
+#include "vulkan_base/VulkanBaseUtils.h"
 #include "world/RuntimeConfig.h"
 
 #include <array>
@@ -102,7 +102,7 @@ void CE::ShaderAccess::CommandResources::record_compute_command_buffer(
 }
 
 void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
-    CE::Swapchain &swapchain,
+    CE::BaseSwapchain &swapchain,
     VulkanResources &resources,
     Pipelines &pipelines,
     const uint32_t frame_index,
@@ -390,6 +390,8 @@ void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
   }
 
   if (stage_strip_enabled) {
+    const bool strip_live_lightweight =
+      !CE::Runtime::env_flag_enabled("CE_RENDER_STAGE_STRIP_FULL");
     const std::vector<CE::RenderGUI::StageStripTile> &strip_tiles =
         CE::RenderGUI::get_stage_strip_tiles();
     if (!strip_tiles.empty()) {
@@ -441,26 +443,44 @@ void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
                               .extent = {.width = clamped_width, .height = clamped_height}};
         vkCmdSetScissor(command_buffer, 0, 1, &tile_scissor);
 
+        VkClearAttachment clear_color_attachment{};
+        clear_color_attachment.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        clear_color_attachment.colorAttachment = 0;
+        clear_color_attachment.clearValue.color = {{0.46f, 0.55f, 0.62f, 1.0f}};
+
         VkClearAttachment clear_depth_attachment{};
         clear_depth_attachment.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
         clear_depth_attachment.clearValue.depthStencil = {1.0f, 0};
+
+        std::array<VkClearAttachment, 2> clear_attachments{
+          clear_color_attachment,
+          clear_depth_attachment,
+        };
+
         VkClearRect clear_depth_rect{};
         clear_depth_rect.rect = tile_scissor;
         clear_depth_rect.baseArrayLayer = 0;
         clear_depth_rect.layerCount = 1;
         vkCmdClearAttachments(command_buffer,
-                              1,
-                              &clear_depth_attachment,
+                    static_cast<uint32_t>(clear_attachments.size()),
+                    clear_attachments.data(),
                               1,
                               &clear_depth_rect);
 
         const bool tile_has_sky = std::find(tile_config.pipelines.begin(),
                                             tile_config.pipelines.end(),
                                             "Sky") != tile_config.pipelines.end();
-        if (!tile_has_sky) {
+        const bool tile_has_cells = std::find(tile_config.pipelines.begin(),
+                                              tile_config.pipelines.end(),
+                                              "Cells") != tile_config.pipelines.end();
+
+        if (!strip_live_lightweight && !tile_has_sky) {
           draw_pipeline_by_name("Sky");
         }
         for (const std::string &pipeline_name : tile_config.pipelines) {
+          if (strip_live_lightweight && tile_has_cells && pipeline_name == "CellsFollower") {
+            continue;
+          }
           draw_pipeline_by_name(pipeline_name);
         }
       }

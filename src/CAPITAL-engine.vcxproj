@@ -171,11 +171,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="vulkan_base\VulkanDescriptor.cpp" />
-    <ClCompile Include="vulkan_base\VulkanDevice.cpp" />
-    <ClCompile Include="vulkan_base\VulkanPipeline.cpp" />
-    <ClCompile Include="vulkan_base\VulkanResources.cpp" />
-    <ClCompile Include="vulkan_base\VulkanSync.cpp" />
+    <ClCompile Include="vulkan_base\VulkanBaseDescriptor.cpp" />
+    <ClCompile Include="vulkan_base\VulkanBaseDevice.cpp" />
+    <ClCompile Include="vulkan_base\VulkanBasePipeline.cpp" />
+    <ClCompile Include="vulkan_base\VulkanBaseResources.cpp" />
+    <ClCompile Include="vulkan_base\VulkanBaseSync.cpp" />
     <ClCompile Include="world\Camera.cpp" />
     <ClCompile Include="engine\CapitalEngine.cpp" />
     <ClCompile Include="world\Geometry.cpp" />
@@ -194,17 +194,17 @@
     <ClCompile Include="pipelines\ShaderAccess.cpp" />
     <ClCompile Include="world\Terrain.cpp" />
     <ClCompile Include="control\Timer.cpp" />
-    <ClCompile Include="vulkan_base\ValidationLayers.cpp" />
+    <ClCompile Include="vulkan_base\VulkanBaseValidationLayers.cpp" />
     <ClCompile Include="control\Window.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="vulkan_base\VulkanDescriptor.h" />
-    <ClInclude Include="vulkan_base\VulkanDevice.h" />
-    <ClInclude Include="vulkan_base\VulkanPipeline.h" />
-    <ClInclude Include="vulkan_base\VulkanPipelinePresets.h" />
-    <ClInclude Include="vulkan_base\VulkanResources.h" />
-    <ClInclude Include="vulkan_base\VulkanSync.h" />
-    <ClInclude Include="vulkan_base\VulkanUtils.h" />
+    <ClInclude Include="vulkan_base\VulkanBaseDescriptor.h" />
+    <ClInclude Include="vulkan_base\VulkanBaseDevice.h" />
+    <ClInclude Include="vulkan_base\VulkanBasePipeline.h" />
+    <ClInclude Include="vulkan_base\VulkanBasePipelinePresets.h" />
+    <ClInclude Include="vulkan_base\VulkanBaseResources.h" />
+    <ClInclude Include="vulkan_base\VulkanBaseSync.h" />
+    <ClInclude Include="vulkan_base\VulkanBaseUtils.h" />
     <ClInclude Include="world\Camera.h" />
     <ClInclude Include="world\Geometry.h" />
     <ClInclude Include="engine\Log.h" />
@@ -222,7 +222,7 @@
     <ClInclude Include="pipelines\ShaderAccess.h" />
     <ClInclude Include="world\Terrain.h" />
     <ClInclude Include="control\Timer.h" />
-    <ClInclude Include="vulkan_base\ValidationLayers.h" />
+    <ClInclude Include="vulkan_base\VulkanBaseValidationLayers.h" />
     <ClInclude Include="control\Window.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

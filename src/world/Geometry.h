@@ -12,7 +12,7 @@
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/hash.hpp>
 
-#include "vulkan_base/VulkanResources.h"
+#include "vulkan_base/VulkanBaseResources.h"
 
 #include <string>
 #include <vector>
@@ -54,8 +54,8 @@ public:
   std::vector<Vertex> unique_vertices{};
   std::vector<uint32_t> indices{};
 
-  CE::Buffer vertex_buffer;
-  CE::Buffer index_buffer;
+  CE::BaseBuffer vertex_buffer;
+  CE::BaseBuffer index_buffer;
 
   void add_vertex_position(const glm::vec3 &position);
   static std::vector<uint32_t> create_grid_polygons(const std::vector<uint32_t> &vertices,
@@ -70,7 +70,7 @@ protected:
                             const VkCommandPool &command_pool,
                             const VkQueue &queue,
                             const std::vector<Vertex> &vertices,
-                            CE::Buffer &target_buffer);
+                            CE::BaseBuffer &target_buffer);
 
   void create_index_buffer(VkCommandBuffer &command_buffer,
                            const VkCommandPool &command_pool,
@@ -80,7 +80,7 @@ protected:
                            const VkCommandPool &command_pool,
                            const VkQueue &queue,
                            const std::vector<uint32_t> &indices,
-                           CE::Buffer &target_buffer);
+                           CE::BaseBuffer &target_buffer);
 
 private:
   void load_model(const std::string &model_name, Geometry &geometry);

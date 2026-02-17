@@ -41,6 +41,12 @@ void CapitalEngine::main_loop() {
   Log::measure_elapsed_time();
 
   CE::RenderGUI::log_stage_strip_tiles();
+  if (CE::RenderGUI::is_stage_strip_enabled()) {
+    const bool strip_full = CE::Runtime::env_flag_enabled("CE_RENDER_STAGE_STRIP_FULL");
+    Log::text("{ STRIP }",
+              "Live strip mode",
+              strip_full ? "FULL" : "LIGHTWEIGHT");
+  }
 
   const bool camera_tuning_enabled =
       CE::Runtime::env_flag_enabled("CE_CAMERA_TUNING");

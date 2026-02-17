@@ -3,7 +3,7 @@
 #include "vulkan_mechanics/Mechanics.h"
 #include "Pipelines.h"
 #include "vulkan_resources/VulkanResources.h"
-#include "vulkan_base/VulkanUtils.h"
+#include "vulkan_base/VulkanBaseUtils.h"
 #include "control/Window.h"
 #include "engine/Log.h"
 

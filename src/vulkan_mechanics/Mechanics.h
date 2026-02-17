@@ -2,8 +2,8 @@
 
 // Runtime Vulkan mechanics bundle.
 // Exists to aggregate initialization, queue families, swapchain, and sync objects.
-#include "vulkan_base/VulkanDevice.h"
-#include "vulkan_base/VulkanSync.h"
+#include "vulkan_base/VulkanBaseDevice.h"
+#include "vulkan_base/VulkanBaseSync.h"
 
 class Pipelines;
 class VulkanResources;
@@ -17,14 +17,14 @@ public:
   VulkanMechanics &operator=(VulkanMechanics &&) = delete;
   ~VulkanMechanics();
 
-  CE::InitializeVulkan init_vulkan{};
-  CE::Queues queues{};
+  CE::BaseInitializeVulkan init_vulkan{};
+  CE::BaseQueues queues{};
 
-  struct Device : public CE::Device {
-    Device(const CE::InitializeVulkan &init_vulkan,
-           CE::Queues &queues,
-           CE::Swapchain &swapchain) {
-      CE::Device::base_device = this;
+  struct BaseDevice : public CE::BaseDevice {
+    BaseDevice(const CE::BaseInitializeVulkan &init_vulkan,
+           CE::BaseQueues &queues,
+           CE::BaseSwapchain &swapchain) {
+      CE::BaseDevice::base_device = this;
 
       features.tessellationShader = VK_TRUE;
       features.sampleRateShading = VK_TRUE;
@@ -38,32 +38,32 @@ public:
       pick_physical_device(init_vulkan, queues, swapchain);
       create_logical_device(init_vulkan, queues);
     };
-    ~Device() = default;
+    ~BaseDevice() = default;
   };
 
-  struct SynchronizationObjects : public CE::SynchronizationObjects {
-    SynchronizationObjects() {
+  struct BaseSynchronizationObjects : public CE::BaseSynchronizationObjects {
+    BaseSynchronizationObjects() {
       create();
     }
   };
 
-  struct Swapchain : public CE::Swapchain {
-    Swapchain() = default;
-    void initialize(const VkSurfaceKHR &surface, const CE::Queues &queues) {
+  struct BaseSwapchain : public CE::BaseSwapchain {
+    BaseSwapchain() = default;
+    void initialize(const VkSurfaceKHR &surface, const CE::BaseQueues &queues) {
       create(surface, queues);
     }
     void recreate(const VkSurfaceKHR &surface,
-                  const CE::Queues &queues,
-                  SynchronizationObjects &sync_objects,
+                  const CE::BaseQueues &queues,
+                  BaseSynchronizationObjects &sync_objects,
                   Pipelines &pipelines,
                   VulkanResources &resources);
   };
 
 private:
-  Swapchain swapchain_support;
+  BaseSwapchain swapchain_support;
 
 public:
-  Device main_device;
-  Swapchain swapchain;
-  SynchronizationObjects sync_objects;
+  BaseDevice main_device;
+  BaseSwapchain swapchain;
+  BaseSynchronizationObjects sync_objects;
 };

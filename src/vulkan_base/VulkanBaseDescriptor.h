@@ -1,6 +1,6 @@
 #pragma once
 
-// Descriptor-set allocation/update primitives.
+// BaseDescriptor-set allocation/update primitives.
 // Exists to hide Vulkan descriptor boilerplate from higher-level resources.
 
 #include <array>
@@ -16,7 +16,7 @@ namespace CE {
 constexpr uint32_t MAX_FRAMES_IN_FLIGHT = 2;
 constexpr size_t NUM_DESCRIPTORS = 5;
 
-class DescriptorInterface {
+class BaseDescriptorInterface {
 public:
   size_t write_index{};
   std::array<VkDescriptorSet, MAX_FRAMES_IN_FLIGHT> sets{};
@@ -26,12 +26,12 @@ public:
       descriptor_writes{};
   std::vector<VkDescriptorPoolSize> pool_sizes{};
 
-  DescriptorInterface() = default;
-  DescriptorInterface(const DescriptorInterface &) = delete;
-  DescriptorInterface &operator=(const DescriptorInterface &) = delete;
-  DescriptorInterface(DescriptorInterface &&) = delete;
-  DescriptorInterface &operator=(DescriptorInterface &&) = delete;
-  virtual ~DescriptorInterface();
+  BaseDescriptorInterface() = default;
+  BaseDescriptorInterface(const BaseDescriptorInterface &) = delete;
+  BaseDescriptorInterface &operator=(const BaseDescriptorInterface &) = delete;
+  BaseDescriptorInterface(BaseDescriptorInterface &&) = delete;
+  BaseDescriptorInterface &operator=(BaseDescriptorInterface &&) = delete;
+  virtual ~BaseDescriptorInterface();
 
   void initialize_sets();
   void update_sets();
@@ -45,10 +45,10 @@ private:
   void allocate_sets();
 };
 
-class Descriptor {
+class BaseDescriptor {
 public:
-  Descriptor() = default;
-  virtual ~Descriptor(){};
+  BaseDescriptor() = default;
+  virtual ~BaseDescriptor(){};
 
 protected:
   size_t my_index{0};

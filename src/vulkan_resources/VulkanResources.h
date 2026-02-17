@@ -6,10 +6,10 @@
 
 #include "vulkan_pipelines/ShaderAccess.h"
 #include "world/World.h"
-#include "vulkan_base/VulkanDescriptor.h"
-#include "vulkan_base/VulkanPipeline.h"
-#include "vulkan_base/VulkanResources.h"
-#include "vulkan_base/VulkanSync.h"
+#include "vulkan_base/VulkanBaseDescriptor.h"
+#include "vulkan_base/VulkanBasePipeline.h"
+#include "vulkan_base/VulkanBaseResources.h"
+#include "vulkan_base/VulkanBaseSync.h"
 #include "world/RuntimeConfig.h"
 
 #include <array>
@@ -30,64 +30,64 @@ public:
 	VulkanResources &operator=(VulkanResources &&) = delete;
 	~VulkanResources();
 
-	class UniformBuffer : public CE::Descriptor {
+	class UniformBuffer : public CE::BaseDescriptor {
 	public:
-		UniformBuffer(CE::DescriptorInterface &interface, World::UniformBufferObject &u);
+		UniformBuffer(CE::BaseDescriptorInterface &interface, World::UniformBufferObject &u);
 		void update(World &world, const VkExtent2D extent);
 
 	private:
-		CE::Buffer buffer;
+		CE::BaseBuffer buffer;
 		World::UniformBufferObject &ubo;
 		void create_buffer();
-		void create_descriptor_write(CE::DescriptorInterface &interface);
+		void create_descriptor_write(CE::BaseDescriptorInterface &interface);
 	};
 
-	class StorageBuffer : public CE::Descriptor {
+	class StorageBuffer : public CE::BaseDescriptor {
 	public:
-		CE::Buffer buffer_in;
-		CE::Buffer buffer_out;
+		CE::BaseBuffer buffer_in;
+		CE::BaseBuffer buffer_out;
 
-		StorageBuffer(CE::DescriptorInterface &descriptor_interface,
-									const CE::CommandInterface &command_interface,
+		StorageBuffer(CE::BaseDescriptorInterface &descriptor_interface,
+									const CE::BaseCommandInterface &command_interface,
 									const auto &object,
 									const size_t quantity);
 
 	private:
-		void create(const CE::CommandInterface &command_interface,
+		void create(const CE::BaseCommandInterface &command_interface,
 								const auto &object,
 								const size_t quantity);
-		void create_descriptor_write(CE::DescriptorInterface &interface, const size_t quantity);
+		void create_descriptor_write(CE::BaseDescriptorInterface &interface, const size_t quantity);
 	};
 
-	class ImageSampler : public CE::Descriptor {
+	class ImageSampler : public CE::BaseDescriptor {
 	public:
-		ImageSampler(CE::DescriptorInterface &interface,
-								 const CE::CommandInterface &command_interface,
+		ImageSampler(CE::BaseDescriptorInterface &interface,
+								 const CE::BaseCommandInterface &command_interface,
 								 const std::string &texture_path);
 
 	private:
-		void create_descriptor_write(CE::DescriptorInterface &interface);
-		CE::Image texture_image;
+		void create_descriptor_write(CE::BaseDescriptorInterface &interface);
+		CE::BaseImage texture_image;
 	};
 
-	class StorageImage : public CE::Descriptor {
+	class StorageImage : public CE::BaseDescriptor {
 	public:
-		StorageImage(CE::DescriptorInterface &interface,
-								 std::array<CE::Image, MAX_FRAMES_IN_FLIGHT> &images);
-		void create_descriptor_write(CE::DescriptorInterface &interface,
-																 std::array<CE::Image, MAX_FRAMES_IN_FLIGHT> &images);
+		StorageImage(CE::BaseDescriptorInterface &interface,
+								 std::array<CE::BaseImage, MAX_FRAMES_IN_FLIGHT> &images);
+		void create_descriptor_write(CE::BaseDescriptorInterface &interface,
+																 std::array<CE::BaseImage, MAX_FRAMES_IN_FLIGHT> &images);
 	};
 	CE::ShaderAccess::CommandResources
 			commands;
-	CE::CommandInterface command_interface;
-	CE::PushConstants push_constant;
+	CE::BaseCommandInterface command_interface;
+	CE::BasePushConstants push_constant;
 
 	World world;
 
-	CE::DescriptorInterface descriptor_interface;
+	CE::BaseDescriptorInterface descriptor_interface;
 
-	CE::Image depth_image;
-	CE::Image msaa_image;
+	CE::BaseImage depth_image;
+	CE::BaseImage msaa_image;
 
 	UniformBuffer uniform;
 	StorageBuffer shader_storage;

@@ -1,6 +1,6 @@
-#include "VulkanPipeline.h"
-#include "VulkanPipelinePresets.h"
-#include "VulkanUtils.h"
+#include "VulkanBasePipeline.h"
+#include "VulkanBasePipelinePresets.h"
+#include "VulkanBaseUtils.h"
 
 #include "library/Library.h"
 #include "engine/Log.h"
@@ -50,14 +50,14 @@ std::string resolve_shader_spv_path(const std::string &shader_dir,
 
 } // namespace
 
-CE::RenderPass::~RenderPass() {
+CE::BaseRenderPass::~BaseRenderPass() {
   Log::text("{ []< }", "destructing Render Pass");
-  if (Device::base_device) {
-    vkDestroyRenderPass(Device::base_device->logical_device, this->render_pass, nullptr);
+  if (BaseDevice::base_device) {
+    vkDestroyRenderPass(BaseDevice::base_device->logical_device, this->render_pass, nullptr);
   }
 }
 
-void CE::RenderPass::create(VkSampleCountFlagBits msaa_image_samples,
+void CE::BaseRenderPass::create(VkSampleCountFlagBits msaa_image_samples,
                             VkFormat swapchain_image_format) {
   Log::text("{ []< }", "Render Pass");
   Log::text(Log::Style::char_leader,
@@ -74,7 +74,7 @@ void CE::RenderPass::create(VkSampleCountFlagBits msaa_image_samples,
       .finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL};
 
   VkAttachmentDescription depthAttachment{
-      .format = CE::Image::find_depth_format(),
+      .format = CE::BaseImage::find_depth_format(),
       .samples = msaa_image_samples,
       .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
       .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
@@ -132,13 +132,13 @@ void CE::RenderPass::create(VkSampleCountFlagBits msaa_image_samples,
       .pDependencies = &dependency};
 
   CE::vulkan_result(vkCreateRenderPass,
-                    Device::base_device->logical_device,
+                    BaseDevice::base_device->logical_device,
                     &render_pass_info,
                     nullptr,
                     &this->render_pass);
 }
 
-void CE::RenderPass::create_framebuffers(CE::Swapchain &swapchain,
+void CE::BaseRenderPass::create_framebuffers(CE::BaseSwapchain &swapchain,
                                          const VkImageView &msaa_view,
                                          const VkImageView &depth_view) const {
   Log::text("{ 101 }", "Frame Buffers:", swapchain.images.size());
@@ -160,25 +160,25 @@ void CE::RenderPass::create_framebuffers(CE::Swapchain &swapchain,
         .layers = 1};
 
     CE::vulkan_result(vkCreateFramebuffer,
-              CE::Device::base_device->logical_device,
+              CE::BaseDevice::base_device->logical_device,
               &framebufferInfo,
               nullptr,
               &swapchain.framebuffers[i]);
   }
 }
 
-CE::PipelinesConfiguration::~PipelinesConfiguration() {
-  if (Device::base_device) {
+CE::BasePipelinesConfiguration::~BasePipelinesConfiguration() {
+  if (BaseDevice::base_device) {
     Log::text(
         "{ === }", "destructing", this->pipeline_map.size(), "Pipelines Configuration");
     for (auto &[name, variant] : this->pipeline_map) {
       VkPipeline &pipelineObject = get_pipeline_object_by_name(name);
-      vkDestroyPipeline(Device::base_device->logical_device, pipelineObject, nullptr);
+      vkDestroyPipeline(BaseDevice::base_device->logical_device, pipelineObject, nullptr);
     }
   }
 }
 
-void CE::PipelinesConfiguration::create_pipelines(VkRenderPass &render_pass,
+void CE::BasePipelinesConfiguration::create_pipelines(VkRenderPass &render_pass,
                                                   const VkPipelineLayout &graphics_layout,
                                                   const VkPipelineLayout &compute_layout,
                                                   VkSampleCountFlagBits &msaa_samples) {
@@ -207,9 +207,9 @@ void CE::PipelinesConfiguration::create_pipelines(VkRenderPass &render_pass,
       bool tesselationEnabled = set_shader_stages(pipelineName, shaderStages);
 
       const auto &bindingDescription =
-            std::get<CE::PipelinesConfiguration::Graphics>(pipelineVariant).vertex_bindings;
+            std::get<CE::BasePipelinesConfiguration::Graphics>(pipelineVariant).vertex_bindings;
       const auto &attributesDescription =
-          std::get<CE::PipelinesConfiguration::Graphics>(pipelineVariant)
+          std::get<CE::BasePipelinesConfiguration::Graphics>(pipelineVariant)
               .vertex_attributes;
       uint32_t bindingsSize = static_cast<uint32_t>(bindingDescription.size());
       uint32_t attributeSize = static_cast<uint32_t>(attributesDescription.size());
@@ -327,7 +327,7 @@ void CE::PipelinesConfiguration::create_pipelines(VkRenderPass &render_pass,
       }
 
       CE::vulkan_result(vkCreateGraphicsPipelines,
-            Device::base_device->logical_device,
+            BaseDevice::base_device->logical_device,
             VK_NULL_HANDLE,
             1,
             &pipelineInfo,
@@ -358,7 +358,7 @@ void CE::PipelinesConfiguration::create_pipelines(VkRenderPass &render_pass,
           .layout = compute_layout};
 
       CE::vulkan_result(vkCreateComputePipelines,
-            Device::base_device->logical_device,
+            BaseDevice::base_device->logical_device,
             VK_NULL_HANDLE,
             1,
             &pipelineInfo,
@@ -383,7 +383,7 @@ void CE::PipelinesConfiguration::create_pipelines(VkRenderPass &render_pass,
   Log::text("{ PERF }", "All pipelines created in", totalMs, "ms");
 }
 
-bool CE::PipelinesConfiguration::set_shader_stages(
+bool CE::BasePipelinesConfiguration::set_shader_stages(
     const std::string &pipelineName,
     std::vector<VkPipelineShaderStageCreateInfo> &shaderStages) {
   std::vector<std::string> shaders = get_pipeline_shaders_by_name(pipelineName);
@@ -423,7 +423,7 @@ bool CE::PipelinesConfiguration::set_shader_stages(
 }
 
 std::vector<char>
-CE::PipelinesConfiguration::read_shader_file(const std::string &filename) {
+CE::BasePipelinesConfiguration::read_shader_file(const std::string &filename) {
   std::ifstream file(filename, std::ios::ate | std::ios::binary);
 
   if (!file.is_open()) {
@@ -441,7 +441,7 @@ CE::PipelinesConfiguration::read_shader_file(const std::string &filename) {
 }
 
 VkPipelineShaderStageCreateInfo
-CE::PipelinesConfiguration::create_shader_modules(VkShaderStageFlagBits shaderStage,
+CE::BasePipelinesConfiguration::create_shader_modules(VkShaderStageFlagBits shaderStage,
                                                   std::string shaderName) {
   Log::text(Log::Style::char_leader, "Shader Module", shaderName);
 
@@ -455,7 +455,7 @@ CE::PipelinesConfiguration::create_shader_modules(VkShaderStageFlagBits shaderSt
       .pCode = reinterpret_cast<const uint32_t *>(shaderCode.data())};
 
   CE::vulkan_result(vkCreateShaderModule,
-                    Device::base_device->logical_device,
+                    BaseDevice::base_device->logical_device,
                     &createInfo,
                     nullptr,
                     &shaderModule);
@@ -471,7 +471,7 @@ CE::PipelinesConfiguration::create_shader_modules(VkShaderStageFlagBits shaderSt
   return shaderStageInfo;
 }
 
-void CE::PipelinesConfiguration::compile_shaders() {
+void CE::BasePipelinesConfiguration::compile_shaders() {
   Log::text("{ GLSL }", "Compile Shaders");
   std::string systemCommand{};
   std::string pipelineName{};
@@ -525,7 +525,7 @@ void CE::PipelinesConfiguration::compile_shaders() {
   }
 }
 
-VkPipeline &CE::PipelinesConfiguration::get_pipeline_object_by_name(
+VkPipeline &CE::BasePipelinesConfiguration::get_pipeline_object_by_name(
     const std::string &name) {
   std::variant<Graphics, Compute> &variant = this->pipeline_map.at(name);
   if (std::holds_alternative<Graphics>(variant)) {
@@ -535,9 +535,9 @@ VkPipeline &CE::PipelinesConfiguration::get_pipeline_object_by_name(
   }
 }
 
-void CE::PipelinesConfiguration::destroy_shader_modules() {
+void CE::BasePipelinesConfiguration::destroy_shader_modules() {
   for (uint_fast8_t i = 0; i < this->shader_modules.size(); i++) {
-    vkDestroyShaderModule(Device::base_device->logical_device,
+    vkDestroyShaderModule(BaseDevice::base_device->logical_device,
                           this->shader_modules[i],
                 nullptr);
   }
@@ -545,7 +545,7 @@ void CE::PipelinesConfiguration::destroy_shader_modules() {
 }
 
 const std::vector<std::string> &
-CE::PipelinesConfiguration::get_pipeline_shaders_by_name(const std::string &name) {
+CE::BasePipelinesConfiguration::get_pipeline_shaders_by_name(const std::string &name) {
   std::variant<Graphics, Compute> &variant = this->pipeline_map.at(name);
 
   if (std::holds_alternative<Graphics>(variant)) {
@@ -556,23 +556,23 @@ CE::PipelinesConfiguration::get_pipeline_shaders_by_name(const std::string &name
 }
 
 const std::array<uint32_t, 3> &
-CE::PipelinesConfiguration::get_work_groups_by_name(const std::string &name) {
+CE::BasePipelinesConfiguration::get_work_groups_by_name(const std::string &name) {
   std::variant<Graphics, Compute> &variant = this->pipeline_map.at(name);
-  return std::get<CE::PipelinesConfiguration::Compute>(variant).work_groups;
+  return std::get<CE::BasePipelinesConfiguration::Compute>(variant).work_groups;
 };
 
-void CE::PipelineLayout::create_layout(const VkDescriptorSetLayout &set_layout) {
+void CE::BasePipelineLayout::create_layout(const VkDescriptorSetLayout &set_layout) {
   VkPipelineLayoutCreateInfo layout{CE::layout_default};
   layout.pSetLayouts = &set_layout;
   CE::vulkan_result(vkCreatePipelineLayout,
-                    Device::base_device->logical_device,
+                    BaseDevice::base_device->logical_device,
                     &layout,
                     nullptr,
                     &this->layout);
 }
 
-void CE::PipelineLayout::create_layout(const VkDescriptorSetLayout &set_layout,
-                                       const PushConstants &push_constants) {
+void CE::BasePipelineLayout::create_layout(const VkDescriptorSetLayout &set_layout,
+                                       const BasePushConstants &push_constants) {
   VkPushConstantRange constants{.stageFlags = push_constants.shader_stage,
                                 .offset = push_constants.offset,
                                 .size = push_constants.size};
@@ -581,19 +581,19 @@ void CE::PipelineLayout::create_layout(const VkDescriptorSetLayout &set_layout,
   layout.pushConstantRangeCount = push_constants.count;
   layout.pPushConstantRanges = &constants;
   CE::vulkan_result(vkCreatePipelineLayout,
-                    Device::base_device->logical_device,
+                    BaseDevice::base_device->logical_device,
                     &layout,
                     nullptr,
                     &this->layout);
 }
 
-CE::PipelineLayout::~PipelineLayout() {
-  if (Device::base_device) {
-    vkDestroyPipelineLayout(Device::base_device->logical_device, this->layout, nullptr);
+CE::BasePipelineLayout::~BasePipelineLayout() {
+  if (BaseDevice::base_device) {
+    vkDestroyPipelineLayout(BaseDevice::base_device->logical_device, this->layout, nullptr);
   }
 }
 
-CE::PushConstants::PushConstants(VkShaderStageFlags stage,
+CE::BasePushConstants::BasePushConstants(VkShaderStageFlags stage,
                                  uint32_t data_size,
                                  uint32_t data_offset) {
   shader_stage = stage;
@@ -611,11 +611,11 @@ CE::PushConstants::PushConstants(VkShaderStageFlags stage,
   }
 }
 
-void CE::PushConstants::set_data(const uint64_t &value) {
+void CE::BasePushConstants::set_data(const uint64_t &value) {
   this->data = {value};
 }
 
-void CE::PushConstants::set_data(uint32_t value, float fraction) {
+void CE::BasePushConstants::set_data(uint32_t value, float fraction) {
   std::fill(data.begin(), data.end(), 0);
   std::memcpy(data.data(), &value, sizeof(uint32_t));
   std::memcpy(reinterpret_cast<uint8_t *>(data.data()) + sizeof(uint32_t),
@@ -623,7 +623,7 @@ void CE::PushConstants::set_data(uint32_t value, float fraction) {
               sizeof(float));
 }
 
-void CE::PushConstants::set_data(const uint64_t &value, float fraction) {
+void CE::BasePushConstants::set_data(const uint64_t &value, float fraction) {
   std::fill(data.begin(), data.end(), 0);
   std::memcpy(data.data(), &value, sizeof(uint64_t));
   std::memcpy(reinterpret_cast<uint8_t *>(data.data()) + sizeof(uint64_t),

@@ -7,14 +7,14 @@
 #include <string>
 #include <vector>
 
-class ValidationLayers {
+class BaseValidationLayers {
 public:
-  ValidationLayers();
-  ValidationLayers(const ValidationLayers &) = delete;
-  ValidationLayers &operator=(const ValidationLayers &) = delete;
-  ValidationLayers(ValidationLayers &&) = delete;
-  ValidationLayers &operator=(ValidationLayers &&) = delete;
-  ~ValidationLayers();
+  BaseValidationLayers();
+  BaseValidationLayers(const BaseValidationLayers &) = delete;
+  BaseValidationLayers &operator=(const BaseValidationLayers &) = delete;
+  BaseValidationLayers(BaseValidationLayers &&) = delete;
+  BaseValidationLayers &operator=(BaseValidationLayers &&) = delete;
+  ~BaseValidationLayers();
 
   VkDebugUtilsMessengerEXT debug_messenger;
   const std::vector<const char *> validation;
