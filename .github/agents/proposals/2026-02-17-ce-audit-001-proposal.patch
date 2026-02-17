@@ -1,0 +1,45 @@
+diff --git a/src/vulkan_base/VulkanBasePipeline.cpp b/src/vulkan_base/VulkanBasePipeline.cpp
+index 1234567..89abcde 100644
+--- a/src/vulkan_base/VulkanBasePipeline.cpp
++++ b/src/vulkan_base/VulkanBasePipeline.cpp
+@@ -45,6 +45,10 @@ void VulkanBasePipeline::CreateGraphicsPipeline() {
+     // Set up pipeline stages
+     VkPipelineShaderStageCreateInfo shaderStages[2] = {};
+ 
++    // Validate shader module creation
++    if (!vertexShaderModule || !fragmentShaderModule) {
++        throw std::runtime_error("Failed to create shader modules");
++    }
+ 
+     shaderStages[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+     shaderStages[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
+diff --git a/src/vulkan_base/VulkanBaseValidationLayers.cpp b/src/vulkan_base/VulkanBaseValidationLayers.cpp
+index 2345678..9abcdef 100644
+--- a/src/vulkan_base/VulkanBaseValidationLayers.cpp
++++ b/src/vulkan_base/VulkanBaseValidationLayers.cpp
+@@ -30,6 +30,10 @@ bool VulkanBaseValidationLayers::CheckValidationLayerSupport() {
+ 
+     for (const char* layerName : validationLayers) {
+         bool layerFound = false;
++
++        // Log available layers for debugging
++        std::cout << "Available layer: " << layerName << std::endl;
++
+         for (const auto& layerProperties : availableLayers) {
+             if (strcmp(layerName, layerProperties.layerName) == 0) {
+                 layerFound = true;
+diff --git a/src/engine/Log.cpp b/src/engine/Log.cpp
+index 3456789..abcdef0 100644
+--- a/src/engine/Log.cpp
++++ b/src/engine/Log.cpp
+@@ -15,6 +15,10 @@ void Log::Write(LogLevel level, const std::string& message) {
+ 
+     std::string logMessage = "[" + levelStr + "] " + message;
+ 
++    // Ensure log messages are not empty
++    if (message.empty()) {
++        throw std::invalid_argument("Log message cannot be empty");
++    }
+ 
+     std::cout << logMessage << std::endl;
+ }
