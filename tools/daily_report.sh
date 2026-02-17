@@ -44,8 +44,8 @@ echo "# Daily Repo Report - ${REPORT_DATE}" > "$REPORT_FILE"
 
   echo
   echo "## Recent Shader Interface"
-  if [ -f src/core/ParameterUBO.schema ]; then
-    echo "\n\`\`\`\n$(cat src/core/ParameterUBO.schema)\n\`\`\`"
+  if [ -f src/base/ParameterUBO.schema ]; then
+    echo "\n\`\`\`\n$(cat src/base/ParameterUBO.schema)\n\`\`\`"
   fi
 } >> "$REPORT_FILE"
 

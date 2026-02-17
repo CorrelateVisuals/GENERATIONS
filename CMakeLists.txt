@@ -73,7 +73,7 @@ add_custom_target(architecture_check
 
 add_custom_command(
     OUTPUT
-        ${PROJECT_SOURCE_DIR}/src/core/ShaderInterface.h
+        ${PROJECT_SOURCE_DIR}/src/base/ShaderInterface.h
         ${PROJECT_SOURCE_DIR}/shaders/ParameterUBO.glsl
     COMMAND ${Python3_EXECUTABLE} ${PROJECT_SOURCE_DIR}/tools/generate_shader_interface.py
     DEPENDS
@@ -84,7 +84,7 @@ add_custom_command(
 )
 
 add_custom_target(shader_interface DEPENDS
-    ${PROJECT_SOURCE_DIR}/src/core/ShaderInterface.h
+    ${PROJECT_SOURCE_DIR}/src/base/ShaderInterface.h
     ${PROJECT_SOURCE_DIR}/shaders/ParameterUBO.glsl
 )
 
@@ -92,5 +92,8 @@ add_executable(CapitalEngine ${CAPITALENGINE_SOURCES})
 add_dependencies(CapitalEngine architecture_check)
 add_dependencies(CapitalEngine shader_interface)
 
-target_link_libraries(CapitalEngine glfw)
-target_link_libraries(CapitalEngine vulkan)
+if(TARGET Vulkan::Vulkan)
+    target_link_libraries(CapitalEngine glfw Vulkan::Vulkan)
+else()
+    target_link_libraries(CapitalEngine glfw vulkan)
+endif()

@@ -5,13 +5,13 @@ Re-introduce the legacy scene interface surface (`Pipelines.h`, `Resources.h`, `
 
 ## What changed vs `main` (analysis)
 - Legacy top-level headers were moved from `src/` to modular paths:
-  - `src/Pipelines.h` -> `src/render/Pipelines.h`
-  - `src/Resources.h` -> `src/render/Resources.h`
+  - `src/Pipelines.h` -> legacy nested pipeline implementation header
+  - `src/Resources.h` -> legacy nested resources implementation header
   - `src/World.h` -> `src/world/World.h`
 - Runtime scene setup moved from hardcoded constructors to a builder/spec path:
   - `src/implementation/ImplementationSpec.*`
   - `src/implementation/ScriptChainerApp.*`
-  - runtime stores in `src/core/RuntimeConfig.*`
+  - runtime stores in `src/base/RuntimeConfig.*`
 - Engine boot now installs runtime config first (`ScriptChainerApp::run()`), then constructs `Resources/Pipelines` from that config.
 
 ## Interpreting request
@@ -100,12 +100,12 @@ This section turns pre-work decisions into explicit choices so implementation ca
 #### Technical decisions (set now)
 
 1. Canonical config authority — **DECIDED**
-- Create `src/scene/SceneConfig.h/.cpp` as the single owner of default scene config.
+- Create `src/world/SceneConfig.h/.cpp` as the single owner of default scene config.
 - `SceneConfig::apply_to_runtime()` installs defaults into `CE::Runtime`.
 - Env interpretation remains centralized in `CE::Runtime::env_truthy/env_flag_enabled`.
 
 2. RuntimeConfig role — **DECIDED**
-- `src/core/RuntimeConfig.*` remains registry/store + parsing utilities.
+- `src/base/RuntimeConfig.*` remains registry/store + parsing utilities.
 - It does not own default scene authoring.
 
 3. Deletion strategy — **DECIDED**
@@ -161,14 +161,14 @@ This section turns pre-work decisions into explicit choices so implementation ca
 - Repoint includes/call sites to top-level API (hard cut).
 
 ### 2) Extract current config into legacy-owned module
-- Add `src/scene/SceneConfig.h/.cpp` (or similar).
+- Add `src/world/SceneConfig.h/.cpp` (or similar).
 - Implement functions:
   - `SceneConfig::defaults()`
   - `SceneConfig::apply_to_runtime()`
 - Copy current effective defaults from `ImplementationSpec::default_spec()` (terrain/world/pipelines/draw_ops/render-graph stage logic).
 
 ### 3) Rewire startup path
-- Replace `ScriptChainerApp::run()` usage in `src/app/main.cpp` with `SceneConfig::apply_to_runtime()`.
+- Replace `ScriptChainerApp::run()` usage in `src/main.cpp` with `SceneConfig::apply_to_runtime()`.
 - Keep `CE_SCRIPT_ONLY` behavior by allowing config init without launching render loop.
 
 ### 4) Deprecate/remove builder artifacts
@@ -209,8 +209,8 @@ This section turns pre-work decisions into explicit choices so implementation ca
 Use this as the implementation sequence for PR1.
 
 ### A) Create canonical scene config owner
-- Add `src/scene/SceneConfig.h`.
-- Add `src/scene/SceneConfig.cpp`.
+- Add `src/world/SceneConfig.h`.
+- Add `src/world/SceneConfig.cpp`.
 - Define:
   - `SceneConfig SceneConfig::defaults()` (or equivalent static builder)
   - `void SceneConfig::apply_to_runtime() const`
@@ -222,7 +222,7 @@ Use this as the implementation sequence for PR1.
   - render graph stage logic (`CE_RENDER_STAGE`, `CE_WORKLOAD_PRESET`, `CE_COMPUTE_CHAIN`)
 
 ### B) Rewire app startup
-- Edit `src/app/main.cpp`:
+- Edit `src/main.cpp`:
   - remove include of `implementation/ScriptChainerApp.h`
   - include scene config owner header
   - replace `ScriptChainerApp::run()` with `SceneConfig::...apply_to_runtime()`

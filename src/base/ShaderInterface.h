@@ -4,7 +4,7 @@
 
 namespace CE::ShaderInterface {
 
-// Generated from src/core/ParameterUBO.schema. Do not edit by hand.
+// Generated from src/base/ParameterUBO.schema. Do not edit by hand.
 struct ParameterUBO {
   glm::vec4 light{};
   glm::ivec2 grid_xy{};
