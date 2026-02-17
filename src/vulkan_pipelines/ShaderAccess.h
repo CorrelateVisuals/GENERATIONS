@@ -1,4 +1,7 @@
 #pragma once
+
+// Command recording entry points for shader-driven passes.
+// Exists to keep graphics/compute command encoding close to pipeline intent.
 #include "vulkan_base/VulkanSync.h"
 
 namespace CE {

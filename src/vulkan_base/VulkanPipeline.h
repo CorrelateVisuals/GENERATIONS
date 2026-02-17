@@ -1,5 +1,8 @@
 #pragma once
 
+// Pipeline/render-pass abstractions used by graphics + compute setup.
+// Exists to separate pipeline compilation/state assembly from frame execution.
+
 #include <array>
 #include <string>
 #include <unordered_map>

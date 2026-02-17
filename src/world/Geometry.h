@@ -1,4 +1,7 @@
 #pragma once
+
+// Geometry/model representation and mesh loading entry point.
+// Exists to centralize shape selection, mesh data, and GPU vertex/index buffers.
 #include <vulkan/vulkan.h>
 
 #define GLM_FORCE_RADIANS

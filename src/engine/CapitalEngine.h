@@ -1,4 +1,7 @@
 #pragma once
+
+// Top-level runtime orchestrator.
+// Exists to coordinate mechanics, resources, pipelines, and per-frame execution.
 #include "vulkan_mechanics/Mechanics.h"
 #include "vulkan_pipelines/FrameContext.h"
 #include "vulkan_pipelines/Pipelines.h"

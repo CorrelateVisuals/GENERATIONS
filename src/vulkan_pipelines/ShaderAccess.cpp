@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <string_view>
 #include <stdexcept>
+#include <unordered_map>
 #include <vector>
 
 void CE::ShaderAccess::CommandResources::record_compute_command_buffer(
@@ -164,13 +165,60 @@ void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
                           0,
                           nullptr);
 
-  const auto bind_and_draw_indexed = [&](const char *pipeline_name,
+  std::unordered_map<std::string, VkPipeline> graphics_pipeline_cache{};
+  std::unordered_map<std::string, CE::Runtime::DrawOpId> graphics_draw_op_cache{};
+
+  const auto resolve_pipeline = [&](const std::string &pipeline_name) -> VkPipeline {
+    const auto it = graphics_pipeline_cache.find(pipeline_name);
+    if (it != graphics_pipeline_cache.end()) {
+      return it->second;
+    }
+
+    const VkPipeline pipeline = pipelines.config.get_pipeline_object_by_name(pipeline_name);
+    graphics_pipeline_cache.emplace(pipeline_name, pipeline);
+    return pipeline;
+  };
+
+  const auto resolve_draw_op_id = [&](const std::string &pipeline_name)
+      -> CE::Runtime::DrawOpId {
+    const auto cached = graphics_draw_op_cache.find(pipeline_name);
+    if (cached != graphics_draw_op_cache.end()) {
+      return cached->second;
+    }
+
+    CE::Runtime::DrawOpId draw_op_id = CE::Runtime::get_graphics_draw_op_id(pipeline_name);
+    if (draw_op_id == CE::Runtime::DrawOpId::Unknown) {
+      const std::string *draw_op = CE::Runtime::get_graphics_draw_op(pipeline_name);
+      if (draw_op) {
+        draw_op_id = CE::Runtime::draw_op_from_string(*draw_op);
+        if (draw_op_id == CE::Runtime::DrawOpId::Unknown) {
+          constexpr std::string_view indexed_prefix = "indexed:";
+          if (draw_op->starts_with(indexed_prefix)) {
+            const std::string_view target =
+                std::string_view(*draw_op).substr(indexed_prefix.size());
+            if (target == "grid") {
+              draw_op_id = CE::Runtime::DrawOpId::IndexedGrid;
+            } else if (target == "grid_box") {
+              draw_op_id = CE::Runtime::DrawOpId::IndexedGridBox;
+            } else if (target == "cube") {
+              draw_op_id = CE::Runtime::DrawOpId::IndexedCube;
+            } else {
+              draw_op_id = CE::Runtime::DrawOpId::IndexedRectangle;
+            }
+          }
+        }
+      }
+    }
+
+    graphics_draw_op_cache.emplace(pipeline_name, draw_op_id);
+    return draw_op_id;
+  };
+
+  const auto bind_and_draw_indexed = [&](VkPipeline pipeline,
                                          VkBuffer vertex_buffer,
                                          VkBuffer index_buffer,
                                          uint32_t index_count) {
-    vkCmdBindPipeline(command_buffer,
-                      VK_PIPELINE_BIND_POINT_GRAPHICS,
-                      pipelines.config.get_pipeline_object_by_name(pipeline_name));
+    vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
     VkBuffer vertex_buffers[] = {vertex_buffer};
     VkDeviceSize indexed_offsets[] = {0};
     vkCmdBindVertexBuffers(command_buffer, 0, 1, vertex_buffers, indexed_offsets);
@@ -178,10 +226,8 @@ void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
     vkCmdDrawIndexed(command_buffer, index_count, 1, 0, 0, 0);
   };
 
-  const auto draw_cells = [&](const std::string &pipeline_name) {
-    vkCmdBindPipeline(command_buffer,
-                      VK_PIPELINE_BIND_POINT_GRAPHICS,
-                      pipelines.config.get_pipeline_object_by_name(pipeline_name));
+  const auto draw_cells = [&](VkPipeline pipeline) {
+    vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
     VkDeviceSize offsets_0[]{0, 0};
 
     VkBuffer current_shader_storage_buffer[] = {resources.shader_storage.buffer_out.buffer,
@@ -198,31 +244,29 @@ void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
               0);
   };
 
-  const auto draw_grid_indexed = [&](const std::string &pipeline_name) {
-    bind_and_draw_indexed(pipeline_name.c_str(),
+  const auto draw_grid_indexed = [&](VkPipeline pipeline) {
+    bind_and_draw_indexed(pipeline,
                           resources.world._grid.vertex_buffer.buffer,
                           resources.world._grid.index_buffer.buffer,
                           static_cast<uint32_t>(resources.world._grid.indices.size()));
   };
 
-  const auto draw_grid_box_indexed = [&](const std::string &pipeline_name) {
-    bind_and_draw_indexed(pipeline_name.c_str(),
+  const auto draw_grid_box_indexed = [&](VkPipeline pipeline) {
+    bind_and_draw_indexed(pipeline,
                           resources.world._grid.box_vertex_buffer.buffer,
                           resources.world._grid.box_index_buffer.buffer,
                           static_cast<uint32_t>(resources.world._grid.box_indices.size()));
   };
 
-  const auto draw_rectangle_indexed = [&](const std::string &pipeline_name) {
-    bind_and_draw_indexed(pipeline_name.c_str(),
+  const auto draw_rectangle_indexed = [&](VkPipeline pipeline) {
+    bind_and_draw_indexed(pipeline,
                           resources.world._rectangle.vertex_buffer.buffer,
                           resources.world._rectangle.index_buffer.buffer,
                           static_cast<uint32_t>(resources.world._rectangle.indices.size()));
   };
 
-  const auto draw_cube_indexed = [&](const std::string &pipeline_name) {
-    vkCmdBindPipeline(command_buffer,
-                      VK_PIPELINE_BIND_POINT_GRAPHICS,
-                      pipelines.config.get_pipeline_object_by_name(pipeline_name));
+  const auto draw_cube_indexed = [&](VkPipeline pipeline) {
+    vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 
     VkBuffer vertex_buffers[] = {resources.world._cube.vertex_buffer.buffer};
     VkDeviceSize offsets[] = {0};
@@ -251,10 +295,8 @@ void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
               0);
   };
 
-  const auto draw_sky_dome = [&](const std::string &pipeline_name) {
-    vkCmdBindPipeline(command_buffer,
-                      VK_PIPELINE_BIND_POINT_GRAPHICS,
-                      pipelines.config.get_pipeline_object_by_name(pipeline_name));
+  const auto draw_sky_dome = [&](VkPipeline pipeline) {
+    vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 
     VkBuffer vertex_buffers[] = {resources.world._sky_dome.vertex_buffer.buffer};
     VkDeviceSize offsets[] = {0};
@@ -283,73 +325,44 @@ void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
               0);
   };
 
-  const auto draw_pipeline_from_draw_op_id = [&](const std::string &pipeline_name,
-                                                 const CE::Runtime::DrawOpId draw_op_id) {
+  const auto draw_pipeline_from_draw_op_id = [&](VkPipeline pipeline,
+                                                 CE::Runtime::DrawOpId draw_op_id) {
     if (draw_op_id == CE::Runtime::DrawOpId::InstancedCells) {
-      draw_cells(pipeline_name);
+      draw_cells(pipeline);
       return;
     }
 
     if (draw_op_id == CE::Runtime::DrawOpId::IndexedGrid) {
-      draw_grid_indexed(pipeline_name);
+      draw_grid_indexed(pipeline);
       return;
     }
 
     if (draw_op_id == CE::Runtime::DrawOpId::IndexedGridBox) {
-      draw_grid_box_indexed(pipeline_name);
+      draw_grid_box_indexed(pipeline);
       return;
     }
 
     if (draw_op_id == CE::Runtime::DrawOpId::IndexedRectangle) {
-      draw_rectangle_indexed(pipeline_name);
+      draw_rectangle_indexed(pipeline);
       return;
     }
 
     if (draw_op_id == CE::Runtime::DrawOpId::IndexedCube) {
-      draw_cube_indexed(pipeline_name);
+      draw_cube_indexed(pipeline);
       return;
     }
 
     if (draw_op_id == CE::Runtime::DrawOpId::SkyDome) {
-      draw_sky_dome(pipeline_name);
+      draw_sky_dome(pipeline);
       return;
-    }
-  };
-
-  const auto draw_pipeline_from_draw_op_string = [&](const std::string &pipeline_name,
-                                                      const std::string &draw_op) {
-    const CE::Runtime::DrawOpId draw_op_id = CE::Runtime::draw_op_from_string(draw_op);
-    if (draw_op_id != CE::Runtime::DrawOpId::Unknown) {
-      draw_pipeline_from_draw_op_id(pipeline_name, draw_op_id);
-      return;
-    }
-
-    constexpr std::string_view indexed_prefix = "indexed:";
-    if (draw_op.starts_with(indexed_prefix)) {
-      const std::string_view target =
-          std::string_view(draw_op).substr(indexed_prefix.size());
-      if (target == "grid") {
-        draw_grid_indexed(pipeline_name);
-      } else if (target == "grid_box") {
-        draw_grid_box_indexed(pipeline_name);
-      } else if (target == "cube") {
-        draw_cube_indexed(pipeline_name);
-      } else {
-        draw_rectangle_indexed(pipeline_name);
-      }
     }
   };
 
   const auto draw_pipeline_by_name = [&](const std::string &pipeline_name) {
-    const CE::Runtime::DrawOpId draw_op_id = CE::Runtime::get_graphics_draw_op_id(pipeline_name);
+    const CE::Runtime::DrawOpId draw_op_id = resolve_draw_op_id(pipeline_name);
     if (draw_op_id != CE::Runtime::DrawOpId::Unknown) {
-      draw_pipeline_from_draw_op_id(pipeline_name, draw_op_id);
-      return;
-    }
-
-    const std::string *draw_op = CE::Runtime::get_graphics_draw_op(pipeline_name);
-    if (draw_op) {
-      draw_pipeline_from_draw_op_string(pipeline_name, *draw_op);
+      const VkPipeline pipeline = resolve_pipeline(pipeline_name);
+      draw_pipeline_from_draw_op_id(pipeline, draw_op_id);
     }
   };
 
@@ -362,7 +375,8 @@ void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
         continue;
       }
       if (node.draw_op != CE::Runtime::DrawOpId::Unknown) {
-        draw_pipeline_from_draw_op_id(node.pipeline, node.draw_op);
+        const VkPipeline pipeline = resolve_pipeline(node.pipeline);
+        draw_pipeline_from_draw_op_id(pipeline, node.draw_op);
       } else {
         draw_pipeline_by_name(node.pipeline);
       }

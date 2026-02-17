@@ -1,4 +1,7 @@
 #pragma once
+
+// Runtime pipeline graph assembly for configured render/compute passes.
+// Exists to bridge scene/runtime config into concrete Vulkan pipeline objects.
 #include <glm/glm.hpp>
 
 #include "library/Library.h"

@@ -1,5 +1,8 @@
 #pragma once
 
+// Descriptor-set allocation/update primitives.
+// Exists to hide Vulkan descriptor boilerplate from higher-level resources.
+
 #include <array>
 #include <cstddef>
 #include <cstdint>
@@ -35,6 +38,7 @@ public:
 
 private:
   VkDescriptorPool pool{};
+  size_t active_descriptor_count_{};
 
   void create_set_layout();
   void create_pool();

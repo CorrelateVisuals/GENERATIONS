@@ -1,5 +1,8 @@
 #pragma once
 
+// Vulkan helper utilities (type-safe error wrappers and small support helpers).
+// Exists to standardize error handling and reduce repetitive call-site checks.
+
 #include <type_traits>
 #include <typeinfo>
 #include <stdexcept>

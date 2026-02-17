@@ -60,7 +60,6 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 file(GLOB_RECURSE CAPITALENGINE_SOURCES CONFIGURE_DEPENDS
     RELATIVE "${CMAKE_SOURCE_DIR}"
     src/*.cpp
-    src/*.h
 )
 
 find_package(Vulkan)
@@ -91,6 +90,10 @@ add_custom_target(shader_interface DEPENDS
 add_executable(CapitalEngine ${CAPITALENGINE_SOURCES})
 add_dependencies(CapitalEngine architecture_check)
 add_dependencies(CapitalEngine shader_interface)
+
+target_precompile_headers(CapitalEngine PRIVATE
+    ${PROJECT_SOURCE_DIR}/src/pch.h
+)
 
 if(TARGET Vulkan::Vulkan)
     target_link_libraries(CapitalEngine glfw Vulkan::Vulkan)

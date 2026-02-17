@@ -1,4 +1,7 @@
 #pragma once
+
+// Screenshot capture utility for swapchain images.
+// Exists to isolate readback/staging logic from render loop orchestration.
 #include <vulkan/vulkan.h>
 
 #include "vulkan_base/VulkanDevice.h"

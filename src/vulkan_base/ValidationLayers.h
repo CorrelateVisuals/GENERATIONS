@@ -1,4 +1,7 @@
 #pragma once
+
+// Vulkan validation-layer bootstrap and callback wiring.
+// Exists to centralize debug messenger setup and validation diagnostics.
 #include <vulkan/vulkan.h>
 
 #include <string>

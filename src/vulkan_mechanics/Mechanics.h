@@ -1,4 +1,7 @@
 #pragma once
+
+// Runtime Vulkan mechanics bundle.
+// Exists to aggregate initialization, queue families, swapchain, and sync objects.
 #include "vulkan_base/VulkanDevice.h"
 #include "vulkan_base/VulkanSync.h"
 

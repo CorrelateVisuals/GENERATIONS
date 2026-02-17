@@ -21,8 +21,9 @@ CE::DescriptorInterface::~DescriptorInterface() {
 
 void CE::DescriptorInterface::create_set_layout() {
   Log::text(
-      "{ |=| }", "Descriptor Set Layout:", set_layout_bindings.size(), "bindings");
-  for (const VkDescriptorSetLayoutBinding &item : set_layout_bindings) {
+      "{ |=| }", "Descriptor Set Layout:", active_descriptor_count_, "bindings");
+  for (size_t i = 0; i < active_descriptor_count_; ++i) {
+    const VkDescriptorSetLayoutBinding &item = set_layout_bindings[i];
     Log::text(
       "{ ", item.binding, " }", Log::get_descriptor_type_string(item.descriptorType));
     Log::text(Log::Style::char_leader, Log::get_shader_stage_string(item.stageFlags));
@@ -30,7 +31,7 @@ void CE::DescriptorInterface::create_set_layout() {
 
   VkDescriptorSetLayoutCreateInfo layoutInfo{
       .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-      .bindingCount = static_cast<uint32_t>(set_layout_bindings.size()),
+      .bindingCount = static_cast<uint32_t>(active_descriptor_count_),
       .pBindings = set_layout_bindings.data()};
 
   CE::vulkan_result(vkCreateDescriptorSetLayout,
@@ -71,6 +72,11 @@ void CE::DescriptorInterface::allocate_sets() {
 }
 
 void CE::DescriptorInterface::initialize_sets() {
+  active_descriptor_count_ = write_index;
+  if (active_descriptor_count_ > NUM_DESCRIPTORS) {
+    active_descriptor_count_ = NUM_DESCRIPTORS;
+  }
+
   create_set_layout();
   create_pool();
   allocate_sets();
@@ -81,12 +87,14 @@ void CE::DescriptorInterface::update_sets() {
   Log::text("{ |=| }", "Update Descriptor Sets");
 
   for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-    for (auto &descriptor : descriptor_writes[i]) {
+    for (size_t descriptor_index = 0; descriptor_index < active_descriptor_count_;
+         ++descriptor_index) {
+      auto &descriptor = descriptor_writes[i][descriptor_index];
       descriptor.dstSet = this->sets[i];
     }
 
     vkUpdateDescriptorSets(CE::Device::base_device->logical_device,
-                           static_cast<uint32_t>(descriptor_writes[i].size()),
+                           static_cast<uint32_t>(active_descriptor_count_),
                            descriptor_writes[i].data(),
                            0,
                            nullptr);

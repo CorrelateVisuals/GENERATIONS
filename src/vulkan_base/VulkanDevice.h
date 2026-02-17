@@ -1,5 +1,8 @@
 #pragma once
 
+// Vulkan instance/device/queue bootstrap layer.
+// Exists to own GPU selection, logical device creation, and queue discovery.
+
 #include <chrono>
 #include <optional>
 #include <string>

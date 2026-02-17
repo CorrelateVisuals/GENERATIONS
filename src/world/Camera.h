@@ -1,4 +1,7 @@
 #pragma once
+
+// Camera transform and interaction model.
+// Exists to encapsulate view/projection setup and user navigation behavior.
 #include <vulkan/vulkan.h>
 #include <glm/glm.hpp>
 

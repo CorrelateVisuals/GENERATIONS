@@ -1,3 +1,5 @@
+// Frame/runtime time utility used by simulation and shader push constants.
+// Exists to centralize time-scale and day-cycle progression semantics.
 #include <cstdint>
 #include <chrono>
 

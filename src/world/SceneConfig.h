@@ -1,5 +1,8 @@
 #pragma once
 
+// Declarative scene preset that populates runtime configuration.
+// Exists to define default terrain/world/pipeline graph in one place.
+
 #include "world/RuntimeConfig.h"
 
 namespace CE::Scene {

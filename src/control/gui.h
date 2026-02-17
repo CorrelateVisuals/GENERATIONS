@@ -1,5 +1,8 @@
 #pragma once
 
+// Lightweight render-overlay configuration API.
+// Exists to expose stage-strip state and tile picking to command recording code.
+
 #include <cstdint>
 #include <cstddef>
 #include <string>

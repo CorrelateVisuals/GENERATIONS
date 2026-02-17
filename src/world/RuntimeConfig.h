@@ -1,5 +1,8 @@
 #pragma once
 
+// Runtime configuration registry for terrain/world/pipeline execution settings.
+// Exists to provide one shared source of truth consumed across engine modules.
+
 #include <unordered_map>
 #include <cstdint>
 #include <string>

@@ -1,4 +1,7 @@
 #pragma once
+
+// Shared utility/data-types module.
+// Exists to hold common math helpers, paths, and lightweight value objects.
 #include <glm/glm.hpp>
 
 #include <string>

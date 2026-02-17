@@ -1,4 +1,7 @@
 #pragma once
+
+// Window system facade for GLFW lifecycle, input sampling, and framebuffer size.
+// Exists to keep platform/window details out of render and simulation layers.
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 

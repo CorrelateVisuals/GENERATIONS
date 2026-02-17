@@ -607,4 +607,5 @@ void CE::SynchronizationObjects::destroy() {
       this->compute_in_flight_fences[i] = VK_NULL_HANDLE;
     }
   }
+
 }

@@ -1,5 +1,8 @@
 #pragma once
 
+// Command buffer, synchronization, and swapchain synchronization primitives.
+// Exists to define frame-in-flight execution contract and submission scaffolding.
+
 #include <array>
 #include <vector>
 

@@ -1,4 +1,7 @@
 #pragma once
+
+// GPU resource aggregate for per-frame rendering and compute.
+// Exists to keep descriptor/buffer/image setup co-located with world-owned data.
 #include "vulkan/vulkan.h"
 
 #include "vulkan_pipelines/ShaderAccess.h"

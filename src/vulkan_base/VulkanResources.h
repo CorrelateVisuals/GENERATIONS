@@ -1,5 +1,8 @@
 #pragma once
 
+// Low-level GPU buffer/image primitives.
+// Exists to encapsulate allocation, transfer, and image view/sampler lifecycle.
+
 #include <string>
 #include <vector>
 

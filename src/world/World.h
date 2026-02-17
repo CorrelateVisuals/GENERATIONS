@@ -1,4 +1,7 @@
 #pragma once
+
+// Simulation/render world aggregate (grid, shapes, camera, uniforms, time).
+// Exists to package scene state consumed by compute and graphics passes.
 #include "world/Camera.h"
 #include "world/Geometry.h"
 #include "library/Library.h"

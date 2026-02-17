@@ -311,7 +311,7 @@ void CE::PipelinesConfiguration::create_pipelines(VkRenderPass &render_pass,
         rasterization.depthBiasClamp = 0.0f;
         depthStencil.depthTestEnable = VK_TRUE;
         depthStencil.depthWriteEnable = VK_TRUE;
-        depthStencil.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
+        depthStencil.depthCompareOp = VK_COMPARE_OP_LESS;
       }
 
       VkPipelineTessellationStateCreateInfo tessellationStateInfo{

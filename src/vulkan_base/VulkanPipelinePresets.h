@@ -1,5 +1,8 @@
 #pragma once
 
+// Reusable fixed-function pipeline state presets.
+// Exists to keep verbose Vulkan state structs consistent across pipeline builds.
+
 #include <vulkan/vulkan.h>
 
 namespace CE {

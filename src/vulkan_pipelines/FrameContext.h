@@ -1,5 +1,8 @@
 #pragma once
 
+// Per-frame submission coordinator.
+// Exists to sequence acquire/compute/graphics/present with correct sync ordering.
+
 #include <cstdint>
 #include <functional>
 

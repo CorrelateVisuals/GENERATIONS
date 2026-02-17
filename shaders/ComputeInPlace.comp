@@ -1,5 +1,4 @@
 #version 450
-#extension GL_EXT_shader_explicit_arithmetic_types_int64 : enable
 #extension GL_GOOGLE_include_directive : enable
 
 struct Cell {
@@ -15,10 +14,7 @@ layout(std430, binding = 1) buffer CellSSBO {
 };
 
 layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
-layout(push_constant, std430) uniform pushConstant {
-    uint64_t passedHours;
-    float dayFraction;
-};
+#include "PushConstants.glsl"
 
 #include "ParameterUBO.glsl"
 
@@ -34,8 +30,7 @@ void main() {
 
     const uint index = gy * gridWidth + gx;
 
-    Cell cell = cells[index];
     const float t = fract(dayFraction + float(index % 97u) * 0.001);
-    cell.color = vec4(mix(cell.color.rgb, vec3(0.2, 0.6, 1.0), t), 1.0);
-    cells[index] = cell;
+    const vec4 currentColor = cells[index].color;
+    cells[index].color = vec4(mix(currentColor.rgb, vec3(0.2, 0.6, 1.0), t), 1.0);
 }

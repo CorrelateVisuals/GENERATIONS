@@ -12,10 +12,7 @@ struct Cell {
 layout(std430, binding = 1) readonly buffer CellSSBOIn {Cell cellIn[ ]; };
 layout(std430, binding = 2) buffer CellSSBOOut {Cell cellOut[ ]; };
 layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
-layout(push_constant, std430) uniform pushConstant {
-    uint passedHours;
-    float dayFraction;
-};
+#include "PushConstants.glsl"
 
 #define UBO_LIGHT_NAME lightDirection
 #include "ParameterUBO.glsl"
@@ -92,6 +89,31 @@ int cycleNeighbours(int range) {
         neighboursAlive += int(neighbourAlive(neighbourIndex));
     }
     return neighboursAlive;
+}
+
+int inboundTransfersToSelf() {
+    const int numOffsets = 8;
+    ivec2 directNeighbourOffsets[numOffsets] = {
+        ivec2(-1, -1), ivec2(-1, 0), ivec2(-1, 1), ivec2(0, -1),
+        ivec2(0, 1), ivec2(1, -1), ivec2(1, 0), ivec2(1, 1)
+    };
+
+    int inbound = 0;
+    for (int i = 0; i < numOffsets; ++i) {
+        int neighbourIndex = getNeighbourIndex(directNeighbourOffsets[i]);
+        if (neighbourIndex < 0) {
+            continue;
+        }
+        if (!neighbourAlive(neighbourIndex)) {
+            continue;
+        }
+
+        int neighbourTarget = cellIn[neighbourIndex].states.y;
+        if (neighbourTarget == int(index)) {
+            inbound += 1;
+        }
+    }
+    return inbound;
 }
 
 int closestAliveNeighbourIndex() {
@@ -267,8 +289,11 @@ bool live(int neighbours) { return (aliveCell && (neighbours == 3 || neighbours 
 bool die(int neighbours)  { return (aliveCell && (neighbours < 2 || neighbours > 3)); }
 vec4 colorIncrement     = inColor + vec4(float((passedHours % cycleSize + 1)) / float(cycleSize * 50), vec3(0.0));
 
+const float transferSizeFraction = 0.10;
+const float minAliveSizeFactor = 0.10;
+const float maxAliveSizeFactor = 4.00;
+
 void simulate(out Cell cell) {
-    int neighbours  = cycleNeighbours(1);
     int cycleHour = int(passedHours % cycleSize) + 1;
     float cycleT = clamp(dayFraction, 0.0, 1.0);
     bool cycleStart = cycleHour == 1;
@@ -284,13 +309,40 @@ void simulate(out Cell cell) {
         bool needsNewTarget = cycleStart || storedTarget < 0 || !neighbourAlive(storedTarget);
         targetIndex = needsNewTarget ? closestAliveNeighbourIndex() : storedTarget;
     }
-    vec4 movedPosOn = moveTowardsTarget(basePosOn, targetIndex, cycleT);
+    float aliveSize = max(inPos.w, sizeAlive);
+    vec4 movedPosOn = moveTowardsTarget(vec4(basePosOn.xyz, aliveSize), targetIndex, cycleT);
 
     bool underWaterBase = is_underwater_at(baseXY);
 
     if (underWaterBase && aliveCell) {
        cell = Cell(inPosOff, inVertPos, inNormal, grey, setState(dead, -1) ); 
-   } else if (!cycleEnd) {
+    } else if (aliveCell) {
+        float grownSize = aliveSize;
+        if (cycleEnd) {
+            int inboundTransfers = inboundTransfersToSelf();
+            if (inboundTransfers > 0) {
+                grownSize *= (1.0 + transferSizeFraction * float(inboundTransfers));
+            }
+
+            bool hasOutboundTransfer = targetIndex >= 0;
+            if (hasOutboundTransfer) {
+                grownSize *= (1.0 - transferSizeFraction);
+            }
+        }
+
+        float minAliveSize = max(sizeAlive * minAliveSizeFactor, 0.01);
+        float maxAliveSize = max(sizeAlive * maxAliveSizeFactor, minAliveSize);
+        grownSize = clamp(grownSize, minAliveSize, maxAliveSize);
+
+        movedPosOn.w = grownSize;
+        cell = Cell(movedPosOn, inVertPos, inNormal, inColor, setState(alive, targetIndex));
+    } else {
+        cell = Cell(inPosOff, inVertPos, inNormal, grey, setState(dead, -1));
+    }
+
+    /*
+    int neighbours  = cycleNeighbours(1);
+    if (!cycleEnd) {
         // During the day: no Conway birth/death transitions, only neighbour-follow motion.
         cell = aliveCell ? Cell(movedPosOn, inVertPos, inNormal, inColor, setState(alive, targetIndex))
                          : Cell(inPosOff, inVertPos, inNormal, grey, setState(dead, -1));
@@ -310,6 +362,7 @@ void simulate(out Cell cell) {
                                         Cell(inPosOff, inVertPos, inNormal, inColor, setState(dead, -1) );
         }
     }
+    */
 }
 
 void main() {  

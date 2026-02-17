@@ -1,4 +1,7 @@
 #pragma once
+
+// Central logging and diagnostics utility.
+// Exists to provide consistent runtime tracing for Vulkan, perf, and debug flows.
 #include <vulkan/vulkan.h>
 
 #include <fstream>

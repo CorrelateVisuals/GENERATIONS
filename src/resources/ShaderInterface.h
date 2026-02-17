@@ -1,5 +1,8 @@
 #pragma once
 
+// CPU-side mirror of shader parameter layout.
+// Exists to guarantee host/shader alignment for shared UBO contract.
+
 #include <glm/glm.hpp>
 
 namespace CE::ShaderInterface {
