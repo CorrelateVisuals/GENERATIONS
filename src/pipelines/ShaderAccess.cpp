@@ -1,8 +1,8 @@
 #include "ShaderAccess.h"
 #include "Pipelines.h"
 #include "Resources.h"
-#include "gui.h"
-#include "base/VulkanUtils.h"
+#include "gui/gui.h"
+#include "vulkan_base/VulkanUtils.h"
 #include "core/RuntimeConfig.h"
 
 #include <array>
@@ -388,23 +388,26 @@ void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
       const VkViewport original_viewport = viewport;
 
       for (uint32_t tile_idx = 0; tile_idx < tile_count; ++tile_idx) {
-      const uint32_t tile_x = (tile_idx * extent_width) / tile_count;
-      const uint32_t tile_x_next = ((tile_idx + 1) * extent_width) / tile_count;
-      const uint32_t tile_width = std::max<uint32_t>(tile_x_next - tile_x, 1);
+        const uint32_t tile_x = (tile_idx * extent_width) / tile_count;
+        const uint32_t tile_x_next = ((tile_idx + 1) * extent_width) / tile_count;
+        const uint32_t tile_width = std::max<uint32_t>(tile_x_next - tile_x, 1);
         const uint32_t tile_y = 0;
         const uint32_t clamped_width =
-            std::min<uint32_t>(tile_width, swapchain.extent.width - std::min(tile_x, swapchain.extent.width));
+            std::min<uint32_t>(tile_width,
+                               swapchain.extent.width - std::min(tile_x, swapchain.extent.width));
 
-      const float strip_zoom = 4.0f;
-      const float tile_center_x = static_cast<float>(tile_x) + static_cast<float>(clamped_width) * 0.5f;
-      const float tile_center_y = static_cast<float>(tile_y) + static_cast<float>(tile_height) * 0.5f;
-      const float zoomed_width = static_cast<float>(clamped_width) * strip_zoom;
-      const float zoomed_height = static_cast<float>(tile_height) * strip_zoom;
+        const float strip_zoom = 4.0f;
+        const float tile_center_x =
+            static_cast<float>(tile_x) + static_cast<float>(clamped_width) * 0.5f;
+        const float tile_center_y =
+            static_cast<float>(tile_y) + static_cast<float>(tile_height) * 0.5f;
+        const float zoomed_width = static_cast<float>(clamped_width) * strip_zoom;
+        const float zoomed_height = static_cast<float>(tile_height) * strip_zoom;
 
-      VkViewport tile_viewport{.x = tile_center_x - zoomed_width * 0.5f,
-                   .y = tile_center_y - zoomed_height * 0.5f,
-                   .width = zoomed_width,
-                   .height = zoomed_height,
+        VkViewport tile_viewport{.x = tile_center_x - zoomed_width * 0.5f,
+                                 .y = tile_center_y - zoomed_height * 0.5f,
+                                 .width = zoomed_width,
+                                 .height = zoomed_height,
                                  .minDepth = 0.0f,
                                  .maxDepth = 1.0f};
         vkCmdSetViewport(command_buffer, 0, 1, &tile_viewport);
@@ -421,10 +424,10 @@ void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
         clear_depth_rect.baseArrayLayer = 0;
         clear_depth_rect.layerCount = 1;
         vkCmdClearAttachments(command_buffer,
-                  1,
-                  &clear_depth_attachment,
-                  1,
-                  &clear_depth_rect);
+                              1,
+                              &clear_depth_attachment,
+                              1,
+                              &clear_depth_rect);
 
         const CE::RenderGUI::StageStripTile &tile_config = strip_tiles[tile_idx];
         const bool tile_has_sky = std::find(tile_config.pipelines.begin(),

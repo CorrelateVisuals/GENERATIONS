@@ -1,6 +1,6 @@
 #pragma once
-#include "base/VulkanDevice.h"
-#include "base/VulkanSync.h"
+#include "vulkan_base/VulkanDevice.h"
+#include "vulkan_base/VulkanSync.h"
 
 class Pipelines;
 class Resources;

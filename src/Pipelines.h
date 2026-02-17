@@ -1,10 +1,10 @@
 #pragma once
 #include <glm/glm.hpp>
 
-#include "io/Library.h"
+#include "asset_io/Library.h"
 #include "platform/Window.h"
 #include "World.h"
-#include "base/VulkanPipeline.h"
+#include "vulkan_base/VulkanPipeline.h"
 #include "core/RuntimeConfig.h"
 
 class VulkanMechanics;

@@ -135,8 +135,9 @@ SceneConfig SceneConfig::defaults() {
   spec.world.arcball_smoothing = 0.25f;
   spec.world.arcball_distance_pan_scale = 0.9f;
   spec.world.arcball_distance_zoom_scale = 0.8f;
+  spec.world.cube_shape = 1;
   spec.world.rectangle_shape = 0;
-  spec.world.sphere_shape = 1;
+  spec.world.sphere_shape = 2;
 
   spec.pipelines["Cells"] = CE::Runtime::PipelineDefinition{
       .is_compute = false,

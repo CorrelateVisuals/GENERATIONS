@@ -1,5 +1,5 @@
 #pragma once
-#include "base/VulkanSync.h"
+#include "vulkan_base/VulkanSync.h"
 
 namespace CE {
 

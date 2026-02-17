@@ -91,10 +91,11 @@ def main() -> int:
     }
 
     forbidden_targets: dict[str, set[str]] = {
-        "render": {"app"},
-        "world": {"app", "render"},
-        "platform": {"app", "world", "render"},
-        "io": {"app", "world", "render"},
+        "pipelines": {"app"},
+        "world": {"app", "pipelines"},
+        "platform": {"app", "world", "pipelines"},
+        "asset_io": {"app", "world", "pipelines"},
+        "gui": {"app"},
     }
 
     name_index = build_name_index(files, src_root)

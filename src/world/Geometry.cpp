@@ -2,9 +2,9 @@
 #include <tiny_obj_loader.h>
 
 #include "Geometry.h"
-#include "io/Library.h"
+#include "asset_io/Library.h"
 #include "core/Log.h"
-#include "base/VulkanDevice.h"
+#include "vulkan_base/VulkanDevice.h"
 
 #include <filesystem>
 #include <glm/gtc/constants.hpp>
@@ -98,6 +98,58 @@ void fillFallbackSphere(Geometry &geometry,
     geometry.all_vertices.push_back(geometry.unique_vertices[index]);
   }
 }
+
+void fillFallbackCube(Geometry &geometry, const float half_extent = 0.5f) {
+  geometry.all_vertices.clear();
+  geometry.unique_vertices.clear();
+  geometry.indices.clear();
+
+  const glm::vec3 p000{-half_extent, -half_extent, -half_extent};
+  const glm::vec3 p001{-half_extent, -half_extent,  half_extent};
+  const glm::vec3 p010{-half_extent,  half_extent, -half_extent};
+  const glm::vec3 p011{-half_extent,  half_extent,  half_extent};
+  const glm::vec3 p100{ half_extent, -half_extent, -half_extent};
+  const glm::vec3 p101{ half_extent, -half_extent,  half_extent};
+  const glm::vec3 p110{ half_extent,  half_extent, -half_extent};
+  const glm::vec3 p111{ half_extent,  half_extent,  half_extent};
+
+  auto push_face = [&](const glm::vec3 &a,
+                       const glm::vec3 &b,
+                       const glm::vec3 &c,
+                       const glm::vec3 &d,
+                       const glm::vec3 &n) {
+    const uint32_t base = static_cast<uint32_t>(geometry.unique_vertices.size());
+
+    Vertex v0{}; v0.vertex_position = a; v0.normal = n; v0.color = {1.0f, 1.0f, 1.0f}; v0.texture_coordinates = {0.0f, 0.0f};
+    Vertex v1{}; v1.vertex_position = b; v1.normal = n; v1.color = {1.0f, 1.0f, 1.0f}; v1.texture_coordinates = {1.0f, 0.0f};
+    Vertex v2{}; v2.vertex_position = c; v2.normal = n; v2.color = {1.0f, 1.0f, 1.0f}; v2.texture_coordinates = {1.0f, 1.0f};
+    Vertex v3{}; v3.vertex_position = d; v3.normal = n; v3.color = {1.0f, 1.0f, 1.0f}; v3.texture_coordinates = {0.0f, 1.0f};
+
+    geometry.unique_vertices.push_back(v0);
+    geometry.unique_vertices.push_back(v1);
+    geometry.unique_vertices.push_back(v2);
+    geometry.unique_vertices.push_back(v3);
+
+    geometry.indices.push_back(base + 0);
+    geometry.indices.push_back(base + 1);
+    geometry.indices.push_back(base + 2);
+    geometry.indices.push_back(base + 0);
+    geometry.indices.push_back(base + 2);
+    geometry.indices.push_back(base + 3);
+  };
+
+  push_face(p001, p101, p111, p011, {0.0f, 0.0f, 1.0f});   // front
+  push_face(p100, p000, p010, p110, {0.0f, 0.0f, -1.0f});  // back
+  push_face(p000, p001, p011, p010, {-1.0f, 0.0f, 0.0f});  // left
+  push_face(p101, p100, p110, p111, {1.0f, 0.0f, 0.0f});   // right
+  push_face(p010, p011, p111, p110, {0.0f, 1.0f, 0.0f});   // top
+  push_face(p000, p100, p101, p001, {0.0f, -1.0f, 0.0f});  // bottom
+
+  geometry.all_vertices.reserve(geometry.indices.size());
+  for (const uint32_t index : geometry.indices) {
+    geometry.all_vertices.push_back(geometry.unique_vertices[index]);
+  }
+}
 } // namespace
 
 std::vector<VkVertexInputBindingDescription> Vertex::get_binding_description() {
@@ -167,7 +219,10 @@ Geometry::Geometry(GEOMETRY_SHAPE shape) {
     }
 
     if (!loaded) {
-      if (shape == CE_SPHERE || shape == CE_SPHERE_HR) {
+      if (shape == CE_CUBE) {
+        Log::text("{ !!! }", "Using procedural cube fallback for", model_name);
+        fillFallbackCube(*this);
+      } else if (shape == CE_SPHERE || shape == CE_SPHERE_HR) {
         Log::text("{ !!! }", "Using procedural sphere fallback for", model_name);
         fillFallbackSphere(*this);
       } else {

@@ -1,9 +1,9 @@
 #include "FrameContext.h"
 
-#include "Mechanics.h"
+#include "vulkan_mechanics/Mechanics.h"
 #include "Pipelines.h"
 #include "Resources.h"
-#include "base/VulkanUtils.h"
+#include "vulkan_base/VulkanUtils.h"
 #include "platform/Window.h"
 
 #include <array>

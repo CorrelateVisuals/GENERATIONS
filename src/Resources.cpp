@@ -1,8 +1,8 @@
 #include "vulkan/vulkan.h"
 
-#include "io/Library.h"
+#include "asset_io/Library.h"
 #include "core/Log.h"
-#include "render/Mechanics.h"
+#include "vulkan_mechanics/Mechanics.h"
 #include "Resources.h"
 
 Resources::Resources(VulkanMechanics &mechanics, const CE::Runtime::TerrainSettings &terrain_settings)

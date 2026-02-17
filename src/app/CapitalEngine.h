@@ -1,6 +1,6 @@
 #pragma once
-#include "render/Mechanics.h"
-#include "render/FrameContext.h"
+#include "vulkan_mechanics/Mechanics.h"
+#include "pipelines/FrameContext.h"
 #include "Pipelines.h"
 #include "Resources.h"
 

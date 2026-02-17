@@ -1,7 +1,7 @@
 #pragma once
 #include "world/Camera.h"
 #include "world/Geometry.h"
-#include "io/Library.h"
+#include "asset_io/Library.h"
 #include "core/Timer.h"
 #include "core/RuntimeConfig.h"
 #include "core/ShaderInterface.h"
