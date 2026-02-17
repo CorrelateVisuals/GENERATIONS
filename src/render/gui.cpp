@@ -369,39 +369,27 @@ int32_t find_stage_strip_tile_index(const VkExtent2D &extent,
   const uint32_t usable_width =
       (extent.width > reserved_padding) ? (extent.width - reserved_padding) : extent.width;
 
-  // Calculate max tiles per row based on available width (minimum 60px per tile)
-  const uint32_t tile_width_min = 60;
-  const uint32_t max_tiles_per_row =
-      std::max<uint32_t>(usable_width / (tile_width_min + padding), 1);
-  const uint32_t tiles_per_row = std::min(max_tiles_per_row, tile_count);
-  const uint32_t tile_width = usable_width / tiles_per_row;
-  const uint32_t tile_height =
-      std::max<uint32_t>((strip_height > 2 * padding) ? (strip_height - 2 * padding)
-                                                       : strip_height,
-                         1);
+   (void)max_tiles_per_row;
+   const uint32_t tiles_per_row = tile_count;
+   const uint32_t tile_height = std::max<uint32_t>(strip_height, 1);
 
-  // Calculate which row the click is in
-  const uint32_t row_height = tile_height + padding;
-  const uint32_t clicked_row = pixel_y > padding ? (pixel_y - padding) / row_height : 0;
-  const uint32_t row_start_tile = clicked_row * tiles_per_row;
+   if (pixel_y >= tile_height) {
+     return -1;
+   }
 
-  if (row_start_tile >= tile_count) {
-    return -1;  // Click is beyond available tiles
-  }
-
-  const uint32_t row_end_tile = std::min(row_start_tile + tiles_per_row, tile_count);
-
-  for (uint32_t tile = row_start_tile; tile < row_end_tile; ++tile) {
+   for (uint32_t tile = 0; tile < tiles_per_row; ++tile) {
+     const uint32_t row_tile_count = tiles_per_row;
+     const uint32_t horizontal_padding_total = padding * (row_tile_count + 1);
     const uint32_t tile_in_row = tile - row_start_tile;
     const uint32_t tile_x = padding + tile_in_row * (tile_width + padding);
     const uint32_t clamped_width =
         std::min<uint32_t>(tile_width,
-                           extent.width - std::min(tile_x, extent.width));
+     const uint32_t tile_x = padding + tile * (tile_width + padding);
 
     const uint32_t y0_tile = padding + clicked_row * row_height;
     const uint32_t y1_tile = y0_tile + tile_height;
 
-    const uint32_t x0 = tile_x;
+     const uint32_t y0_tile = 0;
     const uint32_t x1 = x0 + clamped_width;
 
     if (pixel_x >= x0 && pixel_x < x1 && pixel_y >= y0_tile && pixel_y < y1_tile) {
