@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/RuntimeConfig.h"
+#include "base/RuntimeConfig.h"
 
 namespace CE::Scene {
 

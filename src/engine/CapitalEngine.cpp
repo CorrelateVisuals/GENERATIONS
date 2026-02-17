@@ -1,9 +1,9 @@
 #include "CapitalEngine.h"
-#include "core/Log.h"
-#include "core/RuntimeConfig.h"
-#include "asset_io/Screenshot.h"
-#include "platform/Window.h"
-#include "gui/gui.h"
+#include "engine/Log.h"
+#include "base/RuntimeConfig.h"
+#include "library/Screenshot.h"
+#include "control/Window.h"
+#include "control/gui.h"
 
 #include <chrono>
 #include <filesystem>

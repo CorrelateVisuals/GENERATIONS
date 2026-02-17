@@ -1,7 +1,7 @@
 #include "vulkan/vulkan.h"
 
-#include "asset_io/Library.h"
-#include "core/Log.h"
+#include "library/Library.h"
+#include "engine/Log.h"
 #include "vulkan_mechanics/Mechanics.h"
 #include "Resources.h"
 

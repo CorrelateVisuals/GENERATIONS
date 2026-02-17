@@ -1,10 +1,10 @@
 #pragma once
 #include "world/Camera.h"
 #include "world/Geometry.h"
-#include "asset_io/Library.h"
-#include "core/Timer.h"
-#include "core/RuntimeConfig.h"
-#include "core/ShaderInterface.h"
+#include "library/Library.h"
+#include "control/Timer.h"
+#include "base/RuntimeConfig.h"
+#include "base/ShaderInterface.h"
 
 #include <algorithm>
 #include <array>

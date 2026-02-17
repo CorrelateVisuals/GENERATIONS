@@ -2,8 +2,8 @@
 #include <tiny_obj_loader.h>
 
 #include "Geometry.h"
-#include "asset_io/Library.h"
-#include "core/Log.h"
+#include "library/Library.h"
+#include "engine/Log.h"
 #include "vulkan_base/VulkanDevice.h"
 
 #include <filesystem>

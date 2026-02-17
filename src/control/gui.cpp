@@ -1,7 +1,7 @@
 #include "gui.h"
 
-#include "core/RuntimeConfig.h"
-#include "core/Log.h"
+#include "base/RuntimeConfig.h"
+#include "engine/Log.h"
 
 #include <algorithm>
 #include <cctype>
@@ -20,6 +20,7 @@ struct StageStripCache {
   bool enabled = true;
   int32_t custom_height = -1;
   int32_t custom_padding = -1;
+  int32_t custom_max_rows = -1;
   std::vector<StageStripTile> tiles{};
 };
 
@@ -215,6 +216,14 @@ void initialize_stage_strip_cache() {
     }
   }
 
+  if (const char *rows_raw = std::getenv("CE_RENDER_STAGE_STRIP_MAX_ROWS")) {
+    char *end = nullptr;
+    const long parsed = std::strtol(rows_raw, &end, 10);
+    if (end != rows_raw && *end == '\0' && parsed > 0) {
+      g_stage_strip_cache.custom_max_rows = static_cast<int32_t>(parsed);
+    }
+  }
+
   const char *raw_tiles = std::getenv("CE_RENDER_STAGE_TILES");
   if (!raw_tiles || std::string(raw_tiles).empty()) {
     g_stage_strip_cache.tiles = default_tiles();
@@ -269,6 +278,12 @@ StageStripConfig get_stage_strip_config(const VkExtent2D &extent) {
   ensure_stage_strip_cache();
   StageStripConfig config{};
   config.enabled = g_stage_strip_cache.enabled;
+  if (g_stage_strip_cache.custom_max_rows > 0) {
+    config.max_rows =
+        std::clamp<uint32_t>(static_cast<uint32_t>(g_stage_strip_cache.custom_max_rows), 1, 2);
+  } else {
+    config.max_rows = 2;
+  }
 
   const uint32_t max_reasonable_height = std::max<uint32_t>(extent.height / 2, 1);
   if (g_stage_strip_cache.custom_height > 0) {
@@ -278,6 +293,11 @@ StageStripConfig get_stage_strip_config(const VkExtent2D &extent) {
                              max_reasonable_height);
   } else {
     config.strip_height_px = std::clamp<uint32_t>(extent.height / 15, 48, max_reasonable_height);
+  }
+
+  if (config.max_rows > 1) {
+    const uint32_t scaled_height = config.strip_height_px + config.strip_height_px / 5;
+    config.strip_height_px = std::min<uint32_t>(scaled_height, max_reasonable_height);
   }
 
   if (g_stage_strip_cache.custom_padding >= 0) {
@@ -343,8 +363,11 @@ int32_t find_stage_strip_tile_index(const VkExtent2D &extent,
   }
 
   const StageStripConfig stage_strip = get_stage_strip_config(extent);
-  const bool strip_active =
-      stage_strip.enabled && extent.height > (stage_strip.strip_height_px + 1);
+  const uint32_t tile_count = static_cast<uint32_t>(g_stage_strip_cache.tiles.size());
+  const uint32_t rows =
+      std::max<uint32_t>(1, std::min<uint32_t>(stage_strip.max_rows, std::max<uint32_t>(tile_count, 1)));
+  const uint32_t total_strip_height = rows * std::max<uint32_t>(stage_strip.strip_height_px, 1);
+  const bool strip_active = stage_strip.enabled && extent.height > (total_strip_height + 1);
   if (!strip_active) {
     return -1;
   }
@@ -362,26 +385,29 @@ int32_t find_stage_strip_tile_index(const VkExtent2D &extent,
   const uint32_t pixel_y =
       static_cast<uint32_t>(normalized_y * static_cast<float>(extent.height));
 
-  const uint32_t tile_count = static_cast<uint32_t>(tiles.size());
-  const uint32_t strip_height = stage_strip.strip_height_px;
-  const uint32_t tile_height = std::max<uint32_t>(strip_height, 1);
+  const uint32_t tile_height = std::max<uint32_t>(stage_strip.strip_height_px, 1);
+  const uint32_t columns = (tile_count + rows - 1) / rows;
   const uint32_t extent_width = std::max<uint32_t>(extent.width, 1);
 
-  if (pixel_y >= tile_height) {
+  if (pixel_y >= rows * tile_height) {
     return -1;
   }
 
   for (uint32_t tile = 0; tile < tile_count; ++tile) {
-    const uint32_t tile_x = (tile * extent_width) / tile_count;
-    const uint32_t tile_x_next = ((tile + 1) * extent_width) / tile_count;
+    const uint32_t row = tile / columns;
+    const uint32_t column = tile % columns;
+    const uint32_t tile_x = (column * extent_width) / columns;
+    const uint32_t tile_x_next = ((column + 1) * extent_width) / columns;
     const uint32_t tile_width = std::max<uint32_t>(tile_x_next - tile_x, 1);
     const uint32_t clamped_width =
         std::min<uint32_t>(tile_width, extent.width - std::min(tile_x, extent.width));
+    const uint32_t tile_y = row * tile_height;
+    const uint32_t tile_y_next = tile_y + tile_height;
 
     const uint32_t x0 = tile_x;
     const uint32_t x1 = x0 + clamped_width;
 
-    if (pixel_x >= x0 && pixel_x < x1) {
+    if (pixel_x >= x0 && pixel_x < x1 && pixel_y >= tile_y && pixel_y < tile_y_next) {
       return static_cast<int32_t>(tile);
     }
   }

@@ -7,7 +7,7 @@
 #include "vulkan_base/VulkanPipeline.h"
 #include "vulkan_base/VulkanResources.h"
 #include "vulkan_base/VulkanSync.h"
-#include "core/RuntimeConfig.h"
+#include "base/RuntimeConfig.h"
 
 #include <array>
 #include <cstring>

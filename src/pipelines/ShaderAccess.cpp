@@ -1,9 +1,9 @@
 #include "ShaderAccess.h"
 #include "Pipelines.h"
 #include "Resources.h"
-#include "gui/gui.h"
+#include "control/gui.h"
 #include "vulkan_base/VulkanUtils.h"
-#include "core/RuntimeConfig.h"
+#include "base/RuntimeConfig.h"
 
 #include <array>
 #include <algorithm>
@@ -380,29 +380,39 @@ void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
         CE::RenderGUI::get_stage_strip_tiles();
     if (!strip_tiles.empty()) {
       const uint32_t tile_count = static_cast<uint32_t>(strip_tiles.size());
-      const uint32_t strip_height = stage_strip.strip_height_px;
-      const uint32_t tile_height = std::max<uint32_t>(strip_height, 1);
+      const uint32_t tile_height = std::max<uint32_t>(stage_strip.strip_height_px, 1);
+      const uint32_t rows =
+        std::max<uint32_t>(1, std::min<uint32_t>(stage_strip.max_rows, std::max<uint32_t>(tile_count, 1)));
+      const uint32_t columns = (tile_count + rows - 1) / rows;
       const uint32_t extent_width = std::max<uint32_t>(swapchain.extent.width, 1);
 
       // Store original viewport for restoration
       const VkViewport original_viewport = viewport;
 
       for (uint32_t tile_idx = 0; tile_idx < tile_count; ++tile_idx) {
-        const uint32_t tile_x = (tile_idx * extent_width) / tile_count;
-        const uint32_t tile_x_next = ((tile_idx + 1) * extent_width) / tile_count;
+        const uint32_t row = tile_idx / columns;
+        const uint32_t column = tile_idx % columns;
+        const uint32_t tile_x = (column * extent_width) / columns;
+        const uint32_t tile_x_next = ((column + 1) * extent_width) / columns;
         const uint32_t tile_width = std::max<uint32_t>(tile_x_next - tile_x, 1);
-        const uint32_t tile_y = 0;
+        const uint32_t tile_y = row * tile_height;
         const uint32_t clamped_width =
             std::min<uint32_t>(tile_width,
                                swapchain.extent.width - std::min(tile_x, swapchain.extent.width));
+        const uint32_t clamped_height =
+            std::min<uint32_t>(tile_height,
+                               swapchain.extent.height - std::min(tile_y, swapchain.extent.height));
+        if (clamped_width == 0 || clamped_height == 0) {
+          continue;
+        }
 
         const float strip_zoom = 4.0f;
         const float tile_center_x =
             static_cast<float>(tile_x) + static_cast<float>(clamped_width) * 0.5f;
         const float tile_center_y =
-            static_cast<float>(tile_y) + static_cast<float>(tile_height) * 0.5f;
+            static_cast<float>(tile_y) + static_cast<float>(clamped_height) * 0.5f;
         const float zoomed_width = static_cast<float>(clamped_width) * strip_zoom;
-        const float zoomed_height = static_cast<float>(tile_height) * strip_zoom;
+        const float zoomed_height = static_cast<float>(clamped_height) * strip_zoom;
 
         VkViewport tile_viewport{.x = tile_center_x - zoomed_width * 0.5f,
                                  .y = tile_center_y - zoomed_height * 0.5f,
@@ -413,7 +423,7 @@ void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
         vkCmdSetViewport(command_buffer, 0, 1, &tile_viewport);
 
         VkRect2D tile_scissor{.offset = {static_cast<int32_t>(tile_x), static_cast<int32_t>(tile_y)},
-                              .extent = {.width = clamped_width, .height = tile_height}};
+                              .extent = {.width = clamped_width, .height = clamped_height}};
         vkCmdSetScissor(command_buffer, 0, 1, &tile_scissor);
 
         VkClearAttachment clear_depth_attachment{};

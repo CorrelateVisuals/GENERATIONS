@@ -4,7 +4,7 @@
 #include "Pipelines.h"
 #include "Resources.h"
 #include "vulkan_base/VulkanUtils.h"
-#include "platform/Window.h"
+#include "control/Window.h"
 
 #include <array>
 #include <stdexcept>

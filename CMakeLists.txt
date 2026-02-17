@@ -77,7 +77,7 @@ add_custom_command(
         ${PROJECT_SOURCE_DIR}/shaders/ParameterUBO.glsl
     COMMAND ${Python3_EXECUTABLE} ${PROJECT_SOURCE_DIR}/tools/generate_shader_interface.py
     DEPENDS
-        ${PROJECT_SOURCE_DIR}/src/core/ParameterUBO.schema
+        ${PROJECT_SOURCE_DIR}/src/base/ParameterUBO.schema
         ${PROJECT_SOURCE_DIR}/tools/generate_shader_interface.py
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
     COMMENT "Generating shader interface from schema"

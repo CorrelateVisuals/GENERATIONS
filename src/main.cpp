@@ -1,7 +1,7 @@
-#include "CapitalEngine.h"
-#include "core/Log.h"
-#include "core/RuntimeConfig.h"
-#include "scene/SceneConfig.h"
+#include "engine/CapitalEngine.h"
+#include "engine/Log.h"
+#include "base/RuntimeConfig.h"
+#include "world/SceneConfig.h"
 
 int main() {
   try {

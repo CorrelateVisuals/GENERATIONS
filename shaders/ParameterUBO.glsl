@@ -3,7 +3,7 @@
 
 #extension GL_GOOGLE_include_directive : enable
 
-// Generated from src/core/ParameterUBO.schema. Do not edit by hand.
+// Generated from src/base/ParameterUBO.schema. Do not edit by hand.
 #ifndef UBO_LIGHT_NAME
 #define UBO_LIGHT_NAME light
 #endif

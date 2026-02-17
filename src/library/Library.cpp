@@ -1,7 +1,7 @@
 #include <glm/glm.hpp>
 
 #include "Library.h"
-#include "core/RuntimeConfig.h"
+#include "base/RuntimeConfig.h"
 
 std::string Lib::path(const std::string &linux_path) {
 #ifdef _WIN32

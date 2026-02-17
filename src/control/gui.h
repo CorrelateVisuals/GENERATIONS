@@ -13,6 +13,7 @@ struct StageStripConfig {
   bool enabled = true;
   uint32_t strip_height_px = 72;
   uint32_t padding_px = 0;
+  uint32_t max_rows = 2;
 };
 
 struct StageStripTile {

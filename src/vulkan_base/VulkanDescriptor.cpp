@@ -2,7 +2,7 @@
 #include "VulkanDevice.h"
 #include "VulkanUtils.h"
 
-#include "../core/Log.h"
+#include "engine/Log.h"
 
 CE::DescriptorInterface::~DescriptorInterface() {
   if (CE::Device::base_device) {

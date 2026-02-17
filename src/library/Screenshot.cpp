@@ -3,7 +3,7 @@
 
 #include "Screenshot.h"
 
-#include "core/Log.h"
+#include "engine/Log.h"
 
 #include <algorithm>
 #include <cstring>

@@ -2,8 +2,8 @@
 #include "VulkanPipelinePresets.h"
 #include "VulkanUtils.h"
 
-#include "../asset_io/Library.h"
-#include "../core/Log.h"
+#include "library/Library.h"
+#include "engine/Log.h"
 
 #include <array>
 #include <algorithm>

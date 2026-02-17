@@ -6,9 +6,9 @@
 #include <glm/gtx/norm.hpp>
 
 #include "Camera.h"
-#include "core/Log.h"
-#include "core/RuntimeConfig.h"
-#include "platform/Window.h"
+#include "engine/Log.h"
+#include "base/RuntimeConfig.h"
+#include "control/Window.h"
 
 #include <algorithm>
 #include <array>
@@ -484,6 +484,163 @@ void Camera::update() {
     }
     tuning_increase_down = tuning_increase;
   }
+
+  if (mode == Mode::Arcball) {
+    double xpos(0.0), ypos(0.0);
+    glfwGetCursorPos(Window::get().window, &xpos, &ypos);
+    const glm::vec2 cursor_pos(static_cast<float>(xpos), static_cast<float>(ypos));
+
+    const bool left_pressed =
+        glfwGetMouseButton(Window::get().window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
+    const bool right_pressed =
+        glfwGetMouseButton(Window::get().window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS;
+    const bool middle_pressed =
+        glfwGetMouseButton(Window::get().window, GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_PRESS;
+
+    if (!arcball_cursor_initialized) {
+      arcball_last_cursor = cursor_pos;
+      arcball_cursor_initialized = true;
+    }
+
+    if ((!arcball_left_was_down && left_pressed) ||
+        (!arcball_right_was_down && right_pressed)) {
+      arcball_last_cursor = cursor_pos;
+    }
+
+    const glm::vec2 previous_cursor = arcball_last_cursor;
+    arcball_last_cursor = cursor_pos;
+
+    apply_arcball_mode(previous_cursor,
+                     cursor_pos,
+                     left_pressed,
+                     right_pressed,
+                     middle_pressed,
+                     static_cast<float>(Window::get().display.width),
+                     static_cast<float>(Window::get().display.height));
+
+    arcball_left_was_down = left_pressed;
+    arcball_right_was_down = right_pressed;
+    return;
+  }
+
+  double xpos(0.0), ypos(0.0);
+  glfwGetCursorPos(Window::get().window, &xpos, &ypos);
+  const glm::vec2 cursor_pos(static_cast<float>(xpos), static_cast<float>(ypos));
+
+  const bool left_pressed =
+      glfwGetMouseButton(Window::get().window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
+  const bool right_pressed =
+      glfwGetMouseButton(Window::get().window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS;
+
+  static bool panning_cursor_initialized = false;
+  static bool panning_left_was_down = false;
+  static bool panning_right_was_down = false;
+  static glm::vec2 panning_last_cursor(0.0f, 0.0f);
+  static glm::vec2 panning_left_hold_direction(0.0f, 0.0f);
+  static glm::vec2 panning_right_hold_direction(0.0f, 0.0f);
+
+  if (!panning_cursor_initialized) {
+    panning_last_cursor = cursor_pos;
+    panning_cursor_initialized = true;
+  }
+
+  if ((!panning_left_was_down && left_pressed) ||
+      (!panning_right_was_down && right_pressed)) {
+    panning_last_cursor = cursor_pos;
+    if (!panning_left_was_down && left_pressed) {
+      panning_left_hold_direction = glm::vec2(0.0f, 0.0f);
+    }
+    if (!panning_right_was_down && right_pressed) {
+      panning_right_hold_direction = glm::vec2(0.0f, 0.0f);
+    }
+  }
+
+  const glm::vec2 cursor_delta = cursor_pos - panning_last_cursor;
+  panning_last_cursor = cursor_pos;
+
+  if (left_pressed || right_pressed) {
+    constexpr float panning_drag_gain = 8.0f;
+    constexpr float panning_left_hold_speed = 5.5f;
+    constexpr float panning_right_hold_speed = 14.0f;
+    const float safe_min_axis =
+        std::max(1.0f,
+                 std::min(static_cast<float>(Window::get().display.width),
+                          static_cast<float>(Window::get().display.height)));
+    const glm::vec2 normalized_delta = (cursor_delta / safe_min_axis) * panning_drag_gain;
+
+    if (left_pressed && glm::length(normalized_delta) > 0.0001f) {
+      panning_left_hold_direction = glm::normalize(normalized_delta);
+    }
+
+    if (right_pressed && glm::length(normalized_delta) > 0.0001f) {
+      panning_right_hold_direction = glm::normalize(normalized_delta);
+    }
+
+    const glm::vec2 left_button_delta =
+        left_pressed ? panning_left_hold_direction * panning_left_hold_speed : glm::vec2(0.0f);
+    const glm::vec2 right_button_delta =
+        right_pressed ? panning_right_hold_direction * panning_right_hold_speed : glm::vec2(0.0f);
+    apply_panning_mode(left_button_delta, right_button_delta);
+  }
+
+  // WASD keyboard support
+  constexpr float keyboard_pan_speed = 7.0f;
+  glm::vec2 keyboard_delta(0.0f);
+  
+  if (glfwGetKey(Window::get().window, GLFW_KEY_W) == GLFW_PRESS) {
+    keyboard_delta.y -= keyboard_pan_speed;
+  }
+  if (glfwGetKey(Window::get().window, GLFW_KEY_S) == GLFW_PRESS) {
+    keyboard_delta.y += keyboard_pan_speed;
+  }
+  if (glfwGetKey(Window::get().window, GLFW_KEY_A) == GLFW_PRESS) {
+    keyboard_delta.x -= keyboard_pan_speed;
+  }
+  if (glfwGetKey(Window::get().window, GLFW_KEY_D) == GLFW_PRESS) {
+    keyboard_delta.x += keyboard_pan_speed;
+  }
+  
+  if (glm::length(keyboard_delta) > 0.0001f) {
+    apply_panning_mode(keyboard_delta, glm::vec2(0.0f));
+    input_changed = true;
+  }
+
+  panning_left_was_down = left_pressed;
+  panning_right_was_down = right_pressed;
+}
+
+glm::mat4 Camera::set_model() {
+  static const glm::mat4 identity = glm::mat4(1.0f);
+  return identity;
+}
+
+glm::mat4 Camera::set_view() {
+  update();
+  glm::mat4 view = glm::lookAt(position, position + front, up);
+  return view;
+}
+
+glm::mat4 Camera::set_projection(const VkExtent2D &swapchain_extent) {
+  if (cached_extent.width == swapchain_extent.width &&
+      cached_extent.height == swapchain_extent.height &&
+      cached_extent.width != 0) {
+    return cached_projection;
+  }
+
+  cached_extent = swapchain_extent;
+  glm::mat4 projection =
+    glm::perspective(glm::radians(field_of_view),
+             swapchain_extent.width /
+               static_cast<float>(swapchain_extent.height),
+             near_clipping,
+             far_clipping);
+
+  projection[1][1] *= -1; // flip y axis
+  projection[0][0] *= -1; // flip x axis
+
+  cached_projection = projection;
+  return cached_projection;
+e_down = horizon_down;
 
   if (mode == Mode::Arcball) {
     double xpos(0.0), ypos(0.0);
