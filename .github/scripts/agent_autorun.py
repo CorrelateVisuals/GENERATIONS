@@ -6,8 +6,9 @@ import json
 import os
 import re
 import subprocess
+import time
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Any, Dict, List, Tuple
 from urllib import request
 
 ROOT = Path(os.environ.get("GITHUB_WORKSPACE", ".")).resolve()
@@ -17,6 +18,7 @@ TOWN_DIR = AGENTS_DIR / "town"
 GUILDS_DIR = AGENTS_DIR / "guilds"
 RUNS_DIR = AGENTS_DIR / "runs"
 PROPOSALS_DIR = AGENTS_DIR / "proposals"
+MACROS_JSON = TOWN_DIR / "macros.json"
 
 DEFAULT_OPENAI_URL = "https://api.openai.com/v1/chat/completions"
 DEFAULT_GITHUB_URL = "https://api.githubcopilot.com/chat/completions"
@@ -66,6 +68,80 @@ if not AUTH_TOKEN:
     raise SystemExit("Missing credentials. Set LLM_API_KEY or GITHUB_TOKEN.")
 
 
+# ---------------------------------------------------------------------------
+# Macro schema — single source of truth loaded from macros.json
+# ---------------------------------------------------------------------------
+
+def load_macro_schema() -> Dict[str, Any]:
+    """Load macro definitions from macros.json. Returns empty dict on missing file."""
+    if not MACROS_JSON.exists():
+        print(f"WARNING: {MACROS_JSON} not found, macros disabled")
+        return {}
+    raw = MACROS_JSON.read_text(encoding="utf-8")
+    schema = json.loads(raw)
+    return schema
+
+
+MACRO_SCHEMA = load_macro_schema()
+MACRO_DEFS: Dict[str, Any] = MACRO_SCHEMA.get("macros", {})
+RETRY_CONFIG = MACRO_SCHEMA.get("retry", {"max_attempts": 3, "backoff_seconds": [2, 8, 30]})
+VALIDATION_CONFIG = MACRO_SCHEMA.get("validation", {"min_output_length": 100, "required_section_count": 4})
+REQUIRED_SECTIONS = MACRO_SCHEMA.get("required_output_sections", [])
+
+
+def resolve_macro(macro_name: str) -> Dict[str, Any]:
+    """Look up a macro by name (case-insensitive). Returns empty dict if not found."""
+    for key, definition in MACRO_DEFS.items():
+        if key.lower() == macro_name.lower():
+            return definition
+    return {}
+
+
+def get_macro_agents(macro_name: str) -> List[str]:
+    """Return the agent list for a macro from the schema."""
+    defn = resolve_macro(macro_name)
+    return defn.get("agents", [])
+
+
+def get_macro_directive(macro_name: str, agent_name: str) -> str:
+    """Return the directive text for a specific agent within a macro."""
+    defn = resolve_macro(macro_name)
+    return defn.get("directives", {}).get(agent_name, "")
+
+
+def is_independent_macro(macro_name: str) -> bool:
+    """Check if a macro runs agents independently (no shared context)."""
+    defn = resolve_macro(macro_name)
+    return defn.get("mode", "sequential") == "independent"
+
+
+# ---------------------------------------------------------------------------
+# Validation gate — verify agent output has required structure
+# ---------------------------------------------------------------------------
+
+def validate_agent_output(agent_name: str, output: str) -> Tuple[bool, List[str]]:
+    """Check an agent's output against the schema's required structure.
+    Returns (passed, list_of_issues)."""
+    issues: List[str] = []
+
+    min_len = VALIDATION_CONFIG.get("min_output_length", 100)
+    if len(output.strip()) < min_len:
+        issues.append(f"Output too short ({len(output.strip())} chars, minimum {min_len})")
+
+    required_count = VALIDATION_CONFIG.get("required_section_count", 4)
+    found = 0
+    for section in REQUIRED_SECTIONS:
+        # Match "1)" or "1." or "Main Task Outcome" header patterns
+        pattern = re.escape(section) + r"|" + section.split(")", 1)[-1].strip() if ")" in section else re.escape(section)
+        if re.search(pattern, output, re.IGNORECASE):
+            found += 1
+
+    if found < required_count:
+        issues.append(f"Only {found}/{required_count} required sections found (checked {len(REQUIRED_SECTIONS)} patterns)")
+
+    return (len(issues) == 0, issues)
+
+
 def read_text(path: Path, default: str = "") -> str:
     if not path.exists():
         return default
@@ -107,36 +183,8 @@ def load_guild_context(agent_name: str) -> str:
     return "\n\n".join(parts) if parts else ""
 
 
-def call_llm(prompt: str) -> str:
-    if LLM_PROVIDER == "openai":
-        payload = {
-            "model": LLM_MODEL,
-            "messages": [{"role": "user", "content": prompt}],
-            "temperature": 0.2,
-        }
-        data = json.dumps(payload).encode("utf-8")
-        req = request.Request(
-            LLM_API_URL,
-            data=data,
-            headers={
-                "Authorization": f"Bearer {AUTH_TOKEN}",
-                "Content-Type": "application/json",
-            },
-            method="POST",
-        )
-        with request.urlopen(req, timeout=180) as resp:
-            raw = resp.read().decode("utf-8")
-        body = json.loads(raw)
-
-        if isinstance(body, dict):
-            choices = body.get("choices", [])
-            if choices:
-                msg = choices[0].get("message", {})
-                content = msg.get("content")
-                if isinstance(content, str):
-                    return content
-        return raw
-
+def _llm_request(prompt: str) -> str:
+    """Single LLM API call (no retry). Both providers use the same chat/completions format."""
     payload = {
         "model": LLM_MODEL,
         "messages": [{"role": "user", "content": prompt}],
@@ -164,6 +212,28 @@ def call_llm(prompt: str) -> str:
             if isinstance(content, str):
                 return content
     return raw
+
+
+def call_llm(prompt: str) -> str:
+    """LLM call with retry and exponential backoff from macros.json config."""
+    max_attempts = RETRY_CONFIG.get("max_attempts", 3)
+    backoff = RETRY_CONFIG.get("backoff_seconds", [2, 8, 30])
+
+    last_error: Exception = RuntimeError("No attempts made")
+    for attempt in range(max_attempts):
+        try:
+            result = _llm_request(prompt)
+            if result and len(result.strip()) > 10:
+                return result
+            # Treat empty/trivial response as transient failure
+            last_error = RuntimeError(f"Empty LLM response on attempt {attempt + 1}")
+        except Exception as exc:
+            last_error = exc
+        wait = backoff[min(attempt, len(backoff) - 1)]
+        print(f"  LLM attempt {attempt + 1}/{max_attempts} failed: {last_error}. Retrying in {wait}s...")
+        time.sleep(wait)
+
+    raise SystemExit(f"LLM call failed after {max_attempts} attempts: {last_error}")
 
 
 def parse_scope_files(task_md: str) -> List[Path]:
@@ -208,109 +278,6 @@ def extract_todos_for(agent_name: str, text: str) -> str:
 
 MAX_CODE_CONTEXT = int(os.environ.get("MAX_CODE_CONTEXT", "12000"))
 
-
-MACRO_DIRECTIVES: Dict[str, Dict[str, str]] = {
-    "charge": {
-        "C++ Lead": """## Macro Directive: CHARGE
-You are the surgeon. Propose a MINIMAL patch for the command.
-- Smallest viable diff. No exploration, no brainstorming.
-- Be concrete: file paths, line-level changes, exact code.
-- Mark each finding for cross-check by the next agent.""",
-        "Vulkan Guru": """## Macro Directive: CHARGE (Validator)
-You are the cross-check. Review the C++ Lead's proposal.
-For EACH Lead finding, explicitly state one of:
-- ✅ CONCUR — you independently reach the same conclusion
-- ⚠️ QUALIFY — you agree but add constraints or caveats
-- ❌ DISSENT — you disagree, provide evidence and alternative
-End with: Combined confidence: HIGH / MEDIUM / LOW""",
-    },
-    "pull": {
-        "C++ Lead": """## Macro Directive: PULL
-You are the tank pulling the mob. MAP the terrain, do NOT propose patches.
-- List every file touched, who owns it, and what depends on it.
-- Estimate blast radius if this change goes wrong.
-- Do NOT write code proposals — recon only.""",
-        "Vulkan Guru": """## Macro Directive: PULL (Scout)
-Add what the Lead MISSED in the Vulkan/resource domain.
-- Confirm what Lead got right in your area.
-- Add Vulkan-specific risks not visible from C++ level.
-- Estimate YOUR domain's blast radius.
-- Do NOT write code proposals — recon only.""",
-        "Kernel Expert": """## Macro Directive: PULL (Scout)
-Add what previous agents MISSED in the shader/GPU domain.
-- Confirm what they got right about GPU impact.
-- Add shader/dispatch/compute risks not visible from API level.
-- Estimate YOUR domain's blast radius.
-- Do NOT write code proposals — recon only.""",
-        "Refactorer": """## Macro Directive: PULL (Scout)
-Add what previous agents MISSED about structure and boundaries.
-- Confirm architectural observations from prior agents.
-- Assess complexity change: does this make the codebase simpler or harder?
-- Recommend next macro: Charge (safe/small) or Follow (risky/large).
-- Do NOT write code proposals — recon only.""",
-    },
-    "follow": {
-        "C++ Lead": """## Macro Directive: FOLLOW
-Full implementation cadence. You set direction for the entire party.
-- Concrete scoped TODOs for every agent using Structured Handoff Format.
-- Mark your key findings so downstream agents can CONCUR/QUALIFY/DISSENT.""",
-        "Vulkan Guru": """## Macro Directive: FOLLOW
-Do your Vulkan work AND cross-confirm the Lead's findings.
-Include a ## Cross-Confirmation section:
-- For each Lead finding relevant to you: ✅ CONCUR / ⚠️ QUALIFY / ❌ DISSENT
-- State WHY you concur or dissent — evidence from code context.""",
-        "Kernel Expert": """## Macro Directive: FOLLOW
-Do your GPU/shader work AND cross-confirm prior agents.
-Include a ## Cross-Confirmation section:
-- vs C++ Lead: CONCUR/QUALIFY/DISSENT per finding
-- vs Vulkan Guru: CONCUR/QUALIFY/DISSENT per finding""",
-        "Refactorer": """## Macro Directive: FOLLOW
-Do your structure work AND cross-confirm all prior agents.
-Include a ## Cross-Confirmation section for Lead, Guru, and Expert.
-- Flag any naming or boundary choices you challenge.""",
-        "HPC Marketeer": """## Macro Directive: FOLLOW (Final)
-Do your docs work AND produce the CONCURRENCE SUMMARY.
-## Concurrence Summary
-For each major finding, list which agents CONCUR/QUALIFY/DISSENT.
-- 3+ concur → HIGH CONFIDENCE
-- 2 agree, 1 dissents → NEEDS RESOLUTION
-This is the definitive confidence matrix for the run.""",
-    },
-    "think": {
-        "Vulkan Guru": """## Macro Directive: THINK (Independent)
-You are theorycrafting ALONE. You do NOT see other agents' outputs.
-Propose YOUR approach to this problem from a Vulkan/resource perspective.
-- Approach description
-- Affected files and scope
-- Benefits and risks
-- Complexity: S / M / L
-- Recommended implementation sequence
-Do NOT write patches. This is strategy, not execution.""",
-        "Kernel Expert": """## Macro Directive: THINK (Independent)
-You are theorycrafting ALONE. You do NOT see other agents' outputs.
-Propose YOUR approach from a GPU/parallel/shader perspective.
-- Approach description
-- Affected files and scope
-- Benefits and risks
-- Complexity: S / M / L
-- Recommended implementation sequence
-Do NOT write patches. This is strategy, not execution.""",
-        "Refactorer": """## Macro Directive: THINK (Independent)
-You are theorycrafting ALONE. You do NOT see other agents' outputs.
-Propose YOUR approach from an architecture/structure perspective.
-- Approach description
-- Affected files and scope
-- Benefits and risks
-- Complexity: S / M / L
-- Recommended implementation sequence
-Do NOT write patches. This is strategy, not execution.""",
-    },
-}
-
-
-def get_macro_directive(macro_mode: str, agent_name: str) -> str:
-    macro = (macro_mode or "").lower().strip()
-    return MACRO_DIRECTIVES.get(macro, {}).get(agent_name, "")
 
 def build_scoped_code(files: List[Path]) -> str:
     if not files:
@@ -635,33 +602,18 @@ After C++ Lead completes main + secondary tasks, create TODO blocks for:
 def main() -> None:
     today = dt.date.today().isoformat()
 
-    # Route macro mode to agent selection
+    # Route macro mode to agent selection (driven by macros.json schema)
     agent_only = AGENT_ONLY
     agent_set = AGENT_SET
-    
+
     if MACRO_MODE:
         macro = MACRO_MODE.lower().strip()
-        if macro == "charge":
+        macro_agents = get_macro_agents(macro)
+        if macro_agents is not None:
             agent_only = ""
-            agent_set = "C++ Lead,Vulkan Guru"
-        elif macro in ("pull", "position"):
-            agent_only = ""
-            agent_set = "C++ Lead,Vulkan Guru,Kernel Expert,Refactorer"
-        elif macro == "follow":
-            agent_only = ""
-            agent_set = "C++ Lead,Vulkan Guru,Kernel Expert,Refactorer,HPC Marketeer"
-        elif macro == "think":
-            agent_only = ""
-            agent_set = "Vulkan Guru,Kernel Expert,Refactorer"
-        elif macro == "party":
-            agent_only = "Party"
-            agent_set = ""
-        elif macro == "lead++":
-            agent_only = "C++ Lead"
-            agent_set = ""
-        elif macro == "agents++":
-            agent_only = ""
-            agent_set = "C++ Lead,Vulkan Guru,Kernel Expert,Refactorer,HPC Marketeer"
+            agent_set = ",".join(macro_agents)
+        else:
+            print(f"  Warning: unknown macro '{macro}', falling back to env config")
 
     base_md = read_text(TOWN_DIR / "base.md")
     readme_md = read_text(TOWN_DIR / "README.md")
@@ -745,6 +697,14 @@ def main() -> None:
             macro_directive,
         )
         result = call_llm(prompt)
+
+        # --- Validation gate ---
+        valid, warnings = validate_agent_output(result, name)
+        if not valid:
+            print(f"  ⚠ Validation failed for {name}: {'; '.join(warnings)}")
+        elif warnings:
+            print(f"  ℹ Validation notes for {name}: {'; '.join(warnings)}")
+
         outputs[name] = result
 
         if name == "C++ Lead":

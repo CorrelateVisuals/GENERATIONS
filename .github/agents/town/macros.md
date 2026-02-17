@@ -1,5 +1,8 @@
 # Agent Macros (WoW Multibox Style)
 
+> **Authoritative definitions live in [`macros.json`](macros.json).**
+> This file is human-readable documentation only. If they diverge, the JSON wins.
+
 This file defines macro-style control for the 5-agent team using one-driver command syntax:
 
 `<Macro> <Command>`
