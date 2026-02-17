@@ -63,20 +63,18 @@ public:
 
 class BasePipelinesConfiguration {
 public:
-#define PIPELINE_OBJECTS                                                                 \
-  VkPipeline pipeline{};                                                                 \
-  std::vector<std::string> shaders{};
+  struct PipelineBase {
+    VkPipeline pipeline{};
+    std::vector<std::string> shaders{};
+  };
 
-  struct Graphics {
-    PIPELINE_OBJECTS
+  struct Graphics : PipelineBase {
     std::vector<VkVertexInputAttributeDescription> vertex_attributes{};
     std::vector<VkVertexInputBindingDescription> vertex_bindings{};
   };
-  struct Compute {
-    PIPELINE_OBJECTS
+  struct Compute : PipelineBase {
     std::array<uint32_t, 3> work_groups{};
   };
-#undef PIPELINE_OBJECTS
 
   BasePipelinesConfiguration() = default;
   BasePipelinesConfiguration(const BasePipelinesConfiguration &) = delete;

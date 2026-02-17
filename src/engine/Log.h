@@ -12,10 +12,12 @@
 #include <unordered_map>
 #include <vector>
 
-#define STRINGIFICATION(x) #x
+// Two-level stringify: ensures macro arguments are fully expanded before stringification.
+#define STRINGIFY_IMPL(x) #x
+#define STRINGIFY(x) STRINGIFY_IMPL(x)
 
 namespace Log {
-enum LogLevel { LOG_OFF = 0, LOG_MINIMIAL = 1, LOG_MODERATE = 2, LOG_DETAILED = 3 };
+enum LogLevel { LOG_OFF = 0, LOG_MINIMAL = 1, LOG_MODERATE = 2, LOG_DETAILED = 3 };
 inline uint8_t log_level = LOG_MODERATE;
 extern std::ofstream log_file;
 extern std::string previous_time;

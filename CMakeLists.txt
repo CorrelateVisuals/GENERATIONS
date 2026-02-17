@@ -91,6 +91,12 @@ add_executable(CapitalEngine ${CAPITALENGINE_SOURCES})
 add_dependencies(CapitalEngine architecture_check)
 add_dependencies(CapitalEngine shader_interface)
 
+target_compile_definitions(CapitalEngine PRIVATE
+    GLM_FORCE_RADIANS
+    GLM_FORCE_DEPTH_ZERO_TO_ONE
+    GLM_ENABLE_EXPERIMENTAL
+)
+
 target_precompile_headers(CapitalEngine PRIVATE
     ${PROJECT_SOURCE_DIR}/src/pch.h
 )

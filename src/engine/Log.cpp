@@ -6,6 +6,7 @@
 #include <cctype>
 #include <cstdlib>
 #include <filesystem>
+#include <initializer_list>
 #include <sstream>
 #include <string>
 #include <string_view>
@@ -127,6 +128,28 @@ bool is_moderate_icon_suppressed(const std::string &icon) {
   return false;
 }
 
+// Build a pipe-separated string of all matching flag names.
+std::string collect_flags(
+    const char *prefix,
+    uint32_t flags,
+    std::initializer_list<std::pair<uint32_t, const char *>> entries) {
+  std::string result = prefix;
+  for (const auto &[bit, name] : entries) {
+    if (flags & bit) {
+      result += name;
+      result += " | ";
+    }
+  }
+  const auto prefix_len = std::char_traits<char>::length(prefix);
+  if (result.size() > prefix_len) {
+    result.erase(result.length() - 3);
+  }
+  return result;
+}
+
+// Produces a {flag, "flag"} pair for collect_flags entries.
+#define VK_FLAG(flag) {static_cast<uint32_t>(flag), #flag}
+
 void log_ascii_banner() {
   static const std::array<std::string_view, 1> banner_lines = {
       "                 . - < < { G E N E R A T I O N S } > > - .",
@@ -157,7 +180,7 @@ void configure_log_level_once() {
   if (value == "off" || value == "0") {
     Log::log_level = Log::LOG_OFF;
   } else if (value == "minimal" || value == "min" || value == "1") {
-    Log::log_level = Log::LOG_MINIMIAL;
+    Log::log_level = Log::LOG_MINIMAL;
   } else if (value == "moderate" || value == "mod" || value == "2") {
     Log::log_level = Log::LOG_MODERATE;
   } else if (value == "detailed" || value == "detail" || value == "3") {
@@ -235,7 +258,7 @@ bool Log::skip_logging(uint8_t log_level, const std::string &icon) {
   }
 
   if (log_level == LOG_OFF ||
-      (log_level == LOG_MINIMIAL &&
+      (log_level == LOG_MINIMAL &&
        (icon == std::string("{ ... }") || icon == std::string(Style::char_leader))) ||
       (log_level == LOG_MODERATE &&
        (icon == std::string(Style::char_leader) || is_moderate_icon_suppressed(icon)))) {
@@ -281,67 +304,31 @@ void Log::flush_repeated_line() {
 }
 
 std::string Log::get_buffer_usage_string(const VkBufferUsageFlags &usage) {
-  std::string result;
-
-  if (usage & VK_BUFFER_USAGE_TRANSFER_SRC_BIT) {
-    result += "TRANSFER_SRC | ";
-  }
-  if (usage & VK_BUFFER_USAGE_TRANSFER_DST_BIT) {
-    result += "TRANSFER_DST | ";
-  }
-  if (usage & VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT) {
-    result += "UNIFORM_TEXEL_BUFFER | ";
-  }
-  if (usage & VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT) {
-    result += "STORAGE_TEXEL_BUFFER | ";
-  }
-  if (usage & VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT) {
-    result += "UNIFORM_BUFFER | ";
-  }
-  if (usage & VK_BUFFER_USAGE_STORAGE_BUFFER_BIT) {
-    result += "STORAGE_BUFFER | ";
-  }
-  if (usage & VK_BUFFER_USAGE_INDEX_BUFFER_BIT) {
-    result += "INDEX_BUFFER | ";
-  }
-  if (usage & VK_BUFFER_USAGE_VERTEX_BUFFER_BIT) {
-    result += "VERTEX_BUFFER | ";
-  }
-  if (usage & VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT) {
-    result += "INDIRECT_BUFFER | ";
-  }
-
-  // Remove the trailing " | " if there is one.
-  if (!result.empty()) {
-    result.erase(result.length() - 3);
-  }
-
-  return result;
+  return collect_flags("VkBufferUsageFlags: ", usage, {
+      VK_FLAG(VK_BUFFER_USAGE_TRANSFER_SRC_BIT),
+      VK_FLAG(VK_BUFFER_USAGE_TRANSFER_DST_BIT),
+      VK_FLAG(VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT),
+      VK_FLAG(VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT),
+      VK_FLAG(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT),
+      VK_FLAG(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT),
+      VK_FLAG(VK_BUFFER_USAGE_INDEX_BUFFER_BIT),
+      VK_FLAG(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT),
+      VK_FLAG(VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT),
+  });
 }
 
 std::string Log::get_memory_property_string(const VkMemoryPropertyFlags &properties) {
-  std::string result = "VkMemoryPropertyFlags: ";
-#define ADD_FLAG_CASE(flag)                                                              \
-  if (properties & flag) {                                                               \
-    result += STRINGIFICATION(flag) " | ";                                               \
-  }
-
-  ADD_FLAG_CASE(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-  ADD_FLAG_CASE(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
-  ADD_FLAG_CASE(VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-  ADD_FLAG_CASE(VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
-  ADD_FLAG_CASE(VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT);
-  ADD_FLAG_CASE(VK_MEMORY_PROPERTY_PROTECTED_BIT);
-  ADD_FLAG_CASE(VK_MEMORY_PROPERTY_DEVICE_COHERENT_BIT_AMD);
-  ADD_FLAG_CASE(VK_MEMORY_PROPERTY_DEVICE_UNCACHED_BIT_AMD);
-  ADD_FLAG_CASE(VK_MEMORY_PROPERTY_RDMA_CAPABLE_BIT_NV);
-
-  if (!result.empty()) {
-    result.erase(result.length() - 3);
-  }
-
-#undef ADD_FLAG_CASE
-  return result;
+  return collect_flags("VkMemoryPropertyFlags: ", properties, {
+      VK_FLAG(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT),
+      VK_FLAG(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT),
+      VK_FLAG(VK_MEMORY_PROPERTY_HOST_COHERENT_BIT),
+      VK_FLAG(VK_MEMORY_PROPERTY_HOST_CACHED_BIT),
+      VK_FLAG(VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT),
+      VK_FLAG(VK_MEMORY_PROPERTY_PROTECTED_BIT),
+      VK_FLAG(VK_MEMORY_PROPERTY_DEVICE_COHERENT_BIT_AMD),
+      VK_FLAG(VK_MEMORY_PROPERTY_DEVICE_UNCACHED_BIT_AMD),
+      VK_FLAG(VK_MEMORY_PROPERTY_RDMA_CAPABLE_BIT_NV),
+  });
 }
 
 std::string Log::get_descriptor_type_string(const VkDescriptorType &type) {
@@ -386,97 +373,54 @@ std::string Log::get_descriptor_type_string(const VkDescriptorType &type) {
 }
 
 std::string Log::get_shader_stage_string(const VkShaderStageFlags &flags) {
-  std::string result = "VkShaderStageFlags: ";
-#define ADD_FLAG_CASE(flag)                                                              \
-  if (flags & flag) {                                                                    \
-    result += STRINGIFICATION(flag) " | ";                                               \
-  }
-
-  ADD_FLAG_CASE(VK_SHADER_STAGE_VERTEX_BIT);
-  ADD_FLAG_CASE(VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT);
-  ADD_FLAG_CASE(VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT);
-  ADD_FLAG_CASE(VK_SHADER_STAGE_GEOMETRY_BIT);
-  ADD_FLAG_CASE(VK_SHADER_STAGE_FRAGMENT_BIT);
-  ADD_FLAG_CASE(VK_SHADER_STAGE_COMPUTE_BIT);
-  ADD_FLAG_CASE(VK_SHADER_STAGE_RAYGEN_BIT_KHR);
-  ADD_FLAG_CASE(VK_SHADER_STAGE_ANY_HIT_BIT_KHR);
-  ADD_FLAG_CASE(VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR);
-  ADD_FLAG_CASE(VK_SHADER_STAGE_MISS_BIT_KHR);
-  ADD_FLAG_CASE(VK_SHADER_STAGE_INTERSECTION_BIT_KHR);
-  ADD_FLAG_CASE(VK_SHADER_STAGE_CALLABLE_BIT_KHR);
-  ADD_FLAG_CASE(VK_SHADER_STAGE_TASK_BIT_EXT);
-  ADD_FLAG_CASE(VK_SHADER_STAGE_MESH_BIT_EXT);
-  ADD_FLAG_CASE(VK_SHADER_STAGE_SUBPASS_SHADING_BIT_HUAWEI);
-  ADD_FLAG_CASE(VK_SHADER_STAGE_CLUSTER_CULLING_BIT_HUAWEI);
-  ADD_FLAG_CASE(VK_SHADER_STAGE_RAYGEN_BIT_NV);
-  ADD_FLAG_CASE(VK_SHADER_STAGE_ANY_HIT_BIT_NV);
-  ADD_FLAG_CASE(VK_SHADER_STAGE_CLOSEST_HIT_BIT_NV);
-  ADD_FLAG_CASE(VK_SHADER_STAGE_MISS_BIT_NV);
-  ADD_FLAG_CASE(VK_SHADER_STAGE_INTERSECTION_BIT_NV);
-  ADD_FLAG_CASE(VK_SHADER_STAGE_CALLABLE_BIT_NV);
-  ADD_FLAG_CASE(VK_SHADER_STAGE_TASK_BIT_NV);
-  ADD_FLAG_CASE(VK_SHADER_STAGE_MESH_BIT_NV);
-
-  if (!result.empty()) {
-    result.erase(result.length() - 3);
-  }
-
-#undef ADD_FLAG_CASE
-
-  return result;
+  return collect_flags("VkShaderStageFlags: ", flags, {
+      VK_FLAG(VK_SHADER_STAGE_VERTEX_BIT),
+      VK_FLAG(VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT),
+      VK_FLAG(VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT),
+      VK_FLAG(VK_SHADER_STAGE_GEOMETRY_BIT),
+      VK_FLAG(VK_SHADER_STAGE_FRAGMENT_BIT),
+      VK_FLAG(VK_SHADER_STAGE_COMPUTE_BIT),
+      VK_FLAG(VK_SHADER_STAGE_RAYGEN_BIT_KHR),
+      VK_FLAG(VK_SHADER_STAGE_ANY_HIT_BIT_KHR),
+      VK_FLAG(VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR),
+      VK_FLAG(VK_SHADER_STAGE_MISS_BIT_KHR),
+      VK_FLAG(VK_SHADER_STAGE_INTERSECTION_BIT_KHR),
+      VK_FLAG(VK_SHADER_STAGE_CALLABLE_BIT_KHR),
+      VK_FLAG(VK_SHADER_STAGE_TASK_BIT_EXT),
+      VK_FLAG(VK_SHADER_STAGE_MESH_BIT_EXT),
+      VK_FLAG(VK_SHADER_STAGE_SUBPASS_SHADING_BIT_HUAWEI),
+      VK_FLAG(VK_SHADER_STAGE_CLUSTER_CULLING_BIT_HUAWEI),
+  });
 }
 
 std::string Log::get_sample_count_string(const VkSampleCountFlags &sample_count) {
-  std::string result = "VkSampleCountFlags: ";
-#define ADD_FLAG_CASE(flag)                                                              \
-  if (sample_count & flag) {                                                             \
-    result += STRINGIFICATION(flag) " | ";                                               \
-  }
-
-  ADD_FLAG_CASE(VK_SAMPLE_COUNT_1_BIT);
-  ADD_FLAG_CASE(VK_SAMPLE_COUNT_2_BIT);
-  ADD_FLAG_CASE(VK_SAMPLE_COUNT_4_BIT);
-  ADD_FLAG_CASE(VK_SAMPLE_COUNT_8_BIT);
-  ADD_FLAG_CASE(VK_SAMPLE_COUNT_16_BIT);
-  ADD_FLAG_CASE(VK_SAMPLE_COUNT_32_BIT);
-  ADD_FLAG_CASE(VK_SAMPLE_COUNT_64_BIT);
-
-  if (!result.empty()) {
-    result.erase(result.length() - 3);
-  }
-
-#undef ADD_FLAG_CASE
-
-  return result;
+  return collect_flags("VkSampleCountFlags: ", sample_count, {
+      VK_FLAG(VK_SAMPLE_COUNT_1_BIT),
+      VK_FLAG(VK_SAMPLE_COUNT_2_BIT),
+      VK_FLAG(VK_SAMPLE_COUNT_4_BIT),
+      VK_FLAG(VK_SAMPLE_COUNT_8_BIT),
+      VK_FLAG(VK_SAMPLE_COUNT_16_BIT),
+      VK_FLAG(VK_SAMPLE_COUNT_32_BIT),
+      VK_FLAG(VK_SAMPLE_COUNT_64_BIT),
+  });
 }
 
 std::string Log::get_image_usage_string(const VkImageUsageFlags &usage) {
-  std::string result = "VkImageUsageFlags: ";
-#define ADD_FLAG_CASE(flag)                                                              \
-  if (usage & flag) {                                                                    \
-    result += STRINGIFICATION(flag) " | ";                                               \
-  }
-
-  ADD_FLAG_CASE(VK_IMAGE_USAGE_TRANSFER_SRC_BIT);
-  ADD_FLAG_CASE(VK_IMAGE_USAGE_TRANSFER_DST_BIT);
-  ADD_FLAG_CASE(VK_IMAGE_USAGE_SAMPLED_BIT);
-  ADD_FLAG_CASE(VK_IMAGE_USAGE_STORAGE_BIT);
-  ADD_FLAG_CASE(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT);
-  ADD_FLAG_CASE(VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
-  ADD_FLAG_CASE(VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT);
-  ADD_FLAG_CASE(VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT);
-  ADD_FLAG_CASE(VK_IMAGE_USAGE_VIDEO_DECODE_DST_BIT_KHR);
-  ADD_FLAG_CASE(VK_IMAGE_USAGE_VIDEO_DECODE_SRC_BIT_KHR);
-  ADD_FLAG_CASE(VK_IMAGE_USAGE_VIDEO_DECODE_DPB_BIT_KHR);
-  ADD_FLAG_CASE(VK_IMAGE_USAGE_FRAGMENT_DENSITY_MAP_BIT_EXT);
-  ADD_FLAG_CASE(VK_IMAGE_USAGE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR);
-
-  if (!result.empty()) {
-    result.erase(result.length() - 3);
-  }
-
-#undef ADD_FLAG_CASE
-  return result;
+  return collect_flags("VkImageUsageFlags: ", usage, {
+      VK_FLAG(VK_IMAGE_USAGE_TRANSFER_SRC_BIT),
+      VK_FLAG(VK_IMAGE_USAGE_TRANSFER_DST_BIT),
+      VK_FLAG(VK_IMAGE_USAGE_SAMPLED_BIT),
+      VK_FLAG(VK_IMAGE_USAGE_STORAGE_BIT),
+      VK_FLAG(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT),
+      VK_FLAG(VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT),
+      VK_FLAG(VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT),
+      VK_FLAG(VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT),
+      VK_FLAG(VK_IMAGE_USAGE_VIDEO_DECODE_DST_BIT_KHR),
+      VK_FLAG(VK_IMAGE_USAGE_VIDEO_DECODE_SRC_BIT_KHR),
+      VK_FLAG(VK_IMAGE_USAGE_VIDEO_DECODE_DPB_BIT_KHR),
+      VK_FLAG(VK_IMAGE_USAGE_FRAGMENT_DENSITY_MAP_BIT_EXT),
+      VK_FLAG(VK_IMAGE_USAGE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR),
+  });
 }
 
 std::string Log::return_date_and_time() {
