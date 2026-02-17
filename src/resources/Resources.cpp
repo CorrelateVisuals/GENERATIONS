@@ -12,7 +12,7 @@ Resources::Resources(VulkanMechanics &mechanics, const CE::Runtime::TerrainSetti
           commands.pool,
           mechanics.queues.graphics_queue},
 
-      push_constant{VK_SHADER_STAGE_COMPUTE_BIT, 128, 0},
+      push_constant{VK_SHADER_STAGE_COMPUTE_BIT, 8, 0},
       world{commands.singular_command_buffer,
         commands.pool,
         mechanics.queues.graphics_queue,

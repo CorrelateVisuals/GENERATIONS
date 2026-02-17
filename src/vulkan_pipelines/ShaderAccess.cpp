@@ -34,7 +34,7 @@ void CE::ShaderAccess::CommandResources::record_compute_command_buffer(
                           0,
                           nullptr);
 
-  resources.push_constant.set_data(resources.world._time.passed_hours,
+  resources.push_constant.set_data(static_cast<uint32_t>(resources.world._time.passed_hours),
                                    resources.world._time.get_day_fraction());
 
   vkCmdPushConstants(command_buffer,
@@ -489,8 +489,9 @@ void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
                             0,
                             nullptr);
 
-    resources.push_constant.set_data(resources.world._time.passed_hours,
-                     resources.world._time.get_day_fraction());
+    resources.push_constant.set_data(
+      static_cast<uint32_t>(resources.world._time.passed_hours),
+      resources.world._time.get_day_fraction());
     vkCmdPushConstants(command_buffer,
                        pipelines.compute.layout,
                        resources.push_constant.shader_stage,

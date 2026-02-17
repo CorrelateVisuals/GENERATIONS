@@ -113,7 +113,7 @@ SceneConfig SceneConfig::defaults() {
   const std::string preset = workload_preset();
   const std::vector<std::string> compute_chain = split_csv(std::getenv("CE_COMPUTE_CHAIN"));
 
-  spec.terrain.alive_cells = 4000;
+  spec.terrain.alive_cells = 2000;
   spec.terrain.terrain_render_subdivisions = 2;
   spec.terrain.terrain_box_depth = 14.0f;
   spec.terrain.layer1_amplitude = 16.0f;

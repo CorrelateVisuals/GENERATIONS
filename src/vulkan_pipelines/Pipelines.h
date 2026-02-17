@@ -41,28 +41,33 @@ public:
 	};
 
 	struct Configuration : public CE::PipelinesConfiguration {
+		static constexpr uint32_t ceil_div(const uint32_t value, const uint32_t divisor) {
+			return (value + divisor - 1) / divisor;
+		}
+
 		static std::array<uint32_t, 3>
 		default_work_groups(const std::string &pipeline_name,
 												const Vec2UintFast16 grid_size,
 												const VkExtent2D &swapchain_extent) {
-			if (pipeline_name.rfind("Compute", 0) == 0) {
-				return {static_cast<uint32_t>(grid_size.x + 31) / 32,
-								static_cast<uint32_t>(grid_size.y + 31) / 32,
+			const auto compute_groups_2d = [&](const uint32_t tile_x,
+																	const uint32_t tile_y) -> std::array<uint32_t, 3> {
+				return {ceil_div(static_cast<uint32_t>(grid_size.x), tile_x),
+								ceil_div(static_cast<uint32_t>(grid_size.y), tile_y),
 								1};
+			};
+
+			if (pipeline_name.rfind("Compute", 0) == 0) {
+				return compute_groups_2d(16, 16);
 			}
 			if (pipeline_name == "Engine") {
-				return {static_cast<uint32_t>(grid_size.x + 31) / 32,
-								static_cast<uint32_t>(grid_size.y + 31) / 32,
-								1};
+				return compute_groups_2d(16, 16);
 			}
 			if (pipeline_name == "SeedCells") {
-				return {static_cast<uint32_t>(grid_size.x + 31) / 32,
-								static_cast<uint32_t>(grid_size.y + 31) / 32,
-								1};
+				return compute_groups_2d(16, 16);
 			}
 			if (pipeline_name == "PostFX") {
-				return {static_cast<uint32_t>(swapchain_extent.width + 15) / 16,
-					static_cast<uint32_t>(swapchain_extent.height + 15) / 16,
+				return {ceil_div(swapchain_extent.width, 16),
+					ceil_div(swapchain_extent.height, 16),
 								1};
 			}
 			return {1, 1, 1};
@@ -119,8 +124,8 @@ public:
 				pipeline_map.emplace(
 						"Engine",
 						Compute{.shaders = {"Comp"},
-							.work_groups = {static_cast<uint32_t>(grid_size.x + 31) / 32,
-											static_cast<uint32_t>(grid_size.y + 31) / 32,
+							.work_groups = {static_cast<uint32_t>(grid_size.x + 15) / 16,
+											static_cast<uint32_t>(grid_size.y + 15) / 16,
 																	 1}});
 				pipeline_map.emplace(
 						"Cells",

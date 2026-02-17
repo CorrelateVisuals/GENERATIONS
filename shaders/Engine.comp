@@ -1,5 +1,4 @@
 #version 450
-#extension GL_EXT_shader_explicit_arithmetic_types_int64 : enable
 #extension GL_GOOGLE_include_directive : enable
 
 struct Cell {
@@ -12,9 +11,9 @@ struct Cell {
 
 layout(std430, binding = 1) readonly buffer CellSSBOIn {Cell cellIn[ ]; };
 layout(std430, binding = 2) buffer CellSSBOOut {Cell cellOut[ ]; };
-layout (local_size_x = 32, local_size_y = 32, local_size_z = 1) in;
+layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 layout(push_constant, std430) uniform pushConstant {
-    uint64_t passedHours;
+    uint passedHours;
     float dayFraction;
 };
 
@@ -32,72 +31,11 @@ uint safeGlobalID_x = invocationInBounds ? globalID_x : 0u;
 uint safeGlobalID_y = invocationInBounds ? globalID_y : 0u;
 uint index = safeGlobalID_y * gridWidth + safeGlobalID_x;
 
+#include "TerrainField.glsl"
+
 const vec4 blue       = vec4(0.0, 0.0, 1.0, 1.0);
 const vec4 white      = vec4(1.0, 1.0, 1.0, 1.0);
 const vec4 grey      = vec4(0.5, 0.5, 0.5, 1.0);
-
-float hash21(vec2 p) {
-    return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
-}
-
-float noise2(vec2 p) {
-    vec2 i = floor(p);
-    vec2 f = fract(p);
-    float a = hash21(i);
-    float b = hash21(i + vec2(1.0, 0.0));
-    float c = hash21(i + vec2(0.0, 1.0));
-    float d = hash21(i + vec2(1.0, 1.0));
-    vec2 u = f * f * (3.0 - 2.0 * f);
-    return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
-}
-
-float fbm(vec2 p) {
-    float value = 0.0;
-    float amplitude = 0.5;
-    for (int i = 0; i < 5; ++i) {
-        value += amplitude * noise2(p);
-        p = p * 2.02 + vec2(11.5, 7.2);
-        amplitude *= 0.5;
-    }
-    return value;
-}
-
-float ridged_fbm(vec2 p) {
-    float value = 0.0;
-    float amplitude = 0.5;
-    for (int i = 0; i < 5; ++i) {
-        float n = noise2(p);
-        float ridge = 1.0 - abs(2.0 * n - 1.0);
-        value += ridge * amplitude;
-        p = p * 2.1 + vec2(9.2, 3.4);
-        amplitude *= 0.5;
-    }
-    return value;
-}
-
-float terrain_height(vec2 p) {
-    mat2 rot = mat2(0.866, -0.5, 0.5, 0.866);
-    vec2 pr = rot * p;
-    vec2 q = pr * 0.065;
-    vec2 warp = vec2(
-        fbm(q * 1.15 + vec2(4.0, 1.7)),
-        fbm(q * 1.15 + vec2(7.2, 3.5)));
-    q += warp * 0.75;
-
-    float broad = fbm(q * 0.62) * 3.6;
-    float base = fbm(q * 1.05) * 2.2;
-    float ridge = ridged_fbm(q * 2.0) * 4.2;
-    float crags = pow(max(ridged_fbm(q * 4.7), 0.0), 1.8) * 1.15;
-    float macro = (sin(pr.x * 0.028) + sin(pr.y * 0.024)) * 0.85;
-    float detail = fbm(q * 7.6) * 0.26;
-
-    float mountainMask = smoothstep(0.52, 0.80, ridged_fbm(q * 0.95));
-    float habitableLowlands = broad + base + macro;
-    float mountainRelief = ridge + crags + detail;
-    float lowlandBias = -0.55 * (1.0 - mountainMask);
-
-    return habitableLowlands + mountainRelief * mountainMask + lowlandBias + 1.35;
-}
 
 const int alive         =  1;
 const int dead          = -1;
@@ -114,8 +52,8 @@ ivec4 inStates  = cellIn[index].states;
 
 const int cycleSize = 24;
 ivec4 setState(int _alive, int targetIndex){ 
-    int cycle = int(passedHours % cycleSize + 1); 
-    return ivec4(_alive, targetIndex, cycle, passedHours); 
+    int cycle = int(passedHours % uint(cycleSize) + 1u);
+    return ivec4(_alive, targetIndex, cycle, int(passedHours));
 }
 
 int getNeighbourIndex(ivec2 offset) {
