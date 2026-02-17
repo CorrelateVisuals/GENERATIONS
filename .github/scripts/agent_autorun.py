@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import datetime as dt
+import hashlib
 import json
 import os
 import re
@@ -17,8 +18,12 @@ PARTY_DIR = AGENTS_DIR / "party"
 TOWN_DIR = AGENTS_DIR / "town"
 GUILDS_DIR = AGENTS_DIR / "guilds"
 RUNS_DIR = AGENTS_DIR / "runs"
+CACHE_DIR = RUNS_DIR / "cache"
 PROPOSALS_DIR = AGENTS_DIR / "proposals"
+METRICS_PATH = TOWN_DIR / "metrics.jsonl"
 MACROS_JSON = TOWN_DIR / "macros.json"
+
+FORCE_RERUN = os.environ.get("FORCE_RERUN", "false").strip().lower() == "true"
 
 DEFAULT_OPENAI_URL = "https://api.openai.com/v1/chat/completions"
 DEFAULT_GITHUB_URL = "https://api.githubcopilot.com/chat/completions"
@@ -87,6 +92,12 @@ MACRO_DEFS: Dict[str, Any] = MACRO_SCHEMA.get("macros", {})
 RETRY_CONFIG = MACRO_SCHEMA.get("retry", {"max_attempts": 3, "backoff_seconds": [2, 8, 30]})
 VALIDATION_CONFIG = MACRO_SCHEMA.get("validation", {"min_output_length": 100, "required_section_count": 4})
 REQUIRED_SECTIONS = MACRO_SCHEMA.get("required_output_sections", [])
+GATE_CONFIG = MACRO_SCHEMA.get("quality_gates", {
+    "dissent_threshold": 0.5,
+    "max_output_chars": 4000,
+    "halt_on_low_confidence": True,
+    "validate_file_refs": True,
+})
 
 
 def resolve_macro(macro_name: str) -> Dict[str, Any]:
@@ -116,30 +127,216 @@ def is_independent_macro(macro_name: str) -> bool:
 
 
 # ---------------------------------------------------------------------------
-# Validation gate — verify agent output has required structure
+# Quality Gates — Factory-grade output validation
 # ---------------------------------------------------------------------------
 
-def validate_agent_output(agent_name: str, output: str) -> Tuple[bool, List[str]]:
-    """Check an agent's output against the schema's required structure.
-    Returns (passed, list_of_issues)."""
-    issues: List[str] = []
-
-    min_len = VALIDATION_CONFIG.get("min_output_length", 100)
-    if len(output.strip()) < min_len:
-        issues.append(f"Output too short ({len(output.strip())} chars, minimum {min_len})")
-
-    required_count = VALIDATION_CONFIG.get("required_section_count", 4)
+def _count_sections(output: str) -> int:
+    """Count how many required output sections are present."""
     found = 0
     for section in REQUIRED_SECTIONS:
-        # Match "1)" or "1." or "Main Task Outcome" header patterns
-        pattern = re.escape(section) + r"|" + section.split(")", 1)[-1].strip() if ")" in section else re.escape(section)
+        if ")" in section:
+            text_part = section.split(")", 1)[-1].strip()
+            pattern = re.escape(section) + r"|" + re.escape(text_part)
+        else:
+            pattern = re.escape(section)
         if re.search(pattern, output, re.IGNORECASE):
             found += 1
+    return found
 
-    if found < required_count:
-        issues.append(f"Only {found}/{required_count} required sections found (checked {len(REQUIRED_SECTIONS)} patterns)")
 
-    return (len(issues) == 0, issues)
+def _count_dissent_markers(output: str) -> Tuple[int, int, int]:
+    """Return (concur_count, qualify_count, dissent_count) from cross-confirmation markers."""
+    concur = len(re.findall(r"\u2705\s*CONCUR|CONCUR", output))
+    qualify = len(re.findall(r"\u26a0\ufe0f\s*QUALIFY|QUALIFY", output))
+    dissent = len(re.findall(r"\u274c\s*DISSENT|DISSENT", output))
+    return concur, qualify, dissent
+
+
+def _extract_confidence(output: str) -> str:
+    """Extract Combined confidence marker from output."""
+    m = re.search(r"Combined confidence:\s*(HIGH|MEDIUM|LOW)", output, re.IGNORECASE)
+    return m.group(1).upper() if m else "UNKNOWN"
+
+
+def _validate_file_refs(output: str) -> List[str]:
+    """Check that file paths referenced in code proposals actually exist."""
+    bad = []
+    for m in re.finditer(r"(?:^|[\s`])([a-zA-Z]\S+\.(?:cpp|h|hpp|comp|frag|vert|glsl|tesc|tese))(?:[\s`]|$)", output, re.MULTILINE):
+        path = ROOT / m.group(1)
+        if not path.exists() and not (ROOT / "src" / m.group(1)).exists():
+            bad.append(m.group(1))
+    return bad
+
+
+def run_quality_gate(
+    agent_name: str,
+    output: str,
+    macro_mode: str,
+) -> Tuple[str, str, Dict[str, Any]]:
+    """Run quality gates on agent output.
+    Returns (action, message, metrics_extras) where action is PASS/RETRY/HALT/WARN."""
+    extras: Dict[str, Any] = {}
+    issues: List[str] = []
+
+    # Gate 1: Structure — required sections present?
+    min_len = VALIDATION_CONFIG.get("min_output_length", 100)
+    sections_found = _count_sections(output)
+    required_count = VALIDATION_CONFIG.get("required_section_count", 4)
+    extras["sections_found"] = sections_found
+
+    if len(output.strip()) < min_len:
+        return "RETRY", f"Output too short ({len(output.strip())} chars, minimum {min_len}). Rewrite with all required sections.", extras
+
+    if sections_found < required_count:
+        issues.append(f"Only {sections_found}/{required_count} required sections")
+        return "RETRY", f"Missing sections: {sections_found}/{required_count} found. Include all required sections: {', '.join(REQUIRED_SECTIONS)}", extras
+
+    # Gate 2: DISSENT threshold (only for validator agents)
+    concur, qualify, dissent = _count_dissent_markers(output)
+    extras["concur_count"] = concur
+    extras["qualify_count"] = qualify
+    extras["dissent_count"] = dissent
+    total_markers = concur + qualify + dissent
+    dissent_threshold = GATE_CONFIG.get("dissent_threshold", 0.5)
+    if total_markers > 0 and dissent / total_markers > dissent_threshold:
+        confidence = _extract_confidence(output)
+        extras["confidence"] = confidence
+        return "HALT", f"High dissent: {dissent}/{total_markers} findings marked DISSENT (threshold {dissent_threshold:.0%}). Halting pipeline.", extras
+
+    # Gate 3: Confidence floor
+    confidence = _extract_confidence(output)
+    extras["confidence"] = confidence
+    if GATE_CONFIG.get("halt_on_low_confidence", True) and confidence == "LOW":
+        return "HALT", f"Combined confidence is LOW. Halting pipeline — not safe to continue.", extras
+
+    # Gate 4: File reference validation
+    if GATE_CONFIG.get("validate_file_refs", True):
+        bad_refs = _validate_file_refs(output)
+        if bad_refs:
+            extras["invalid_file_refs"] = bad_refs
+            issues.append(f"References non-existent files: {', '.join(bad_refs[:5])}")
+
+    # Gate 5: Output truncation (excessive length = rambling)
+    max_chars = GATE_CONFIG.get("max_output_chars", 4000)
+    extras["output_truncated"] = len(output) > max_chars
+    # Note: we don't truncate here — caller handles it. Just flag it.
+
+    if issues:
+        return "WARN", "; ".join(issues), extras
+
+    return "PASS", "All gates passed.", extras
+
+
+# ---------------------------------------------------------------------------
+# Metrics — JSONL append for throughput and defect tracking
+# ---------------------------------------------------------------------------
+
+def append_metric(record: Dict[str, Any]) -> None:
+    """Append a single JSON record to metrics.jsonl."""
+    METRICS_PATH.parent.mkdir(parents=True, exist_ok=True)
+    with open(METRICS_PATH, "a", encoding="utf-8") as f:
+        f.write(json.dumps(record, default=str) + "\n")
+
+
+def load_trailing_metrics(days: int = 7) -> List[Dict[str, Any]]:
+    """Load metrics from the last N days for dashboard summaries."""
+    if not METRICS_PATH.exists():
+        return []
+    cutoff = (dt.datetime.utcnow() - dt.timedelta(days=days)).isoformat()
+    records = []
+    for line in METRICS_PATH.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            rec = json.loads(line)
+            if rec.get("timestamp", "") >= cutoff:
+                records.append(rec)
+        except json.JSONDecodeError:
+            continue
+    return records
+
+
+def compute_metrics_summary(trailing: List[Dict[str, Any]]) -> str:
+    """Compute factory dashboard summary from trailing metrics."""
+    if not trailing:
+        return "No trailing metrics available yet."
+    total = len(trailing)
+    gate_results = [r.get("gate_result", "UNKNOWN") for r in trailing]
+    pass_count = gate_results.count("PASS")
+    retry_count = gate_results.count("RETRY")
+    halt_count = gate_results.count("HALT")
+    warn_count = gate_results.count("WARN")
+    cache_hits = sum(1 for r in trailing if r.get("cache_hit", False))
+    avg_latency = sum(r.get("latency_ms", 0) for r in trailing) / max(total, 1)
+
+    # Per-agent reliability
+    agent_stats: Dict[str, Dict[str, int]] = {}
+    for r in trailing:
+        agent = r.get("agent", "unknown")
+        if agent not in agent_stats:
+            agent_stats[agent] = {"total": 0, "pass": 0}
+        agent_stats[agent]["total"] += 1
+        if r.get("gate_result") == "PASS":
+            agent_stats[agent]["pass"] += 1
+
+    lines = [
+        "## Factory Metrics (trailing 7 days)",
+        "",
+        f"| Metric | Value |",
+        f"|--------|-------|",
+        f"| Total agent calls | {total} |",
+        f"| Pass rate | {pass_count}/{total} ({100*pass_count//max(total,1)}%) |",
+        f"| Retry rate | {retry_count}/{total} |",
+        f"| Halt rate | {halt_count}/{total} |",
+        f"| Warn rate | {warn_count}/{total} |",
+        f"| Cache hit rate | {cache_hits}/{total} ({100*cache_hits//max(total,1)}%) |",
+        f"| Avg latency | {avg_latency:.0f}ms |",
+        "",
+        "### Agent Reliability",
+        "",
+        "| Agent | Pass Rate |",
+        "|-------|----------|",
+    ]
+    for agent, stats in sorted(agent_stats.items()):
+        pct = 100 * stats["pass"] // max(stats["total"], 1)
+        lines.append(f"| {agent} | {stats['pass']}/{stats['total']} ({pct}%) |")
+
+    return "\n".join(lines)
+
+
+# ---------------------------------------------------------------------------
+# Determinism — fingerprint, cache, macro-specific temperature
+# ---------------------------------------------------------------------------
+
+def compute_fingerprint(task_md: str, scoped_code: str, agent_name: str, macro_mode: str) -> str:
+    """SHA-256 fingerprint of inputs that determine agent output."""
+    blob = f"{task_md}|{scoped_code}|{agent_name}|{macro_mode}"
+    return hashlib.sha256(blob.encode("utf-8")).hexdigest()[:16]
+
+
+def cache_lookup(fingerprint: str) -> str | None:
+    """Return cached result if fingerprint exists, else None."""
+    if FORCE_RERUN:
+        return None
+    cache_file = CACHE_DIR / f"{fingerprint}.md"
+    if cache_file.exists():
+        return cache_file.read_text(encoding="utf-8")
+    return None
+
+
+def cache_store(fingerprint: str, result: str) -> None:
+    """Store result in cache keyed by fingerprint."""
+    CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    cache_file = CACHE_DIR / f"{fingerprint}.md"
+    cache_file.write_text(result, encoding="utf-8")
+
+
+def get_temperature(macro_mode: str) -> float:
+    """Execution macros (Charge, Follow) use temp 0.0 for determinism.
+    Exploration macros (Think) keep 0.2 for creative variance."""
+    defn = resolve_macro(macro_mode)
+    return defn.get("temperature", 0.2)
 
 
 def read_text(path: Path, default: str = "") -> str:
@@ -183,12 +380,12 @@ def load_guild_context(agent_name: str) -> str:
     return "\n\n".join(parts) if parts else ""
 
 
-def _llm_request(prompt: str) -> str:
+def _llm_request(prompt: str, temperature: float = 0.2) -> str:
     """Single LLM API call (no retry). Both providers use the same chat/completions format."""
     payload = {
         "model": LLM_MODEL,
         "messages": [{"role": "user", "content": prompt}],
-        "temperature": 0.2,
+        "temperature": temperature,
     }
     data = json.dumps(payload).encode("utf-8")
     req = request.Request(
@@ -214,7 +411,7 @@ def _llm_request(prompt: str) -> str:
     return raw
 
 
-def call_llm(prompt: str) -> str:
+def call_llm(prompt: str, temperature: float = 0.2) -> str:
     """LLM call with retry and exponential backoff from macros.json config."""
     max_attempts = RETRY_CONFIG.get("max_attempts", 3)
     backoff = RETRY_CONFIG.get("backoff_seconds", [2, 8, 30])
@@ -222,7 +419,7 @@ def call_llm(prompt: str) -> str:
     last_error: Exception = RuntimeError("No attempts made")
     for attempt in range(max_attempts):
         try:
-            result = _llm_request(prompt)
+            result = _llm_request(prompt, temperature=temperature)
             if result and len(result.strip()) > 10:
                 return result
             # Treat empty/trivial response as transient failure
@@ -668,11 +865,19 @@ def main() -> None:
     if selected_agent == "Party":
         scoped_code = "Out of scope for Party agent by design. Party performs governance-only review over task framing and prior agent outputs."
 
-    is_think = (MACRO_MODE or "").lower().strip() == "think"
+    is_think = is_independent_macro(MACRO_MODE)
+    temperature = get_temperature(MACRO_MODE)
+    run_id = f"{today}-{(MACRO_MODE or 'run').lower()}-a"
     outputs: Dict[str, str] = {}
     handoff_todos = "Start from task statement; no upstream TODOs yet."
+    pipeline_halted = False
+    halt_message = ""
 
     for name, filename in sequence:
+        if pipeline_halted:
+            outputs[name] = f"*Skipped — pipeline halted: {halt_message}*"
+            continue
+
         profile_md = read_text(AGENTS_DIR / filename)
         guild_context = load_guild_context(name)
         macro_directive = get_macro_directive(MACRO_MODE, name)
@@ -685,25 +890,91 @@ def main() -> None:
             agent_outputs = outputs
             agent_todos = handoff_todos
 
-        prompt = build_agent_prompt(
-            base_md,
-            profile_md,
-            task_md,
-            scoped_code,
-            agent_outputs,
-            agent_todos,
-            name,
-            guild_context,
-            macro_directive,
-        )
-        result = call_llm(prompt)
+        # Determinism: check cache before calling LLM
+        fingerprint = compute_fingerprint(task_md, scoped_code, name, MACRO_MODE)
+        cached = cache_lookup(fingerprint)
+        t_start = time.time()
 
-        # --- Validation gate ---
-        valid, warnings = validate_agent_output(result, name)
-        if not valid:
-            print(f"  ⚠ Validation failed for {name}: {'; '.join(warnings)}")
-        elif warnings:
-            print(f"  ℹ Validation notes for {name}: {'; '.join(warnings)}")
+        if cached is not None:
+            result = cached
+            cache_hit = True
+            print(f"  ⚡ Cache hit for {name} (fingerprint {fingerprint})")
+        else:
+            prompt = build_agent_prompt(
+                base_md,
+                profile_md,
+                task_md,
+                scoped_code,
+                agent_outputs,
+                agent_todos,
+                name,
+                guild_context,
+                macro_directive,
+            )
+
+            result = call_llm(prompt, temperature=temperature)
+            cache_hit = False
+
+            # --- Quality Gate: retry once if structure is wrong ---
+            gate_action, gate_msg, gate_extras = run_quality_gate(name, result, MACRO_MODE)
+
+            if gate_action == "RETRY":
+                print(f"  🔄 Gate RETRY for {name}: {gate_msg}")
+                retry_prompt = prompt + f"\n\n# RETRY INSTRUCTION\nYour previous output was rejected: {gate_msg}\nRewrite your complete output with ALL required sections."
+                result = call_llm(retry_prompt, temperature=temperature)
+                gate_action, gate_msg, gate_extras = run_quality_gate(name, result, MACRO_MODE)
+                if gate_action == "RETRY":
+                    print(f"  ⚠ Second retry still failing for {name}, proceeding anyway")
+                    gate_action = "WARN"
+
+            if gate_action == "HALT":
+                print(f"  🛑 Gate HALT for {name}: {gate_msg}")
+                pipeline_halted = True
+                halt_message = f"{name}: {gate_msg}"
+            elif gate_action == "WARN":
+                print(f"  ⚠ Gate WARN for {name}: {gate_msg}")
+            else:
+                print(f"  ✅ Gate PASS for {name}")
+
+            # Truncate excessive output (gate flagged it)
+            max_chars = GATE_CONFIG.get("max_output_chars", 4000)
+            if len(result) > max_chars:
+                result = result[:max_chars] + "\n\n... [output truncated by factory gate] ..."
+                print(f"  ✂ Output truncated for {name} ({len(result)} → {max_chars} chars)")
+
+            # Cache the (possibly retried) result
+            cache_store(fingerprint, result)
+
+        latency_ms = int((time.time() - t_start) * 1000)
+
+        # --- Metrics ---
+        concur, qualify, dissent = _count_dissent_markers(result)
+        confidence = _extract_confidence(result)
+        metric_prompt_chars = 0
+        metric_gate = "CACHE"
+        metric_sections = _count_sections(result)
+        if not cache_hit:
+            metric_prompt_chars = len(prompt)
+            metric_gate = gate_action
+            metric_sections = gate_extras.get("sections_found", metric_sections)
+        append_metric({
+            "timestamp": dt.datetime.utcnow().isoformat() + "Z",
+            "run_id": run_id,
+            "agent": name,
+            "macro": MACRO_MODE or "none",
+            "task_id": task_id,
+            "fingerprint": fingerprint,
+            "latency_ms": latency_ms,
+            "prompt_chars": metric_prompt_chars,
+            "output_chars": len(result),
+            "gate_result": metric_gate,
+            "sections_found": metric_sections,
+            "concur_count": concur,
+            "qualify_count": qualify,
+            "dissent_count": dissent,
+            "confidence": confidence,
+            "cache_hit": cache_hit,
+        })
 
         outputs[name] = result
 
@@ -751,6 +1022,7 @@ def main() -> None:
         f"- Task mode: {TASK_MODE}",
         f"- Agent mode: {selected_agent if selected_agent else ('set:' + ', '.join(selected_set) if selected_set else 'all')}",
         f"- Auto apply patch: {'enabled' if AUTO_APPLY_PATCH else 'disabled'}",
+        f"- Pipeline status: {'HALTED — ' + halt_message if pipeline_halted else 'completed'}",
         "- Sequence: " + " -> ".join([name for name, _ in sequence]),
         "",
     ]
@@ -758,6 +1030,11 @@ def main() -> None:
         report_lines.append(f"## {name}")
         report_lines.append(outputs.get(name, ""))
         report_lines.append("")
+
+    # Factory metrics dashboard
+    trailing = load_trailing_metrics(days=7)
+    report_lines.append(compute_metrics_summary(trailing))
+    report_lines.append("")
 
     proposal_lines = [
         f"# Code Proposal — {task_id} ({today})",
@@ -796,6 +1073,8 @@ def main() -> None:
         "auto_apply_patch": AUTO_APPLY_PATCH,
         "apply_status": apply_status,
         "apply_message": apply_message,
+        "pipeline_halted": pipeline_halted,
+        "halt_message": halt_message if pipeline_halted else "",
         "allowed_scope_files": scope_rel,
         "agents": [name for name, _ in sequence],
     }

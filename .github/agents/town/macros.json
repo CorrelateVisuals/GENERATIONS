@@ -6,6 +6,7 @@
       "agents": ["C++ Lead", "Vulkan Guru"],
       "mode": "sequential",
       "produces_patch": true,
+      "temperature": 0.0,
       "directives": {
         "C++ Lead": "## Macro Directive: CHARGE\nYou are the surgeon. Propose a MINIMAL patch for the command.\n- Smallest viable diff. No exploration, no brainstorming.\n- Be concrete: file paths, line-level changes, exact code.\n- Mark each finding for cross-check by the next agent.",
         "Vulkan Guru": "## Macro Directive: CHARGE (Validator)\nYou are the cross-check. Review the C++ Lead's proposal.\nFor EACH Lead finding, explicitly state one of:\n- ✅ CONCUR — you independently reach the same conclusion\n- ⚠️ QUALIFY — you agree but add constraints or caveats\n- ❌ DISSENT — you disagree, provide evidence and alternative\nEnd with: Combined confidence: HIGH / MEDIUM / LOW"
@@ -16,6 +17,7 @@
       "agents": ["C++ Lead", "Vulkan Guru", "Kernel Expert", "Refactorer"],
       "mode": "sequential",
       "produces_patch": false,
+      "temperature": 0.1,
       "directives": {
         "C++ Lead": "## Macro Directive: PULL\nYou are the tank pulling the mob. MAP the terrain, do NOT propose patches.\n- List every file touched, who owns it, and what depends on it.\n- Estimate blast radius if this change goes wrong.\n- Do NOT write code proposals — recon only.",
         "Vulkan Guru": "## Macro Directive: PULL (Scout)\nAdd what the Lead MISSED in the Vulkan/resource domain.\n- Confirm what Lead got right in your area.\n- Add Vulkan-specific risks not visible from C++ level.\n- Estimate YOUR domain's blast radius.\n- Do NOT write code proposals — recon only.",
@@ -28,6 +30,7 @@
       "agents": ["C++ Lead", "Vulkan Guru", "Kernel Expert", "Refactorer", "HPC Marketeer"],
       "mode": "sequential",
       "produces_patch": true,
+      "temperature": 0.0,
       "directives": {
         "C++ Lead": "## Macro Directive: FOLLOW\nFull implementation cadence. You set direction for the entire party.\n- Concrete scoped TODOs for every agent using Structured Handoff Format.\n- Mark your key findings so downstream agents can CONCUR/QUALIFY/DISSENT.",
         "Vulkan Guru": "## Macro Directive: FOLLOW\nDo your Vulkan work AND cross-confirm the Lead's findings.\nInclude a ## Cross-Confirmation section:\n- For each Lead finding relevant to you: ✅ CONCUR / ⚠️ QUALIFY / ❌ DISSENT\n- State WHY you concur or dissent — evidence from code context.",
@@ -41,6 +44,7 @@
       "agents": ["Vulkan Guru", "Kernel Expert", "Refactorer"],
       "mode": "independent",
       "produces_patch": false,
+      "temperature": 0.2,
       "directives": {
         "Vulkan Guru": "## Macro Directive: THINK (Independent)\nYou are theorycrafting ALONE. You do NOT see other agents' outputs.\nPropose YOUR approach to this problem from a Vulkan/resource perspective.\n- Approach description\n- Affected files and scope\n- Benefits and risks\n- Complexity: S / M / L\n- Recommended implementation sequence\nDo NOT write patches. This is strategy, not execution.",
         "Kernel Expert": "## Macro Directive: THINK (Independent)\nYou are theorycrafting ALONE. You do NOT see other agents' outputs.\nPropose YOUR approach from a GPU/parallel/shader perspective.\n- Approach description\n- Affected files and scope\n- Benefits and risks\n- Complexity: S / M / L\n- Recommended implementation sequence\nDo NOT write patches. This is strategy, not execution.",
@@ -52,6 +56,7 @@
       "agents": ["Party"],
       "mode": "sequential",
       "produces_patch": false,
+      "temperature": 0.1,
       "directives": {}
     },
     "lead++": {
@@ -59,6 +64,7 @@
       "agents": ["C++ Lead"],
       "mode": "sequential",
       "produces_patch": true,
+      "temperature": 0.0,
       "directives": {}
     },
     "agents++": {
@@ -66,6 +72,7 @@
       "agents": ["C++ Lead", "Vulkan Guru", "Kernel Expert", "Refactorer", "HPC Marketeer"],
       "mode": "sequential",
       "produces_patch": true,
+      "temperature": 0.0,
       "directives": {}
     }
   },
@@ -84,5 +91,11 @@
   "validation": {
     "min_output_length": 100,
     "required_section_count": 4
+  },
+  "quality_gates": {
+    "dissent_threshold": 0.5,
+    "max_output_chars": 4000,
+    "halt_on_low_confidence": true,
+    "validate_file_refs": true
   }
 }
