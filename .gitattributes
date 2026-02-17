@@ -5,3 +5,5 @@
 *.frag linguist-language=GLSL
 *.tesc linguist-language=GLSL
 *.tese linguist-language=GLSL
+
+.github/workflows/*.lock.yml linguist-generated=true merge=ours

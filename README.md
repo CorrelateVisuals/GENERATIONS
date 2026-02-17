@@ -39,16 +39,16 @@ src/
 ├── Pipelines.*         # top-level scene pipeline interface
 ├── Resources.*         # top-level scene resource interface
 ├── World.*             # top-level world interface
-├── app/                # application entry and lifecycle
-├── scene/              # runtime scene defaults and installation (SceneConfig)
+├── main.cpp            # application entry
+├── engine/             # engine lifecycle + logging
+├── base/               # runtime config, validation, shader interface
+├── control/            # window/input/timer/gui integration
 ├── pipelines/          # command recording and frame orchestration
 ├── vulkan_mechanics/   # swapchain/device orchestration surface
-├── gui/                # render-stage strip and UI helpers
 ├── vulkan_base/        # Vulkan primitives (device/resources/sync/pipeline)
-├── asset_io/           # assets, screenshots, utility I/O
+├── library/            # assets, screenshots, utility I/O
 ├── world/              # camera/geometry/terrain implementations
-├── core/               # logging, runtime config, timing
-└── platform/           # window/input/validation integration
+└── CAPITAL-engine.vcxproj
 ```
 
 Dependency boundaries are checked through:
@@ -73,12 +73,12 @@ Scene setup is now pure C++ via `SceneConfig`.
 - Engine mode (default): `./bin/CapitalEngine`
 - Config preview only (no engine loop): `CE_SCRIPT_ONLY=1 ./bin/CapitalEngine`
 
-Runtime pipeline definitions, draw bindings, render graph, and world/terrain settings are installed from `src/scene/SceneConfig.cpp`.
-Engine runtime stays in `src/app`, while configuration authoring lives in `src/scene`.
+Runtime pipeline definitions, draw bindings, render graph, and world/terrain settings are installed from `src/world/SceneConfig.cpp`.
+Engine runtime stays in `src/engine`, while configuration authoring lives in `src/world`.
 
 ## Environment flags
 
-Runtime env flags are parsed centrally through `CE::Runtime::env_truthy` in `src/core/RuntimeConfig.*`.
+Runtime env flags are parsed centrally through `CE::Runtime::env_truthy` in `src/base/RuntimeConfig.*`.
 
 - accepted truthy values (case-insensitive): `1`, `true`, `on`
 - everything else (including unset) is treated as `false`
@@ -221,7 +221,7 @@ No changes needed to [src/world/Geometry.h](src/world/Geometry.h), [src/world/Ge
 
 #### 2. UBO and shader interface
 
-**[src/core/ShaderInterface.h](src/core/ShaderInterface.h)**
+**[src/base/ShaderInterface.h](src/base/ShaderInterface.h)**
 
 The current UBO carries a single `grid_xy` and a single `model` matrix (currently identity). With the UBO-per-draw approach, these fields are **reused** — just memcpy different values before each grid draw. No struct changes needed.
 
@@ -281,14 +281,14 @@ Work groups are computed from a single `grid_size` (L50–68, L96–104). For tw
 
 #### 6. Scene config and render graph
 
-**[src/scene/SceneConfig.h](src/scene/SceneConfig.h)**
+**[src/world/SceneConfig.h](src/world/SceneConfig.h)**
 
 ```cpp
 CE::Runtime::TerrainSettings terrain{};   // existing
 CE::Runtime::TerrainSettings terrain2{};  // ← add
 ```
 
-**[src/scene/SceneConfig.cpp](src/scene/SceneConfig.cpp)**
+**[src/world/SceneConfig.cpp](src/world/SceneConfig.cpp)**
 
 | Location | What to change |
 |----------|---------------|
@@ -297,13 +297,13 @@ CE::Runtime::TerrainSettings terrain2{};  // ← add
 | Draw-op mapping block | Add `{"Landscape2", "indexed:grid2"}` |
 | Render graph block | Add `"Landscape2"`, `"TerrainBox2"` entries in graphics nodes |
 
-**[src/core/RuntimeConfig.h](src/core/RuntimeConfig.h)** — add `DrawOpId::IndexedGrid2`, `IndexedGrid2Box`.
+**[src/base/RuntimeConfig.h](src/base/RuntimeConfig.h)** — add `DrawOpId::IndexedGrid2`, `IndexedGrid2Box`.
 
-**[src/core/RuntimeConfig.cpp](src/core/RuntimeConfig.cpp)** — add parsing for `"indexed:grid2"` in `draw_op_from_string()`.
+**[src/base/RuntimeConfig.cpp](src/base/RuntimeConfig.cpp)** — add parsing for `"indexed:grid2"` in `draw_op_from_string()`.
 
 #### 7. Application entry
 
-**[src/app/CapitalEngine.cpp](src/app/CapitalEngine.cpp)** (L15–16) — currently fetches one `TerrainSettings` and passes it to `Resources`. Pass both terrain configs.
+**[src/engine/CapitalEngine.cpp](src/engine/CapitalEngine.cpp)** (L15–16) — currently fetches one `TerrainSettings` and passes it to `Resources`. Pass both terrain configs.
 
 #### 8. Shaders (no changes with UBO-per-draw)
 
@@ -321,9 +321,9 @@ If switching to inter-grid compute (cells from grid1 affecting grid2), the compu
 | [src/world/Geometry.cpp](src/world/Geometry.cpp) | No | Reusable per-instance |
 | [src/world/Terrain.h](src/world/Terrain.h) | No | Stateless generator |
 | [src/world/Terrain.cpp](src/world/Terrain.cpp) | No | Stateless generator |
-| [src/core/ShaderInterface.h](src/core/ShaderInterface.h) | Maybe | Only if adding per-grid UBO fields |
-| [src/core/RuntimeConfig.h](src/core/RuntimeConfig.h) | **Yes** | Add `DrawOpId::IndexedGrid2` |
-| [src/core/RuntimeConfig.cpp](src/core/RuntimeConfig.cpp) | **Yes** | Parse new draw op strings |
+| [src/base/ShaderInterface.h](src/base/ShaderInterface.h) | Maybe | Only if adding per-grid UBO fields |
+| [src/base/RuntimeConfig.h](src/base/RuntimeConfig.h) | **Yes** | Add `DrawOpId::IndexedGrid2` |
+| [src/base/RuntimeConfig.cpp](src/base/RuntimeConfig.cpp) | **Yes** | Parse new draw op strings |
 | [src/Resources.h](src/Resources.h) | **Yes** | Add second `StorageBuffer` |
 | [src/Resources.cpp](src/Resources.cpp) | **Yes** | Init second SSBO, per-grid UBO update |
 | [src/pipelines/ShaderAccess.cpp](src/pipelines/ShaderAccess.cpp) | **Yes** | Duplicate draw lambdas, bind grid2 buffers |
@@ -333,9 +333,9 @@ If switching to inter-grid compute (cells from grid1 affecting grid2), the compu
 | [src/pipelines/FrameContext.h](src/pipelines/FrameContext.h) | No | No direct grid references |
 | [src/pipelines/FrameContext.cpp](src/pipelines/FrameContext.cpp) | No | No direct grid references |
 | [src/vulkan_base/VulkanCore.h](src/vulkan_base/VulkanCore.h) | **Yes** | Increase `NUM_DESCRIPTORS` (5 → 7) |
-| [src/scene/SceneConfig.h](src/scene/SceneConfig.h) | **Yes** | Add `TerrainSettings terrain2` |
-| [src/scene/SceneConfig.cpp](src/scene/SceneConfig.cpp) | **Yes** | Populate terrain2, render graph entries |
-| [src/app/CapitalEngine.cpp](src/app/CapitalEngine.cpp) | **Yes** | Pass both terrain configs |
+| [src/world/SceneConfig.h](src/world/SceneConfig.h) | **Yes** | Add `TerrainSettings terrain2` |
+| [src/world/SceneConfig.cpp](src/world/SceneConfig.cpp) | **Yes** | Populate terrain2, render graph entries |
+| [src/engine/CapitalEngine.cpp](src/engine/CapitalEngine.cpp) | **Yes** | Pass both terrain configs |
 | [shaders/ParameterUBO.glsl](shaders/ParameterUBO.glsl) | Maybe | Only if UBO struct changes |
 | All `.vert` / `.frag` / `.comp` shaders | No* | UBO-per-draw update keeps them valid |
 
