@@ -1,0 +1,41 @@
+diff --git a/src/vulkan_mechanics/Mechanics.cpp b/src/vulkan_mechanics/Mechanics.cpp
+index abcdef1..1234567 100644
+--- a/src/vulkan_mechanics/Mechanics.cpp
++++ b/src/vulkan_mechanics/Mechanics.cpp
+@@ -45,6 +45,24 @@ void VulkanMechanics::Swapchain::recreate(VkSurfaceKHR surface,
+                                           const VulkanQueues& queues,
+                                           const VulkanSyncObjects& sync_objects,
+                                           VulkanPipelines& pipelines,
+                                           VulkanResources& resources) {
++    // Cleanup old swapchain resources
++    cleanup();
++
++    try {
++        // Recreate swapchain
++        create_swapchain(surface, queues);
++
++        // Validate compatibility with existing Vulkan resources
++        if (!pipelines.validate_swapchain_compatibility(*this)) {
++            throw std::runtime_error("New swapchain is incompatible with existing pipelines.");
++        }
++
++        // Recreate synchronization objects
++        sync_objects.recreate_for_swapchain(*this);
++    } catch (const std::exception& e) {
++        Log::error("Swapchain recreation failed: ", e.what());
++        throw;
++    }
+ }
+ 
+ void VulkanMechanics::Swapchain::cleanup() {
++    // Destroy old swapchain resources
++    for (auto& framebuffer : framebuffers) {
++        vkDestroyFramebuffer(device, framebuffer, nullptr);
++    }
++    framebuffers.clear();
++
++    if (swapchain != VK_NULL_HANDLE) {
++        vkDestroySwapchainKHR(device, swapchain, nullptr);
++        swapchain = VK_NULL_HANDLE;
++    }
+ }
