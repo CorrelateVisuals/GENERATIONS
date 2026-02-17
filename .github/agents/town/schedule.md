@@ -22,24 +22,28 @@ This file centralizes recurring agent responsibilities and gives schedule option
 | Kernel Expert | Review compute dispatch dimensions, shader IO/layout alignment, GPU-bound opportunities, shader perf hotspots |
 | Refactorer | Review naming/clarity, architectural boundaries, dead code removal opportunities, complexity hotspots |
 | HPC Marketeer | Review README/setup accuracy, docs drift from implementation, onboarding friction, release notes clarity |
-| Guild Master | Weekly class performance assessment, class change proposals, guild policy proposals, conflict arbitration |
+| Guild Master | Weekly class performance assessment, class change directives, guild policy directives, conflict arbitration |
 
 ## Guild Master Weekly Assessment
 
 The Guild Master runs automatically every **Friday** (same window as HPC Marketeer synthesis).
 
 ### What the Guild Master Reviews
-1. **Factory metrics** — trailing 7-day `metrics.jsonl` data
-2. **Agent profiles** — current class definitions in `party/*.md`
-3. **Guild policies** — current guild files in `guilds/*.md`
-4. **Procedures** — living patterns in `town/procedures.md`
-5. **Previous agent outputs** — if available from the same run
+1. **Factory metrics** — trailing 14-day `metrics.jsonl` data (last 30 records raw)
+2. **Agent profiles** — current class definitions in `party/*.md` (full content)
+3. **Guild membership map** — AGENT_GUILDS assignments
+4. **Guild policies** — current guild files in `guilds/*.md` (full content)
+5. **Procedures** — living patterns in `town/procedures.md` (full content)
+6. **Quality gate config** — current thresholds and flags
+7. **Governance log** — previous Guild Master decisions in `guilds/governance-log.md`
+8. **Recent run reports** — last 3 run reports from `runs/*.md`
 
 ### What the Guild Master Produces
 - **Class Performance Report** — per-agent scorecard (gate pass rate, retry rate, dissent ratio)
-- **Class Change Proposals** — profile adjustments, guild reassignments, directive modifications
-- **Guild Policy Proposals** — procedure updates, gate threshold changes, temperature tuning
+- **Class Change Directives** — auto-logged to `guilds/governance-log.md` (profile adjustments, guild reassignments)
+- **Guild Policy Directives** — auto-applied to `procedures.md` and logged to `guilds/governance-log.md`
 - **Arbitration Decisions** — resolves conflicting agent recommendations
+- **Risk Assessment** — integration risks from mismatched recommendations
 
 ### Trigger
 - Automatic: Friday scheduled run (macro: Guild)

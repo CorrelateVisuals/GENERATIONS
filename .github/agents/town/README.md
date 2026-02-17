@@ -31,8 +31,8 @@ These archetype agents are designed to be rotated during development and code re
 - Required repository secret:
 	- `LLM_API_KEY`
 - Optional repository variables:
-	- `LLM_MODEL` (default: `gpt-4.1`)
-	- `LLM_API_URL` (default: `https://api.openai.com/v1/responses`)
+	- `LLM_MODEL` (default: `gpt-4o-mini`)
+	- `LLM_API_URL` (default: `https://api.openai.com/v1/chat/completions`)
 	- `LLM_PROVIDER` (default: `auto`, set to `github` for GitHub Models)
 - Optional guard variables:
 	- `MAX_PATCH_FILES` (default: `8`)
@@ -173,8 +173,9 @@ This multi-perspective approach ensures the GENERATIONS engine remains reliable,
 ## Governance Agent
 
 ### [Guild Master](../guilds/guild-master.md)
-**Focus**: Class performance assessment, guild policy, and conflict arbitration
+**Focus**: System observation, guild policy setting, class governance, and conflict arbitration
+**Expertise**: Neural networks, pattern recognition, AI & human-AI interfacing
 
-The Guild Master reviews Factory metrics to assess how each agent class is performing. It proposes class changes (agent profile adjustments, guild reassignments) and guild policy changes (procedure updates, gate threshold tuning). It does not inspect source code directly.
+The Guild Master is the only agent that **observes** the full system state and **sets** guild policies. It reviews Factory metrics, agent profiles, guild policies, procedures, run history, and its own governance log. GUILD-POLICY directives are auto-applied to procedures; CLASS-CHANGE directives are logged for review. It does not inspect source code directly.
 
-**Key question**: "Are the agents performing well, and what class or policy changes would improve the pipeline?"
+**Key question**: "Are the agents performing well, what behavioral patterns do the metrics reveal, and what policy changes would improve the pipeline?"

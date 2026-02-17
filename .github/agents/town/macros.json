@@ -3,18 +3,37 @@
   "macros": {
     "Charge": {
       "description": "Surgical strike with one cross-check. Fast, decisive, minimal.",
-      "agents": ["C++ Lead", "Vulkan Guru"],
+      "agents": [
+        "C++ Lead",
+        "Vulkan Guru"
+      ],
       "mode": "sequential",
       "produces_patch": true,
       "temperature": 0.0,
       "directives": {
         "C++ Lead": "## Macro Directive: CHARGE\nYou are the surgeon. Propose a MINIMAL patch for the command.\n- Smallest viable diff. No exploration, no brainstorming.\n- Be concrete: file paths, line-level changes, exact code.\n- Mark each finding for cross-check by the next agent.",
         "Vulkan Guru": "## Macro Directive: CHARGE (Validator)\nYou are the cross-check. Review the C++ Lead's proposal.\nFor EACH Lead finding, explicitly state one of:\n- ✅ CONCUR — you independently reach the same conclusion\n- ⚠️ QUALIFY — you agree but add constraints or caveats\n- ❌ DISSENT — you disagree, provide evidence and alternative\nEnd with: Combined confidence: HIGH / MEDIUM / LOW"
-      }
+      },
+      "max_output_chars": 2500,
+      "required_sections": [
+        "1) Main Task Outcome",
+        "3) Risks and Constraints",
+        "6) Code Proposal",
+        "9) Recommended Next Run"
+      ],
+      "cross_confirm": true,
+      "context_chars": 6000,
+      "handoff_chars": 1500,
+      "retry_on_gate_fail": true
     },
     "Pull": {
       "description": "Sequential recon. Each specialist scouts the same target from their angle.",
-      "agents": ["C++ Lead", "Vulkan Guru", "Kernel Expert", "Refactorer"],
+      "agents": [
+        "C++ Lead",
+        "Vulkan Guru",
+        "Kernel Expert",
+        "Refactorer"
+      ],
       "mode": "sequential",
       "produces_patch": false,
       "temperature": 0.1,
@@ -23,11 +42,28 @@
         "Vulkan Guru": "## Macro Directive: PULL (Scout)\nAdd what the Lead MISSED in the Vulkan/resource domain.\n- Confirm what Lead got right in your area.\n- Add Vulkan-specific risks not visible from C++ level.\n- Estimate YOUR domain's blast radius.\n- Do NOT write code proposals — recon only.",
         "Kernel Expert": "## Macro Directive: PULL (Scout)\nAdd what previous agents MISSED in the shader/GPU domain.\n- Confirm what they got right about GPU impact.\n- Add shader/dispatch/compute risks not visible from API level.\n- Estimate YOUR domain's blast radius.\n- Do NOT write code proposals — recon only.",
         "Refactorer": "## Macro Directive: PULL (Scout)\nAdd what previous agents MISSED about structure and boundaries.\n- Confirm architectural observations from prior agents.\n- Assess complexity change: does this make the codebase simpler or harder?\n- Recommend next macro: Charge (safe/small) or Follow (risky/large).\n- Do NOT write code proposals — recon only."
-      }
+      },
+      "max_output_chars": 3500,
+      "required_sections": [
+        "1) Main Task Outcome",
+        "3) Risks and Constraints",
+        "4) Actionable TODOs",
+        "9) Recommended Next Run"
+      ],
+      "cross_confirm": false,
+      "context_chars": 12000,
+      "handoff_chars": 1800,
+      "retry_on_gate_fail": true
     },
     "Follow": {
       "description": "Full implementation cadence. All 5 agents, sequential, cascading cross-confirmation.",
-      "agents": ["C++ Lead", "Vulkan Guru", "Kernel Expert", "Refactorer", "HPC Marketeer"],
+      "agents": [
+        "C++ Lead",
+        "Vulkan Guru",
+        "Kernel Expert",
+        "Refactorer",
+        "HPC Marketeer"
+      ],
       "mode": "sequential",
       "produces_patch": true,
       "temperature": 0.0,
@@ -37,11 +73,28 @@
         "Kernel Expert": "## Macro Directive: FOLLOW\nDo your GPU/shader work AND cross-confirm prior agents.\nInclude a ## Cross-Confirmation section:\n- vs C++ Lead: CONCUR/QUALIFY/DISSENT per finding\n- vs Vulkan Guru: CONCUR/QUALIFY/DISSENT per finding",
         "Refactorer": "## Macro Directive: FOLLOW\nDo your structure work AND cross-confirm all prior agents.\nInclude a ## Cross-Confirmation section for Lead, Guru, and Expert.\n- Flag any naming or boundary choices you challenge.",
         "HPC Marketeer": "## Macro Directive: FOLLOW (Final)\nDo your docs work AND produce the CONCURRENCE SUMMARY.\n## Concurrence Summary\nFor each major finding, list which agents CONCUR/QUALIFY/DISSENT.\n- 3+ concur → HIGH CONFIDENCE\n- 2 agree, 1 dissents → NEEDS RESOLUTION\nThis is the definitive confidence matrix for the run."
-      }
+      },
+      "max_output_chars": 5000,
+      "required_sections": [
+        "1) Main Task Outcome",
+        "2) Secondary Task Outcomes",
+        "3) Risks and Constraints",
+        "4) Actionable TODOs",
+        "5) Handoff Note",
+        "6) Code Proposal"
+      ],
+      "cross_confirm": true,
+      "context_chars": 12000,
+      "handoff_chars": 1500,
+      "retry_on_gate_fail": true
     },
     "Think": {
       "description": "Independent theorycrafting. Three specialists work the same problem in isolation.",
-      "agents": ["Vulkan Guru", "Kernel Expert", "Refactorer"],
+      "agents": [
+        "Vulkan Guru",
+        "Kernel Expert",
+        "Refactorer"
+      ],
       "mode": "independent",
       "produces_patch": false,
       "temperature": 0.2,
@@ -49,33 +102,71 @@
         "Vulkan Guru": "## Macro Directive: THINK (Independent)\nYou are theorycrafting ALONE. You do NOT see other agents' outputs.\nPropose YOUR approach to this problem from a Vulkan/resource perspective.\n- Approach description\n- Affected files and scope\n- Benefits and risks\n- Complexity: S / M / L\n- Recommended implementation sequence\nDo NOT write patches. This is strategy, not execution.",
         "Kernel Expert": "## Macro Directive: THINK (Independent)\nYou are theorycrafting ALONE. You do NOT see other agents' outputs.\nPropose YOUR approach from a GPU/parallel/shader perspective.\n- Approach description\n- Affected files and scope\n- Benefits and risks\n- Complexity: S / M / L\n- Recommended implementation sequence\nDo NOT write patches. This is strategy, not execution.",
         "Refactorer": "## Macro Directive: THINK (Independent)\nYou are theorycrafting ALONE. You do NOT see other agents' outputs.\nPropose YOUR approach from an architecture/structure perspective.\n- Approach description\n- Affected files and scope\n- Benefits and risks\n- Complexity: S / M / L\n- Recommended implementation sequence\nDo NOT write patches. This is strategy, not execution."
-      }
+      },
+      "max_output_chars": 3000,
+      "required_sections": [
+        "1) Main Task Outcome",
+        "3) Risks and Constraints",
+        "9) Recommended Next Run"
+      ],
+      "cross_confirm": false,
+      "context_chars": 8000,
+      "handoff_chars": 0,
+      "retry_on_gate_fail": false
     },
     "Guild": {
       "description": "Guild Master governance review. Observes system state, assesses class performance, sets guild policies.",
-      "agents": ["Guild Master"],
+      "agents": [
+        "Guild Master"
+      ],
       "mode": "sequential",
       "produces_patch": false,
       "temperature": 0.1,
       "directives": {
         "Guild Master": "## Macro Directive: GUILD (Governance Assessment)\nYou are the Guild Master — the only agent with authority to observe and set guild policies.\nYou are an AI expert specializing in neural networks, pattern recognition, and human-AI interfacing. Apply this expertise: detect behavioral drift in agent outputs, recognize recurring failure patterns in metrics, and calibrate the autonomy-oversight balance.\n\nYou receive: 14-day metrics, full agent profiles, guild membership map, full guild policies, full procedures, quality gate config, governance history, and recent run reports.\n\nYour GUILD-POLICY: directives are auto-applied to procedures.md and logged.\nYour CLASS-CHANGE: directives are logged for review.\n\nProduce these sections:\n\n### 1. Class Performance Report\nFor each agent class, score:\n- Gate pass rate (from metrics.jsonl)\n- Retry rate\n- DISSENT ratio (how often contradicted)\n- Output quality assessment\n- Specialization drift check\n\n### 2. Class Change Directives\nFor underperforming or misaligned agents, issue on a separate line:\nCLASS-CHANGE: <Agent> — <change> — <evidence>\nOnly issue with 3+ data points.\n\n### 3. Guild Policy Directives\nFor system-wide improvements, issue on a separate line:\nGUILD-POLICY: <name> — <change> — <rationale>\n\n### 4. Arbitration\nResolve any conflicting recommendations from the current run.\n\n### 5. Risk Assessment\nIntegration risks from mismatched recommendations.\n\n### 6. Coordination TODOs\nActionable items for the next run.\n\nReview your previous governance decisions before issuing new ones — avoid flip-flopping.\nDo NOT analyze source code. Your domain is agent governance."
-      }
+      },
+      "max_output_chars": 5000,
+      "required_sections": [
+        "1) Main Task Outcome"
+      ],
+      "cross_confirm": false,
+      "context_chars": 0,
+      "handoff_chars": 0,
+      "retry_on_gate_fail": true
     },
     "lead++": {
       "description": "Solo C++ Lead pass.",
-      "agents": ["C++ Lead"],
+      "agents": [
+        "C++ Lead"
+      ],
       "mode": "sequential",
       "produces_patch": true,
       "temperature": 0.0,
-      "directives": {}
+      "directives": {},
+      "max_output_chars": 4000,
+      "cross_confirm": false,
+      "context_chars": 12000,
+      "handoff_chars": 0,
+      "retry_on_gate_fail": true
     },
     "agents++": {
       "description": "Full five-agent sequence.",
-      "agents": ["C++ Lead", "Vulkan Guru", "Kernel Expert", "Refactorer", "HPC Marketeer"],
+      "agents": [
+        "C++ Lead",
+        "Vulkan Guru",
+        "Kernel Expert",
+        "Refactorer",
+        "HPC Marketeer"
+      ],
       "mode": "sequential",
       "produces_patch": true,
       "temperature": 0.0,
-      "directives": {}
+      "directives": {},
+      "max_output_chars": 4000,
+      "cross_confirm": true,
+      "context_chars": 12000,
+      "handoff_chars": 1500,
+      "retry_on_gate_fail": true
     }
   },
   "required_output_sections": [
@@ -88,7 +179,11 @@
   ],
   "retry": {
     "max_attempts": 3,
-    "backoff_seconds": [2, 8, 30]
+    "backoff_seconds": [
+      2,
+      8,
+      30
+    ]
   },
   "validation": {
     "min_output_length": 100,
@@ -99,5 +194,13 @@
     "max_output_chars": 4000,
     "halt_on_low_confidence": true,
     "validate_file_refs": true
+  },
+  "_knobs_doc": {
+    "max_output_chars": "Per-macro output length cap. Longer = more room, shorter = forces brevity.",
+    "required_sections": "Which output sections this macro requires. Omit = use global default.",
+    "cross_confirm": "Whether agents must include ## Cross-Confirmation. false = skip it.",
+    "context_chars": "How many chars of scoped code each agent sees. Less = focused, more = panoramic.",
+    "handoff_chars": "How much of previous agent output the next agent sees. 0 for independent macros.",
+    "retry_on_gate_fail": "Whether to retry when quality gate returns RETRY. false = accept anything."
   }
 }

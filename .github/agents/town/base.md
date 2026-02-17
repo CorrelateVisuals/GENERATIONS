@@ -55,4 +55,6 @@ All TODO handoffs must follow this format for machine-parseable handoff:
 4. Actionable TODOs (file-scoped, use Structured Handoff Format)
 5. Handoff note to next agent
 6. Code Proposal
-7. Procedure Recording (optional — only when a new reusable pattern was discovered)
+7. Cross-Confirmation (if macro directive requires it)
+8. Procedure Recording (optional — only when a new reusable pattern was discovered)
+9. Recommended Next Run (suggest the next macro + task_command)

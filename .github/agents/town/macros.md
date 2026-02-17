@@ -23,7 +23,6 @@ Example:
 
 ## Governance Override
 
-- **Guild Master** → governance officer, class performance assessor, policy authority
 - **Guild Master** → governance officer, AI expert (neural networks, pattern recognition, human-AI interfacing), policy authority
 - Scope: **observes** full system state (metrics, profiles, guilds, procedures, run history, governance log) and **sets** guild policies
 - Authority: `GUILD-POLICY:` directives are auto-applied to procedures.md; `CLASS-CHANGE:` directives are logged to governance-log.md
@@ -162,16 +161,16 @@ Think ──→ found convergence? ──→ Charge (fast execute)
 
 ```fish
 # Remote (GitHub Actions)
-gh workflow run "Agent Autonomous Run" --ref dev-revert-main-linux \
+gh workflow run "Agent Autonomous Run" --ref dev-linux \
   -f macro=Charge -f task_command="swapchain recreation"
 
-gh workflow run "Agent Autonomous Run" --ref dev-revert-main-linux \
+gh workflow run "Agent Autonomous Run" --ref dev-linux \
   -f macro=Pull -f task_command="buffer creation"
 
-gh workflow run "Agent Autonomous Run" --ref dev-revert-main-linux \
+gh workflow run "Agent Autonomous Run" --ref dev-linux \
   -f macro=Follow -f task_command="split base classes"
 
-gh workflow run "Agent Autonomous Run" --ref dev-revert-main-linux \
+gh workflow run "Agent Autonomous Run" --ref dev-linux \
   -f macro=Think -f task_command="how to approach duplicate buffers"
 ```
 

@@ -126,6 +126,23 @@ def is_independent_macro(macro_name: str) -> bool:
     return defn.get("mode", "sequential") == "independent"
 
 
+def get_macro_knob(macro_name: str, knob: str, default: Any = None) -> Any:
+    """Read a per-macro override knob, falling back to global config or default."""
+    defn = resolve_macro(macro_name)
+    if knob in defn:
+        return defn[knob]
+    # Fall back to global sections
+    global_map = {
+        "max_output_chars": GATE_CONFIG.get("max_output_chars", 4000),
+        "required_sections": REQUIRED_SECTIONS,
+        "cross_confirm": True,
+        "context_chars": int(os.environ.get("MAX_CODE_CONTEXT", "12000")),
+        "handoff_chars": 1500,
+        "retry_on_gate_fail": True,
+    }
+    return global_map.get(knob, default)
+
+
 # ---------------------------------------------------------------------------
 # Quality Gates — Factory-grade output validation
 # ---------------------------------------------------------------------------
@@ -137,6 +154,20 @@ def _count_sections(output: str) -> int:
         if ")" in section:
             text_part = section.split(")", 1)[-1].strip()
             pattern = re.escape(section) + r"|" + re.escape(text_part)
+        else:
+            pattern = re.escape(section)
+        if re.search(pattern, output, re.IGNORECASE):
+            found += 1
+    return found
+
+
+def _count_sections_list(output: str, sections: List[str]) -> int:
+    """Count how many sections from a specific list are present."""
+    found = 0
+    for section in sections:
+        if ")" in section:
+            label = section.split(")", 1)[1].strip()
+            pattern = rf"\d+\)\s*{re.escape(label)}"
         else:
             pattern = re.escape(section)
         if re.search(pattern, output, re.IGNORECASE):
@@ -178,18 +209,23 @@ def run_quality_gate(
     extras: Dict[str, Any] = {}
     issues: List[str] = []
 
+    # Per-macro section requirements (override global)
+    macro_sections = get_macro_knob(macro_mode, "required_sections", REQUIRED_SECTIONS)
+    macro_required_count = len(macro_sections) if macro_sections else VALIDATION_CONFIG.get("required_section_count", 4)
+
     # Gate 1: Structure — required sections present?
     min_len = VALIDATION_CONFIG.get("min_output_length", 100)
-    sections_found = _count_sections(output)
-    required_count = VALIDATION_CONFIG.get("required_section_count", 4)
+    sections_found = _count_sections_list(output, macro_sections) if macro_sections else _count_sections(output)
     extras["sections_found"] = sections_found
+    extras["required_count"] = macro_required_count
 
     if len(output.strip()) < min_len:
         return "RETRY", f"Output too short ({len(output.strip())} chars, minimum {min_len}). Rewrite with all required sections.", extras
 
-    if sections_found < required_count:
-        issues.append(f"Only {sections_found}/{required_count} required sections")
-        return "RETRY", f"Missing sections: {sections_found}/{required_count} found. Include all required sections: {', '.join(REQUIRED_SECTIONS)}", extras
+    if sections_found < macro_required_count:
+        issues.append(f"Only {sections_found}/{macro_required_count} required sections")
+        section_names = ', '.join(macro_sections) if macro_sections else ', '.join(REQUIRED_SECTIONS)
+        return "RETRY", f"Missing sections: {sections_found}/{macro_required_count} found. Include: {section_names}", extras
 
     # Gate 2: DISSENT threshold (only for validator agents)
     concur, qualify, dissent = _count_dissent_markers(output)
@@ -216,8 +252,8 @@ def run_quality_gate(
             extras["invalid_file_refs"] = bad_refs
             issues.append(f"References non-existent files: {', '.join(bad_refs[:5])}")
 
-    # Gate 5: Output truncation (excessive length = rambling)
-    max_chars = GATE_CONFIG.get("max_output_chars", 4000)
+    # Gate 5: Output truncation (per-macro cap)
+    max_chars = get_macro_knob(macro_mode, "max_output_chars", 4000)
     extras["output_truncated"] = len(output) > max_chars
     # Note: we don't truncate here — caller handles it. Just flag it.
 
@@ -650,7 +686,7 @@ def extract_todos_for(agent_name: str, text: str) -> str:
 MAX_CODE_CONTEXT = int(os.environ.get("MAX_CODE_CONTEXT", "12000"))
 
 
-def build_scoped_code(files: List[Path]) -> str:
+def build_scoped_code(files: List[Path], max_chars: int = 12000) -> str:
     if not files:
         return "No in-scope files found."
     chunks = []
@@ -658,8 +694,8 @@ def build_scoped_code(files: List[Path]) -> str:
     for f in files:
         rel = f.relative_to(ROOT)
         snippet = read_capped(f)
-        if total + len(snippet) > MAX_CODE_CONTEXT:
-            remaining = MAX_CODE_CONTEXT - total
+        if total + len(snippet) > max_chars:
+            remaining = max_chars - total
             if remaining > 200:
                 snippet = snippet[:remaining] + "\n... [budget exceeded] ..."
             else:
@@ -680,13 +716,16 @@ def build_agent_prompt(
     agent_name: str,
     guild_context: str = "",
     macro_directive: str = "",
+    handoff_chars: int = 1500,
+    cross_confirm: bool = True,
+    macro_sections: List[str] | None = None,
 ) -> str:
     prev_parts = []
     for name, txt in previous_outputs.items():
-        trimmed = txt[:1500] if len(txt) > 1500 else txt
+        trimmed = txt[:handoff_chars] if len(txt) > handoff_chars else txt
         prev_parts.append(f"## {name} Output\n{trimmed}")
     prev = "\n\n".join(prev_parts)
-    incoming_trimmed = incoming_todos[:1500] if len(incoming_todos) > 1500 else incoming_todos
+    incoming_trimmed = incoming_todos[:handoff_chars] if len(incoming_todos) > handoff_chars else incoming_todos
     guild_section = ""
     if guild_context:
         guild_section = f"""
@@ -699,6 +738,33 @@ def build_agent_prompt(
 # Macro Directive (FOLLOW THIS — it overrides default output format)
 {macro_directive}
 """
+    # Build section list — per-macro or global default
+    sections_default = """Return markdown with these exact sections:
+1) Main Task Outcome
+2) Secondary Task Outcomes
+3) Risks and Constraints
+4) Actionable TODOs (use Structured Handoff Format from base rules)
+5) Handoff Note
+6) Code Proposal
+7) Cross-Confirmation (if macro directive requires it)
+8) Procedure Recording (only if you discovered a new reusable pattern)
+9) Recommended Next Run (suggest the next macro + task_command for the human)
+   Format: `<Macro> "<task_command>"` with a one-line rationale.
+   Example: `Follow "implement descriptor pool wrapper"` — blast radius mapped, ready to execute.
+   If no follow-up needed, write: `None — task is self-contained.`"""
+
+    if macro_sections:
+        section_block = "Return markdown with these exact sections:\n"
+        for s in macro_sections:
+            section_block += f"{s}\n"
+        if cross_confirm:
+            section_block += "7) Cross-Confirmation (CONCUR/QUALIFY/DISSENT for prior agent findings)\n"
+    else:
+        section_block = sections_default
+        if not cross_confirm:
+            section_block = section_block.replace(
+                "7) Cross-Confirmation (if macro directive requires it)\n", "")
+
     return f"""
 You are running inside the GENERATIONS multi-agent pipeline.
 
@@ -720,19 +786,7 @@ You are running inside the GENERATIONS multi-agent pipeline.
 # Previous Agent Outputs
 {prev if prev else 'None'}
 
-Return markdown with these exact sections:
-1) Main Task Outcome
-2) Secondary Task Outcomes
-3) Risks and Constraints
-4) Actionable TODOs (use Structured Handoff Format from base rules)
-5) Handoff Note
-6) Code Proposal
-7) Cross-Confirmation (if macro directive requires it)
-8) Procedure Recording (only if you discovered a new reusable pattern)
-9) Recommended Next Run (suggest the next macro + task_command for the human)
-   Format: `<Macro> "<task_command>"` with a one-line rationale.
-   Example: `Follow "implement descriptor pool wrapper"` — blast radius mapped, ready to execute.
-   If no follow-up needed, write: `None — task is self-contained.`
+{section_block}
 """.strip()
 
 
@@ -1007,7 +1061,8 @@ def main() -> None:
     task_id = extract_task_id(task_md)
     scope_files = parse_scope_files(task_md)
     scope_rel = [str(p.relative_to(ROOT)) for p in scope_files]
-    scoped_code = build_scoped_code(scope_files)
+    context_chars = get_macro_knob(MACRO_MODE, "context_chars", MAX_CODE_CONTEXT)
+    scoped_code = build_scoped_code(scope_files, max_chars=context_chars)
 
     all_agents: List[Tuple[str, str]] = [
         ("C++ Lead", "party/cpp-lead.md"),
@@ -1047,6 +1102,11 @@ def main() -> None:
 
     is_think = is_independent_macro(MACRO_MODE)
     temperature = get_temperature(MACRO_MODE)
+    macro_handoff_chars = get_macro_knob(MACRO_MODE, "handoff_chars", 1500)
+    macro_cross_confirm = get_macro_knob(MACRO_MODE, "cross_confirm", True)
+    macro_retry = get_macro_knob(MACRO_MODE, "retry_on_gate_fail", True)
+    macro_max_chars = get_macro_knob(MACRO_MODE, "max_output_chars", 4000)
+    macro_sections = get_macro_knob(MACRO_MODE, "required_sections", None)
     run_id = f"{today}-{(MACRO_MODE or 'run').lower()}-a"
     outputs: Dict[str, str] = {}
     handoff_todos = "Start from task statement; no upstream TODOs yet."
