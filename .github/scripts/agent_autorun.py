@@ -1150,6 +1150,9 @@ def main() -> None:
                 name,
                 guild_context,
                 macro_directive,
+                handoff_chars=macro_handoff_chars,
+                cross_confirm=macro_cross_confirm,
+                macro_sections=macro_sections,
             )
 
             result = call_llm(prompt, temperature=temperature)
@@ -1158,7 +1161,7 @@ def main() -> None:
             # --- Quality Gate: retry once if structure is wrong ---
             gate_action, gate_msg, gate_extras = run_quality_gate(name, result, MACRO_MODE)
 
-            if gate_action == "RETRY":
+            if gate_action == "RETRY" and macro_retry:
                 print(f"  🔄 Gate RETRY for {name}: {gate_msg}")
                 retry_prompt = prompt + f"\n\n# RETRY INSTRUCTION\nYour previous output was rejected: {gate_msg}\nRewrite your complete output with ALL required sections."
                 result = call_llm(retry_prompt, temperature=temperature)
@@ -1166,6 +1169,9 @@ def main() -> None:
                 if gate_action == "RETRY":
                     print(f"  ⚠ Second retry still failing for {name}, proceeding anyway")
                     gate_action = "WARN"
+            elif gate_action == "RETRY" and not macro_retry:
+                print(f"  ℹ Gate RETRY skipped for {name} (retry_on_gate_fail=false): {gate_msg}")
+                gate_action = "WARN"
 
             if gate_action == "HALT":
                 print(f"  🛑 Gate HALT for {name}: {gate_msg}")
@@ -1176,11 +1182,10 @@ def main() -> None:
             else:
                 print(f"  ✅ Gate PASS for {name}")
 
-            # Truncate excessive output (gate flagged it)
-            max_chars = GATE_CONFIG.get("max_output_chars", 4000)
-            if len(result) > max_chars:
-                result = result[:max_chars] + "\n\n... [output truncated by factory gate] ..."
-                print(f"  ✂ Output truncated for {name} ({len(result)} → {max_chars} chars)")
+            # Truncate excessive output (per-macro cap)
+            if len(result) > macro_max_chars:
+                result = result[:macro_max_chars] + "\n\n... [output truncated by factory gate] ..."
+                print(f"  ✂ Output truncated for {name} ({len(result)} → {macro_max_chars} chars)")
 
             # Cache the (possibly retried) result
             cache_store(fingerprint, result)
