@@ -27,7 +27,10 @@ uint globalID_y = gl_GlobalInvocationID.y;
 uint gridWidth = uint(max(gridXY.x, 1));
 uint gridHeight = uint(max(gridXY.y, 1));
 uint totalCells = gridWidth * gridHeight;
-uint index = (globalID_y * gridWidth + (globalID_x % gridWidth) + (globalID_x / gridWidth) * gridHeight) % totalCells;
+bool invocationInBounds = globalID_x < gridWidth && globalID_y < gridHeight;
+uint safeGlobalID_x = invocationInBounds ? globalID_x : 0u;
+uint safeGlobalID_y = invocationInBounds ? globalID_y : 0u;
+uint index = safeGlobalID_y * gridWidth + safeGlobalID_x;
 
 const vec4 blue       = vec4(0.0, 0.0, 1.0, 1.0);
 const vec4 white      = vec4(1.0, 1.0, 1.0, 1.0);
@@ -301,7 +304,20 @@ vec4 moveTowardsTarget(vec4 sourcePos, int neighbourIndex, float cycleT) {
     }
 
     // Complete full source->target travel across one full 24-hour cycle.
-    sourcePos.xy = mix(baseXY, targetXY, cycleT);
+    vec2 travelPos = mix(baseXY, targetXY, cycleT);
+
+    vec2 dir = delta / dist;
+    vec2 perp = vec2(-dir.y, dir.x);
+
+    uint targetU = uint(max(neighbourIndex, 0));
+    uint laneSeed = index * 1973u + targetU * 9277u + 0x9e3779b9u;
+    float laneJitter = fract(sin(float(laneSeed) * 0.0174533) * 43758.5453) - 0.5;
+
+    float laneWidth = max(ubo.cellSize * 0.24, 0.05);
+    float laneScale = 1.0 - abs(2.0 * cycleT - 1.0);
+    vec2 laneOffset = perp * (laneJitter * laneWidth * laneScale);
+
+    sourcePos.xy = travelPos + laneOffset;
     return sourcePos;
 }
 
@@ -359,6 +375,10 @@ void simulate(out Cell cell) {
 }
 
 void main() {  
+    if (!invocationInBounds) {
+        return;
+    }
+
     if (cellIn[index].states.w == passedHours) { 
         cellOut[index] = cellIn[index]; 
         return; 

@@ -1,9 +1,9 @@
 #include "ShaderAccess.h"
 #include "Pipelines.h"
-#include "Resources.h"
+#include "resources/Resources.h"
 #include "control/gui.h"
 #include "vulkan_base/VulkanUtils.h"
-#include "base/RuntimeConfig.h"
+#include "world/RuntimeConfig.h"
 
 #include <array>
 #include <algorithm>
@@ -390,6 +390,7 @@ void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
       const VkViewport original_viewport = viewport;
 
       for (uint32_t tile_idx = 0; tile_idx < tile_count; ++tile_idx) {
+        const CE::RenderGUI::StageStripTile &tile_config = strip_tiles[tile_idx];
         const uint32_t row = tile_idx / columns;
         const uint32_t column = tile_idx % columns;
         const uint32_t tile_x = (column * extent_width) / columns;
@@ -439,7 +440,6 @@ void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
                               1,
                               &clear_depth_rect);
 
-        const CE::RenderGUI::StageStripTile &tile_config = strip_tiles[tile_idx];
         const bool tile_has_sky = std::find(tile_config.pipelines.begin(),
                                             tile_config.pipelines.end(),
                                             "Sky") != tile_config.pipelines.end();

@@ -1,5 +1,5 @@
 #include "Log.h"
-#include "base/RuntimeConfig.h"
+#include "world/RuntimeConfig.h"
 
 #include <array>
 #include <chrono>

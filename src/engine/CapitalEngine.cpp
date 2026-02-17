@@ -1,6 +1,6 @@
 #include "CapitalEngine.h"
 #include "engine/Log.h"
-#include "base/RuntimeConfig.h"
+#include "world/RuntimeConfig.h"
 #include "library/Screenshot.h"
 #include "control/Window.h"
 #include "control/gui.h"

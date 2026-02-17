@@ -180,12 +180,12 @@
     <ClCompile Include="engine\CapitalEngine.cpp" />
     <ClCompile Include="world\Geometry.cpp" />
     <ClCompile Include="engine\Log.cpp" />
-    <ClCompile Include="base\RuntimeConfig.cpp" />
+    <ClCompile Include="world\RuntimeConfig.cpp" />
     <ClCompile Include="library\Library.cpp" />
     <ClCompile Include="library\Screenshot.cpp" />
     <ClCompile Include="Pipelines.cpp" />
-    <ClCompile Include="Resources.cpp" />
-    <ClCompile Include="World.cpp" />
+    <ClCompile Include="resources\Resources.cpp" />
+    <ClCompile Include="world\World.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="world\SceneConfig.cpp" />
     <ClCompile Include="pipelines\FrameContext.cpp" />
@@ -194,11 +194,10 @@
     <ClCompile Include="pipelines\ShaderAccess.cpp" />
     <ClCompile Include="world\Terrain.cpp" />
     <ClCompile Include="control\Timer.cpp" />
-    <ClCompile Include="base\ValidationLayers.cpp" />
+    <ClCompile Include="vulkan_base\ValidationLayers.cpp" />
     <ClCompile Include="control\Window.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="vulkan_base\VulkanCore.h" />
     <ClInclude Include="vulkan_base\VulkanDescriptor.h" />
     <ClInclude Include="vulkan_base\VulkanDevice.h" />
     <ClInclude Include="vulkan_base\VulkanPipeline.h" />
@@ -209,21 +208,21 @@
     <ClInclude Include="world\Camera.h" />
     <ClInclude Include="world\Geometry.h" />
     <ClInclude Include="engine\Log.h" />
-    <ClInclude Include="base\RuntimeConfig.h" />
+    <ClInclude Include="world\RuntimeConfig.h" />
     <ClInclude Include="engine\CapitalEngine.h" />
     <ClInclude Include="library\Library.h" />
     <ClInclude Include="library\Screenshot.h" />
     <ClInclude Include="world\SceneConfig.h" />
     <ClInclude Include="Pipelines.h" />
-    <ClInclude Include="Resources.h" />
-    <ClInclude Include="World.h" />
+    <ClInclude Include="resources\Resources.h" />
+    <ClInclude Include="world\World.h" />
     <ClInclude Include="pipelines\FrameContext.h" />
     <ClInclude Include="control\gui.h" />
     <ClInclude Include="vulkan_mechanics\Mechanics.h" />
     <ClInclude Include="pipelines\ShaderAccess.h" />
     <ClInclude Include="world\Terrain.h" />
     <ClInclude Include="control\Timer.h" />
-    <ClInclude Include="base\ValidationLayers.h" />
+    <ClInclude Include="vulkan_base\ValidationLayers.h" />
     <ClInclude Include="control\Window.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

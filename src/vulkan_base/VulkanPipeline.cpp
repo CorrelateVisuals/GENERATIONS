@@ -304,6 +304,16 @@ void CE::PipelinesConfiguration::create_pipelines(VkRenderPass &render_pass,
         colorBlendAttachment = CE::color_blend_attachment_state_false;
       }
 
+      if (pipelineName == "CellsFollower") {
+        rasterization.depthBiasEnable = VK_FALSE;
+        rasterization.depthBiasConstantFactor = 0.0f;
+        rasterization.depthBiasSlopeFactor = 0.0f;
+        rasterization.depthBiasClamp = 0.0f;
+        depthStencil.depthTestEnable = VK_TRUE;
+        depthStencil.depthWriteEnable = VK_TRUE;
+        depthStencil.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
+      }
+
       VkPipelineTessellationStateCreateInfo tessellationStateInfo{
           CE::tessellation_state_default};
       if (tesselationEnabled) {

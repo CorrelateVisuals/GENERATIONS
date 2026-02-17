@@ -29,15 +29,14 @@ float hash12(vec2 p) {
 void main() {
     const uint gridWidth = uint(max(ubo.gridXY.x, 1));
     const uint gridHeight = uint(max(ubo.gridXY.y, 1));
-    const uint totalCells = gridWidth * gridHeight;
 
     const uint gx = gl_GlobalInvocationID.x;
     const uint gy = gl_GlobalInvocationID.y;
-    const uint index = (gy * gridWidth + (gx % gridWidth) + (gx / gridWidth) * gridHeight) % totalCells;
-
-    if (index >= totalCells) {
+    if (gx >= gridWidth || gy >= gridHeight) {
         return;
     }
+
+    const uint index = gy * gridWidth + gx;
 
     Cell cell = cells[index];
     const float jitter = (hash12(vec2(float(index), dayFraction)) - 0.5) * 0.02;

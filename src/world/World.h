@@ -3,8 +3,8 @@
 #include "world/Geometry.h"
 #include "library/Library.h"
 #include "control/Timer.h"
-#include "base/RuntimeConfig.h"
-#include "base/ShaderInterface.h"
+#include "world/RuntimeConfig.h"
+#include "resources/ShaderInterface.h"
 
 #include <algorithm>
 #include <array>

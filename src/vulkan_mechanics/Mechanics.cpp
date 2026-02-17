@@ -2,8 +2,8 @@
 
 #include "Mechanics.h"
 #include "engine/Log.h"
-#include "Pipelines.h"
-#include "Resources.h"
+#include "vulkan_pipelines/Pipelines.h"
+#include "resources/Resources.h"
 
 VulkanMechanics::VulkanMechanics()
     : init_vulkan{}, queues{}, swapchain_support{},

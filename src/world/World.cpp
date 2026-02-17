@@ -1,7 +1,7 @@
 #include "World.h"
 #include "world/Geometry.h"
 #include "engine/Log.h"
-#include "base/RuntimeConfig.h"
+#include "world/RuntimeConfig.h"
 
 #include <algorithm>
 #include <cmath>

@@ -1,6 +1,6 @@
 #include "engine/CapitalEngine.h"
 #include "engine/Log.h"
-#include "base/RuntimeConfig.h"
+#include "world/RuntimeConfig.h"
 #include "world/SceneConfig.h"
 
 int main() {

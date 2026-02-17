@@ -1,13 +1,13 @@
 #pragma once
 #include "vulkan/vulkan.h"
 
-#include "pipelines/ShaderAccess.h"
-#include "World.h"
+#include "vulkan_pipelines/ShaderAccess.h"
+#include "world/World.h"
 #include "vulkan_base/VulkanDescriptor.h"
 #include "vulkan_base/VulkanPipeline.h"
 #include "vulkan_base/VulkanResources.h"
 #include "vulkan_base/VulkanSync.h"
-#include "base/RuntimeConfig.h"
+#include "world/RuntimeConfig.h"
 
 #include <array>
 #include <cstring>

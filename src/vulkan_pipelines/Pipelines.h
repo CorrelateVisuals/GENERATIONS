@@ -3,9 +3,9 @@
 
 #include "library/Library.h"
 #include "control/Window.h"
-#include "World.h"
+#include "world/World.h"
 #include "vulkan_base/VulkanPipeline.h"
-#include "base/RuntimeConfig.h"
+#include "world/RuntimeConfig.h"
 
 class VulkanMechanics;
 class Resources;

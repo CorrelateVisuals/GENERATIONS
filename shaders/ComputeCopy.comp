@@ -32,11 +32,11 @@ void main() {
 
     const uint gx = gl_GlobalInvocationID.x;
     const uint gy = gl_GlobalInvocationID.y;
-    const uint index = (gy * gridWidth + (gx % gridWidth) + (gx / gridWidth) * gridHeight) % totalCells;
-
-    if (index >= totalCells) {
+    if (gx >= gridWidth || gy >= gridHeight) {
         return;
     }
+
+    const uint index = gy * gridWidth + gx;
 
     cellOut[index] = cellIn[index];
 }

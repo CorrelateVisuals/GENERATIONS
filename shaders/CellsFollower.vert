@@ -109,10 +109,15 @@ void main() {
 
     vec3 followerBase = inPosition.xyz;
     float baseScale = max(inPosition.w * 1.20f, ubo.cellSize * 0.85f);
-    float followerScale = baseScale * 0.5f;
-    float lift = max(followerScale * 1.05f, 0.22f);
-    float separation = max(ubo.cellSize * 0.06f, 0.02f);
-    followerBase.z += terrain_height(inPosition.xy) + lift + separation;
+    float followerScale = baseScale * 0.45f;
+
+    float cellLift = max(baseScale * 0.52f, 0.08f);
+    float cellTop = cellLift + (baseScale * 0.5f);
+    float followerHalf = followerScale * 0.5f;
+    float separation = max(ubo.cellSize * 0.20f, 0.08f);
+    float followerCenterLift = cellTop + separation + followerHalf;
+
+    followerBase.z += terrain_height(inPosition.xy) + followerCenterLift;
 
     vec4 position = vec4(followerBase + (inVertex.xyz * followerScale), 1.0f);
 #ifdef CE_DEBUG_ENABLE_CELL_INSTANCE_VERTEX_SANITIZATION_GUARDS
@@ -131,21 +136,13 @@ void main() {
     }
 #endif
     vec4 viewPosition = ubo.view * worldPosition;
-    vec3 worldNormal = safe_normalize(mat3(ubo.model) * inNormal.xyz, vec3(0.0f, 0.0f, 1.0f));
 
-    vec3 lightDirection = safe_normalize(ubo.light.rgb - worldPosition.xyz, vec3(0.0f, 0.0f, 1.0f));
-    float diffuse = max(dot(worldNormal, lightDirection), 0.0f);
+    vec3 localNormal = safe_normalize(inNormal.xyz, vec3(0.0f, 0.0f, 1.0f));
+    vec3 fixedLightDir = safe_normalize(vec3(0.35f, 0.45f, 0.82f), vec3(0.0f, 0.0f, 1.0f));
+    float ndotl = max(dot(localNormal, fixedLightDir), 0.0f);
+    float stableShade = 0.28f + ndotl * 0.72f;
 
-    float bandedDiffuse = 0.95f;
-    if (diffuse < 0.25f) {
-        bandedDiffuse = 0.18f;
-    } else if (diffuse < 0.65f) {
-        bandedDiffuse = 0.45f;
-    }
-
-    float verticalFaceBoost = (1.0f - abs(worldNormal.z)) * 0.14f;
-    float lighting = min(bandedDiffuse + verticalFaceBoost, 1.0f);
-
-    fragColor = vec4(clamp(inColor.rgb * lighting, 0.0f, 1.0f), inColor.a);
+    vec3 baseColor = clamp(inColor.rgb * 0.90f + vec3(0.10f), 0.0f, 1.0f);
+    fragColor = vec4(clamp(baseColor * stableShade, 0.0f, 1.0f), inColor.a);
     gl_Position = ubo.projection * viewPosition;
 }

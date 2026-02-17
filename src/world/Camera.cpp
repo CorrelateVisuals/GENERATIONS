@@ -7,7 +7,7 @@
 
 #include "Camera.h"
 #include "engine/Log.h"
-#include "base/RuntimeConfig.h"
+#include "world/RuntimeConfig.h"
 #include "control/Window.h"
 
 #include <algorithm>

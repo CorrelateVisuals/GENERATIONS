@@ -5,9 +5,9 @@
 
 #include <vulkan/vulkan.h>
 
-#include "VulkanCore.h"
-
 namespace CE {
+
+enum IMAGE_RESOURCE_TYPES { CE_DEPTH_IMAGE = 0, CE_MULTISAMPLE_IMAGE = 1 };
 
 class Buffer {
 public:
@@ -118,3 +118,6 @@ private:
 };
 
 } // namespace CE
+
+constexpr CE::IMAGE_RESOURCE_TYPES CE_DEPTH_IMAGE = CE::CE_DEPTH_IMAGE;
+constexpr CE::IMAGE_RESOURCE_TYPES CE_MULTISAMPLE_IMAGE = CE::CE_MULTISAMPLE_IMAGE;

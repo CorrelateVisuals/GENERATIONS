@@ -1,14 +1,17 @@
 #pragma once
 
 #include <array>
+#include <cstddef>
+#include <cstdint>
 #include <variant>
 #include <vector>
 
 #include <vulkan/vulkan.h>
 
-#include "VulkanCore.h"
-
 namespace CE {
+
+constexpr uint32_t MAX_FRAMES_IN_FLIGHT = 2;
+constexpr size_t NUM_DESCRIPTORS = 5;
 
 class DescriptorInterface {
 public:
@@ -54,3 +57,6 @@ protected:
 };
 
 } // namespace CE
+
+constexpr uint32_t MAX_FRAMES_IN_FLIGHT = CE::MAX_FRAMES_IN_FLIGHT;
+constexpr size_t NUM_DESCRIPTORS = CE::NUM_DESCRIPTORS;

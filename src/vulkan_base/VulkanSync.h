@@ -5,7 +5,7 @@
 
 #include <vulkan/vulkan.h>
 
-#include "VulkanCore.h"
+#include "VulkanDescriptor.h"
 #include "VulkanDevice.h"
 #include "VulkanResources.h"
 

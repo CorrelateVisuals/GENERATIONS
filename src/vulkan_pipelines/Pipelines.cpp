@@ -1,7 +1,7 @@
 #include "vulkan_mechanics/Mechanics.h"
 #include "Pipelines.h"
 #include "engine/Log.h"
-#include "Resources.h"
+#include "resources/Resources.h"
 
 Pipelines::Pipelines(VulkanMechanics &mechanics, Resources &resources)
     : compute{resources.descriptor_interface, resources.push_constant},

@@ -73,18 +73,18 @@ add_custom_target(architecture_check
 
 add_custom_command(
     OUTPUT
-        ${PROJECT_SOURCE_DIR}/src/base/ShaderInterface.h
+        ${PROJECT_SOURCE_DIR}/src/resources/ShaderInterface.h
         ${PROJECT_SOURCE_DIR}/shaders/ParameterUBO.glsl
     COMMAND ${Python3_EXECUTABLE} ${PROJECT_SOURCE_DIR}/tools/generate_shader_interface.py
     DEPENDS
-        ${PROJECT_SOURCE_DIR}/src/base/ParameterUBO.schema
+        ${PROJECT_SOURCE_DIR}/src/resources/ParameterUBO.schema
         ${PROJECT_SOURCE_DIR}/tools/generate_shader_interface.py
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
     COMMENT "Generating shader interface from schema"
 )
 
 add_custom_target(shader_interface DEPENDS
-    ${PROJECT_SOURCE_DIR}/src/base/ShaderInterface.h
+    ${PROJECT_SOURCE_DIR}/src/resources/ShaderInterface.h
     ${PROJECT_SOURCE_DIR}/shaders/ParameterUBO.glsl
 )
 

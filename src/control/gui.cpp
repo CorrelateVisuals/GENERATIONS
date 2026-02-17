@@ -1,11 +1,12 @@
 #include "gui.h"
 
-#include "base/RuntimeConfig.h"
+#include "world/RuntimeConfig.h"
 #include "engine/Log.h"
 
 #include <algorithm>
 #include <cctype>
 #include <cstdlib>
+#include <iterator>
 #include <mutex>
 #include <set>
 #include <sstream>
@@ -15,12 +16,48 @@ namespace CE::RenderGUI {
 
 namespace {
 
+constexpr int32_t kDisabledValue = -1;
+constexpr int32_t kNonPresetTile = -1;
+constexpr uint32_t kMaxStripRows = 2;
+constexpr uint32_t kDefaultStripRows = 2;
+constexpr uint32_t kMinCustomHeight = 32;
+constexpr uint32_t kMinAutoHeight = 48;
+constexpr uint32_t kPaddingMax = 64;
+
+constexpr const char *kKeyPresetPrefix = "preset:";
+constexpr const char *kKeyPipelinesPrefix = "pipelines:";
+constexpr const char *kLabelTileFallback = "Tile";
+constexpr const char *kLabelCurrent = "Current";
+constexpr const char *kLabelCellsAll = "CellsAll";
+constexpr const char *kLabelLandscape = "Landscape";
+
+const std::vector<std::string> kStaticPreviewPipelines = {
+    "Sky",
+    "Landscape",
+    "TerrainBox",
+    "Cells",
+    "CellsFollower",
+};
+
+const std::vector<std::string> kPreferredTileOrder = {
+    "LandscapeDebug",
+    "LandscapeStage1",
+    "LandscapeStage2",
+    "LandscapeNormals",
+    "LandscapeStatic",
+    "Sky",
+    "Landscape",
+    "TerrainBox",
+    "Cells",
+    "CellsFollower",
+};
+
 struct StageStripCache {
   bool initialized = false;
   bool enabled = true;
-  int32_t custom_height = -1;
-  int32_t custom_padding = -1;
-  int32_t custom_max_rows = -1;
+  int32_t custom_height = kDisabledValue;
+  int32_t custom_padding = kDisabledValue;
+  int32_t custom_max_rows = kDisabledValue;
   std::vector<StageStripTile> tiles{};
 };
 
@@ -54,15 +91,78 @@ std::vector<std::string> split_trimmed(const std::string &raw, const char delimi
   return values;
 }
 
+std::vector<std::string> unique_preserve_order(const std::vector<std::string> &values) {
+  std::vector<std::string> unique_values{};
+  std::set<std::string> seen{};
+  unique_values.reserve(values.size());
+  for (const std::string &value : values) {
+    if (value.empty()) {
+      continue;
+    }
+    if (seen.insert(value).second) {
+      unique_values.push_back(value);
+    }
+  }
+  return unique_values;
+}
+
+std::string pipelines_key(const std::vector<std::string> &pipelines) {
+  std::string key{};
+  for (const std::string &pipeline : unique_preserve_order(pipelines)) {
+    if (!key.empty()) {
+      key.push_back('|');
+    }
+    key += pipeline;
+  }
+  return key;
+}
+
+void dedupe_tiles_in_place(std::vector<StageStripTile> &tiles) {
+  std::set<std::string> seen_keys{};
+  std::vector<StageStripTile> deduped{};
+  deduped.reserve(tiles.size());
+
+  for (StageStripTile &tile : tiles) {
+    tile.pipelines = unique_preserve_order(tile.pipelines);
+
+    std::string key{};
+    if (tile.preset_index >= 0) {
+      key = std::string(kKeyPresetPrefix) + std::to_string(tile.preset_index);
+    } else {
+      key = std::string(kKeyPipelinesPrefix) + pipelines_key(tile.pipelines);
+    }
+
+    if (!seen_keys.insert(key).second) {
+      continue;
+    }
+    deduped.push_back(std::move(tile));
+  }
+
+  tiles = std::move(deduped);
+}
+
+void append_tile_if_unique(std::vector<StageStripTile> &tiles, StageStripTile tile) {
+  tile.pipelines = unique_preserve_order(tile.pipelines);
+  const std::string key = tile.preset_index >= 0
+                              ? std::string(kKeyPresetPrefix) + std::to_string(tile.preset_index)
+                              : std::string(kKeyPipelinesPrefix) + pipelines_key(tile.pipelines);
+
+  const auto duplicate_it = std::find_if(tiles.begin(), tiles.end(), [&](const StageStripTile &existing) {
+    const std::string existing_key = existing.preset_index >= 0
+                                         ? std::string(kKeyPresetPrefix) + std::to_string(existing.preset_index)
+                                         : std::string(kKeyPipelinesPrefix) + pipelines_key(existing.pipelines);
+    return existing_key == key;
+  });
+  if (duplicate_it == tiles.end()) {
+    tiles.push_back(std::move(tile));
+  }
+}
+
 const std::vector<StageStripTile> &default_tiles() {
   static std::vector<StageStripTile> tiles{};
   if (!tiles.empty()) {
     return tiles;
   }
-
-  // Add preset tiles first
-  tiles.push_back(StageStripTile{.label = "Preset 2", .pipelines = {}, .preset_index = 2});
-  tiles.push_back(StageStripTile{.label = "Preset 3", .pipelines = {}, .preset_index = 3});
 
   const auto &definitions = CE::Runtime::get_pipeline_definitions();
   std::vector<std::string> graphics_stage_names{};
@@ -78,23 +178,11 @@ const std::vector<StageStripTile> &default_tiles() {
   }
   std::sort(graphics_stage_names.begin(), graphics_stage_names.end());
 
-  const std::vector<std::string> preferred_order = {
-      "LandscapeDebug",
-      "LandscapeStage1",
-      "LandscapeStage2",
-      "LandscapeNormals",
-      "Sky",
-      "Landscape",
-      "TerrainBox",
-      "CellsFollower",
-      "Cells",
-  };
-
   std::set<std::string> used_names{};
   std::vector<std::string> ordered_stages{};
   ordered_stages.reserve(graphics_stage_names.size());
 
-  for (const std::string &name : preferred_order) {
+  for (const std::string &name : kPreferredTileOrder) {
     const bool exists = std::find(graphics_stage_names.begin(), graphics_stage_names.end(), name) !=
                         graphics_stage_names.end();
     if (exists) {
@@ -117,12 +205,9 @@ const std::vector<StageStripTile> &default_tiles() {
       }
     }
   }
-  if (!current_graphics.empty()) {
-    tiles.push_back(StageStripTile{.label = "Current", .pipelines = current_graphics});
-  }
 
   for (const std::string &stage : ordered_stages) {
-    tiles.push_back(StageStripTile{.label = stage, .pipelines = {stage}});
+    append_tile_if_unique(tiles, StageStripTile{.label = stage, .pipelines = {stage}});
   }
 
   const bool has_cells_follower =
@@ -130,18 +215,23 @@ const std::vector<StageStripTile> &default_tiles() {
   const bool has_cells =
       std::find(ordered_stages.begin(), ordered_stages.end(), "Cells") != ordered_stages.end();
   if (has_cells_follower && has_cells) {
-    tiles.push_back(StageStripTile{.label = "CellsAll", .pipelines = {"CellsFollower", "Cells"}});
+    append_tile_if_unique(tiles,
+                          StageStripTile{.label = kLabelCellsAll,
+                                         .pipelines = {"Cells", "CellsFollower"}});
   }
 
   if (!current_graphics.empty()) {
-    tiles.push_back(StageStripTile{.label = "Full", .pipelines = current_graphics});
+    append_tile_if_unique(tiles,
+                          StageStripTile{.label = kLabelCurrent, .pipelines = current_graphics});
   }
 
   if (tiles.empty()) {
     tiles = {
-        StageStripTile{.label = "Landscape", .pipelines = {"Landscape"}},
+        StageStripTile{.label = kLabelLandscape, .pipelines = {kLabelLandscape}},
     };
   }
+
+  dedupe_tiles_in_place(tiles);
 
   return tiles;
 }
@@ -157,9 +247,9 @@ const std::unordered_map<std::string, std::vector<std::string>> &tile_aliases() 
       {"terrainbox", {"TerrainBox"}},
       {"cells", {"Cells"}},
       {"cellsfollower", {"CellsFollower"}},
-      {"cellsall", {"CellsFollower", "Cells"}},
-      {"cellsonly", {"CellsFollower", "Cells"}},
-      {"full", {"Sky", "Landscape", "TerrainBox", "CellsFollower", "Cells"}},
+      {"cellsall", {"Cells", "CellsFollower"}},
+      {"cellsonly", {"Cells", "CellsFollower"}},
+      {"full", kStaticPreviewPipelines},
   };
   return aliases;
 }
@@ -180,7 +270,7 @@ std::vector<std::string> resolve_pipeline_alias(const std::string &token) {
 
 std::string auto_label_from_sources(const std::vector<std::string> &sources) {
   if (sources.empty()) {
-    return "Tile";
+    return kLabelTileFallback;
   }
   if (sources.size() == 1) {
     return sources.front();
@@ -254,6 +344,8 @@ void initialize_stage_strip_cache() {
     }
   }
 
+  dedupe_tiles_in_place(g_stage_strip_cache.tiles);
+
   const char *raw_labels = std::getenv("CE_RENDER_STAGE_TILE_LABELS");
   if (raw_labels && std::string(raw_labels).size() > 0) {
     const std::vector<std::string> labels = split_trimmed(raw_labels, ',');
@@ -280,29 +372,27 @@ StageStripConfig get_stage_strip_config(const VkExtent2D &extent) {
   config.enabled = g_stage_strip_cache.enabled;
   if (g_stage_strip_cache.custom_max_rows > 0) {
     config.max_rows =
-        std::clamp<uint32_t>(static_cast<uint32_t>(g_stage_strip_cache.custom_max_rows), 1, 2);
+        std::clamp<uint32_t>(static_cast<uint32_t>(g_stage_strip_cache.custom_max_rows), 1, kMaxStripRows);
   } else {
-    config.max_rows = 2;
+    config.max_rows = kDefaultStripRows;
   }
 
   const uint32_t max_reasonable_height = std::max<uint32_t>(extent.height / 2, 1);
   if (g_stage_strip_cache.custom_height > 0) {
     config.strip_height_px =
         std::clamp<uint32_t>(static_cast<uint32_t>(g_stage_strip_cache.custom_height),
-                             32,
+                             kMinCustomHeight,
                              max_reasonable_height);
   } else {
-    config.strip_height_px = std::clamp<uint32_t>(extent.height / 15, 48, max_reasonable_height);
+    config.strip_height_px = std::clamp<uint32_t>(extent.height / 15, kMinAutoHeight, max_reasonable_height);
   }
 
-  if (config.max_rows > 1) {
-    const uint32_t scaled_height = config.strip_height_px + config.strip_height_px / 5;
-    config.strip_height_px = std::min<uint32_t>(scaled_height, max_reasonable_height);
-  }
+  config.strip_height_px =
+      std::min<uint32_t>(config.strip_height_px * 2, max_reasonable_height);
 
-  if (g_stage_strip_cache.custom_padding >= 0) {
+    if (g_stage_strip_cache.custom_padding >= 0) {
     config.padding_px =
-        std::clamp<uint32_t>(static_cast<uint32_t>(g_stage_strip_cache.custom_padding), 0, 64);
+      std::clamp<uint32_t>(static_cast<uint32_t>(g_stage_strip_cache.custom_padding), 0, kPaddingMax);
   }
 
   return config;

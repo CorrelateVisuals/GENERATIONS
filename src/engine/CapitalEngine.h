@@ -1,8 +1,8 @@
 #pragma once
 #include "vulkan_mechanics/Mechanics.h"
-#include "pipelines/FrameContext.h"
-#include "Pipelines.h"
-#include "Resources.h"
+#include "vulkan_pipelines/FrameContext.h"
+#include "vulkan_pipelines/Pipelines.h"
+#include "resources/Resources.h"
 
 #include <memory>
 #include <string>
