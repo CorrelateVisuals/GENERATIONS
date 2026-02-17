@@ -1,0 +1,72 @@
+diff --git a/src/vulkan_base/VulkanBaseSync.cpp b/src/vulkan_base/VulkanBaseSync.cpp
+index 1234567..89abcde 100644
+--- a/src/vulkan_base/VulkanBaseSync.cpp
++++ b/src/vulkan_base/VulkanBaseSync.cpp
+@@ -45,12 +45,18 @@ void VulkanBaseSync::apply_barriers(VkCommandBuffer command_buffer) {
+     VkPipelineStageFlags src_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+     VkPipelineStageFlags dst_stage = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+ 
+-    VkImageMemoryBarrier barrier = {};
++    // Optimized barrier to reduce unnecessary synchronization overhead
++    VkPipelineStageFlags optimized_src_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
++    VkPipelineStageFlags optimized_dst_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
++
++    VkImageMemoryBarrier barrier{};
+     barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+-    barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
++    barrier.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+     barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+-    barrier.srcAccessMask = 0;
+-    barrier.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
++    barrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
++    barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+     barrier.image = target_image;
+     barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+     barrier.subresourceRange.baseMipLevel = 0;
+@@ -58,7 +64,7 @@ void VulkanBaseSync::apply_barriers(VkCommandBuffer command_buffer) {
+     barrier.subresourceRange.baseArrayLayer = 0;
+     barrier.subresourceRange.layerCount = 1;
+ 
+-    vkCmdPipelineBarrier(command_buffer, src_stage, dst_stage, 0, 0, nullptr, 0, nullptr, 1, &barrier);
++    vkCmdPipelineBarrier(command_buffer, optimized_src_stage, optimized_dst_stage, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+ }
+ 
+ void VulkanBaseSync::reset_fences() {
+diff --git a/src/engine/Log.cpp b/src/engine/Log.cpp
+index 2345678..abcdef0 100644
+--- a/src/engine/Log.cpp
++++ b/src/engine/Log.cpp
+@@ -67,6 +67,19 @@ void Log::text(const std::string &message) {
+     std::cout << message << std::endl;
+ }
+ 
++void Log::log_barrier(const VkImageMemoryBarrier &barrier) {
++    text("Barrier Applied:");
++    text("  Old Layout: " + get_image_usage_string(barrier.oldLayout));
++    text("  New Layout: " + get_image_usage_string(barrier.newLayout));
++    text("  Src Access: " + get_memory_property_string(barrier.srcAccessMask));
++    text("  Dst Access: " + get_memory_property_string(barrier.dstAccessMask));
++}
++
++std::string Log::get_image_usage_string(VkImageLayout layout) {
++    // Add mapping for Vulkan image layouts to human-readable strings
++    return "TODO: Implement layout string mapping";
++}
++
+ void Log::measure_elapsed_time() {
+     static auto last_time = std::chrono::high_resolution_clock::now();
+     auto current_time = std::chrono::high_resolution_clock::now();
+diff --git a/src/engine/Log.h b/src/engine/Log.h
+index 3456789..bcdef01 100644
+--- a/src/engine/Log.h
++++ b/src/engine/Log.h
+@@ -25,6 +25,9 @@ public:
+     static void text(const std::string &message);
+     static void measure_elapsed_time();
+ 
++    static void log_barrier(const VkImageMemoryBarrier &barrier);
++    static std::string get_image_usage_string(VkImageLayout layout);
++
+ private:
+     static std::mutex log_mutex;
+ };
