@@ -1,0 +1,55 @@
+diff --git a/src/engine/CapitalEngine.cpp b/src/engine/CapitalEngine.cpp
+index abcdef1..1234567 100644
+--- a/src/engine/CapitalEngine.cpp
++++ b/src/engine/CapitalEngine.cpp
+@@ -10,6 +10,7 @@
+ #include "CapitalEngine.h"
+ 
+ void CapitalEngine::recreate_swapchain() {
++    mechanics.swapchain.recreate(mechanics.init_vulkan.surface, mechanics.queues, mechanics.sync_objects, *pipelines, *resources, /* triple_buffering = */ true);
+ }
+ 
+ void CapitalEngine::main_loop() {
+@@ -20,8 +21,12 @@ void CapitalEngine::main_loop() {
+         uint32_t image_index = mechanics.swapchain.acquire_next_image();
+ 
+         // Wait for the current frame to finish
++        mechanics.sync_objects.wait_for_frame(current_frame_index);
++
+         // Record and submit commands for the current frame
+         draw_frame();
++
++        // Present the frame
+         mechanics.swapchain.present_image(image_index);
+ 
+         // Update frame index
+diff --git a/src/engine/CapitalEngine.h b/src/engine/CapitalEngine.h
+index 1234567..89abcde 100644
+--- a/src/engine/CapitalEngine.h
++++ b/src/engine/CapitalEngine.h
+@@ -15,6 +15,7 @@ class CapitalEngine {
+ private:
+     VulkanMechanics mechanics;
+     std::unique_ptr<VulkanResources> resources;
++    uint32_t current_frame_index{0}; // New: Track the current frame index
+ 
+     void recreate_swapchain();
+     void draw_frame();
+diff --git a/src/vulkan_mechanics/Mechanics.cpp b/src/vulkan_mechanics/Mechanics.cpp
+index 1234567..89abcde 100644
+--- a/src/vulkan_mechanics/Mechanics.cpp
++++ b/src/vulkan_mechanics/Mechanics.cpp
+@@ -50,6 +50,13 @@ void VulkanMechanics::Swapchain::recreate(VkSurfaceKHR surface,
+                                           const Queues &queues,
+                                           SyncObjects &sync_objects,
+                                           Pipelines &pipelines,
++                                          VulkanResources &resources,
++                                          bool triple_buffering) {
++    // Adjust the number of images in the swapchain based on triple buffering
++    uint32_t desired_image_count = triple_buffering ? 3 : 2;
++
++    // Existing swapchain creation logic...
++    create_swapchain(surface, desired_image_count);
++    create_image_views();
++    create_framebuffers();
+ }
