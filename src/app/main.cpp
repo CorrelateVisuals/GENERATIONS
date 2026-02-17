@@ -1,11 +1,12 @@
 #include "CapitalEngine.h"
 #include "core/Log.h"
 #include "core/RuntimeConfig.h"
-#include "implementation/ScriptChainerApp.h"
+#include "scene/SceneConfig.h"
 
 int main() {
   try {
-    CE::Implementation::ScriptChainerApp::run();
+    const CE::Scene::SceneConfig scene_config = CE::Scene::SceneConfig::defaults();
+    scene_config.apply_to_runtime();
 
     if (CE::Runtime::env_flag_enabled("CE_SCRIPT_ONLY")) {
       return EXIT_SUCCESS;

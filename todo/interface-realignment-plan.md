@@ -24,10 +24,10 @@ Re-introduce the legacy scene interface surface (`Pipelines.h`, `Resources.h`, `
 Do this in two passes so functionality stays stable.
 
 ### Pass 1: Compatibility + ownership shift (no behavior changes)
-- Add top-level compatibility headers in `src/`:
-  - `src/Pipelines.h` forwarding to `render/Pipelines.h`
-  - `src/Resources.h` forwarding to `render/Resources.h`
-  - `src/World.h` forwarding to `world/World.h`
+- Hard-cut to legacy-flat public API in `src/`:
+  - restore `src/Pipelines.h/.cpp`
+  - restore `src/Resources.h/.cpp`
+  - restore `src/World.h/.cpp`
 - Introduce one legacy-style scene config owner (single source of truth), e.g. `SceneConfig`/`LegacySceneConfig`.
   - Move the actual default values currently in `ImplementationSpec::default_spec()` into this owner.
   - Keep data model equivalent to `CE::Runtime::{TerrainSettings, WorldSettings, PipelineDefinition, RenderGraph, draw_ops}`.
@@ -157,8 +157,8 @@ This section turns pre-work decisions into explicit choices so implementation ca
 ## Detailed work plan
 
 ### 1) Establish API compatibility layer
-- Create forwarding headers to restore legacy include paths.
-- Verify both old and new include paths compile.
+- Restore legacy-flat top-level files (`World`, `Resources`, `Pipelines`) as the primary interface surface.
+- Repoint includes/call sites to top-level API (hard cut).
 
 ### 2) Extract current config into legacy-owned module
 - Add `src/scene/SceneConfig.h/.cpp` (or similar).
@@ -190,17 +190,78 @@ This section turns pre-work decisions into explicit choices so implementation ca
 - Risk: subtle render graph behavior drift after moving defaults.
   - Mitigation: snapshot and compare runtime graph/pipeline maps before and after.
 - Risk: include-path breakage in external tooling.
-  - Mitigation: keep forwarding headers and avoid immediate hard delete of modular headers.
+  - Mitigation: do a single-phase include rewrite with a strict compile gate across Linux + VS project references.
 - Risk: env-variable semantics change.
   - Mitigation: preserve current parsing and stage-selection logic exactly during extraction.
 
 ## Acceptance criteria
-- Project builds with both legacy include paths and current modular paths.
+- Project builds with legacy-flat top-level API as primary interface.
 - Scene output and stage behavior match current branch defaults.
 - No startup dependency on `ImplementationSpec` / `ScriptChainerApp` remains.
 - `Pipelines`, `Resources`, and `World` are again the obvious primary interfaces for scene configuration flow.
 
 ## Suggested execution order (PR-sized)
-1. PR1: Add forwarding headers + introduce `SceneConfig` + wire startup.
-2. PR2: Remove builder files and project references.
-3. PR3: Optional cleanup/refactor of runtime config internals after parity confirmation.
+1. PR1: Rewire startup + flatten to top-level `World/Resources/Pipelines` + pass parity gates.
+2. PR2: Cleanup pass (dead code removal, refactor leftovers, and post-merge tightening).
+
+## PR1 execution checklist (file-by-file)
+
+Use this as the implementation sequence for PR1.
+
+### A) Create canonical scene config owner
+- Add `src/scene/SceneConfig.h`.
+- Add `src/scene/SceneConfig.cpp`.
+- Define:
+  - `SceneConfig SceneConfig::defaults()` (or equivalent static builder)
+  - `void SceneConfig::apply_to_runtime() const`
+- Copy exact effective defaults from current `ImplementationSpec::default_spec()`:
+  - terrain settings
+  - world settings
+  - pipeline definitions
+  - draw ops
+  - render graph stage logic (`CE_RENDER_STAGE`, `CE_WORKLOAD_PRESET`, `CE_COMPUTE_CHAIN`)
+
+### B) Rewire app startup
+- Edit `src/app/main.cpp`:
+  - remove include of `implementation/ScriptChainerApp.h`
+  - include scene config owner header
+  - replace `ScriptChainerApp::run()` with `SceneConfig::...apply_to_runtime()`
+  - preserve `CE_SCRIPT_ONLY` behavior exactly
+
+### C) Flatten API surface to match `main`
+- Restore top-level public files:
+  - `src/World.h`, `src/World.cpp`
+  - `src/Resources.h`, `src/Resources.cpp`
+  - `src/Pipelines.h`, `src/Pipelines.cpp`
+- Move/rewire includes so app-facing entry points use top-level files.
+- Keep naming/signatures as close to `main` API layer as possible.
+
+### D) Remove implementation/graph dependencies from build graph
+- Remove usage and references to:
+  - `src/implementation/ImplementationSpec.*`
+  - `src/implementation/ScriptChainerApp.*`
+  - `src/implementation/GraphExecutionPlan.*`
+  - `src/implementation/ShaderGraph.*`
+- Update `src/CAPITAL-engine.vcxproj` explicit compile/include entries accordingly.
+- Ensure CMake source glob no longer compiles orphaned implementation files.
+
+### E) Parity gate checks (must pass before PR1 merge)
+- Build on Linux (CMake configure + build).
+- Verify runtime pipeline map contains expected keys:
+  - `Engine`, `PostFX`, `Sky`, `Landscape`, `TerrainBox`, `Cells`, `CellsFollower`, compute variants.
+- Verify draw-op mapping parity:
+  - `Cells* -> instanced:cells`
+  - `Landscape* -> indexed:grid`
+  - `TerrainBox -> indexed:grid_box`
+  - `Sky -> sky_dome`
+- Verify env behavior parity:
+  - `CE_RENDER_STAGE`
+  - `CE_WORKLOAD_PRESET`
+  - `CE_COMPUTE_CHAIN`
+  - `CE_SCRIPT_ONLY`
+
+### F) PR1 done definition
+- No runtime path imports `src/implementation/*`.
+- Public interface layer appears top-level and `main`-like.
+- Scene output is visually equivalent for default startup.
+- Build succeeds in Linux and project references are VS-ready.

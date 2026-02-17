@@ -2,18 +2,17 @@
 
 #include "core/RuntimeConfig.h"
 
-#include <unordered_map>
+namespace CE::Scene {
 
-namespace CE::Implementation {
-
-struct ImplementationSpec {
+struct SceneConfig {
   CE::Runtime::TerrainSettings terrain{};
   CE::Runtime::WorldSettings world{};
   std::unordered_map<std::string, CE::Runtime::PipelineDefinition> pipelines{};
   CE::Runtime::RenderGraph render_graph{};
   std::unordered_map<std::string, std::string> draw_ops{};
+
+  static SceneConfig defaults();
+  void apply_to_runtime() const;
 };
 
-ImplementationSpec default_spec();
-
-} // namespace CE::Implementation
+} // namespace CE::Scene

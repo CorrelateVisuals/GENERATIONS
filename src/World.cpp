@@ -1,5 +1,5 @@
 #include "World.h"
-#include "Geometry.h"
+#include "world/Geometry.h"
 #include "core/Log.h"
 #include "core/RuntimeConfig.h"
 
@@ -179,7 +179,6 @@ World::Grid::Grid(const CE::Runtime::TerrainSettings &terrain_settings,
   const float xMax = startX + static_cast<float>(size.x - 1);
   const float yMin = startY;
   const float yMax = startY + static_cast<float>(size.y - 1);
-  const float zTop = absoluteHeight;
   const float zBottom = absoluteHeight - box_depth;
 
   std::vector<uint32_t> boundary_loop{};

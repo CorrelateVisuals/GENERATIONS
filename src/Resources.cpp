@@ -2,7 +2,7 @@
 
 #include "io/Library.h"
 #include "core/Log.h"
-#include "Mechanics.h"
+#include "render/Mechanics.h"
 #include "Resources.h"
 
 Resources::Resources(VulkanMechanics &mechanics, const CE::Runtime::TerrainSettings &terrain_settings)
@@ -18,8 +18,7 @@ Resources::Resources(VulkanMechanics &mechanics, const CE::Runtime::TerrainSetti
         mechanics.queues.graphics_queue,
         terrain_settings},
 
-      // Descriptors
-        descriptor_interface(),
+      descriptor_interface(),
 
         depth_image{
           CE_DEPTH_IMAGE,
@@ -160,7 +159,6 @@ void Resources::StorageBuffer::create(const CE::CommandInterface &command_interf
                                       const size_t quantity) {
   Log::text("{ 101 }", "Shader Storage Buffers");
 
-  // Create a staging buffer used to upload data to the gpu
   CE::Buffer stagingResources;
   VkDeviceSize bufferSize = sizeof(World::Cell) * quantity;
 

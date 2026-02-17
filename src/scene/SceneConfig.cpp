@@ -1,12 +1,13 @@
-#include "ImplementationSpec.h"
+#include "SceneConfig.h"
 
 #include <algorithm>
 #include <cctype>
 #include <cstdlib>
 
-namespace CE::Implementation {
+namespace CE::Scene {
 
 namespace {
+
 int parse_render_stage() {
   const char *raw = std::getenv("CE_RENDER_STAGE");
   if (!raw) {
@@ -82,10 +83,11 @@ std::string workload_preset() {
   }
   return preset;
 }
-}
 
-ImplementationSpec default_spec() {
-  ImplementationSpec spec{};
+} // namespace
+
+SceneConfig SceneConfig::defaults() {
+  SceneConfig spec{};
   const int render_stage = parse_render_stage();
   const std::string preset = workload_preset();
   const std::vector<std::string> compute_chain = split_csv(std::getenv("CE_COMPUTE_CHAIN"));
@@ -136,130 +138,72 @@ ImplementationSpec default_spec() {
   spec.world.rectangle_shape = 0;
   spec.world.sphere_shape = 1;
 
-    spec.pipelines["Cells"] = CE::Runtime::PipelineDefinition{
+  spec.pipelines["Cells"] = CE::Runtime::PipelineDefinition{
       .is_compute = false,
       .shaders = {"CellsVert", "CellsFrag"},
-    };
-    spec.pipelines["CellsFollower"] = CE::Runtime::PipelineDefinition{
+  };
+  spec.pipelines["CellsFollower"] = CE::Runtime::PipelineDefinition{
       .is_compute = false,
       .shaders = {"CellsFollowerVert", "CellsFrag"},
-    };
-    spec.pipelines["Engine"] = CE::Runtime::PipelineDefinition{
+  };
+  spec.pipelines["Engine"] = CE::Runtime::PipelineDefinition{
       .is_compute = true,
       .shaders = {"EngineComp"},
       .work_groups = {0, 0, 0},
-    };
-    spec.pipelines["Landscape"] = CE::Runtime::PipelineDefinition{
+  };
+  spec.pipelines["Landscape"] = CE::Runtime::PipelineDefinition{
       .is_compute = false,
       .shaders = {"LandscapeVert", "LandscapeFrag"},
   };
-    spec.pipelines["LandscapeDebug"] = CE::Runtime::PipelineDefinition{
+  spec.pipelines["LandscapeDebug"] = CE::Runtime::PipelineDefinition{
       .is_compute = false,
       .shaders = {"LandscapeVert", "LandscapeDebugFrag"},
   };
-    spec.pipelines["LandscapeStage1"] = CE::Runtime::PipelineDefinition{
+  spec.pipelines["LandscapeStage1"] = CE::Runtime::PipelineDefinition{
       .is_compute = false,
       .shaders = {"LandscapeVert", "LandscapeStage1Frag"},
   };
-    spec.pipelines["LandscapeStage2"] = CE::Runtime::PipelineDefinition{
+  spec.pipelines["LandscapeStage2"] = CE::Runtime::PipelineDefinition{
       .is_compute = false,
       .shaders = {"LandscapeVert", "LandscapeStage2Frag"},
   };
-    spec.pipelines["LandscapeNormals"] = CE::Runtime::PipelineDefinition{
+  spec.pipelines["LandscapeNormals"] = CE::Runtime::PipelineDefinition{
       .is_compute = false,
       .shaders = {"LandscapeVert", "LandscapeNormalsFrag"},
   };
-    spec.pipelines["TerrainBox"] = CE::Runtime::PipelineDefinition{
+  spec.pipelines["TerrainBox"] = CE::Runtime::PipelineDefinition{
       .is_compute = false,
       .shaders = {"TerrainBoxSeamVert", "TerrainBoxFrag"},
   };
-    spec.pipelines["Sky"] = CE::Runtime::PipelineDefinition{
+  spec.pipelines["Sky"] = CE::Runtime::PipelineDefinition{
       .is_compute = false,
       .shaders = {"SkyVert", "SkyFrag"},
   };
-    spec.pipelines["PostFX"] = CE::Runtime::PipelineDefinition{
+  spec.pipelines["PostFX"] = CE::Runtime::PipelineDefinition{
       .is_compute = true,
       .shaders = {"PostFXComp"},
       .work_groups = {0, 0, 0},
-    };
-    spec.pipelines["ComputeInPlace"] = CE::Runtime::PipelineDefinition{
+  };
+  spec.pipelines["ComputeInPlace"] = CE::Runtime::PipelineDefinition{
       .is_compute = true,
       .shaders = {"ComputeInPlaceComp"},
       .work_groups = {0, 0, 0},
-    };
-    spec.pipelines["ComputeJitter"] = CE::Runtime::PipelineDefinition{
+  };
+  spec.pipelines["ComputeJitter"] = CE::Runtime::PipelineDefinition{
       .is_compute = true,
       .shaders = {"ComputeJitterComp"},
       .work_groups = {0, 0, 0},
-    };
-    spec.pipelines["ComputeCopy"] = CE::Runtime::PipelineDefinition{
+  };
+  spec.pipelines["ComputeCopy"] = CE::Runtime::PipelineDefinition{
       .is_compute = true,
       .shaders = {"ComputeCopyComp"},
       .work_groups = {0, 0, 0},
-    };
-    spec.pipelines["SeedCells"] = CE::Runtime::PipelineDefinition{
+  };
+  spec.pipelines["SeedCells"] = CE::Runtime::PipelineDefinition{
       .is_compute = true,
       .shaders = {"SeedCellsComp"},
       .work_groups = {0, 0, 0},
-    };
-
-    const bool compute_only = preset == "compute_only" || preset == "compute_chain";
-    if (compute_only) {
-      const std::vector<std::string> default_chain = {
-          "ComputeInPlace",
-          "ComputeJitter",
-          "ComputeCopy",
-      };
-      const std::vector<std::string> &active_chain =
-          compute_chain.empty() ? default_chain : compute_chain;
-
-      spec.render_graph.nodes.clear();
-      for (const std::string &pipeline : active_chain) {
-        spec.render_graph.nodes.push_back(CE::Runtime::RenderNode{
-            .stage = CE::Runtime::RenderStage::PreCompute,
-            .pipeline = pipeline,
-            .draw_op = CE::Runtime::DrawOpId::Unknown,
-        });
-      }
-    } else {
-      std::vector<std::string> graphics_pipelines = {"LandscapeDebug"};
-      std::vector<std::string> pre_compute_pipelines{};
-
-      if (render_stage >= 1) {
-        graphics_pipelines = {"LandscapeStage1"};
-      }
-      if (render_stage >= 2) {
-        graphics_pipelines = {"LandscapeStage2"};
-      }
-      if (render_stage >= 3) {
-        graphics_pipelines = {"Sky", "Landscape", "TerrainBox"};
-      }
-      if (render_stage >= 4) {
-        pre_compute_pipelines = {"Engine"};
-        graphics_pipelines = {"Sky", "Landscape", "TerrainBox", "CellsFollower", "Cells"};
-      }
-
-      spec.render_graph.nodes.clear();
-      for (const std::string &pipeline : pre_compute_pipelines) {
-        spec.render_graph.nodes.push_back(CE::Runtime::RenderNode{
-            .stage = CE::Runtime::RenderStage::PreCompute,
-            .pipeline = pipeline,
-            .draw_op = CE::Runtime::DrawOpId::Unknown,
-        });
-      }
-      for (const std::string &pipeline : graphics_pipelines) {
-        const auto draw_it = spec.draw_ops.find(pipeline);
-        const CE::Runtime::DrawOpId draw_op =
-            (draw_it != spec.draw_ops.end())
-                ? CE::Runtime::draw_op_from_string(draw_it->second)
-                : CE::Runtime::DrawOpId::Unknown;
-        spec.render_graph.nodes.push_back(CE::Runtime::RenderNode{
-            .stage = CE::Runtime::RenderStage::Graphics,
-            .pipeline = pipeline,
-            .draw_op = draw_op,
-        });
-      }
-    }
+  };
 
   spec.draw_ops = {
       {"Cells", "instanced:cells"},
@@ -269,11 +213,78 @@ ImplementationSpec default_spec() {
       {"LandscapeStage1", "indexed:grid"},
       {"LandscapeStage2", "indexed:grid"},
       {"LandscapeNormals", "indexed:grid"},
-        {"TerrainBox", "indexed:grid_box"},
+      {"TerrainBox", "indexed:grid_box"},
       {"Sky", "sky_dome"},
   };
+
+  const bool compute_only = preset == "compute_only" || preset == "compute_chain";
+  if (compute_only) {
+    const std::vector<std::string> default_chain = {
+        "ComputeInPlace",
+        "ComputeJitter",
+        "ComputeCopy",
+    };
+    const std::vector<std::string> &active_chain =
+        compute_chain.empty() ? default_chain : compute_chain;
+
+    spec.render_graph.nodes.clear();
+    for (const std::string &pipeline : active_chain) {
+      spec.render_graph.nodes.push_back(CE::Runtime::RenderNode{
+          .stage = CE::Runtime::RenderStage::PreCompute,
+          .pipeline = pipeline,
+          .draw_op = CE::Runtime::DrawOpId::Unknown,
+      });
+    }
+  } else {
+    std::vector<std::string> graphics_pipelines = {"LandscapeDebug"};
+    std::vector<std::string> pre_compute_pipelines{};
+
+    if (render_stage >= 1) {
+      graphics_pipelines = {"LandscapeStage1"};
+    }
+    if (render_stage >= 2) {
+      graphics_pipelines = {"LandscapeStage2"};
+    }
+    if (render_stage >= 3) {
+      graphics_pipelines = {"Sky", "Landscape", "TerrainBox"};
+    }
+    if (render_stage >= 4) {
+      pre_compute_pipelines = {"Engine"};
+      graphics_pipelines = {"Sky", "Landscape", "TerrainBox", "CellsFollower", "Cells"};
+    }
+
+    spec.render_graph.nodes.clear();
+    for (const std::string &pipeline : pre_compute_pipelines) {
+      spec.render_graph.nodes.push_back(CE::Runtime::RenderNode{
+          .stage = CE::Runtime::RenderStage::PreCompute,
+          .pipeline = pipeline,
+          .draw_op = CE::Runtime::DrawOpId::Unknown,
+      });
+    }
+
+    for (const std::string &pipeline : graphics_pipelines) {
+      const auto draw_it = spec.draw_ops.find(pipeline);
+      const CE::Runtime::DrawOpId draw_op =
+          (draw_it != spec.draw_ops.end())
+              ? CE::Runtime::draw_op_from_string(draw_it->second)
+              : CE::Runtime::DrawOpId::Unknown;
+      spec.render_graph.nodes.push_back(CE::Runtime::RenderNode{
+          .stage = CE::Runtime::RenderStage::Graphics,
+          .pipeline = pipeline,
+          .draw_op = draw_op,
+      });
+    }
+  }
 
   return spec;
 }
 
-} // namespace CE::Implementation
+void SceneConfig::apply_to_runtime() const {
+  CE::Runtime::set_terrain_settings(terrain);
+  CE::Runtime::set_world_settings(world);
+  CE::Runtime::set_pipeline_definitions(pipelines);
+  CE::Runtime::set_render_graph(render_graph);
+  CE::Runtime::set_graphics_draw_ops(draw_ops);
+}
+
+} // namespace CE::Scene

@@ -1,8 +1,8 @@
 #pragma once
 #include "render/Mechanics.h"
 #include "render/FrameContext.h"
-#include "render/Pipelines.h"
-#include "render/Resources.h"
+#include "Pipelines.h"
+#include "Resources.h"
 
 #include <memory>
 #include <string>

@@ -277,7 +277,7 @@ StageStripConfig get_stage_strip_config(const VkExtent2D &extent) {
                              32,
                              max_reasonable_height);
   } else {
-    config.strip_height_px = std::clamp<uint32_t>(extent.height / 5, 80, max_reasonable_height);
+    config.strip_height_px = std::clamp<uint32_t>(extent.height / 15, 48, max_reasonable_height);
   }
 
   if (g_stage_strip_cache.custom_padding >= 0) {
@@ -363,36 +363,25 @@ int32_t find_stage_strip_tile_index(const VkExtent2D &extent,
       static_cast<uint32_t>(normalized_y * static_cast<float>(extent.height));
 
   const uint32_t tile_count = static_cast<uint32_t>(tiles.size());
-  const uint32_t padding = stage_strip.padding_px;
   const uint32_t strip_height = stage_strip.strip_height_px;
-  const uint32_t reserved_padding = padding * 2;
-  const uint32_t usable_width =
-      (extent.width > reserved_padding) ? (extent.width - reserved_padding) : extent.width;
+  const uint32_t tile_height = std::max<uint32_t>(strip_height, 1);
+  const uint32_t extent_width = std::max<uint32_t>(extent.width, 1);
 
-   (void)max_tiles_per_row;
-   const uint32_t tiles_per_row = tile_count;
-   const uint32_t tile_height = std::max<uint32_t>(strip_height, 1);
+  if (pixel_y >= tile_height) {
+    return -1;
+  }
 
-   if (pixel_y >= tile_height) {
-     return -1;
-   }
-
-   for (uint32_t tile = 0; tile < tiles_per_row; ++tile) {
-     const uint32_t row_tile_count = tiles_per_row;
-     const uint32_t horizontal_padding_total = padding * (row_tile_count + 1);
-    const uint32_t tile_in_row = tile - row_start_tile;
-    const uint32_t tile_x = padding + tile_in_row * (tile_width + padding);
+  for (uint32_t tile = 0; tile < tile_count; ++tile) {
+    const uint32_t tile_x = (tile * extent_width) / tile_count;
+    const uint32_t tile_x_next = ((tile + 1) * extent_width) / tile_count;
+    const uint32_t tile_width = std::max<uint32_t>(tile_x_next - tile_x, 1);
     const uint32_t clamped_width =
-        std::min<uint32_t>(tile_width,
-     const uint32_t tile_x = padding + tile * (tile_width + padding);
+        std::min<uint32_t>(tile_width, extent.width - std::min(tile_x, extent.width));
 
-    const uint32_t y0_tile = padding + clicked_row * row_height;
-    const uint32_t y1_tile = y0_tile + tile_height;
-
-     const uint32_t y0_tile = 0;
+    const uint32_t x0 = tile_x;
     const uint32_t x1 = x0 + clamped_width;
 
-    if (pixel_x >= x0 && pixel_x < x1 && pixel_y >= y0_tile && pixel_y < y1_tile) {
+    if (pixel_x >= x0 && pixel_x < x1) {
       return static_cast<int32_t>(tile);
     }
   }
