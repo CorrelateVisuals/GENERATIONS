@@ -25,6 +25,11 @@ on:
           - Party
           - lead++
           - agents++
+      task_command:
+        description: "Task override (e.g. 'triple buffering'). Blank = use current-task.md"
+        required: false
+        type: string
+        default: ""
       auto_apply_patch:
         description: "Guarded auto-apply patch before PR"
         required: true
@@ -87,6 +92,7 @@ jobs:
           MAX_PATCH_FILES: ${{ vars.MAX_PATCH_FILES || '8' }}
           MAX_PATCH_LINES: ${{ vars.MAX_PATCH_LINES || '400' }}
           GUARD_BUILD_CMD: ${{ vars.GUARD_BUILD_CMD || '' }}
+          TASK_COMMAND: ${{ github.event.inputs.task_command }}
         run: |
           python .github/scripts/agent_autorun.py
 
