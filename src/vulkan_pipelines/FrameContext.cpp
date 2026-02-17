@@ -2,7 +2,7 @@
 
 #include "vulkan_mechanics/Mechanics.h"
 #include "Pipelines.h"
-#include "resources/Resources.h"
+#include "vulkan_resources/VulkanResources.h"
 #include "vulkan_base/VulkanUtils.h"
 #include "control/Window.h"
 #include "engine/Log.h"
@@ -91,7 +91,7 @@ thread_local FrameSample g_sample{};
 }
 
 FrameContext::FrameContext(VulkanMechanics &mechanics,
-                           Resources &resources,
+                           VulkanResources &resources,
                            Pipelines &pipelines)
     : mechanics_(mechanics), resources_(resources), pipelines_(pipelines) {}
 
@@ -167,6 +167,7 @@ void FrameContext::draw_frame(uint32_t &last_presented_image_index,
     g_sample.acquire_ms = ms_since(t_acquire_start, t_acquire_end);
 
     if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+      Window::get().framebuffer_resized = false;
       recreate_swapchain();
       return false;
     }
@@ -230,10 +231,13 @@ void FrameContext::draw_frame(uint32_t &last_presented_image_index,
 
     VkResult result = vkQueuePresentKHR(mechanics_.queues.present_queue, &present_info);
 
-    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR ||
-        Window::get().framebuffer_resized) {
+    const bool resize_requested = Window::get().framebuffer_resized;
+    if (result == VK_ERROR_OUT_OF_DATE_KHR || resize_requested) {
       Window::get().framebuffer_resized = false;
       recreate_swapchain();
+    } else if (result == VK_SUBOPTIMAL_KHR) {
+      // Suboptimal can be transient; avoid expensive swapchain churn unless a resize
+      // is explicitly requested or the surface reports out-of-date.
     } else if (result != VK_SUCCESS) {
       throw std::runtime_error("\n!ERROR! failed to present swap chain image!");
     }

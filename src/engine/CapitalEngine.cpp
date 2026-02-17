@@ -13,7 +13,7 @@
 
 CapitalEngine::CapitalEngine() {
   const CE::Runtime::TerrainSettings &terrain_settings = CE::Runtime::get_terrain_settings();
-  resources = std::make_unique<Resources>(mechanics, terrain_settings);
+  resources = std::make_unique<VulkanResources>(mechanics, terrain_settings);
   pipelines = std::make_unique<Pipelines>(mechanics, *resources);
   frame_context = std::make_unique<FrameContext>(mechanics, *resources, *pipelines);
   
@@ -66,6 +66,12 @@ void CapitalEngine::main_loop() {
       std::chrono::steady_clock::now() + std::chrono::seconds(1);
   auto startup_screenshot_capture_at = startup_screenshot_ready_at;
   Window &main_window = Window::get();
+
+  const std::string base_window_title =
+      main_window.display.title ? std::string(main_window.display.title) : std::string("GENERATIONS");
+  constexpr auto fps_title_update_interval = std::chrono::milliseconds(250);
+  auto fps_window_start = std::chrono::steady_clock::now();
+  uint32_t fps_frame_count = 0;
 
   while (!glfwWindowShouldClose(main_window.window)) {
     main_window.poll_input();
@@ -121,6 +127,26 @@ void CapitalEngine::main_loop() {
     mechanics.main_device.maybe_log_gpu_runtime_sample();
 
     draw_frame();
+    ++fps_frame_count;
+
+    const auto now = std::chrono::steady_clock::now();
+    const auto fps_elapsed = now - fps_window_start;
+    if (fps_elapsed >= fps_title_update_interval) {
+      const double elapsed_seconds =
+          std::chrono::duration_cast<std::chrono::duration<double>>(fps_elapsed).count();
+      if (elapsed_seconds > 0.0) {
+        const double fps = static_cast<double>(fps_frame_count) / elapsed_seconds;
+        const double frame_ms = (fps > 0.0) ? (1000.0 / fps) : 0.0;
+
+        std::ostringstream title_stream;
+        title_stream << base_window_title << " | FPS " << std::fixed << std::setprecision(1)
+                     << fps << " | " << std::setprecision(2) << frame_ms << " ms";
+        glfwSetWindowTitle(main_window.window, title_stream.str().c_str());
+      }
+
+      fps_window_start = now;
+      fps_frame_count = 0;
+    }
 
     if (!first_loop_screenshot_captured &&
         std::chrono::steady_clock::now() >= startup_screenshot_ready_at) {
@@ -166,6 +192,7 @@ void CapitalEngine::main_loop() {
       break;
     }
   }
+  glfwSetWindowTitle(main_window.window, base_window_title.c_str());
   vkDeviceWaitIdle(mechanics.main_device.logical_device);
 
   Log::measure_elapsed_time();

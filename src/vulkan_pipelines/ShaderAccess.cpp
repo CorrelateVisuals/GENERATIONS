@@ -1,6 +1,6 @@
 #include "ShaderAccess.h"
 #include "Pipelines.h"
-#include "resources/Resources.h"
+#include "vulkan_resources/VulkanResources.h"
 #include "control/gui.h"
 #include "vulkan_base/VulkanUtils.h"
 #include "world/RuntimeConfig.h"
@@ -13,7 +13,7 @@
 #include <vector>
 
 void CE::ShaderAccess::CommandResources::record_compute_command_buffer(
-    Resources &resources, Pipelines &pipelines, const uint32_t frame_index) {
+    VulkanResources &resources, Pipelines &pipelines, const uint32_t frame_index) {
   VkCommandBuffer command_buffer = this->compute[frame_index];
 
   VkCommandBufferBeginInfo begin_info{};
@@ -103,7 +103,7 @@ void CE::ShaderAccess::CommandResources::record_compute_command_buffer(
 
 void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
     CE::Swapchain &swapchain,
-    Resources &resources,
+    VulkanResources &resources,
     Pipelines &pipelines,
     const uint32_t frame_index,
     const uint32_t image_index) {
@@ -490,7 +490,7 @@ void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
 
   if (!post_compute.empty()) {
     swapchain.images[image_index].transition_layout(command_buffer,
-                                                    VK_FORMAT_R8G8B8A8_SRGB,
+                                                    swapchain.image_format,
                                                     VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
                                                     /* -> */ VK_IMAGE_LAYOUT_GENERAL);
 
@@ -544,7 +544,7 @@ void CE::ShaderAccess::CommandResources::record_graphics_command_buffer(
     }
 
     swapchain.images[image_index].transition_layout(command_buffer,
-                                                    VK_FORMAT_R8G8B8A8_SRGB,
+                                                    swapchain.image_format,
                                                     VK_IMAGE_LAYOUT_GENERAL,
                                                     /* -> */ VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
   }

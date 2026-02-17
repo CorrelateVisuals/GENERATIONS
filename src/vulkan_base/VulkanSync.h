@@ -12,7 +12,7 @@
 #include "VulkanDevice.h"
 #include "VulkanResources.h"
 
-class Resources;
+class VulkanResources;
 class Pipelines;
 
 namespace CE {
@@ -36,11 +36,11 @@ public:
                                     const VkQueue &queue);
   static void end_singular_commands(const VkCommandPool &command_pool,
                                     const VkQueue &queue);
-  virtual void record_compute_command_buffer(Resources &resources,
+  virtual void record_compute_command_buffer(VulkanResources &resources,
                                              Pipelines &pipelines,
                                              const uint32_t frame_index) = 0;
   virtual void record_graphics_command_buffer(Swapchain &swapchain,
-                                              Resources &resources,
+                                              VulkanResources &resources,
                                               Pipelines &pipelines,
                                               const uint32_t frame_index,
                                               const uint32_t image_index) = 0;

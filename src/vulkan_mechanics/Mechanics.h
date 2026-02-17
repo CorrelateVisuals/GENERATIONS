@@ -6,7 +6,7 @@
 #include "vulkan_base/VulkanSync.h"
 
 class Pipelines;
-class Resources;
+class VulkanResources;
 
 class VulkanMechanics {
 public:
@@ -56,7 +56,7 @@ public:
                   const CE::Queues &queues,
                   SynchronizationObjects &sync_objects,
                   Pipelines &pipelines,
-                  Resources &resources);
+                  VulkanResources &resources);
   };
 
 private:

@@ -184,7 +184,7 @@
     <ClCompile Include="library\Library.cpp" />
     <ClCompile Include="library\Screenshot.cpp" />
     <ClCompile Include="Pipelines.cpp" />
-    <ClCompile Include="resources\Resources.cpp" />
+    <ClCompile Include="vulkan_resources\VulkanResources.cpp" />
     <ClCompile Include="world\World.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="world\SceneConfig.cpp" />
@@ -214,7 +214,7 @@
     <ClInclude Include="library\Screenshot.h" />
     <ClInclude Include="world\SceneConfig.h" />
     <ClInclude Include="Pipelines.h" />
-    <ClInclude Include="resources\Resources.h" />
+    <ClInclude Include="vulkan_resources\VulkanResources.h" />
     <ClInclude Include="world\World.h" />
     <ClInclude Include="pipelines\FrameContext.h" />
     <ClInclude Include="control\gui.h" />

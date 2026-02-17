@@ -3,7 +3,7 @@
 #include "Mechanics.h"
 #include "engine/Log.h"
 #include "vulkan_pipelines/Pipelines.h"
-#include "resources/Resources.h"
+#include "vulkan_resources/VulkanResources.h"
 
 VulkanMechanics::VulkanMechanics()
     : init_vulkan{}, queues{}, swapchain_support{},
@@ -21,7 +21,7 @@ void VulkanMechanics::Swapchain::recreate(const VkSurfaceKHR &surface,
                                           const CE::Queues &queues,
                                           SynchronizationObjects &sync_objects,
                                           Pipelines &pipelines,
-                                          Resources &resources) {
+                                          VulkanResources &resources) {
   CE::Swapchain::recreate(surface, queues, sync_objects);
   pipelines.config.refresh_dynamic_work_groups(resources.world._grid.size, extent);
     resources.msaa_image.create_resources(CE_MULTISAMPLE_IMAGE, extent, image_format);

@@ -21,7 +21,7 @@ The project currently runs a Conway-style cellular simulation on terrain with co
 - Runtime launch is verified from the generated binary (`./bin/CapitalEngine`)
 - Scene setup is authored in C++ via `src/world/SceneConfig.*`
 - Runtime config registry/env parsing lives in `src/world/RuntimeConfig.*`
-- Resource/world runtime objects are in `src/resources/*`
+- Resource/world runtime objects are in `src/vulkan_resources/*`
 - Vulkan pipeline + frame orchestration are in `src/vulkan_pipelines/*`
 
 ## Source layout (current)
@@ -32,7 +32,7 @@ src/
 ├── control/           # window, timer, GUI/stage-strip controls
 ├── engine/            # CAPITAL Engine lifecycle + logging
 ├── library/           # path helpers, screenshots, utility I/O
-├── resources/         # World + Resources + generated shader interface
+├── vulkan_resources/  # World + Resources + generated shader interface
 ├── vulkan_base/       # low-level Vulkan wrappers and primitives
 ├── vulkan_mechanics/  # device/swapchain orchestration
 ├── vulkan_pipelines/  # pipeline config + frame command recording

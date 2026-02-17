@@ -11,11 +11,11 @@
 #include "world/RuntimeConfig.h"
 
 class VulkanMechanics;
-class Resources;
+class VulkanResources;
 
 class Pipelines {
 public:
-	Pipelines(VulkanMechanics &mechanics, Resources &resources);
+	Pipelines(VulkanMechanics &mechanics, VulkanResources &resources);
 	Pipelines(const Pipelines &) = delete;
 	Pipelines &operator=(const Pipelines &) = delete;
 	Pipelines(Pipelines &&) = delete;

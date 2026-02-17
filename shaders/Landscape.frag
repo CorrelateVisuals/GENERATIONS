@@ -6,6 +6,11 @@ layout(location = 1) in vec3 inWorldNormal;
 
 #define UBO_LIGHT_NAME light
 #include "ParameterUBO.glsl"
+#include "TerrainField.glsl"
+
+#ifndef CE_ENABLE_TERRAIN_SELF_SHADOW
+#define CE_ENABLE_TERRAIN_SELF_SHADOW 0
+#endif
 
 layout(location = 0) out vec4 outColor;
 
@@ -103,6 +108,35 @@ vec3 terrainColor(float heightFromWater, float slope, vec2 worldXZ) {
     return color;
 }
 
+#if CE_ENABLE_TERRAIN_SELF_SHADOW
+float terrainSelfShadow(vec3 worldPos, vec3 lightDirection) {
+    vec2 lightXZ = lightDirection.xz;
+    float lightXZLen2 = dot(lightXZ, lightXZ);
+    if (!(lightXZLen2 > 1e-8f)) {
+        return 1.0f;
+    }
+
+    vec2 rayDir = lightXZ * inversesqrt(lightXZLen2);
+    float shadowHits = 0.0f;
+    float sampleCount = 0.0f;
+    float baseSurfaceZ = ubo.waterRules.w;
+    float bias = 0.08f;
+
+    for (int i = 1; i <= 4; ++i) {
+        float d = float(i) * max(ubo.cellSize * 1.25f, 0.6f);
+        vec2 sampleXY = worldPos.xz + rayDir * d;
+        float sampleHeight = terrain_height(sampleXY) + baseSurfaceZ;
+        float receiverHeight = worldPos.y + lightDirection.y * d;
+
+        shadowHits += step(receiverHeight + bias, sampleHeight);
+        sampleCount += 1.0f;
+    }
+
+    float occlusion = shadowHits / max(sampleCount, 1.0f);
+    return clamp(1.0f - occlusion * 0.65f, 0.35f, 1.0f);
+}
+#endif
+
 /*void main() {
     outColor = texture(texSampler, textureCoords);
 }*/
@@ -124,10 +158,14 @@ void main() {
     float heightFromWater = inWorldPos.z - ubo.waterThreshold;
     float slope = 1.0f - clamp(normal.z, 0.0f, 1.0f);
     vec3 albedo = terrainColor(heightFromWater, slope, inWorldPos.xz);
+    float sunShadow = 1.0f;
+#if CE_ENABLE_TERRAIN_SELF_SHADOW
+    sunShadow = terrainSelfShadow(inWorldPos, lightDirection);
+#endif
 
     const float ambientStrength = 0.34f;
     float diffuse = max(dot(normal, lightDirection), 0.0f);
-    float lightTerm = clamp(ambientStrength + diffuse, 0.0f, 1.25f);
+    float lightTerm = clamp(ambientStrength + diffuse * sunShadow, 0.0f, 1.25f);
     vec3 lit = sanitize_color(albedo * lightTerm * 0.96f, vec3(0.35f, 0.42f, 0.36f));
     outColor = vec4(lit, 1.0f);
 }

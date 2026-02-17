@@ -5,7 +5,7 @@
 #include "vulkan_mechanics/Mechanics.h"
 #include "vulkan_pipelines/FrameContext.h"
 #include "vulkan_pipelines/Pipelines.h"
-#include "resources/Resources.h"
+#include "vulkan_resources/VulkanResources.h"
 
 #include <memory>
 #include <string>
@@ -23,7 +23,7 @@ public:
 
 private:
   VulkanMechanics mechanics;
-  std::unique_ptr<Resources> resources;
+  std::unique_ptr<VulkanResources> resources;
   std::unique_ptr<Pipelines> pipelines;
   std::unique_ptr<FrameContext> frame_context;
 

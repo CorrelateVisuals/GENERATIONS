@@ -1,9 +1,0 @@
-# type cxx_name glsl_name [= default...]
-vec4 light light
-ivec2 grid_xy gridXY
-float water_threshold waterThreshold
-float cell_size cellSize
-vec4 water_rules waterRules = 2.4 1.2 0.08 0.0
-mat4 model model
-mat4 view view
-mat4 projection projection

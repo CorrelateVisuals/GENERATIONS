@@ -418,15 +418,25 @@ void CE::Image::load_texture(const std::string &image_path,
   Log::text("{ img }", "Image Texture: ", image_path);
 
   int texWidth(0), texHeight(0), texChannels(0), rgba(4);
-  stbi_uc *pixels =
+  stbi_uc *loaded_pixels =
       stbi_load(image_path.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+  stbi_uc fallback_pixel[4] = {255, 255, 255, 255};
+  const stbi_uc *pixels = loaded_pixels;
+
+  if (!pixels) {
+    Log::text("{ !!! }",
+              "Texture load failed, using 1x1 fallback for",
+              image_path,
+              stbi_failure_reason());
+    texWidth = 1;
+    texHeight = 1;
+    texChannels = rgba;
+    pixels = fallback_pixel;
+  }
+
   VkDeviceSize imageSize = static_cast<VkDeviceSize>(texWidth) *
                            static_cast<VkDeviceSize>(texHeight) *
                            static_cast<VkDeviceSize>(rgba);
-
-  if (!pixels) {
-    throw std::runtime_error("failed to load texture image!");
-  }
 
   Buffer stagingResources{};
 
@@ -455,7 +465,9 @@ void CE::Image::load_texture(const std::string &image_path,
     Log::text("{ MAP }", "Unmap texture staging memory", stagingResources.memory);
   }
   vkUnmapMemory(Device::base_device->logical_device, stagingResources.memory);
-  stbi_image_free(pixels);
+  if (loaded_pixels) {
+    stbi_image_free(loaded_pixels);
+  }
 
   this->create(texWidth,
                texHeight,
@@ -468,7 +480,7 @@ void CE::Image::load_texture(const std::string &image_path,
   {
     CE::SingleUseCommands single_use_commands(command_pool, queue);
     this->transition_layout(single_use_commands.command_buffer(),
-                          VK_FORMAT_R8G8B8A8_SRGB,
+                          format,
                           VK_IMAGE_LAYOUT_UNDEFINED,
                           VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
     single_use_commands.submit_and_wait();
@@ -485,7 +497,7 @@ void CE::Image::load_texture(const std::string &image_path,
   {
     CE::SingleUseCommands single_use_commands(command_pool, queue);
     this->transition_layout(single_use_commands.command_buffer(),
-                          VK_FORMAT_R8G8B8A8_SRGB,
+                          format,
                           VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                           VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     single_use_commands.submit_and_wait();
@@ -522,7 +534,7 @@ VkFormat CE::Image::find_supported_format(const std::vector<VkFormat> &candidate
 void CE::Image::create_resources(IMAGE_RESOURCE_TYPES image_type,
                                  const VkExtent2D &dimensions,
                                  const VkFormat format) {
-  Log::text("{ []< }", "Color Resources ");
+  Log::text("{ []< }", "Color VulkanResources ");
   this->destroy_vulkan_images();
 
   VkImageUsageFlags usage = 0;

@@ -297,6 +297,13 @@ VkSurfaceFormatKHR CE::Swapchain::pick_surface_format(
   Log::text(Log::Style::char_leader, "Choose Swap Surface Format");
 
   for (const auto &available_format : available_formats) {
+    if (available_format.format == VK_FORMAT_R8G8B8A8_UNORM &&
+        available_format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
+      return available_format;
+    }
+  }
+
+  for (const auto &available_format : available_formats) {
     if (available_format.format == VK_FORMAT_R8G8B8A8_SRGB &&
         available_format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
       return available_format;
@@ -409,9 +416,10 @@ void CE::Swapchain::create(const VkSurfaceKHR &surface, const Queues &queues) {
   Log::text("{ <-> }", "Swap Chain");
   const Swapchain::SupportDetails swapchainSupport =
       check_support(Device::base_device->physical_device, surface);
+  support_details = swapchainSupport;
   const VkSurfaceFormatKHR surfaceFormat = pick_surface_format(swapchainSupport.formats);
   const VkPresentModeKHR presentMode = pick_present_mode(swapchainSupport.present_modes);
-  const VkExtent2D extent = pick_extent(Window::get().window, support_details.capabilities);
+  const VkExtent2D extent = pick_extent(Window::get().window, swapchainSupport.capabilities);
 
   uint32_t imageCount = get_image_count(swapchainSupport);
   Log::text("{ SWP }",

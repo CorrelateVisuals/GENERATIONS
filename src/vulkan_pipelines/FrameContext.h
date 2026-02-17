@@ -7,12 +7,12 @@
 #include <functional>
 
 class VulkanMechanics;
-class Resources;
+class VulkanResources;
 class Pipelines;
 
 class FrameContext {
 public:
-  FrameContext(VulkanMechanics &mechanics, Resources &resources, Pipelines &pipelines);
+  FrameContext(VulkanMechanics &mechanics, VulkanResources &resources, Pipelines &pipelines);
 
   void draw_frame(uint32_t &last_presented_image_index,
                   uint32_t &last_submitted_frame_index,
@@ -29,6 +29,6 @@ private:
                const std::function<void()> &recreate_swapchain);
 
   VulkanMechanics &mechanics_;
-  Resources &resources_;
+  VulkanResources &resources_;
   Pipelines &pipelines_;
 };
