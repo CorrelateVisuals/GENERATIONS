@@ -1,0 +1,81 @@
+diff --git a/src/vulkan_base/VulkanBasePipeline.cpp b/src/vulkan_base/VulkanBasePipeline.cpp
+index abcdef1..1234567 100644
+--- a/src/vulkan_base/VulkanBasePipeline.cpp
++++ b/src/vulkan_base/VulkanBasePipeline.cpp
+@@ -45,6 +45,10 @@ void VulkanBasePipeline::CreatePipeline() {
+     pipelineInfo.stageCount = shaderStages.size();
+     pipelineInfo.pStages = shaderStages.data();
+ 
++    // Enable dynamic state for viewport and scissor
++    VkDynamicState dynamicStates[] = {VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
++    VkPipelineDynamicStateCreateInfo dynamicStateInfo = {};
++    dynamicStateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+ 
+     VkPipelineViewportStateCreateInfo viewportState = {};
+     viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+@@ -52,6 +56,7 @@ void VulkanBasePipeline::CreatePipeline() {
+     viewportState.pViewports = &viewport;
+     viewportState.scissorCount = 1;
+     viewportState.pScissors = &scissor;
++    pipelineInfo.pDynamicState = &dynamicStateInfo;
+ 
+     VkPipelineRasterizationStateCreateInfo rasterizer = {};
+     rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+diff --git a/src/vulkan_base/VulkanBaseValidationLayers.cpp b/src/vulkan_base/VulkanBaseValidationLayers.cpp
+index 1234567..89abcde 100644
+--- a/src/vulkan_base/VulkanBaseValidationLayers.cpp
++++ b/src/vulkan_base/VulkanBaseValidationLayers.cpp
+@@ -25,6 +25,10 @@ bool VulkanBaseValidationLayers::CheckValidationLayerSupport() {
+     uint32_t layerCount;
+     vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
+ 
++    if (layerCount == 0) {
++        throw std::runtime_error("No validation layers found!");
++    }
++
+     std::vector<VkLayerProperties> availableLayers(layerCount);
+     vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
+ 
+diff --git a/src/vulkan_resources/VulkanResources.cpp b/src/vulkan_resources/VulkanResources.cpp
+index 56789ab..cdef012 100644
+--- a/src/vulkan_resources/VulkanResources.cpp
++++ b/src/vulkan_resources/VulkanResources.cpp
+@@ -78,6 +78,10 @@ void VulkanResources::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage,
+     bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+ 
+     if (vkCreateBuffer(device, &bufferInfo, nullptr, &buffer) != VK_SUCCESS) {
++        // Log error if buffer creation fails
++        Log::Error("Failed to create buffer of size: ", size);
++        Log::Error("Usage flags: ", usage);
++
+         throw std::runtime_error("failed to create buffer!");
+     }
+ 
+diff --git a/src/engine/Log.cpp b/src/engine/Log.cpp
+index 89abcde..fedcba9 100644
+--- a/src/engine/Log.cpp
++++ b/src/engine/Log.cpp
+@@ -10,6 +10,11 @@ void Log::Info(const std::string& message) {
+     std::cout << "[INFO]: " << message << std::endl;
+ }
+ 
++void Log::Error(const std::string& message) {
++    std::cerr << "[ERROR]: " << message << std::endl;
++}
++
++
+ void Log::Debug(const std::string& message) {
+ #ifdef DEBUG
+     std::cout << "[DEBUG]: " << message << std::endl;
+diff --git a/src/engine/Log.h b/src/engine/Log.h
+index 1234567..7654321 100644
+--- a/src/engine/Log.h
++++ b/src/engine/Log.h
+@@ -8,6 +8,7 @@ public:
+     static void Info(const std::string& message);
+     static void Debug(const std::string& message);
+     static void Warning(const std::string& message);
++    static void Error(const std::string& message);
+ };
+ 
+ #endif // LOG_H
