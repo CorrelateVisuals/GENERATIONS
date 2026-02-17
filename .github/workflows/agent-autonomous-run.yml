@@ -19,7 +19,7 @@ on:
         options:
           - ""
           - Charge
-          - Position
+          - Pull
           - Follow
           - Think
           - Party
