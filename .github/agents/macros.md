@@ -6,130 +6,168 @@ This file defines macro-style control for the 5-agent team using one-driver comm
 
 Example:
 - `Charge "Swapchain recreation"`
-- `Position "Buffer creation"`
+- `Pull "Buffer creation"`
 - `Follow "Split base classes"`
 - `Think "How to approach duplicate buffers in class X"`
 
-Executable commands now available at repository root:
-- `./Charge "<Command>"`
-- `./Position "<Command>"`
-- `./Follow "<Command>"`
-- `./Think "<Command>"`
-
 ## Party Mapping (Warrior Comp)
 
-- Warrior Tank -> **C++ Lead** (primary direction, first contact, threat/priority owner)
-- Priest Healer -> **HPC Marketeer** (stability, clarity, recovery/docs)
-- Shaman -> **Refactorer** (utility, cleanup, consistency buffs)
-- Mage -> **Vulkan Guru** (specialized burst optimization)
-- Hunter -> **Kernel Expert** (steady ranged throughput on GPU/parallel paths)
+- Warrior Tank → **C++ Lead** (main tank, first contact, threat/priority owner)
+- Mage → **Vulkan Guru** (specialized burst, precision resource control)
+- Hunter → **Kernel Expert** (steady ranged throughput on GPU/parallel paths)
+- Shaman → **Refactorer** (utility, cleanup, totems = architectural foundations)
+- Priest Healer → **HPC Marketeer** (stability, clarity, keeps the party healthy)
 
 ## Governance Override
 
-- **Party** -> governance-only controller for agent alignment
-- Scope: checks contradictions, overlap, missing ownership, and integration risk across agent outputs
+- **Party** → governance-only controller for agent alignment
+- Scope: checks contradictions, overlap, missing ownership, and integration risk
 - Constraint: Party does **not** analyze source code directly
 
 ## Macro Definitions
 
+---
+
 ### 1) `Charge <Command>`
 
-**Purpose**
-- Surgical execution for one concrete intent.
-- Minimal insert/change set to achieve the desired result.
+> *Warrior charges in — fast, decisive, minimal.*
+
+**What it is:** Surgical strike with one cross-check.
+**What it is NOT:** Exploration or brainstorming.
 
 **Execution**
-- Calls: `C++ Lead` first.
-- Optional specialist call only if C++ Lead flags a hard dependency.
-- Patch budget: smallest viable diff.
+1. `C++ Lead` → proposes minimal patch for the command.
+2. `Vulkan Guru` → validates from resource/sync perspective.
 
-**Expected Output**
-- Direct proposal with minimal-file patch.
-- Risk note and rollback hint.
+**Cross-Confirmation**
+Guru must mark each Lead finding:
+- ✅ **CONCUR** — independently agree
+- ⚠️ **QUALIFY** — agree with caveats
+- ❌ **DISSENT** — disagree with evidence
 
-### 2) `Position <Command>`
+**Output:** Patch + confidence level (HIGH/MEDIUM/LOW).
 
-**Purpose**
-- Awareness and dependency mapping before implementation.
-- Identify what code is tied to the command and possible simplifications.
+**When to use:** You know what you want. Just do it, but don't break Vulkan.
 
-**Execution**
-- Always starts with `C++ Lead`.
-- Only calls agents with direct relation to topic:
-  - Vulkan concerns -> `Vulkan Guru`
-  - Shader/compute concerns -> `Kernel Expert`
-  - Structural/maintainability concerns -> `Refactorer`
-  - Documentation/onboarding concerns -> `HPC Marketeer`
-- Non-called agents are explicitly listed as "not involved".
+---
 
-**Expected Output**
-- Relationship map (what is tied in).
-- Simplification suggestions.
-- Recommended next macro (`Charge` or `Follow`).
+### 2) `Pull <Command>`
+
+> *Tank pulls the mob — watch how it reacts before committing the party.*
+
+**What it is:** Sequential recon. Each specialist scouts the same target from their angle, building on what the previous scout reported.
+**What it is NOT:** Implementation. No patches, no code proposals.
+
+**Execution (sequential — each sees previous output)**
+1. `C++ Lead` → maps dependencies, ownership, affected files, blast radius.
+2. `Vulkan Guru` → adds: Vulkan resource/sync risks the Lead missed.
+3. `Kernel Expert` → adds: shader/dispatch/GPU risks the others missed.
+4. `Refactorer` → adds: structural/boundary risks, complexity assessment.
+
+**Cross-Confirmation Rule**
+Each specialist after Lead answers:
+- What did previous agents **miss** in my domain?
+- What do I **independently confirm**?
+- What is my domain's **blast radius** if this goes wrong?
+
+**Output:** Dependency map + layered risk assessment + recommended next macro.
+
+**When to use:** You're unsure of the scope or impact. Pull first, then Charge or Follow.
+
+---
 
 ### 3) `Follow <Command>`
 
-**Purpose**
-- Full follow-through of an idea from architecture to implementation proposal.
+> *Full party /follow — everyone moves together, tank leads.*
+
+**What it is:** Full implementation cadence. All 5 agents, sequential, each validates the previous AND adds their own work.
+**What it is NOT:** Quick. This is the full raid.
 
 **Execution Cadence**
-1. `C++ Lead` -> defines direction + creates TODOs for all others.
-2. `Vulkan Guru` -> Vulkan/resource correctness and optimization impact.
-3. `Kernel Expert` -> GPU/parallel path impact.
-4. `Refactorer` -> structure, cleanup, phased migration.
-5. `HPC Marketeer` -> clarity/docs/release-facing summary.
+1. `C++ Lead` → direction + scoped TODOs for all agents.
+2. `Vulkan Guru` → Vulkan work + confirms/challenges Lead's resource assumptions.
+3. `Kernel Expert` → GPU work + confirms/challenges Guru's barrier decisions.
+4. `Refactorer` → structure work + confirms/challenges all prior boundary choices.
+5. `HPC Marketeer` → docs + **Concurrence Summary** across all agents.
 
-**Expected Output**
-- Full proposal with phased plan.
-- Consolidated TODO stack by agent.
-- Proposal patch artifact + PR-ready summary.
+**Cross-Confirmation (cascading)**
+Each agent includes `## Cross-Confirmation` with CONCUR/QUALIFY/DISSENT markers for every prior agent.
+
+**Concurrence Tracking**
+- 3+ agents flag same issue → **HIGH CONFIDENCE**
+- 2 agree, 1 dissents → **NEEDS RESOLUTION**
+- HPC Marketeer produces the final concurrence matrix.
+
+**Output:** Full proposal + phased plan + cross-confirmation matrix + patch.
+
+**When to use:** You want the full treatment. Architecture to docs to patch.
+
+---
 
 ### 4) `Think <Command>`
 
-**Purpose**
-- Generate multiple specialist approaches before deciding execution.
-- Compare trade-offs without committing to a patch immediately.
+> *Theorycrafting in trade chat — each class champion argues their own strat.*
 
-**Execution**
-- Calls exactly these three agents:
-  - `Refactorer`
-  - `Vulkan Guru`
-  - `Kernel Expert`
-- `C++ Lead` is not mandatory in this macro pass.
-- Each called agent must provide one unique approach to the same command.
+**What it is:** Three specialists work the SAME problem INDEPENDENTLY. They don't see each other's output. You compare afterwards.
+**What it is NOT:** Sequential collaboration. This is deliberate isolation for honest divergence.
 
-**Expected Output**
-- Three distinct approaches:
-  1. Refactor/architecture-first approach (`Refactorer`)
-  2. Vulkan/resource-first approach (`Vulkan Guru`)
-  3. GPU/parallel-path-first approach (`Kernel Expert`)
-- For each approach: scope, benefits, risks, and complexity estimate.
-- A short recommendation for which macro to run next (`Charge` or `Follow`).
+**Key difference from Pull:**
+| | Pull | Think |
+|---|---|---|
+| Mode | Sequential (builds on previous) | Independent (isolated) |
+| Goal | Map the terrain | Compete on strategy |
+| Sees others | Yes, adds to picture | No, works alone |
+| Output | Layered risk map | Three competing approaches |
+| Patches | No | No |
 
-## Local Command Mapping
+**Execution (independent — each gets ONLY base context)**
+1. `Vulkan Guru` → Vulkan/resource-first approach (alone)
+2. `Kernel Expert` → GPU/parallel-first approach (alone)
+3. `Refactorer` → architecture/structure-first approach (alone)
 
-Current local wrappers map like this:
-- `./lead++` -> closest to `Charge` first pass (lead-only)
-- `./agents++` -> closest to `Follow` full cadence
-- `./Party` -> governance-only consistency/arbitration pass
-- `Think "<command>"` -> tri-specialist ideation pass (Refactorer + Vulkan Guru + Kernel Expert)
-- `./Charge "<command>"` -> implemented macro command (C++ Lead surgical pass)
-- `./Position "<command>"` -> implemented macro command (relationship-aware selective agents)
-- `./Follow "<command>"` -> implemented macro command (full 5-agent cadence)
-- `./Think "<command>"` -> implemented tri-specialist ideation pass
+**Independence Rule**
+Each agent gets the same code context and task but does NOT see other agents' outputs. This ensures genuine independent analysis.
 
-If needed later, add wrapper alias:
-- `./think++ "<command>"` -> alias to `./Think`
+**Output per agent:**
+- Approach description
+- Affected files and scope
+- Benefits and risks
+- Complexity: S / M / L
+- Recommended implementation sequence
 
-## Token Setup (GitHub Models)
+**Output summary (generated post-run):**
+- **Convergence points** — where 2+ agents independently reached the same conclusion (= high confidence)
+- **Divergence points** — where agents disagree (= needs debate)
+- Recommended next macro: `Charge` (convergence) or `Follow` (divergence)
 
-Local runs can use a GitHub token instead of an OpenAI key:
-- `set -Ux GITHUB_TOKEN "<your_token>"` (fish)
-- `export GITHUB_TOKEN="<your_token>"` (bash/zsh)
+**When to use:** You don't know the right approach yet. Let the specialists argue independently, then see where they agree.
 
-Set model/provider for GitHub Models:
-- `set -Ux LLM_PROVIDER github`
-- `set -Ux LLM_MODEL gpt-4o-mini`
+---
+
+## Macro Flow
+
+```
+Think ──→ found convergence? ──→ Charge (fast execute)
+  │                                    
+  └──→ found divergence? ──→ Pull (scout deeper) ──→ Follow (full implement)
+```
+
+## CLI Usage
+
+```fish
+# Remote (GitHub Actions)
+gh workflow run "Agent Autonomous Run" --ref dev-revert-main-linux \
+  -f macro=Charge -f task_command="swapchain recreation"
+
+gh workflow run "Agent Autonomous Run" --ref dev-revert-main-linux \
+  -f macro=Pull -f task_command="buffer creation"
+
+gh workflow run "Agent Autonomous Run" --ref dev-revert-main-linux \
+  -f macro=Follow -f task_command="split base classes"
+
+gh workflow run "Agent Autonomous Run" --ref dev-revert-main-linux \
+  -f macro=Think -f task_command="how to approach duplicate buffers"
+```
 
 ## Task Sizing Rule
 

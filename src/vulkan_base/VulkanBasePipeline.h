@@ -63,16 +63,15 @@ public:
 
 class BasePipelinesConfiguration {
 public:
-  struct PipelineBase {
+  struct Graphics {
     VkPipeline pipeline{};
     std::vector<std::string> shaders{};
-  };
-
-  struct Graphics : PipelineBase {
     std::vector<VkVertexInputAttributeDescription> vertex_attributes{};
     std::vector<VkVertexInputBindingDescription> vertex_bindings{};
   };
-  struct Compute : PipelineBase {
+  struct Compute {
+    VkPipeline pipeline{};
+    std::vector<std::string> shaders{};
     std::array<uint32_t, 3> work_groups{};
   };
 

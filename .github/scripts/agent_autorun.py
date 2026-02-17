@@ -206,6 +206,110 @@ def extract_todos_for(agent_name: str, text: str) -> str:
 
 MAX_CODE_CONTEXT = int(os.environ.get("MAX_CODE_CONTEXT", "12000"))
 
+
+MACRO_DIRECTIVES: Dict[str, Dict[str, str]] = {
+    "charge": {
+        "C++ Lead": """## Macro Directive: CHARGE
+You are the surgeon. Propose a MINIMAL patch for the command.
+- Smallest viable diff. No exploration, no brainstorming.
+- Be concrete: file paths, line-level changes, exact code.
+- Mark each finding for cross-check by the next agent.""",
+        "Vulkan Guru": """## Macro Directive: CHARGE (Validator)
+You are the cross-check. Review the C++ Lead's proposal.
+For EACH Lead finding, explicitly state one of:
+- ✅ CONCUR — you independently reach the same conclusion
+- ⚠️ QUALIFY — you agree but add constraints or caveats
+- ❌ DISSENT — you disagree, provide evidence and alternative
+End with: Combined confidence: HIGH / MEDIUM / LOW""",
+    },
+    "pull": {
+        "C++ Lead": """## Macro Directive: PULL
+You are the tank pulling the mob. MAP the terrain, do NOT propose patches.
+- List every file touched, who owns it, and what depends on it.
+- Estimate blast radius if this change goes wrong.
+- Do NOT write code proposals — recon only.""",
+        "Vulkan Guru": """## Macro Directive: PULL (Scout)
+Add what the Lead MISSED in the Vulkan/resource domain.
+- Confirm what Lead got right in your area.
+- Add Vulkan-specific risks not visible from C++ level.
+- Estimate YOUR domain's blast radius.
+- Do NOT write code proposals — recon only.""",
+        "Kernel Expert": """## Macro Directive: PULL (Scout)
+Add what previous agents MISSED in the shader/GPU domain.
+- Confirm what they got right about GPU impact.
+- Add shader/dispatch/compute risks not visible from API level.
+- Estimate YOUR domain's blast radius.
+- Do NOT write code proposals — recon only.""",
+        "Refactorer": """## Macro Directive: PULL (Scout)
+Add what previous agents MISSED about structure and boundaries.
+- Confirm architectural observations from prior agents.
+- Assess complexity change: does this make the codebase simpler or harder?
+- Recommend next macro: Charge (safe/small) or Follow (risky/large).
+- Do NOT write code proposals — recon only.""",
+    },
+    "follow": {
+        "C++ Lead": """## Macro Directive: FOLLOW
+Full implementation cadence. You set direction for the entire party.
+- Concrete scoped TODOs for every agent using Structured Handoff Format.
+- Mark your key findings so downstream agents can CONCUR/QUALIFY/DISSENT.""",
+        "Vulkan Guru": """## Macro Directive: FOLLOW
+Do your Vulkan work AND cross-confirm the Lead's findings.
+Include a ## Cross-Confirmation section:
+- For each Lead finding relevant to you: ✅ CONCUR / ⚠️ QUALIFY / ❌ DISSENT
+- State WHY you concur or dissent — evidence from code context.""",
+        "Kernel Expert": """## Macro Directive: FOLLOW
+Do your GPU/shader work AND cross-confirm prior agents.
+Include a ## Cross-Confirmation section:
+- vs C++ Lead: CONCUR/QUALIFY/DISSENT per finding
+- vs Vulkan Guru: CONCUR/QUALIFY/DISSENT per finding""",
+        "Refactorer": """## Macro Directive: FOLLOW
+Do your structure work AND cross-confirm all prior agents.
+Include a ## Cross-Confirmation section for Lead, Guru, and Expert.
+- Flag any naming or boundary choices you challenge.""",
+        "HPC Marketeer": """## Macro Directive: FOLLOW (Final)
+Do your docs work AND produce the CONCURRENCE SUMMARY.
+## Concurrence Summary
+For each major finding, list which agents CONCUR/QUALIFY/DISSENT.
+- 3+ concur → HIGH CONFIDENCE
+- 2 agree, 1 dissents → NEEDS RESOLUTION
+This is the definitive confidence matrix for the run.""",
+    },
+    "think": {
+        "Vulkan Guru": """## Macro Directive: THINK (Independent)
+You are theorycrafting ALONE. You do NOT see other agents' outputs.
+Propose YOUR approach to this problem from a Vulkan/resource perspective.
+- Approach description
+- Affected files and scope
+- Benefits and risks
+- Complexity: S / M / L
+- Recommended implementation sequence
+Do NOT write patches. This is strategy, not execution.""",
+        "Kernel Expert": """## Macro Directive: THINK (Independent)
+You are theorycrafting ALONE. You do NOT see other agents' outputs.
+Propose YOUR approach from a GPU/parallel/shader perspective.
+- Approach description
+- Affected files and scope
+- Benefits and risks
+- Complexity: S / M / L
+- Recommended implementation sequence
+Do NOT write patches. This is strategy, not execution.""",
+        "Refactorer": """## Macro Directive: THINK (Independent)
+You are theorycrafting ALONE. You do NOT see other agents' outputs.
+Propose YOUR approach from an architecture/structure perspective.
+- Approach description
+- Affected files and scope
+- Benefits and risks
+- Complexity: S / M / L
+- Recommended implementation sequence
+Do NOT write patches. This is strategy, not execution.""",
+    },
+}
+
+
+def get_macro_directive(macro_mode: str, agent_name: str) -> str:
+    macro = (macro_mode or "").lower().strip()
+    return MACRO_DIRECTIVES.get(macro, {}).get(agent_name, "")
+
 def build_scoped_code(files: List[Path]) -> str:
     if not files:
         return "No in-scope files found."
@@ -235,6 +339,7 @@ def build_agent_prompt(
     incoming_todos: str,
     agent_name: str,
     guild_context: str = "",
+    macro_directive: str = "",
 ) -> str:
     prev_parts = []
     for name, txt in previous_outputs.items():
@@ -248,6 +353,12 @@ def build_agent_prompt(
 # Guild Context (shared procedures and vocabulary)
 {guild_context[:3000]}
 """
+    directive_section = ""
+    if macro_directive:
+        directive_section = f"""
+# Macro Directive (FOLLOW THIS — it overrides default output format)
+{macro_directive}
+"""
     return f"""
 You are running inside the GENERATIONS multi-agent pipeline.
 
@@ -256,7 +367,7 @@ You are running inside the GENERATIONS multi-agent pipeline.
 
 # Agent Profile
 {profile_md}
-{guild_section}
+{guild_section}{directive_section}
 # Active Task
 {task_md}
 
@@ -276,7 +387,8 @@ Return markdown with these exact sections:
 4) Actionable TODOs (use Structured Handoff Format from base rules)
 5) Handoff Note
 6) Code Proposal
-7) Procedure Recording (only if you discovered a new reusable pattern)
+7) Cross-Confirmation (if macro directive requires it)
+8) Procedure Recording (only if you discovered a new reusable pattern)
 """.strip()
 
 
@@ -528,17 +640,17 @@ def main() -> None:
     if MACRO_MODE:
         macro = MACRO_MODE.lower().strip()
         if macro == "charge":
-            agent_only = "C++ Lead"
-            agent_set = ""
-        elif macro == "position":
-            agent_only = "C++ Lead"
-            agent_set = ""
+            agent_only = ""
+            agent_set = "C++ Lead,Vulkan Guru"
+        elif macro in ("pull", "position"):
+            agent_only = ""
+            agent_set = "C++ Lead,Vulkan Guru,Kernel Expert,Refactorer"
         elif macro == "follow":
             agent_only = ""
             agent_set = "C++ Lead,Vulkan Guru,Kernel Expert,Refactorer,HPC Marketeer"
         elif macro == "think":
             agent_only = ""
-            agent_set = "Refactorer,Vulkan Guru,Kernel Expert"
+            agent_set = "Vulkan Guru,Kernel Expert,Refactorer"
         elif macro == "party":
             agent_only = "Party"
             agent_set = ""
@@ -602,21 +714,33 @@ def main() -> None:
     if selected_agent == "Party":
         scoped_code = "Out of scope for Party agent by design. Party performs governance-only review over task framing and prior agent outputs."
 
+    is_think = (MACRO_MODE or "").lower().strip() == "think"
     outputs: Dict[str, str] = {}
     handoff_todos = "Start from task statement; no upstream TODOs yet."
 
     for name, filename in sequence:
         profile_md = read_text(AGENTS_DIR / filename)
         guild_context = load_guild_context(name)
+        macro_directive = get_macro_directive(MACRO_MODE, name)
+
+        # Think macro: each agent works independently (no previous outputs)
+        if is_think:
+            agent_outputs: Dict[str, str] = {}  # empty — isolation
+            agent_todos = "You are working INDEPENDENTLY. No prior agent output is available. Propose your own approach."
+        else:
+            agent_outputs = outputs
+            agent_todos = handoff_todos
+
         prompt = build_agent_prompt(
             base_md,
             profile_md,
             task_md,
             scoped_code,
-            outputs,
-            handoff_todos,
+            agent_outputs,
+            agent_todos,
             name,
             guild_context,
+            macro_directive,
         )
         result = call_llm(prompt)
         outputs[name] = result
