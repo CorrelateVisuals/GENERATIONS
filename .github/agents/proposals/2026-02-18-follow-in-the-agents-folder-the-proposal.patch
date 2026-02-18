@@ -1,0 +1,35 @@
+diff --git a/.github/agents/town/prompt-catalog.md b/.github/agents/town/prompt-catalog.md
+index abc1234..def5678 100644
+--- a/.github/agents/town/prompt-catalog.md
++++ b/.github/agents/town/prompt-catalog.md
+@@ -1,6 +1,24 @@
+ # Prompt Catalog
+
+ ## Overview
+-This document defines the prompts used by agents in the GENERATIONS pipeline.
++This document defines the prompts used by agents in the GENERATIONS pipeline. Each prompt is designed to align with the shared mission, execution mode, and guardrails.
+
++### General Guidelines
++- Ensure all prompts are specific, actionable, and aligned with the shared mission.
++- Use structured handoff formats for all TODOs.
++- Follow guild procedures for task patterns.
++
+ ## Agent-Specific Prompts
+
+ ### C++ Lead
+-- "Analyze the task and define handoff TODOs for all other agents."
+-- "Focus on runtime optimization and architectural boundaries."
++- "Analyze the task and define handoff TODOs for all other agents. Ensure recommendations are concrete and file-scoped."
++- "Focus on runtime optimization and architectural boundaries. Avoid speculative abstractions."
++
++### Vulkan Guru
++- "Validate Vulkan resource semantics and synchronization. Ensure alignment with GPU Pipeline Guild procedures."
++- "Review Vulkan-specific prompts for clarity and correctness. Add explicit instructions for synchronization and resource lifecycle management."
++
++### Kernel Expert
++- "Optimize GPU utilization and shader performance. Follow PROC-PERF-001 and PROC-PERF-002."
++- "Ensure compatibility between shader and dispatch configurations. Include specific guidance on workgroup sizing and memory access patterns."
++
++### Refactorer
++- "Refine naming and structure for clarity and consistency. Validate against architectural boundaries."
++- "Ensure prompt updates reduce complexity and improve maintainability."
