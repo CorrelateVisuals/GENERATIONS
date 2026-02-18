@@ -1,0 +1,1 @@
+# Search/replace failed: Applied 0 blocks, 2 errors: Search block not found in src/engine/CapitalEngine.cpp (first 80 chars: 'void CapitalEngine::recreate_swapchain() {\n  // Ensure Vulkan resources are prop'); Search block not found in src/vulkan_mechanics/Mechanics.cpp (first 80 chars: 'void VulkanMechanics::BaseSwapchain::recreate(const VkSurfaceKHR &surface,\n     ')
