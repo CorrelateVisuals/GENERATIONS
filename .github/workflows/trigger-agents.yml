@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "Run mode"
+        description: "Run mode: main task or self-selected maintenance task"
         required: true
         type: choice
         default: main
@@ -31,7 +31,7 @@ on:
           - Priest
           - Party
       task_command:
-        description: "Task override. Blank = use current-task.md"
+        description: "Task override (e.g. 'triple buffering'). Blank = use current-task.md"
         required: false
         type: string
         default: ""
@@ -41,15 +41,25 @@ on:
         type: boolean
         default: true
       target_ref:
-        description: "Branch to check out (on this repo)"
+        description: "Branch to check out on target repo"
         required: false
         type: string
         default: "dev-linux"
+      target_manifest:
+        description: "Target repo manifest name (file in .github/agents/targets/)"
+        required: false
+        type: string
+        default: "generations"
       chain:
-        description: "Auto-trigger follow-up runs from agent recommendations"
+        description: "Auto-chain: trigger follow-up run from agent Next Run recommendations"
         required: false
         type: boolean
         default: false
+      chain_depth:
+        description: "Current chain depth (0 = first run). Auto-incremented by chaining."
+        required: false
+        type: string
+        default: "0"
 
 jobs:
   dispatch:
@@ -68,7 +78,7 @@ jobs:
               "task_command": "${{ github.event.inputs.task_command }}",
               "auto_apply_patch": "${{ github.event.inputs.auto_apply_patch }}",
               "target_ref": "${{ github.event.inputs.target_ref }}",
-              "target_manifest": "generations",
+              "target_manifest": "${{ github.event.inputs.target_manifest }}",
               "chain": "${{ github.event.inputs.chain }}",
-              "chain_depth": "0"
+              "chain_depth": "${{ github.event.inputs.chain_depth }}"
             }
