@@ -1087,23 +1087,46 @@ def _apply_search_replace_blocks(blocks: List[Dict[str, str]]) -> Tuple[bool, st
 
 def _parse_search_replace_response(raw: str) -> List[Dict[str, str]]:
     """Parse LLM response containing FILE/SEARCH/REPLACE blocks.
+    Supports two formats:
+      1. FILE: path\nSEARCH:\n<<<\n...\n>>>\nREPLACE:\n<<<\n...\n>>>
+      2. Markdown: #### File: `path`\n**SEARCH:**\n```cpp\n...\n```\n**REPLACE:**\n```cpp\n...\n```
     Tolerates trailing whitespace on lines (common LLM artifact)."""
     blocks: List[Dict[str, str]] = []
     # Normalize: strip trailing whitespace from each line
     cleaned = "\n".join(line.rstrip() for line in raw.split("\n"))
-    # Pattern: FILE: <path>\nSEARCH:\n<<<\n...\n>>>\nREPLACE:\n<<<\n...\n>>>
-    pattern = re.compile(
+
+    # Format 1: FILE: <path>\nSEARCH:\n<<<\n...\n>>>\nREPLACE:\n<<<\n...\n>>>
+    pattern1 = re.compile(
         r"FILE:\s*(.+?)\s*\n"
         r"SEARCH:\s*\n<<<\n(.*?)\n>>>\s*\n"
         r"REPLACE:\s*\n<<<\n(.*?)\n>>>",
         re.DOTALL,
     )
-    for m in pattern.finditer(cleaned):
+    for m in pattern1.finditer(cleaned):
         blocks.append({
             "file": m.group(1).strip().strip("`"),
             "search": m.group(2),
             "replace": m.group(3),
         })
+
+    if blocks:
+        return blocks
+
+    # Format 2: Markdown code fences (fallback)
+    # Matches: **File:**/#### File: `path`  +  **SEARCH:**```..```  +  **REPLACE:**```..```
+    pattern2 = re.compile(
+        r"(?:#{1,4}\s*)?(?:\*{0,2})File(?:\*{0,2})[:\s]*[`\"]?([^`\"\n]+?)[`\"]?\s*\n"
+        r".*?\*{0,2}SEARCH\*{0,2}[:\s]*\n```[a-z]*\n(.*?)\n```\s*\n"
+        r".*?\*{0,2}REPLACE\*{0,2}[:\s]*\n```[a-z]*\n(.*?)\n```",
+        re.DOTALL,
+    )
+    for m in pattern2.finditer(cleaned):
+        blocks.append({
+            "file": m.group(1).strip().strip("`"),
+            "search": m.group(2),
+            "replace": m.group(3),
+        })
+
     return blocks
 
 
@@ -1183,7 +1206,7 @@ or skip that part of the proposal.
 {allowed}
 
 # Output Format
-Return one or more blocks in this EXACT format (no other text):
+Return one or more blocks in this EXACT format (no markdown, no prose, no headers):
 
 FILE: path/to/file.cpp
 SEARCH:
@@ -1195,9 +1218,23 @@ REPLACE:
 new lines using ONLY APIs from Available APIs list above
 >>>
 
+WRONG format (DO NOT use this):
+  #### File: `path`
+  **SEARCH:**
+  ```cpp
+  ...
+  ```
+  **REPLACE:**
+  ```cpp
+  ...
+  ```
+
+CORRECT format uses FILE:/SEARCH:/REPLACE: with <<< >>> delimiters. No markdown formatting.
+
 Rules:
 - SEARCH text must be COPIED VERBATIM from the files shown above — same whitespace, same indentation, same line breaks
 - REPLACE blocks may ONLY call functions/methods/types listed in Available APIs or standard C++ (try/catch, if, etc.)
+- Do NOT reference member variables that don't appear in the file contents above
 - If an agent proposal calls a method not in Available APIs, SKIP that call or substitute an existing equivalent
 - Include 2-3 lines of unchanged context before and after the changed lines in SEARCH
 - Keep changes minimal — smallest viable diff
