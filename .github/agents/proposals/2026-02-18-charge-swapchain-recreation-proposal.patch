@@ -1,0 +1,37 @@
+### Patch for `src/engine/CapitalEngine.cpp`
+
+#### SEARCH
+```cpp
+void CapitalEngine::recreate_swapchain() {
+  mechanics.swapchain.recreate(mechanics.init_vulkan.surface,
+                               mechanics.queues,
+                               mechanics.sync_objects,
+                               *pipelines,
+                               *resources);
+}
+```
+
+#### REPLACE
+```cpp
+void CapitalEngine::recreate_swapchain() {
+  try {
+    Log::text(Log::Style::header_guard);
+    Log::text("Starting swapchain recreation...");
+
+    // Ensure all GPU operations are complete before proceeding
+    mechanics.sync_objects.wait_for_idle();
+
+    // Recreate the swapchain with updated surface and configuration
+    mechanics.swapchain.recreate(mechanics.init_vulkan.surface,
+                                 mechanics.queues,
+                                 mechanics.sync_objects,
+                                 *pipelines,
+                                 *resources);
+
+    Log::text("Swapchain recreation completed successfully.");
+  } catch (const std::exception &e) {
+    Log::text("Error during swapchain recreation: ", e.what());
+    throw; // Re-throw to ensure proper error handling upstream
+  }
+}
+```
