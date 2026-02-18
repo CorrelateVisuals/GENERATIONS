@@ -12,10 +12,11 @@ from pathlib import Path
 from typing import Any, Dict, List, Tuple
 from urllib import request
 
-# TARGET_REPO  = the source-code repo to analyze/patch (e.g. GENERATIONS)
-# GITHUB_WORKSPACE = where this script's own repo is checked out (agent config)
+# AGENT_WORKSPACE (or GITHUB_WORKSPACE) = where this script's own repo is checked out
+# TARGET_REPO = the source-code repo to analyze/patch (e.g. GENERATIONS)
 # When both repos live in the same checkout, these are the same.
-_WORKSPACE = Path(os.environ.get("GITHUB_WORKSPACE", ".")).resolve()
+_WORKSPACE = Path(os.environ.get("AGENT_WORKSPACE",
+                   os.environ.get("GITHUB_WORKSPACE", "."))).resolve()
 ROOT = Path(os.environ.get("TARGET_REPO", str(_WORKSPACE))).resolve()
 AGENTS_DIR = _WORKSPACE / ".github" / "agents"
 PARTY_DIR = AGENTS_DIR / "party"
@@ -1945,7 +1946,7 @@ def main() -> None:
             f"```\n"
         )
         next_task_path.write_text(next_task_content, encoding="utf-8")
-        print(f"  📋 Next-task recommendations written to {next_task_path.relative_to(ROOT)}")
+        print(f"  📋 Next-task recommendations written to {next_task_path.relative_to(_WORKSPACE)}")
     elif next_task_path.exists():
         next_task_path.write_text(
             f"# Recommended Next Run\n\nNo follow-up recommended from run `{run_id}` ({today}).\n",
@@ -2057,10 +2058,10 @@ def main() -> None:
         "task_command": TASK_COMMAND if TASK_COMMAND else "",
         "task_mode": TASK_MODE,
         "agent_mode": selected_agent if selected_agent else ("set:" + ",".join(selected_set) if selected_set else "all"),
-        "run_report": str(report_path.relative_to(ROOT)),
-        "detail_log": str(detail_log_path.relative_to(ROOT)),
-        "code_proposal": str(proposal_md_path.relative_to(ROOT)),
-        "patch_proposal": str(proposal_patch_path.relative_to(ROOT)),
+        "run_report": str(report_path.relative_to(_WORKSPACE)),
+        "detail_log": str(detail_log_path.relative_to(_WORKSPACE)),
+        "code_proposal": str(proposal_md_path.relative_to(_WORKSPACE)),
+        "patch_proposal": str(proposal_patch_path.relative_to(_WORKSPACE)),
         "auto_apply_patch": AUTO_APPLY_PATCH,
         "apply_status": apply_status,
         "apply_message": apply_message,
