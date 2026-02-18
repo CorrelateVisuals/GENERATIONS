@@ -1016,7 +1016,8 @@ def changed_files_from_patch(patch: str) -> List[str]:
 
 
 def _apply_search_replace_blocks(blocks: List[Dict[str, str]]) -> Tuple[bool, str]:
-    """Apply search/replace blocks to files. Returns (success, message)."""
+    """Apply search/replace blocks to files. Returns (success, message).
+    Tries exact match first, then normalized whitespace, then indent-agnostic."""
     applied = 0
     errors: List[str] = []
     for block in blocks:
@@ -1027,20 +1028,56 @@ def _apply_search_replace_blocks(blocks: List[Dict[str, str]]) -> Tuple[bool, st
         content = fpath.read_text(encoding="utf-8")
         search = block["search"]
         replace = block["replace"]
-        if search not in content:
-            # Try with normalized whitespace (strip trailing spaces per line)
-            search_norm = "\n".join(l.rstrip() for l in search.split("\n"))
-            content_norm = "\n".join(l.rstrip() for l in content.split("\n"))
-            if search_norm in content_norm:
-                # Apply on normalized content
-                content = content_norm.replace(search_norm, replace, 1)
-            else:
-                errors.append(f"Search block not found in {block['file']} (first 80 chars: {search[:80]!r})")
-                continue
-        else:
+
+        # Try 1: exact match
+        if search in content:
             content = content.replace(search, replace, 1)
-        fpath.write_text(content, encoding="utf-8")
-        applied += 1
+            fpath.write_text(content, encoding="utf-8")
+            applied += 1
+            continue
+
+        # Try 2: strip trailing whitespace per line
+        search_norm = "\n".join(l.rstrip() for l in search.split("\n"))
+        content_norm = "\n".join(l.rstrip() for l in content.split("\n"))
+        if search_norm in content_norm:
+            content = content_norm.replace(search_norm, replace, 1)
+            fpath.write_text(content, encoding="utf-8")
+            applied += 1
+            continue
+
+        # Try 3: indent-agnostic match (strip all leading whitespace, then find
+        # the region in the original file that matches this stripped version)
+        search_stripped = "\n".join(l.strip() for l in search.split("\n") if l.strip())
+        content_lines = content.split("\n")
+        search_lines = [l.strip() for l in search.split("\n") if l.strip()]
+        match_start = -1
+        for i in range(len(content_lines) - len(search_lines) + 1):
+            candidate = [content_lines[i + j].strip() for j in range(len(search_lines))]
+            if candidate == search_lines:
+                match_start = i
+                break
+        if match_start >= 0:
+            # Found the region — replace those lines
+            match_end = match_start + len(search_lines)
+            # Detect the indentation of the first matched line
+            first_line = content_lines[match_start]
+            indent = first_line[:len(first_line) - len(first_line.lstrip())]
+            # Apply the replacement with the detected indentation
+            replace_lines = replace.split("\n")
+            # Re-indent replacement to match original
+            reindented = []
+            for rl in replace_lines:
+                if rl.strip():
+                    reindented.append(indent + rl.lstrip())
+                else:
+                    reindented.append("")
+            content_lines[match_start:match_end] = reindented
+            content = "\n".join(content_lines)
+            fpath.write_text(content, encoding="utf-8")
+            applied += 1
+            continue
+
+        errors.append(f"Search block not found in {block['file']} (first 80 chars: {search[:80]!r})")
     if errors:
         return applied > 0, f"Applied {applied} blocks, {len(errors)} errors: " + "; ".join(errors)
     return True, f"Applied {applied} search/replace blocks successfully."
@@ -1083,11 +1120,12 @@ def generate_patch(task_md: str, outputs: Dict[str, str], allowed_files: List[st
                     referenced_files.append(path_str)
                     break
     file_contents = ""
-    char_budget = 8000
+    char_budget = 12000
+    per_file_cap = 3000
     for ref in referenced_files[:6]:
         p = ROOT / ref
         if p.exists():
-            content = read_capped(p, max_chars=1500)
+            content = read_capped(p, max_chars=per_file_cap)
             file_contents += f"\n### {ref}\n```\n{content}\n```\n"
             char_budget -= len(content)
             if char_budget <= 0:
@@ -1096,8 +1134,11 @@ def generate_patch(task_md: str, outputs: Dict[str, str], allowed_files: List[st
     prompt = f"""
 Generate SEARCH/REPLACE blocks to implement the proposed changes.
 Only modify files from the allowed list.
-The SEARCH block must contain EXACT lines from the current file — copy them verbatim.
-The REPLACE block contains the new code that replaces the search block.
+
+CRITICAL: The SEARCH block MUST be an EXACT copy-paste from the file shown below.
+Do NOT paraphrase, reindent, or rewrite the search text — copy it CHARACTER FOR CHARACTER.
+If the file uses 2-space indent, your SEARCH must use 2-space indent.
+If a function call spans multiple lines, copy all those lines exactly.
 
 # Active Task
 {task_md}
@@ -1108,7 +1149,7 @@ The REPLACE block contains the new code that replaces the search block.
 # Allowed Files
 {allowed}
 
-# Current File Contents (for accurate SEARCH blocks)
+# Current File Contents — COPY FROM HERE for SEARCH blocks
 {file_contents}
 
 # Output Format
@@ -1117,7 +1158,7 @@ Return one or more blocks in this EXACT format (no other text):
 FILE: path/to/file.cpp
 SEARCH:
 <<<
-exact lines from the current file
+exact lines copied from Current File Contents above
 >>>
 REPLACE:
 <<<
@@ -1125,7 +1166,7 @@ new replacement lines
 >>>
 
 Rules:
-- SEARCH must match the file EXACTLY (copy from Current File Contents above)
+- SEARCH text must be COPIED VERBATIM from the file contents shown above — same whitespace, same indentation, same line breaks
 - Include 2-3 lines of unchanged context before and after the changed lines in SEARCH
 - Keep changes minimal — smallest viable diff
 - No prose, no explanation — only FILE/SEARCH/REPLACE blocks
