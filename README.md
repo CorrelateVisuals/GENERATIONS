@@ -3,9 +3,9 @@
 ![GENERATIONS Cover](assets/timeline/TerrainCover_20260215.png)
 
 <table><tr>
-<td><img src="assets/branding/vulkan.svg" alt="Vulkan" height="120" /></td>
-<td><img src="assets/branding/cplusplus.svg" alt="C++" height="64" /></td>
-<td><img src="assets/branding/cmake.svg" alt="CMake" height="64" /></td>
+<td valign="middle"><img src="assets/branding/vulkan.svg" alt="Vulkan" width="200" /></td>
+<td valign="middle"><img src="assets/branding/cplusplus.svg" alt="C++" width="64" /></td>
+<td valign="middle"><img src="assets/branding/cmake.svg" alt="CMake" width="64" /></td>
 </tr></table>
 
 GENERATIONS is a Vulkan-native simulation runtime (CAPITAL Engine) focused on GPU-first simulation + rendering.
