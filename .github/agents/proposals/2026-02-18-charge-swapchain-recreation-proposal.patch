@@ -1,0 +1,34 @@
+FILE: src/engine/CapitalEngine.cpp  
+SEARCH:  
+<<<  
+void CapitalEngine::recreate_swapchain() {  
+    mechanics.swapchain.recreate(mechanics.init_vulkan.surface, mechanics.queues, mechanics.sync_objects, *pipelines, *resources);  
+}  
+>>>  
+REPLACE:  
+<<<  
+void CapitalEngine::recreate_swapchain() {  
+    // Cleanup resources dependent on the swapchain  
+    frame_context->cleanup();  
+    pipelines->cleanup();  
+    resources->cleanup();  
+
+    // Recreate the swapchain  
+    try {  
+        mechanics.swapchain.recreate(mechanics.init_vulkan.surface, mechanics.queues, mechanics.sync_objects, *pipelines, *resources);  
+    } catch (const std::exception& e) {  
+        Log::text(Log::Style::header_guard);  
+        Log::text("| Swapchain recreation failed: ", e.what());  
+        throw; // Re-throw the exception to allow higher-level handling  
+    }  
+
+    // Reinitialize resources dependent on the new swapchain  
+    resources->initialize(mechanics.swapchain);  
+    pipelines->initialize(mechanics.swapchain, *resources);  
+    frame_context->initialize(mechanics.swapchain, *resources, *pipelines);  
+
+    // Log the successful completion of the swapchain recreation process  
+    Log::text("| Swapchain recreation completed successfully");  
+    Log::text(Log::Style::header_guard);  
+}  
+>>>
