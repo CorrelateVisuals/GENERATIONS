@@ -22,8 +22,10 @@
         "## Next Run"
       ],
       "cross_confirm": true,
-      "context_chars": 8000,
+      "context_chars": 10000,
+      "per_file_cap": 3000,
       "handoff_chars": 1500,
+      "guild_review": true,
       "retry_on_gate_fail": true
     },
     "Pull": {
@@ -49,7 +51,8 @@
         "## Next Run"
       ],
       "cross_confirm": false,
-      "context_chars": 8000,
+      "context_chars": 12000,
+      "per_file_cap": 1500,
       "handoff_chars": 1800,
       "retry_on_gate_fail": true
     },
@@ -77,8 +80,10 @@
         "## Next Run"
       ],
       "cross_confirm": true,
-      "context_chars": 8000,
-      "handoff_chars": 1500,
+      "context_chars": 14000,
+      "per_file_cap": 3000,
+      "handoff_chars": 2000,
+      "guild_review": true,
       "retry_on_gate_fail": true
     },
     "Think": {
@@ -187,8 +192,10 @@
     "max_output_chars": "Per-macro output length cap. Longer = more room, shorter = forces brevity.",
     "required_sections": "Which output sections this macro requires. Omit = use global default.",
     "cross_confirm": "Whether agents must include ## Cross-Confirmation. false = skip it.",
-    "context_chars": "How many chars of scoped code each agent sees. Less = focused, more = panoramic.",
+    "context_chars": "Total char budget for scoped code. Charge=10K focused, Pull=12K broad, Follow=14K deep+broad.",
+    "per_file_cap": "Max chars per individual file. Pull=1500 (headers only, more files). Charge/Follow=3000 (full impl).",
     "handoff_chars": "How much of previous agent output the next agent sees. 0 for independent macros.",
+    "guild_review": "Whether Guild Master runs a lightweight quality assessment after agents complete. Charge/Follow=true.",
     "retry_on_gate_fail": "Whether to retry when quality gate returns RETRY. false = accept anything."
   }
 }

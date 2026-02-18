@@ -625,6 +625,84 @@ def apply_guild_master_actions(actions: Dict[str, List[str]], run_id: str) -> st
     return f"Governance log updated: {n_cc} class-change(s), {n_gp} guild-policy(ies) recorded."
 
 
+# ---------------------------------------------------------------------------
+# Guild Review — lightweight post-sequence quality assessment
+# ---------------------------------------------------------------------------
+
+def run_guild_review(task_md: str, outputs: Dict[str, str],
+                     scoped_code: str, macro_mode: str | None) -> Dict[str, str]:
+    """Run a lightweight Guild Master review of agent outputs before patch generation.
+
+    Returns a dict with keys:
+      - verdict: APPROVE | CAUTION | BLOCK
+      - summary: one-paragraph assessment
+      - hallucination_flags: comma-separated list of suspect API calls (may be empty)
+      - raw: full review text
+    """
+    agent_summaries = []
+    for name, text in outputs.items():
+        if text.startswith("*Skipped"):
+            continue
+        # Take first 1500 chars of each agent's output for the review
+        excerpt = text[:1500]
+        agent_summaries.append(f"### {name}\n{excerpt}")
+    if not agent_summaries:
+        return {"verdict": "APPROVE", "summary": "No agent outputs to review.", "hallucination_flags": "", "raw": ""}
+
+    # Build the API inventory from scoped code for grounding check
+    api_names = _extract_api_inventory({"scoped": scoped_code})
+
+    review_prompt = f"""You are the Guild Master performing a post-sequence quality review.
+
+# Task
+{task_md[:800]}
+
+# Known APIs (from actual source files)
+{', '.join(sorted(api_names)[:40]) if api_names else '(none extracted)'}
+
+# Agent Outputs (excerpts)
+{"".join(agent_summaries)}
+
+# Your Review Instructions
+1. Check each agent's Code Proposal for **hallucinated APIs** — function/method calls that do NOT appear in the Known APIs list above. List any suspect calls.
+2. Check for **contradictions** between agents (e.g., one says add try/catch, another says remove it).
+3. Check for **scope violations** — changes to files not mentioned in the task.
+4. Assess overall **coherence** — do the proposals work together toward the task goal?
+
+# Required Output Format (exactly this structure)
+VERDICT: <APPROVE|CAUTION|BLOCK>
+SUMMARY: <one paragraph, max 3 sentences>
+HALLUCINATION_FLAGS: <comma-separated list of suspect API calls, or "none">
+NOTES: <any additional observations, max 2 sentences>
+"""
+
+    try:
+        temperature = get_temperature("Guild")
+        result = call_llm(review_prompt, temperature=temperature)
+    except Exception as e:
+        print(f"  ⚠ Guild review LLM call failed: {e}")
+        return {"verdict": "APPROVE", "summary": f"Review skipped (error: {e})", "hallucination_flags": "", "raw": ""}
+
+    # Parse structured output
+    verdict = "APPROVE"
+    summary = ""
+    halluc_flags = ""
+    for line in result.split("\n"):
+        line_s = line.strip()
+        if line_s.startswith("VERDICT:"):
+            v = line_s.split(":", 1)[1].strip().upper()
+            if v in ("APPROVE", "CAUTION", "BLOCK"):
+                verdict = v
+        elif line_s.startswith("SUMMARY:"):
+            summary = line_s.split(":", 1)[1].strip()
+        elif line_s.startswith("HALLUCINATION_FLAGS:"):
+            halluc_flags = line_s.split(":", 1)[1].strip()
+            if halluc_flags.lower() == "none":
+                halluc_flags = ""
+
+    return {"verdict": verdict, "summary": summary, "hallucination_flags": halluc_flags, "raw": result}
+
+
 MAX_PROMPT_CHARS = int(os.environ.get("MAX_PROMPT_CHARS", "24000"))
 
 
@@ -791,14 +869,83 @@ def extract_todos_for(agent_name: str, text: str) -> str:
 MAX_CODE_CONTEXT = int(os.environ.get("MAX_CODE_CONTEXT", "12000"))
 
 
-def build_scoped_code(files: List[Path], max_chars: int = 12000) -> str:
+def _pair_headers(files: List[Path]) -> List[Path]:
+    """Ensure .h/.cpp pairs stay together: if a .cpp is present, inject its .h right before it
+    (and vice versa). This guarantees agents see class definitions alongside implementations."""
+    present = {str(f.resolve()) for f in files}
+    paired: List[Path] = []
+    seen: set = set()
+    for f in files:
+        key = str(f.resolve())
+        if key in seen:
+            continue
+        # If this is a .cpp, inject its .h first
+        if f.suffix == ".cpp":
+            header = f.with_suffix(".h")
+            hkey = str(header.resolve())
+            if header.exists() and hkey not in seen:
+                paired.append(header)
+                seen.add(hkey)
+        # If this is a .h, also pull in its .cpp right after
+        elif f.suffix == ".h":
+            impl = f.with_suffix(".cpp")
+            impl_key = str(impl.resolve())
+            paired.append(f)
+            seen.add(key)
+            if impl.exists() and impl_key not in seen:
+                paired.append(impl)
+                seen.add(impl_key)
+            continue
+        paired.append(f)
+        seen.add(key)
+    return paired
+
+
+def _sort_by_relevance(files: List[Path], task_keywords: List[str]) -> List[Path]:
+    """Sort files so task-relevant files come first, consuming the context budget first."""
+    def score(f: Path) -> int:
+        name = f.stem.lower()
+        s = 0
+        for kw in task_keywords:
+            if kw in name:
+                s += 10
+            # Also check parent dir name
+            if kw in f.parent.name.lower():
+                s += 5
+        # Prefer smaller files (more likely to fit in budget)
+        try:
+            size = f.stat().st_size
+            if size < 3000:
+                s += 3  # small files = cheap, fit whole
+            elif size < 6000:
+                s += 1
+        except OSError:
+            pass
+        # Headers slightly preferred (contain declarations = API surface)
+        if f.suffix == ".h":
+            s += 2
+        return -s  # negative for ascending sort = highest score first
+    return sorted(files, key=score)
+
+
+def build_scoped_code(files: List[Path], max_chars: int = 12000,
+                      task_keywords: List[str] | None = None,
+                      per_file_cap: int = 3000) -> str:
     if not files:
         return "No in-scope files found."
+
+    # Phase 1: Sort by task relevance (task-related files get budget priority)
+    if task_keywords:
+        files = _sort_by_relevance(files, task_keywords)
+
+    # Phase 2: Pair headers with implementations
+    files = _pair_headers(files)
+
     chunks = []
     total = 0
     for f in files:
         rel = f.relative_to(ROOT)
-        snippet = read_capped(f)
+        snippet = read_capped(f, max_chars=per_file_cap)
         if total + len(snippet) > max_chars:
             remaining = max_chars - total
             if remaining > 200:
@@ -1487,7 +1634,13 @@ def main() -> None:
     scope_files = parse_scope_files(task_md)
     scope_rel = [str(p.relative_to(ROOT)) for p in scope_files]
     context_chars = get_macro_knob(MACRO_MODE, "context_chars", MAX_CODE_CONTEXT)
-    scoped_code = build_scoped_code(scope_files, max_chars=context_chars)
+    file_cap = get_macro_knob(MACRO_MODE, "per_file_cap", 3000)
+
+    # Extract task keywords for relevance-based context ordering
+    task_keywords = [w.lower() for w in re.findall(r'[A-Za-z]{3,}', TASK_COMMAND or "")]
+    scoped_code = build_scoped_code(scope_files, max_chars=context_chars,
+                                     task_keywords=task_keywords,
+                                     per_file_cap=file_cap)
 
     all_agents: List[Tuple[str, str]] = [
         ("C++ Lead", "party/cpp-lead.md"),
@@ -1719,6 +1872,34 @@ def main() -> None:
         gov_summary = apply_guild_master_actions(gm_actions, run_id)
         print(f"  🏛️  {gov_summary}")
 
+    # --- Guild Review: lightweight post-sequence quality check ---
+    guild_review_result: Dict[str, str] = {}
+    macro_guild_review = get_macro_knob(MACRO_MODE, "guild_review", False)
+    if macro_guild_review and not pipeline_halted:
+        print("  🔍 Running Guild Review (post-sequence quality check)...")
+        guild_review_result = run_guild_review(task_md, outputs, scoped_code, MACRO_MODE)
+        verdict = guild_review_result.get("verdict", "APPROVE")
+        summary = guild_review_result.get("summary", "")
+        halluc = guild_review_result.get("hallucination_flags", "")
+        print(f"  🏛️  Guild Review: {verdict} — {summary}")
+        if halluc:
+            print(f"  ⚠ Hallucination flags: {halluc}")
+        if verdict == "BLOCK":
+            pipeline_halted = True
+            halt_message = f"Guild Review BLOCK: {summary}"
+            print(f"  🛑 Guild Review blocked the pipeline: {summary}")
+
+        # Log the review
+        review_log_path = LOGS_DIR / f"{today}-{task_id.lower()}-guild-review.md"
+        review_log_path.write_text(
+            f"# Guild Review — {task_id} ({today})\n\n"
+            f"**Verdict**: {verdict}\n"
+            f"**Summary**: {summary}\n"
+            f"**Hallucination Flags**: {halluc or 'none'}\n\n"
+            f"## Full Review\n{guild_review_result.get('raw', '')}\n",
+            encoding="utf-8",
+        )
+
     # --- Next-task preparation: agents recommend what to run next ---
     next_run_recs = extract_next_run(outputs, full_next_runs)
     next_task_path = TOWN_DIR / "next-task.md"
@@ -1791,6 +1972,17 @@ def main() -> None:
         report_lines.append(next_run_recs)
         report_lines.append("")
 
+    # Guild Review summary in report
+    if guild_review_result:
+        report_lines.append("## Guild Review")
+        report_lines.append("")
+        report_lines.append(f"**Verdict**: {guild_review_result.get('verdict', 'N/A')}")
+        report_lines.append(f"**Summary**: {guild_review_result.get('summary', 'N/A')}")
+        halluc = guild_review_result.get("hallucination_flags", "")
+        if halluc:
+            report_lines.append(f"**Hallucination Flags**: {halluc}")
+        report_lines.append("")
+
     # Factory metrics dashboard
     trailing = load_trailing_metrics(days=7)
     report_lines.append(compute_metrics_summary(trailing))
@@ -1844,6 +2036,8 @@ def main() -> None:
         "apply_message": apply_message,
         "pipeline_halted": pipeline_halted,
         "halt_message": halt_message if pipeline_halted else "",
+        "guild_review_verdict": guild_review_result.get("verdict", "") if guild_review_result else "",
+        "guild_review_summary": guild_review_result.get("summary", "") if guild_review_result else "",
         "allowed_scope_files": scope_rel,
         "agents": [name for name, _ in sequence],
     }
