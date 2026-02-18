@@ -12,8 +12,12 @@ from pathlib import Path
 from typing import Any, Dict, List, Tuple
 from urllib import request
 
-ROOT = Path(os.environ.get("GITHUB_WORKSPACE", ".")).resolve()
-AGENTS_DIR = ROOT / ".github" / "agents"
+# TARGET_REPO  = the source-code repo to analyze/patch (e.g. GENERATIONS)
+# GITHUB_WORKSPACE = where this script's own repo is checked out (agent config)
+# When both repos live in the same checkout, these are the same.
+_WORKSPACE = Path(os.environ.get("GITHUB_WORKSPACE", ".")).resolve()
+ROOT = Path(os.environ.get("TARGET_REPO", str(_WORKSPACE))).resolve()
+AGENTS_DIR = _WORKSPACE / ".github" / "agents"
 PARTY_DIR = AGENTS_DIR / "party"
 TOWN_DIR = AGENTS_DIR / "town"
 GUILDS_DIR = AGENTS_DIR / "guilds"

@@ -45,11 +45,11 @@ void main() {
         return;
     }
 
+    // Moving cells: follow inPosition.xy from Engine.comp, fixed travel size
     vec3 followerBase = inPosition.xyz;
-    float baseScale = max(inPosition.w * 1.20f, ubo.cellSize * 0.85f);
-    float followerScale = baseScale * 0.45f;
+    float followerScale = ubo.cellSize * 0.45f;
 
-    float cellLift = max(baseScale * 0.52f, 0.08f);
+    float cellLift = max(followerScale * 0.52f, 0.08f);
     float followerCenterLift = cellLift;
     followerBase.z += terrain_height(inPosition.xy) + followerCenterLift;
 

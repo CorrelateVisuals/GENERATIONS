@@ -14,7 +14,7 @@ namespace CE::Runtime {
 
 constexpr int kDefaultGridWidth = 10;
 constexpr int kDefaultGridHeight = 10;
-constexpr uint32_t kDefaultAliveCells = 50;
+constexpr uint32_t kDefaultAliveCells = 100;
 
 constexpr const char *kEnvStartupScreenshot = "CE_STARTUP_SCREENSHOT";
 constexpr const char *kEnvStartupScreenshotCycle = "CE_STARTUP_SCREENSHOT_CYCLE";

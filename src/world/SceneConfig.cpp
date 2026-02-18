@@ -154,8 +154,8 @@ SceneConfig SceneConfig::defaults() {
   const std::string preset = workload_preset();
   const std::vector<std::string> compute_chain = split_csv(std::getenv("CE_COMPUTE_CHAIN"));
 
-  spec.terrain.grid_width = 25;
-  spec.terrain.grid_height = 10;
+  spec.terrain.grid_width = 20;
+  spec.terrain.grid_height = 20;
   spec.terrain.alive_cells = CE::Runtime::kDefaultAliveCells;
   spec.terrain.cell_size = 0.5f;
   spec.terrain.terrain_render_subdivisions = 1;
