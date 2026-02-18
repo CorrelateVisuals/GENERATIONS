@@ -753,12 +753,19 @@ def extract_task_id(task_md: str) -> str:
     return m.group(1) if m else "TASK"
 
 
-def extract_next_run(outputs: Dict[str, str]) -> str:
+def extract_next_run(outputs: Dict[str, str], full_next_runs: Dict[str, str] | None = None) -> str:
     """Extract and consolidate next-run recommendations from all agent outputs.
+    Uses pre-extracted full_next_runs (captured before truncation) when available.
     Returns a ready-to-use next-task.md or empty string if no recommendations."""
     recs: List[str] = []
     for name, text in outputs.items():
-        # Match new format: ## Next Run ... or legacy 9) Recommended Next Run
+        # Prefer pre-extracted full next-run (captured before output truncation)
+        if full_next_runs and name in full_next_runs:
+            rec = full_next_runs[name]
+            if rec and "none" not in rec.lower()[:20]:
+                recs.append(f"- **{name}**: {rec}")
+            continue
+        # Fallback: extract from (possibly truncated) output
         m = re.search(
             r"(?:## Next Run|9\)\s*Recommended Next Run)([\s\S]*?)(?:\n## |\n\d+\)|\Z)",
             text,
@@ -846,16 +853,29 @@ Your VISIBLE output (shown in the PR) must contain ONLY these sections:
 
 ## TODOs
 Actionable items. One per line, format:
-- [ ] `path/file.cpp` — description [RISK: high/medium/low]
+- [ ] `path/file.cpp` L<line> — <specific change: what to add/remove/modify> [RISK: high/medium/low]
+
+Be SPECIFIC:
+- Name exact functions, variables, and line numbers from the provided code context.
+- Write concrete actions: "add X before Y", "change A to B", "remove call to Z at line N".
+- Do NOT write generic goals like "ensure X handles Y" or "validate that Z works".
+- Every TODO must be independently actionable by someone who has never seen the code.
 
 ## Code Proposal
 ```cpp
 // Only if this macro produces patches. Exact code, ready to apply.
+// ONLY use functions, methods, types, and variables that appear in the Relevant Code Context.
+// Do NOT invent APIs, methods, or member functions that don't exist in the codebase.
 ```
 
 ## Next Run
 `<Macro> "<task_command>"` — one-line rationale.
 Or: `None — task is self-contained.`
+
+CRITICAL RULES:
+- ONLY reference functions, types, methods, and variables that appear in the provided Relevant Code Context section.
+- Do NOT invent or assume APIs that are not shown. If a function doesn't exist in the context, don't call it.
+- Code proposals must compile against the existing codebase — no fictional interfaces.
 
 Example complete output:
 
@@ -866,8 +886,8 @@ This risks use-after-free on in-flight frames.
 </reasoning>
 
 ## TODOs
-- [ ] `src/vulkan_mechanics/Mechanics.cpp` — add vkDeviceWaitIdle before swapchain destroy [RISK: high]
-- [ ] `src/vulkan_mechanics/Mechanics.cpp` — recreate framebuffers after new swapchain [RISK: high]
+- [ ] `src/vulkan_mechanics/Mechanics.cpp` L47 — add vkDeviceWaitIdle(device) call before destroy() in recreate() [RISK: high]
+- [ ] `src/vulkan_mechanics/Mechanics.cpp` L52 — call create_framebuffers() after create() to rebuild framebuffers [RISK: high]
 
 ## Code Proposal
 ```cpp
@@ -995,27 +1015,146 @@ def changed_files_from_patch(patch: str) -> List[str]:
     return files
 
 
+def _apply_search_replace_blocks(blocks: List[Dict[str, str]]) -> Tuple[bool, str]:
+    """Apply search/replace blocks to files. Returns (success, message)."""
+    applied = 0
+    errors: List[str] = []
+    for block in blocks:
+        fpath = ROOT / block["file"]
+        if not fpath.exists():
+            errors.append(f"File not found: {block['file']}")
+            continue
+        content = fpath.read_text(encoding="utf-8")
+        search = block["search"]
+        replace = block["replace"]
+        if search not in content:
+            # Try with normalized whitespace (strip trailing spaces per line)
+            search_norm = "\n".join(l.rstrip() for l in search.split("\n"))
+            content_norm = "\n".join(l.rstrip() for l in content.split("\n"))
+            if search_norm in content_norm:
+                # Apply on normalized content
+                content = content_norm.replace(search_norm, replace, 1)
+            else:
+                errors.append(f"Search block not found in {block['file']} (first 80 chars: {search[:80]!r})")
+                continue
+        else:
+            content = content.replace(search, replace, 1)
+        fpath.write_text(content, encoding="utf-8")
+        applied += 1
+    if errors:
+        return applied > 0, f"Applied {applied} blocks, {len(errors)} errors: " + "; ".join(errors)
+    return True, f"Applied {applied} search/replace blocks successfully."
+
+
+def _parse_search_replace_response(raw: str) -> List[Dict[str, str]]:
+    """Parse LLM response containing FILE/SEARCH/REPLACE blocks."""
+    blocks: List[Dict[str, str]] = []
+    # Pattern: FILE: <path>\nSEARCH:\n<<<\n...\n>>>\nREPLACE:\n<<<\n...\n>>>
+    pattern = re.compile(
+        r"FILE:\s*(.+?)\s*\n"
+        r"SEARCH:\s*\n<<<\n(.*?)\n>>>\s*\n"
+        r"REPLACE:\s*\n<<<\n(.*?)\n>>>",
+        re.DOTALL,
+    )
+    for m in pattern.finditer(raw):
+        blocks.append({
+            "file": m.group(1).strip().strip("`"),
+            "search": m.group(2),
+            "replace": m.group(3),
+        })
+    return blocks
+
+
 def generate_patch(task_md: str, outputs: Dict[str, str], allowed_files: List[str]) -> str:
+    """Generate a patch using search/replace blocks applied to real files, then git diff."""
     aggregated = "\n\n".join([f"## {k}\n{v}" for k, v in outputs.items()])
-    allowed = "\n".join([f"- {p}" for p in allowed_files])
+    allowed = "\n".join([f"- `{p}`" for p in allowed_files])
+
+    # Provide actual file content for files referenced in code proposals
+    referenced_files: List[str] = []
+    for path_str in allowed_files:
+        p = ROOT / path_str
+        if p.exists():
+            for _, text in outputs.items():
+                if path_str in text or p.name in text:
+                    referenced_files.append(path_str)
+                    break
+    file_contents = ""
+    char_budget = 8000
+    for ref in referenced_files[:6]:
+        p = ROOT / ref
+        if p.exists():
+            content = read_capped(p, max_chars=1500)
+            file_contents += f"\n### {ref}\n```\n{content}\n```\n"
+            char_budget -= len(content)
+            if char_budget <= 0:
+                break
+
     prompt = f"""
-Generate a minimal unified git patch for this task.
+Generate SEARCH/REPLACE blocks to implement the proposed changes.
 Only modify files from the allowed list.
+The SEARCH block must contain EXACT lines from the current file — copy them verbatim.
+The REPLACE block contains the new code that replaces the search block.
 
 # Active Task
 {task_md}
 
-# Agent Outputs
+# Agent Outputs (proposed changes)
 {aggregated}
 
 # Allowed Files
 {allowed}
 
-Return only a valid git patch in unified diff format starting with `diff --git`.
-No prose.
+# Current File Contents (for accurate SEARCH blocks)
+{file_contents}
+
+# Output Format
+Return one or more blocks in this EXACT format (no other text):
+
+FILE: path/to/file.cpp
+SEARCH:
+<<<
+exact lines from the current file
+>>>
+REPLACE:
+<<<
+new replacement lines
+>>>
+
+Rules:
+- SEARCH must match the file EXACTLY (copy from Current File Contents above)
+- Include 2-3 lines of unchanged context before and after the changed lines in SEARCH
+- Keep changes minimal — smallest viable diff
+- No prose, no explanation — only FILE/SEARCH/REPLACE blocks
 """.strip()
     raw = call_llm(prompt)
-    return extract_patch(raw)
+
+    # Parse and apply search/replace blocks
+    blocks = _parse_search_replace_response(raw)
+    if not blocks:
+        # Fallback: try extracting a unified diff the old way
+        return extract_patch(raw)
+
+    # Validate files are in allowed scope
+    allowed_set = set(allowed_files)
+    for block in blocks:
+        if block["file"] not in allowed_set:
+            return f"# Patch rejected: block references disallowed file {block['file']}\n"
+
+    ok, msg = _apply_search_replace_blocks(blocks)
+    if not ok:
+        return f"# Search/replace failed: {msg}\n"
+
+    # Generate real diff from working tree
+    code, diff_out = run_command("git diff")
+    if code != 0 or not diff_out.strip():
+        # Revert and report
+        run_command("git checkout -- .")
+        return f"# No diff generated after applying blocks. Message: {msg}\n"
+
+    # Revert working tree — the guarded apply will re-apply from the patch file
+    run_command("git checkout -- .")
+    return diff_out.strip() + "\n"
 
 
 def gather_numstat() -> Tuple[int, int, int]:
@@ -1268,6 +1407,7 @@ def main() -> None:
     macro_sections = get_macro_knob(MACRO_MODE, "required_sections", None)
     run_id = f"{today}-{(MACRO_MODE or 'run').lower()}-a"
     outputs: Dict[str, str] = {}
+    full_next_runs: Dict[str, str] = {}  # captured before truncation
     handoff_todos = "Start from task statement; no upstream TODOs yet."
     pipeline_halted = False
     halt_message = ""
@@ -1340,6 +1480,16 @@ def main() -> None:
                 print(f"  ⚠ Gate WARN for {name}: {gate_msg}")
             else:
                 print(f"  ✅ Gate PASS for {name}")
+
+            # Extract next-run from FULL output BEFORE truncation
+            next_run_match = re.search(
+                r"(?:## Next Run|9\)\s*Recommended Next Run)([\s\S]*?)(?:\n## |\n\d+\)|\Z)",
+                result,
+                flags=re.IGNORECASE,
+            )
+            if next_run_match:
+                _full_next_run = next_run_match.group(1).strip()
+                full_next_runs[name] = _full_next_run
 
             # Truncate excessive output (per-macro cap)
             if len(result) > macro_max_chars:
@@ -1445,7 +1595,7 @@ def main() -> None:
         print(f"  🏛️  {gov_summary}")
 
     # --- Next-task preparation: agents recommend what to run next ---
-    next_run_recs = extract_next_run(outputs)
+    next_run_recs = extract_next_run(outputs, full_next_runs)
     next_task_path = TOWN_DIR / "next-task.md"
     if next_run_recs and not pipeline_halted:
         next_task_content = (
