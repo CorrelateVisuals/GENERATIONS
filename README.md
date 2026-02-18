@@ -2,11 +2,11 @@
 
 ![GENERATIONS Cover](assets/timeline/TerrainCover_20260215.png)
 
-<table><tr>
-<td valign="middle"><img src="assets/branding/vulkan.svg" alt="Vulkan" width="200" /></td>
-<td valign="middle"><img src="assets/branding/cplusplus.svg" alt="C++" width="64" /></td>
-<td valign="middle"><img src="assets/branding/cmake.svg" alt="CMake" width="64" /></td>
-</tr></table>
+<p align="center">
+<a><img src="assets/branding/vulkan.svg" alt="Vulkan" width="200" /></a>&nbsp;&nbsp;&nbsp;
+<a><img src="assets/branding/cplusplus.svg" alt="C++" width="58" /></a>&nbsp;&nbsp;&nbsp;
+<a><img src="assets/branding/cmake.svg" alt="CMake" width="58" /></a>
+</p>
 
 GENERATIONS is a Vulkan-native simulation runtime (CAPITAL Engine) focused on GPU-first simulation + rendering.
 The project currently runs a Conway-style cellular simulation on terrain with compute/graphics staging and runtime-configurable pipeline execution.
