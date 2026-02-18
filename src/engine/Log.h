@@ -16,6 +16,11 @@
 #define STRINGIFY_IMPL(x) #x
 #define STRINGIFY(x) STRINGIFY_IMPL(x)
 
+#define LOG_LEVEL_STRING(level) (level == Log::LOG_OFF ? "OFF" : \
+                                 level == Log::LOG_MINIMAL ? "MINIMAL" : \
+                                 level == Log::LOG_MODERATE ? "MODERATE" : \
+                                 level == Log::LOG_DETAILED ? "DETAILED" : "UNKNOWN")
+
 namespace Log {
 enum LogLevel { LOG_OFF = 0, LOG_MINIMAL = 1, LOG_MODERATE = 2, LOG_DETAILED = 3 };
 inline uint8_t log_level = LOG_MODERATE;

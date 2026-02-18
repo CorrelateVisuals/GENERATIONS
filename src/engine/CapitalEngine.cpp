@@ -19,11 +19,13 @@ CapitalEngine::CapitalEngine() {
   
   Log::text(Log::Style::header_guard);
   Log::text("| CAPITAL Engine");
+  Log::text("Log Level: ", LOG_LEVEL_STRING(Log::log_level));
 }
 
 CapitalEngine::~CapitalEngine() {
   Log::text(Log::Style::header_guard);
   Log::text("| CAPITAL Engine");
+  Log::text("Log Level: ", LOG_LEVEL_STRING(Log::log_level));
   Log::text(Log::Style::header_guard);
 }
 
