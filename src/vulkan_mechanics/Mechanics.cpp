@@ -22,14 +22,20 @@ void VulkanMechanics::BaseSwapchain::recreate(const VkSurfaceKHR &surface,
                                           BaseSynchronizationObjects &sync_objects,
                                           Pipelines &pipelines,
                                           VulkanResources &resources) {
-  CE::BaseSwapchain::recreate(surface, queues, sync_objects);
-  pipelines.config.refresh_dynamic_work_groups(resources.world._grid.size, extent);
+  try {
+    CE::BaseSwapchain::recreate(surface, queues, sync_objects);
+    pipelines.config.refresh_dynamic_work_groups(resources.world._grid.size, extent);
     resources.msaa_image.create_resources(CE_MULTISAMPLE_IMAGE, extent, image_format);
     resources.depth_image.create_resources(
       CE_DEPTH_IMAGE, extent, CE::BaseImage::find_depth_format());
-  pipelines.render.create_framebuffers(
-      *this, resources.msaa_image.view, resources.depth_image.view);
+    pipelines.render.create_framebuffers(
+        *this, resources.msaa_image.view, resources.depth_image.view);
 
-  resources.storage_image.create_descriptor_write(resources.descriptor_interface, images);
-  resources.descriptor_interface.update_sets();
+    resources.storage_image.create_descriptor_write(resources.descriptor_interface, images);
+    resources.descriptor_interface.update_sets();
+    Log::text("{ Swapchain }", "Recreation completed successfully.");
+  } catch (const std::exception &e) {
+    Log::error("{ Swapchain }", "Recreation failed: ", e.what());
+    throw;
+  }
 }
