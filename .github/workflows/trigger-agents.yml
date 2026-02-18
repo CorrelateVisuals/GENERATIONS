@@ -1,0 +1,61 @@
+name: Trigger Agent Run (via Multibox)
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Run mode"
+        required: true
+        type: choice
+        default: main
+        options:
+          - main
+          - self
+      macro:
+        description: "Macro to run (leave empty for full sequence)"
+        required: false
+        type: choice
+        default: ""
+        options:
+          - ""
+          - Charge
+          - Pull
+          - Follow
+          - Think
+          - Guild
+          - lead++
+          - agents++
+      task_command:
+        description: "Task override. Blank = use current-task.md"
+        required: false
+        type: string
+        default: ""
+      auto_apply_patch:
+        description: "Guarded auto-apply patch before PR"
+        required: true
+        type: boolean
+        default: true
+      target_ref:
+        description: "Branch to check out (on this repo)"
+        required: false
+        type: string
+        default: "dev-linux"
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger agent run on Multibox
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.MULTIBOX_PAT }}
+          repository: CorrelateVisuals/Multibox
+          event-type: agent-run
+          client-payload: |
+            {
+              "mode": "${{ github.event.inputs.mode }}",
+              "macro": "${{ github.event.inputs.macro }}",
+              "task_command": "${{ github.event.inputs.task_command }}",
+              "auto_apply_patch": "${{ github.event.inputs.auto_apply_patch }}",
+              "target_ref": "${{ github.event.inputs.target_ref }}"
+            }
