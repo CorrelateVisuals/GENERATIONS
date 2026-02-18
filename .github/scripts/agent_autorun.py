@@ -1234,9 +1234,10 @@ def _apply_search_replace_blocks(blocks: List[Dict[str, str]]) -> Tuple[bool, st
 
 def _parse_search_replace_response(raw: str) -> List[Dict[str, str]]:
     """Parse LLM response containing FILE/SEARCH/REPLACE blocks.
-    Supports two formats:
+    Supports three formats:
       1. FILE: path\nSEARCH:\n<<<\n...\n>>>\nREPLACE:\n<<<\n...\n>>>
       2. Markdown: #### File: `path`\n**SEARCH:**\n```cpp\n...\n```\n**REPLACE:**\n```cpp\n...\n```
+      3. Patch headers: ### PATCH: `path`\n#### SEARCH\n```cpp\n...\n```\n#### REPLACE\n```cpp\n...\n```
     Tolerates trailing whitespace on lines (common LLM artifact)."""
     blocks: List[Dict[str, str]] = []
     # Normalize: strip trailing whitespace from each line
@@ -1268,6 +1269,24 @@ def _parse_search_replace_response(raw: str) -> List[Dict[str, str]]:
         re.DOTALL,
     )
     for m in pattern2.finditer(cleaned):
+        blocks.append({
+            "file": m.group(1).strip().strip("`"),
+            "search": m.group(2),
+            "replace": m.group(3),
+        })
+
+    if blocks:
+        return blocks
+
+    # Format 3: PATCH headers with #### SEARCH / #### REPLACE code fences
+    # Matches: ### PATCH: `path`\n\n#### SEARCH\n```cpp\n...\n```\n\n#### REPLACE\n```cpp\n...\n```
+    pattern3 = re.compile(
+        r"#{1,4}\s*PATCH[:\s]*[`\"]?([^`\"\n]+?)[`\"]?\s*\n"
+        r"[\s\S]*?#{1,4}\s*SEARCH\s*\n```[a-z]*\n(.*?)\n```\s*\n"
+        r"[\s\S]*?#{1,4}\s*REPLACE\s*\n```[a-z]*\n(.*?)\n```",
+        re.DOTALL,
+    )
+    for m in pattern3.finditer(cleaned):
         blocks.append({
             "file": m.group(1).strip().strip("`"),
             "search": m.group(2),
