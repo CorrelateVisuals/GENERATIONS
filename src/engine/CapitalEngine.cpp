@@ -28,11 +28,27 @@ CapitalEngine::~CapitalEngine() {
 }
 
 void CapitalEngine::recreate_swapchain() {
+  // Ensure all GPU operations are complete before proceeding
+  mechanics.device.wait_idle();
+
+  // Cleanup resources tied to the old swapchain
+  pipelines->cleanup();
+  frame_context->cleanup();
+  resources->cleanup();
+
+  // Recreate the swapchain
   mechanics.swapchain.recreate(mechanics.init_vulkan.surface,
                                mechanics.queues,
                                mechanics.sync_objects,
                                *pipelines,
                                *resources);
+
+  // Reinitialize resources and pipelines for the new swapchain
+  resources->initialize_swapchain_dependent_resources(mechanics.swapchain);
+  pipelines->initialize_swapchain_dependent_pipelines(mechanics.swapchain);
+
+  // Log the successful recreation
+  Log::text("Swapchain successfully recreated.");
 }
 
 void CapitalEngine::main_loop() {
