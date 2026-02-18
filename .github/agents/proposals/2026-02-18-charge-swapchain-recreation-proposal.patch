@@ -1,0 +1,69 @@
+diff --git a/src/engine/CapitalEngine.cpp b/src/engine/CapitalEngine.cpp
+index abc1234..def5678 100644
+--- a/src/engine/CapitalEngine.cpp
++++ b/src/engine/CapitalEngine.cpp
+@@ -45,6 +45,18 @@ void CapitalEngine::initialize() {
+     // Initialization logic
+ }
+
++void CapitalEngine::recreate_swapchain() {
++    // Log the start of the swapchain recreation process
++    Log::text(Log::Style::header_guard);
++    Log::text("| Recreating Swapchain");
++
++    // Destroy dependent Vulkan resources before recreating the swapchain
++    pipelines->destroy();
++    resources->destroy();
++
++    // Recreate the swapchain
++    mechanics.swapchain.recreate(mechanics.init_vulkan.surface, mechanics.queues, mechanics.sync_objects, *pipelines, *resources);
++
++    // Reinitialize dependent Vulkan resources
++    resources->initialize(mechanics.swapchain);
++    pipelines->initialize(mechanics.swapchain);
++
++    // Log the completion of the swapchain recreation process
++    Log::text("| Swapchain recreation complete");
++    Log::text(Log::Style::header_guard);
++}
++
+diff --git a/src/vulkan_mechanics/Mechanics.cpp b/src/vulkan_mechanics/Mechanics.cpp
+index 123abcd..456efgh 100644
+--- a/src/vulkan_mechanics/Mechanics.cpp
++++ b/src/vulkan_mechanics/Mechanics.cpp
+@@ -78,6 +78,28 @@ void Mechanics::initialize() {
+     // Initialization logic
+ }
+
++void Swapchain::recreate(VkSurfaceKHR surface,
++                         const Queues &queues,
++                         const SyncObjects &sync_objects,
++                         Pipelines &pipelines,
++                         VulkanResources &resources) {
++    // Ensure all GPU operations are complete before destroying resources
++    vkDeviceWaitIdle(device);
++
++    // Destroy old swapchain resources
++    destroy_swapchain_resources();
++
++    // Query surface capabilities and formats
++    VkSurfaceCapabilitiesKHR surface_capabilities;
++    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physical_device, surface, &surface_capabilities);
++
++    VkSurfaceFormatKHR surface_format = choose_surface_format(surface_formats);
++    VkExtent2D extent = choose_swap_extent(surface_capabilities);
++
++    // Recreate the swapchain
++    create_swapchain(surface, surface_format, extent);
++
++    // Recreate dependent resources
++    resources.recreate_for_swapchain(swapchain, extent, surface_format.format);
++    pipelines.recreate_for_swapchain(swapchain, extent, surface_format.format);
++
++    // Recreate synchronization objects
++    sync_objects.recreate_for_swapchain(swapchain_image_count);
++
++    // Log the completion of the swapchain recreation process
++    Log::text("| Swapchain recreation complete");
++}
++
