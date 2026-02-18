@@ -88,8 +88,8 @@ World::World(VkCommandBuffer &command_buffer,
       CE::Runtime::get_world_settings().camera_position[1],
       CE::Runtime::get_world_settings().camera_position[2])),
       _time(CE::Runtime::get_world_settings().timer_speed) {
-  const float halfGridX = 0.5f * static_cast<float>(terrain_settings.grid_width) * terrain_settings.cell_size;
-  const float halfGridY = 0.5f * static_cast<float>(terrain_settings.grid_height) * terrain_settings.cell_size;
+  const float halfGridX = 0.5f * static_cast<float>(terrain_settings.grid_width);
+  const float halfGridY = 0.5f * static_cast<float>(terrain_settings.grid_height);
   const float sceneRadius = std::sqrt(halfGridX * halfGridX + halfGridY * halfGridY);
     _camera.configure_arcball(glm::vec3(0.0f, 0.0f, 0.0f), sceneRadius);
     _camera.configure_arcball_multipliers(
@@ -141,7 +141,8 @@ World::Grid::Grid(const CE::Runtime::TerrainSettings &terrain_settings,
           VkCommandBuffer &command_buffer,
           const VkCommandPool &command_pool,
                   const VkQueue &queue)
-  : size(glm::ivec2(terrain_settings.grid_width, terrain_settings.grid_height)),
+  : size(glm::ivec2(std::max(terrain_settings.grid_width, 2),
+                     std::max(terrain_settings.grid_height, 2))),
     initial_alive_cells(terrain_settings.alive_cells),
     point_count(size.x * size.y) {
   const glm::vec4 grey{0.5f, 0.5f, 0.5f, 1.0f};
@@ -171,17 +172,24 @@ World::Grid::Grid(const CE::Runtime::TerrainSettings &terrain_settings,
                                                static_cast<uint_fast32_t>(std::numeric_limits<int>::max())));
   const glm::ivec4 dead{-1, -1, 0, -1};
 
-  const float cell_spacing = std::max(terrain_settings.cell_size, 1e-4f);
-  const float startX = static_cast<float>(size.x - 1) * cell_spacing / -2.0f;
-  const float startY = static_cast<float>(size.y - 1) * cell_spacing / -2.0f;
+  const float startX = static_cast<float>(size.x - 1) / -2.0f;
+  const float startY = static_cast<float>(size.y - 1) / -2.0f;
+  const float endX = -startX;
+  const float endY = -startY;
+  Log::text("{ GRID }",
+            "grid", size.x, "x", size.y,
+            "extent_x", startX, "to", endX,
+            "extent_y", startY, "to", endY,
+            "span_x", endX - startX,
+            "span_y", endY - startY);
   const float absoluteHeight = terrain_settings.absolute_height;
   const float box_depth = std::max(terrain_settings.terrain_box_depth,
                                    terrain_settings.cell_size * 4.0f);
   for (uint_fast32_t i = 0; i < point_count; ++i) {
     point_ids[i] = i;
 
-    const float x = startX + static_cast<float>(i % size.x) * cell_spacing;
-    const float y = startY + static_cast<float>(i / size.x) * cell_spacing;
+    const float x = startX + static_cast<float>(i % size.x);
+    const float y = startY + static_cast<float>(i / size.x);
     coordinates[i] = {x, y, absoluteHeight};
 
     cells[i].instance_position = {x,
@@ -207,10 +215,10 @@ World::Grid::Grid(const CE::Runtime::TerrainSettings &terrain_settings,
 
   for (uint32_t row = 0; row < render_grid_height; ++row) {
     const float y = startY +
-                    (static_cast<float>(row) / static_cast<float>(render_subdivisions)) * cell_spacing;
+                    static_cast<float>(row) / static_cast<float>(render_subdivisions);
     for (uint32_t col = 0; col < render_grid_width; ++col) {
       const float x = startX +
-                      (static_cast<float>(col) / static_cast<float>(render_subdivisions)) * cell_spacing;
+                      static_cast<float>(col) / static_cast<float>(render_subdivisions);
       add_vertex_position({x, y, absoluteHeight});
       render_point_ids.push_back(
           static_cast<uint32_t>(render_point_ids.size()));
@@ -219,10 +227,29 @@ World::Grid::Grid(const CE::Runtime::TerrainSettings &terrain_settings,
 
   indices = create_grid_polygons(render_point_ids, render_grid_width);
 
+  // Verify terrain mesh matches cell grid extents
+  if (!unique_vertices.empty()) {
+    const auto &first_v = unique_vertices.front().vertex_position;
+    const auto &last_v = unique_vertices.back().vertex_position;
+    Log::text("{ GRID }",
+              "terrain_mesh first_vertex", first_v.x, first_v.y,
+              "last_vertex", last_v.x, last_v.y,
+              "render_grid", render_grid_width, "x", render_grid_height,
+              "vertices", unique_vertices.size(),
+              "indices", indices.size());
+  }
+  if (point_count > 0) {
+    const auto &first_c = cells[0].instance_position;
+    const auto &last_c = cells[point_count - 1].instance_position;
+    Log::text("{ GRID }",
+              "cell_grid first_cell", first_c.x, first_c.y,
+              "last_cell", last_c.x, last_c.y);
+  }
+
   const float xMin = startX;
-  const float xMax = startX + static_cast<float>(size.x - 1) * cell_spacing;
+  const float xMax = -startX;
   const float yMin = startY;
-  const float yMax = startY + static_cast<float>(size.y - 1) * cell_spacing;
+  const float yMax = -startY;
   const float zBottom = absoluteHeight - box_depth;
 
   std::vector<uint32_t> boundary_loop{};

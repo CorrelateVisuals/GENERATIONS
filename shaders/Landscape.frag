@@ -71,7 +71,7 @@ vec3 terrainColor(float heightFromWater, float slope, vec2 worldXZ) {
     vec2 xr = rot * worldXZ;
 
     vec2 gridMin = (vec2(ubo.gridXY) - vec2(1.0f)) * -0.5f;
-    vec2 gridMax = gridMin + vec2(ubo.gridXY) - vec2(1.0f);
+    vec2 gridMax = -gridMin;
     float rightEdgeDist = gridMax.x - worldXZ.x;
     float rightEdgeFade = smoothstep(0.0f, 10.0f, rightEdgeDist);
 
@@ -110,13 +110,13 @@ vec3 terrainColor(float heightFromWater, float slope, vec2 worldXZ) {
 
 #if CE_ENABLE_TERRAIN_SELF_SHADOW
 float terrainSelfShadow(vec3 worldPos, vec3 lightDirection) {
-    vec2 lightXZ = lightDirection.xz;
-    float lightXZLen2 = dot(lightXZ, lightXZ);
-    if (!(lightXZLen2 > 1e-8f)) {
+    vec2 lightXY = lightDirection.xy;
+    float lightXYLen2 = dot(lightXY, lightXY);
+    if (!(lightXYLen2 > 1e-8f)) {
         return 1.0f;
     }
 
-    vec2 rayDir = lightXZ * inversesqrt(lightXZLen2);
+    vec2 rayDir = lightXY * inversesqrt(lightXYLen2);
     float shadowHits = 0.0f;
     float sampleCount = 0.0f;
     float baseSurfaceZ = ubo.waterRules.w;
@@ -124,9 +124,9 @@ float terrainSelfShadow(vec3 worldPos, vec3 lightDirection) {
 
     for (int i = 1; i <= 4; ++i) {
         float d = float(i) * max(ubo.cellSize * 1.25f, 0.6f);
-        vec2 sampleXY = worldPos.xz + rayDir * d;
+        vec2 sampleXY = worldPos.xy + rayDir * d;
         float sampleHeight = terrain_height(sampleXY) + baseSurfaceZ;
-        float receiverHeight = worldPos.y + lightDirection.y * d;
+        float receiverHeight = worldPos.z + lightDirection.z * d;
 
         shadowHits += step(receiverHeight + bias, sampleHeight);
         sampleCount += 1.0f;
@@ -148,7 +148,7 @@ void main() {
     }
 
     vec2 gridMin = (vec2(ubo.gridXY) - vec2(1.0f)) * -0.5f;
-    vec2 gridMax = gridMin + vec2(ubo.gridXY) - vec2(1.0f);
+    vec2 gridMax = -gridMin;
     float rightEdgeDist = gridMax.x - inWorldPos.x;
     float rightEdgeFade = smoothstep(0.0f, 10.0f, rightEdgeDist);
     normal = safe_normalize(mix(vec3(0.0f, 0.0f, 1.0f), normal, rightEdgeFade),
@@ -157,7 +157,7 @@ void main() {
     vec3 lightDirection = safe_normalize(ubo.light.rgb - inWorldPos, vec3(0.0f, 0.0f, 1.0f));
     float heightFromWater = inWorldPos.z - ubo.waterThreshold;
     float slope = 1.0f - clamp(normal.z, 0.0f, 1.0f);
-    vec3 albedo = terrainColor(heightFromWater, slope, inWorldPos.xz);
+    vec3 albedo = terrainColor(heightFromWater, slope, inWorldPos.xy);
     float sunShadow = 1.0f;
 #if CE_ENABLE_TERRAIN_SELF_SHADOW
     sunShadow = terrainSelfShadow(inWorldPos, lightDirection);

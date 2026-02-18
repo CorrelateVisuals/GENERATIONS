@@ -185,8 +185,7 @@ vec2 nearest_shore_position(vec2 startXY) {
     }
 
     vec2 gridStart = (vec2(gridXY) - vec2(1.0)) * -0.5;
-    vec2 local = startXY - gridStart;
-    ivec2 baseCell = ivec2(round(local));
+    ivec2 baseCell = ivec2(round(startXY - gridStart));
     baseCell = clamp(baseCell, ivec2(0), gridXY - ivec2(1));
 
     float bestDist2 = 1e20;

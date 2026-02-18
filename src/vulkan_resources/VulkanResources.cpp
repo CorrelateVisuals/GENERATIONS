@@ -120,12 +120,22 @@ void VulkanResources::UniformBuffer::create_descriptor_write(CE::BaseDescriptorI
 };
 
 void VulkanResources::UniformBuffer::update(World &world, const VkExtent2D extent) {
+  static bool ubo_logged = false;
   ubo.light = world._ubo.light;
-  ubo.grid_xy = glm::vec2(static_cast<uint32_t>(world._grid.size.x),
-                          static_cast<uint32_t>(world._grid.size.y));
+  ubo.grid_xy = glm::ivec2(world._grid.size.x, world._grid.size.y);
   ubo.model = world._camera.set_model();
   ubo.view = world._camera.set_view();
   ubo.projection = world._camera.set_projection(extent);
+
+  if (!ubo_logged) {
+    ubo_logged = true;
+    Log::text("{ UBO }",
+              "gridXY", ubo.grid_xy.x, ubo.grid_xy.y,
+              "cellSize", ubo.cell_size,
+              "waterThreshold", ubo.water_threshold,
+              "waterRules", ubo.water_rules.x, ubo.water_rules.y,
+                            ubo.water_rules.z, ubo.water_rules.w);
+  }
 
   std::memcpy(buffer.mapped, &ubo, sizeof(ubo));
 }

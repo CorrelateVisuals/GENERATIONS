@@ -19,7 +19,8 @@ vec3 safe_normalize(vec3 v, vec3 fallback) {
 }
 
 void main() {
-    float domeRadius = 170.0;
+    float gridDiag = length(vec2(ubo.gridXY)) * 0.5;
+    float domeRadius = max(gridDiag * 4.0, 170.0);
     vec3 local = safe_normalize(inPos, vec3(0.0, 1.0, 0.0)) * domeRadius;
 
     // Remove camera translation so the dome stays centered on the viewer.

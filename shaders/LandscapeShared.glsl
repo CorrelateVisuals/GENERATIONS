@@ -28,7 +28,7 @@ void render_landscape_vertex(mat4 model, mat4 view, mat4 projection) {
 
     float eps = max(0.35f * ubo.cellSize, 0.05f);
     vec2 gridMin = (vec2(ubo.gridXY) - vec2(1.0f)) * -0.5f;
-    vec2 gridMax = gridMin + vec2(ubo.gridXY) - vec2(1.0f);
+    vec2 gridMax = -gridMin;
 
     vec2 pL = vec2(max(p.x - eps, gridMin.x), p.y);
     vec2 pR = vec2(min(p.x + eps, gridMax.x), p.y);
