@@ -1,0 +1,46 @@
+### PATCH: Add Logging and Error Handling to `recreate_swapchain`
+
+#### File: `src/engine/CapitalEngine.cpp`
+
+**SEARCH:**
+```cpp
+void CapitalEngine::recreate_swapchain() {
+  mechanics.swapchain.recreate(mechanics.init_vulkan.surface,
+                               mechanics.queues,
+                               mechanics.sync_objects,
+                               *pipelines,
+                               *resources);
+}
+```
+
+**REPLACE:**
+```cpp
+void CapitalEngine::recreate_swapchain() {
+  try {
+    Log::text(Log::Style::header_guard);
+    Log::text("| Recreating Swapchain");
+
+    // Log the current state before recreation
+    Log::text("Current Swapchain State:");
+    Log::text("  - Last Presented Image Index: " + std::to_string(last_presented_image_index));
+    Log::text("  - Last Submitted Frame Index: " + std::to_string(last_submitted_frame_index));
+
+    // Perform swapchain recreation
+    mechanics.swapchain.recreate(mechanics.init_vulkan.surface,
+                                 mechanics.queues,
+                                 mechanics.sync_objects,
+                                 *pipelines,
+                                 *resources);
+
+    // Log success
+    Log::text("| Swapchain successfully recreated");
+    Log::text(Log::Style::header_guard);
+  } catch (const std::exception &e) {
+    // Log the error and rethrow
+    Log::text(Log::Style::header_guard);
+    Log::text("| ERROR: Swapchain recreation failed: " + std::string(e.what()));
+    Log::text(Log::Style::header_guard);
+    throw;
+  }
+}
+```
