@@ -23,8 +23,13 @@ on:
           - Follow
           - Think
           - Guild
-          - lead++
-          - agents++
+          - Warrior
+          - Rogue
+          - Mage
+          - Hunter
+          - Shaman
+          - Priest
+          - Party
       task_command:
         description: "Task override. Blank = use current-task.md"
         required: false
@@ -40,6 +45,11 @@ on:
         required: false
         type: string
         default: "dev-linux"
+      chain:
+        description: "Auto-trigger follow-up runs from agent recommendations"
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   dispatch:
@@ -57,5 +67,8 @@ jobs:
               "macro": "${{ github.event.inputs.macro }}",
               "task_command": "${{ github.event.inputs.task_command }}",
               "auto_apply_patch": "${{ github.event.inputs.auto_apply_patch }}",
-              "target_ref": "${{ github.event.inputs.target_ref }}"
+              "target_ref": "${{ github.event.inputs.target_ref }}",
+              "target_manifest": "generations",
+              "chain": "${{ github.event.inputs.chain }}",
+              "chain_depth": "0"
             }
