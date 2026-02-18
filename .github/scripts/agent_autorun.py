@@ -863,9 +863,11 @@ Be SPECIFIC:
 
 ## Code Proposal
 ```cpp
-// Only if this macro produces patches. Exact code, ready to apply.
-// ONLY use functions, methods, types, and variables that appear in the Relevant Code Context.
-// Do NOT invent APIs, methods, or member functions that don't exist in the codebase.
+// Only if this macro produces patches. Describe the INTENT of the change.
+// Reference real functions from the Relevant Code Context where possible.
+// The patch generator will verify all APIs exist — if you reference a method
+// that doesn't exist, it will be skipped. Prefer wrapping/extending existing
+// code over inventing new function signatures.
 ```
 
 ## Next Run
@@ -1105,6 +1107,22 @@ def _parse_search_replace_response(raw: str) -> List[Dict[str, str]]:
     return blocks
 
 
+def _extract_api_inventory(file_contents: str) -> str:
+    """Extract function/method/type names from file content to build a grounding checklist."""
+    names: set = set()
+    for m in re.finditer(r'\b([A-Z]\w*::\w+)\s*\(', file_contents):
+        names.add(m.group(1))
+    for m in re.finditer(r'(\w+)\s*\.\s*(\w+)\s*\(', file_contents):
+        names.add(f"{m.group(1)}.{m.group(2)}()")
+    for m in re.finditer(r'(\w+)\s*->\s*(\w+)\s*\(', file_contents):
+        names.add(f"{m.group(1)}->{m.group(2)}()")
+    for m in re.finditer(r'\bvoid\s+(\w+(?:::\w+)*)\s*\(', file_contents):
+        names.add(m.group(1))
+    for m in re.finditer(r'\b(vk\w+)\s*\(', file_contents):
+        names.add(m.group(1))
+    return ", ".join(sorted(names)[:60]) if names else "(no APIs extracted)"
+
+
 def generate_patch(task_md: str, outputs: Dict[str, str], allowed_files: List[str]) -> str:
     """Generate a patch using search/replace blocks applied to real files, then git diff."""
     aggregated = "\n\n".join([f"## {k}\n{v}" for k, v in outputs.items()])
@@ -1131,26 +1149,38 @@ def generate_patch(task_md: str, outputs: Dict[str, str], allowed_files: List[st
             if char_budget <= 0:
                 break
 
+    # Build API inventory from actual file contents for grounding
+    api_inventory = _extract_api_inventory(file_contents)
+
     prompt = f"""
-Generate SEARCH/REPLACE blocks to implement the proposed changes.
-Only modify files from the allowed list.
+You are a patch generator. You read ACTUAL SOURCE FILES and produce SEARCH/REPLACE edits.
 
-CRITICAL: The SEARCH block MUST be an EXACT copy-paste from the file shown below.
-Do NOT paraphrase, reindent, or rewrite the search text — copy it CHARACTER FOR CHARACTER.
-If the file uses 2-space indent, your SEARCH must use 2-space indent.
-If a function call spans multiple lines, copy all those lines exactly.
+# AUTHORITATIVE SOURCE — The Real Files
+These are the ACTUAL files from the repository. Your SEARCH blocks MUST be copied
+CHARACTER FOR CHARACTER from these files. Your REPLACE blocks may ONLY call
+functions, methods, and types that appear in these files.
 
-# Active Task
+{file_contents}
+
+# Available APIs (extracted from files above)
+{api_inventory}
+
+# Task Intent
 {task_md}
 
-# Agent Outputs (proposed changes)
+# Agent Proposals (INTENT ONLY — do NOT copy their code literally)
+The agents below describe WHAT should change, but their code examples may reference
+functions that DO NOT EXIST. Treat proposals as English-language intent descriptions.
+Extract the GOAL (e.g. "add error handling", "add logging") but write your REPLACE
+blocks using ONLY the APIs visible in the Authoritative Source above.
+If an agent proposes calling `foo->bar()` but `bar()` does not appear in any file
+above, DO NOT include that call. Use an existing API that achieves the same goal,
+or skip that part of the proposal.
+
 {aggregated}
 
 # Allowed Files
 {allowed}
-
-# Current File Contents — COPY FROM HERE for SEARCH blocks
-{file_contents}
 
 # Output Format
 Return one or more blocks in this EXACT format (no other text):
@@ -1158,15 +1188,17 @@ Return one or more blocks in this EXACT format (no other text):
 FILE: path/to/file.cpp
 SEARCH:
 <<<
-exact lines copied from Current File Contents above
+exact lines copied from Authoritative Source above
 >>>
 REPLACE:
 <<<
-new replacement lines
+new lines using ONLY APIs from Available APIs list above
 >>>
 
 Rules:
-- SEARCH text must be COPIED VERBATIM from the file contents shown above — same whitespace, same indentation, same line breaks
+- SEARCH text must be COPIED VERBATIM from the files shown above — same whitespace, same indentation, same line breaks
+- REPLACE blocks may ONLY call functions/methods/types listed in Available APIs or standard C++ (try/catch, if, etc.)
+- If an agent proposal calls a method not in Available APIs, SKIP that call or substitute an existing equivalent
 - Include 2-3 lines of unchanged context before and after the changed lines in SEARCH
 - Keep changes minimal — smallest viable diff
 - No prose, no explanation — only FILE/SEARCH/REPLACE blocks
@@ -1184,6 +1216,18 @@ Rules:
     for block in blocks:
         if block["file"] not in allowed_set:
             return f"# Patch rejected: block references disallowed file {block['file']}\n"
+
+    # Log API grounding warnings for REPLACE blocks
+    api_names = set(re.findall(r'\b(\w+(?:::\w+)*)\s*\(', file_contents))
+    for block in blocks:
+        replace_calls = set(re.findall(r'(\w+(?:::\w+|->\w+|\.\w+)*)\s*\(', block["replace"]))
+        # Filter to non-trivial calls (skip keywords, standard constructs)
+        skip = {"if", "for", "while", "switch", "catch", "try", "return", "throw", "sizeof", "static_cast", "dynamic_cast", "reinterpret_cast", "const_cast"}
+        novel = {c for c in replace_calls if c.split("::")[-1].split("->")[-1].split(".")[-1] not in skip
+                 and not any(known in c for known in api_names)
+                 and c not in api_names}
+        if novel:
+            print(f"  ⚠ Patch grounding: REPLACE block for {block['file']} introduces calls not in source files: {', '.join(sorted(novel))}")
 
     ok, msg = _apply_search_replace_blocks(blocks)
     if not ok:
