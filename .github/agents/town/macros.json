@@ -51,7 +51,7 @@
         "9) Recommended Next Run"
       ],
       "cross_confirm": false,
-      "context_chars": 12000,
+      "context_chars": 8000,
       "handoff_chars": 1800,
       "retry_on_gate_fail": true
     },
@@ -84,7 +84,7 @@
         "6) Code Proposal"
       ],
       "cross_confirm": true,
-      "context_chars": 12000,
+      "context_chars": 8000,
       "handoff_chars": 1500,
       "retry_on_gate_fail": true
     },
@@ -145,7 +145,7 @@
       "directives": {},
       "max_output_chars": 4000,
       "cross_confirm": false,
-      "context_chars": 12000,
+      "context_chars": 8000,
       "handoff_chars": 0,
       "retry_on_gate_fail": true
     },
@@ -164,7 +164,7 @@
       "directives": {},
       "max_output_chars": 4000,
       "cross_confirm": true,
-      "context_chars": 12000,
+      "context_chars": 8000,
       "handoff_chars": 1500,
       "retry_on_gate_fail": true
     }

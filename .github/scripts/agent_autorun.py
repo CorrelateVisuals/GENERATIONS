@@ -192,10 +192,13 @@ def _extract_confidence(output: str) -> str:
 def _validate_file_refs(output: str) -> List[str]:
     """Check that file paths referenced in code proposals actually exist."""
     bad = []
+    search_dirs = [ROOT, ROOT / "src", ROOT / "shaders"]
     for m in re.finditer(r"(?:^|[\s`])([a-zA-Z]\S+\.(?:cpp|h|hpp|comp|frag|vert|glsl|tesc|tese))(?:[\s`]|$)", output, re.MULTILINE):
-        path = ROOT / m.group(1)
-        if not path.exists() and not (ROOT / "src" / m.group(1)).exists():
-            bad.append(m.group(1))
+        ref = m.group(1)
+        basename = Path(ref).name
+        if any((d / ref).exists() or (d / basename).exists() for d in search_dirs):
+            continue
+        bad.append(ref)
     return bad
 
 
@@ -571,8 +574,51 @@ def apply_guild_master_actions(actions: Dict[str, List[str]], run_id: str) -> st
     return f"Governance log updated: {n_cc} class-change(s), {n_gp} guild-policy(ies) recorded."
 
 
+MAX_PROMPT_CHARS = int(os.environ.get("MAX_PROMPT_CHARS", "24000"))
+
+
+def _trim_prompt(prompt: str, budget: int = MAX_PROMPT_CHARS) -> str:
+    """Trim an oversized prompt by cutting scoped code and previous outputs."""
+    if len(prompt) <= budget:
+        return prompt
+    excess = len(prompt) - budget
+    # Strategy: shorten the biggest sections first.
+    # 1) Cut '# Relevant Code Context' section
+    code_header = "# Relevant Code Context"
+    idx = prompt.find(code_header)
+    if idx != -1:
+        next_header = prompt.find("\n# ", idx + len(code_header))
+        if next_header == -1:
+            next_header = len(prompt)
+        code_section = prompt[idx:next_header]
+        if len(code_section) > 2000:
+            keep = max(2000, len(code_section) - excess)
+            trimmed_section = code_section[:keep] + "\n... [auto-trimmed to fit payload budget] ...\n"
+            prompt = prompt[:idx] + trimmed_section + prompt[next_header:]
+            if len(prompt) <= budget:
+                return prompt
+    # 2) Cut '# Previous Agent Outputs' section
+    prev_header = "# Previous Agent Outputs"
+    idx = prompt.find(prev_header)
+    if idx != -1:
+        next_header = prompt.find("\n# ", idx + len(prev_header))
+        if next_header == -1:
+            next_header = len(prompt)
+        prev_section = prompt[idx:next_header]
+        if len(prev_section) > 1000:
+            keep = max(1000, len(prev_section) - (len(prompt) - budget))
+            trimmed_section = prev_section[:keep] + "\n... [auto-trimmed] ...\n"
+            prompt = prompt[:idx] + trimmed_section + prompt[next_header:]
+    # 3) Last resort: hard truncate
+    if len(prompt) > budget:
+        suffix = "\n... [prompt hard-truncated to fit payload limit]"
+        prompt = prompt[:budget - len(suffix)] + suffix
+    return prompt
+
+
 def _llm_request(prompt: str, temperature: float = 0.2) -> str:
     """Single LLM API call (no retry). Both providers use the same chat/completions format."""
+    prompt = _trim_prompt(prompt)
     payload = {
         "model": LLM_MODEL,
         "messages": [{"role": "user", "content": prompt}],
@@ -976,26 +1022,66 @@ def normalize_agent_name(raw: str) -> str:
     return aliases.get(key, raw.strip())
 
 
+_AGENT_SCOPE_RE = re.compile(
+    r"\b(agents?|prompt.?catalog|macros?[._]|workflow|schedule|guild|party|town|orchestrat)",
+    re.IGNORECASE,
+)
+_DOC_SCOPE_RE = re.compile(
+    r"\b(readme|documentation|docs|changelog|license|contributing)",
+    re.IGNORECASE,
+)
+
+
+def _detect_scope_block(task_command: str) -> str:
+    """Choose scope files based on what the task_command is about."""
+    if _AGENT_SCOPE_RE.search(task_command):
+        return (
+            "- In scope:\n"
+            "    - `.github/agents/party/*`\n"
+            "    - `.github/agents/town/*`\n"
+            "    - `.github/agents/guilds/*`\n"
+            "    - `.github/scripts/agent_autorun.py`\n"
+            "    - `.github/workflows/agent-autonomous-run.yml`\n"
+            "- Out of scope:\n"
+            "    - C++ source code\n"
+            "    - Shader files\n"
+            "    - Third-party libraries"
+        )
+    if _DOC_SCOPE_RE.search(task_command):
+        return (
+            "- In scope:\n"
+            "    - `README.md`\n"
+            "    - `.github/agents/town/*`\n"
+            "    - `assets/economic/*`\n"
+            "- Out of scope:\n"
+            "    - C++ source code\n"
+            "    - Shader files\n"
+            "    - Third-party libraries"
+        )
+    # Default: C++ engine scope
+    return (
+        "- In scope:\n"
+        "    - `src/engine/*`\n"
+        "    - `src/vulkan_base/*`\n"
+        "    - `src/vulkan_mechanics/*`\n"
+        "    - `src/vulkan_pipelines/*`\n"
+        "    - `src/vulkan_resources/*`\n"
+        "    - `src/world/*`\n"
+        "    - `shaders/Engine.comp`\n"
+        "    - `shaders/PostFX.comp`\n"
+        "    - `shaders/ParameterUBO.glsl`\n"
+        "- Out of scope:\n"
+        "    - Third-party libraries\n"
+        "    - Unrelated feature work"
+    )
+
+
 def apply_task_command_override(task_md: str, task_command: str, macro_mode: str) -> str:
         if not task_command:
                 return task_md
 
         task_id = f"{(macro_mode or 'TASK').upper()}-{re.sub(r'[^A-Za-z0-9]+', '-', task_command).strip('-')[:24].upper() or 'CMD'}"
-        scope_block = """
-- In scope:
-    - `src/engine/*`
-    - `src/vulkan_base/*`
-    - `src/vulkan_mechanics/*`
-    - `src/vulkan_pipelines/*`
-    - `src/vulkan_resources/*`
-    - `src/world/*`
-    - `shaders/Engine.comp`
-    - `shaders/PostFX.comp`
-    - `shaders/ParameterUBO.glsl`
-- Out of scope:
-    - Third-party libraries
-    - Unrelated feature work
-""".strip()
+        scope_block = _detect_scope_block(task_command)
 
         overridden = f"""
 # Current Manual Task
