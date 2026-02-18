@@ -650,7 +650,7 @@ def run_guild_review(task_md: str, outputs: Dict[str, str],
         return {"verdict": "APPROVE", "summary": "No agent outputs to review.", "hallucination_flags": "", "raw": ""}
 
     # Build the API inventory from scoped code for grounding check
-    api_names = _extract_api_inventory({"scoped": scoped_code})
+    api_inventory = _extract_api_inventory(scoped_code)
 
     review_prompt = f"""You are the Guild Master performing a post-sequence quality review.
 
@@ -658,7 +658,7 @@ def run_guild_review(task_md: str, outputs: Dict[str, str],
 {task_md[:800]}
 
 # Known APIs (from actual source files)
-{', '.join(sorted(api_names)[:40]) if api_names else '(none extracted)'}
+{api_inventory}
 
 # Agent Outputs (excerpts)
 {"".join(agent_summaries)}
