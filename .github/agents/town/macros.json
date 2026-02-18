@@ -22,7 +22,7 @@
         "## Next Run"
       ],
       "cross_confirm": true,
-      "context_chars": 6000,
+      "context_chars": 8000,
       "handoff_chars": 1500,
       "retry_on_gate_fail": true
     },

@@ -1047,8 +1047,11 @@ def _apply_search_replace_blocks(blocks: List[Dict[str, str]]) -> Tuple[bool, st
 
 
 def _parse_search_replace_response(raw: str) -> List[Dict[str, str]]:
-    """Parse LLM response containing FILE/SEARCH/REPLACE blocks."""
+    """Parse LLM response containing FILE/SEARCH/REPLACE blocks.
+    Tolerates trailing whitespace on lines (common LLM artifact)."""
     blocks: List[Dict[str, str]] = []
+    # Normalize: strip trailing whitespace from each line
+    cleaned = "\n".join(line.rstrip() for line in raw.split("\n"))
     # Pattern: FILE: <path>\nSEARCH:\n<<<\n...\n>>>\nREPLACE:\n<<<\n...\n>>>
     pattern = re.compile(
         r"FILE:\s*(.+?)\s*\n"
@@ -1056,7 +1059,7 @@ def _parse_search_replace_response(raw: str) -> List[Dict[str, str]]:
         r"REPLACE:\s*\n<<<\n(.*?)\n>>>",
         re.DOTALL,
     )
-    for m in pattern.finditer(raw):
+    for m in pattern.finditer(cleaned):
         blocks.append({
             "file": m.group(1).strip().strip("`"),
             "search": m.group(2),
