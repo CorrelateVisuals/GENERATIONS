@@ -1410,8 +1410,13 @@ Rules:
 
     # Parse and apply search/replace blocks
     blocks = _parse_search_replace_response(raw)
+    print(f"  📝 Patch generator: {len(blocks)} search/replace blocks parsed")
+    if blocks:
+        for i, b in enumerate(blocks):
+            print(f"     Block {i+1}: {b['file']} (search={len(b['search'])} chars, replace={len(b['replace'])} chars)")
     if not blocks:
         # Fallback: try extracting a unified diff the old way
+        print(f"  ⚠ No blocks parsed. Raw LLM output ({len(raw)} chars) first 200: {raw[:200]!r}")
         return extract_patch(raw)
 
     # Validate files are in allowed scope
@@ -1433,11 +1438,13 @@ Rules:
             print(f"  ⚠ Patch grounding: REPLACE block for {block['file']} introduces calls not in source files: {', '.join(sorted(novel))}")
 
     ok, msg = _apply_search_replace_blocks(blocks)
+    print(f"  📝 Apply result: ok={ok}, msg={msg}")
     if not ok:
         return f"# Search/replace failed: {msg}\n"
 
     # Generate real diff from working tree
     code, diff_out = run_command("git diff")
+    print(f"  📝 git diff: exit={code}, output_len={len(diff_out.strip())}")
     if code != 0 or not diff_out.strip():
         # Revert and report
         run_command("git checkout -- .")
