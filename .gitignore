@@ -99,3 +99,7 @@ src/Pipelines.cpp~RF2d5653aa.TMP
 src/CAPITAL-engine.vcxproj.filters
 /screenshot/
 .github/scripts/__pycache__/
+
+# Agent run internals (cache + detail logs are not PR material)
+.github/agents/runs/cache/
+.github/agents/runs/logs/

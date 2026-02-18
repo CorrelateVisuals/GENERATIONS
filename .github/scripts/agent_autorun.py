@@ -149,23 +149,20 @@ def get_macro_knob(macro_name: str, knob: str, default: Any = None) -> Any:
 
 def _count_sections(output: str) -> int:
     """Count how many required output sections are present."""
-    found = 0
-    for section in REQUIRED_SECTIONS:
-        if ")" in section:
-            text_part = section.split(")", 1)[-1].strip()
-            pattern = re.escape(section) + r"|" + re.escape(text_part)
-        else:
-            pattern = re.escape(section)
-        if re.search(pattern, output, re.IGNORECASE):
-            found += 1
-    return found
+    return _count_sections_list(output, REQUIRED_SECTIONS)
 
 
 def _count_sections_list(output: str, sections: List[str]) -> int:
-    """Count how many sections from a specific list are present."""
+    """Count how many sections from a specific list are present.
+    Handles both new '## TODOs' format and legacy '1) Main Task Outcome' format."""
     found = 0
     for section in sections:
-        if ")" in section:
+        if section.startswith("## "):
+            # New heading format: match '## TODOs' or '## Code Proposal' etc.
+            heading = section[3:].strip()
+            pattern = rf"##\s*{re.escape(heading)}"
+        elif ")" in section:
+            # Legacy numbered format: '1) Main Task Outcome'
             label = section.split(")", 1)[1].strip()
             pattern = rf"\d+\)\s*{re.escape(label)}"
         else:
@@ -200,6 +197,61 @@ def _validate_file_refs(output: str) -> List[str]:
             continue
         bad.append(ref)
     return bad
+
+
+# ---------------------------------------------------------------------------
+# Reasoning / public split
+# ---------------------------------------------------------------------------
+
+def strip_reasoning(raw: str) -> Tuple[str, str]:
+    """Split agent output into public (PR-facing) and reasoning (log-only).
+    Agents wrap analysis in <reasoning>...</reasoning> tags.
+    Returns (public_text, reasoning_text)."""
+    reasoning_parts: List[str] = []
+    def _collect(m: re.Match) -> str:
+        reasoning_parts.append(m.group(1).strip())
+        return ""
+    public = re.sub(r"<reasoning>(.*?)</reasoning>", _collect, raw, flags=re.DOTALL).strip()
+    # Collapse multiple blank lines left after stripping
+    public = re.sub(r"\n{3,}", "\n\n", public)
+    return public, "\n\n".join(reasoning_parts)
+
+
+def extract_one_liner(output: str) -> str:
+    """Extract the first meaningful sentence from an agent's output for use in summary."""
+    # Look for Main Task Outcome or first paragraph after heading
+    m = re.search(r"(?:Main Task Outcome|## Summary)\s*\n+(.*?)(?:\n\n|\n##|$)", output, re.IGNORECASE)
+    if m:
+        line = m.group(1).strip().split("\n")[0]
+        return line[:200]
+    # Fallback: first non-empty, non-heading line
+    for line in output.split("\n"):
+        line = line.strip()
+        if line and not line.startswith("#") and not line.startswith("```") and len(line) > 20:
+            return line[:200]
+    return "(no summary available)"
+
+
+def aggregate_todos(outputs: Dict[str, str]) -> str:
+    """Collect all TODO items from all agents into one deduplicated list."""
+    todos: List[str] = []
+    seen: set = set()
+    for name, text in outputs.items():
+        # Find TODO section
+        m = re.search(r"(?:Actionable\s+)?TODOs?\s*\n(.*?)(?:\n## |\n\d+\)|$)", text, flags=re.IGNORECASE | re.DOTALL)
+        if not m:
+            continue
+        for line in m.group(1).strip().split("\n"):
+            line = line.strip()
+            if line.startswith("- [") or line.startswith("- `"):
+                # Normalise for dedup
+                key = re.sub(r"\s+", " ", line.lower())
+                if key not in seen:
+                    seen.add(key)
+                    todos.append(line)
+    if not todos:
+        return "No actionable TODOs extracted."
+    return "\n".join(todos)
 
 
 def run_quality_gate(
@@ -398,7 +450,6 @@ AGENT_GUILDS: Dict[str, List[str]] = {
     "Vulkan Guru": ["performance.md", "gpu-pipeline.md"],
     "Kernel Expert": ["performance.md", "gpu-pipeline.md"],
     "Refactorer": ["architecture.md"],
-    "HPC Marketeer": [],
     "Guild Master": [],
 }
 
@@ -707,8 +758,9 @@ def extract_next_run(outputs: Dict[str, str]) -> str:
     Returns a ready-to-use next-task.md or empty string if no recommendations."""
     recs: List[str] = []
     for name, text in outputs.items():
+        # Match new format: ## Next Run ... or legacy 9) Recommended Next Run
         m = re.search(
-            r"9\)\s*Recommended Next Run([\s\S]*?)(?:\n## |\n\d+\)|\Z)",
+            r"(?:## Next Run|9\)\s*Recommended Next Run)([\s\S]*?)(?:\n## |\n\d+\)|\Z)",
             text,
             flags=re.IGNORECASE,
         )
@@ -785,31 +837,60 @@ def build_agent_prompt(
 {macro_directive}
 """
     # Build section list — per-macro or global default
-    sections_default = """Return markdown with these exact sections:
-1) Main Task Outcome
-2) Secondary Task Outcomes
-3) Risks and Constraints
-4) Actionable TODOs (use Structured Handoff Format from base rules)
-5) Handoff Note
-6) Code Proposal
-7) Cross-Confirmation (if macro directive requires it)
-8) Procedure Recording (only if you discovered a new reusable pattern)
-9) Recommended Next Run (suggest the next macro + task_command for the human)
-   Format: `<Macro> "<task_command>"` with a one-line rationale.
-   Example: `Follow "implement descriptor pool wrapper"` — blast radius mapped, ready to execute.
-   If no follow-up needed, write: `None — task is self-contained.`"""
+    sections_default = """## Output Structure Rules
+
+Wrap ALL analysis, investigation notes, and reasoning in <reasoning> tags.
+These are logged but NOT shown in the PR — keep them thorough but hidden.
+
+Your VISIBLE output (shown in the PR) must contain ONLY these sections:
+
+## TODOs
+Actionable items. One per line, format:
+- [ ] `path/file.cpp` — description [RISK: high/medium/low]
+
+## Code Proposal
+```cpp
+// Only if this macro produces patches. Exact code, ready to apply.
+```
+
+## Next Run
+`<Macro> "<task_command>"` — one-line rationale.
+Or: `None — task is self-contained.`
+
+Example complete output:
+
+<reasoning>
+Investigated swapchain recreation in Mechanics.cpp lines 45-80.
+The current flow calls destroy() but does not wait for device idle.
+This risks use-after-free on in-flight frames.
+</reasoning>
+
+## TODOs
+- [ ] `src/vulkan_mechanics/Mechanics.cpp` — add vkDeviceWaitIdle before swapchain destroy [RISK: high]
+- [ ] `src/vulkan_mechanics/Mechanics.cpp` — recreate framebuffers after new swapchain [RISK: high]
+
+## Code Proposal
+```cpp
+void VulkanMechanics::BaseSwapchain::recreate() {
+    vkDeviceWaitIdle(device);
+    destroy();
+    create();
+}
+```
+
+## Next Run
+`Follow "implement swapchain recreation safety"` — blast radius mapped, ready to execute."""
 
     if macro_sections:
-        section_block = "Return markdown with these exact sections:\n"
+        section_block = "## Output Structure Rules\n\nWrap ALL analysis, investigation notes, and reasoning in <reasoning> tags.\nThese are logged but NOT shown in the PR — keep them thorough but hidden.\n\nYour VISIBLE output (shown in the PR) must contain ONLY these sections:\n\n"
         for s in macro_sections:
             section_block += f"{s}\n"
         if cross_confirm:
-            section_block += "7) Cross-Confirmation (CONCUR/QUALIFY/DISSENT for prior agent findings)\n"
+            section_block += "\n## Cross-Confirmation\nFor each prior agent finding: CONCUR / QUALIFY / DISSENT with one-line evidence.\n"
     else:
         section_block = sections_default
-        if not cross_confirm:
-            section_block = section_block.replace(
-                "7) Cross-Confirmation (if macro directive requires it)\n", "")
+        if cross_confirm:
+            section_block += "\n\n## Cross-Confirmation\nFor each prior agent finding: CONCUR / QUALIFY / DISSENT with one-line evidence."
 
     return f"""
 You are running inside the GENERATIONS multi-agent pipeline.
@@ -867,13 +948,11 @@ Return markdown with exact sections:
 2. Vulkan Guru
 3. Kernel Expert
 4. Refactorer
-5. HPC Marketeer
 
 ## C++ Lead Required Handoff TODOs
 - Vulkan Guru TODOs
 - Kernel Expert TODOs
 - Refactorer TODOs
-- HPC Marketeer TODOs
 
 ## Output Location
 - Run report: `.github/agents/runs/YYYY-MM-DD-choice-a.md`
@@ -1012,8 +1091,6 @@ def normalize_agent_name(raw: str) -> str:
         "kernel expert": "Kernel Expert",
         "refactor": "Refactorer",
         "refactorer": "Refactorer",
-        "hpc": "HPC Marketeer",
-        "hpc marketeer": "HPC Marketeer",
         "guild": "Guild Master",
         "guild master": "Guild Master",
         "guildmaster": "Guild Master",
@@ -1100,14 +1177,12 @@ def apply_task_command_override(task_md: str, task_command: str, macro_mode: str
 2. Vulkan Guru
 3. Kernel Expert
 4. Refactorer
-5. HPC Marketeer
 
 ## C++ Lead Required Handoff TODOs
 After C++ Lead completes main + secondary tasks, create TODO blocks for:
 - Vulkan Guru TODOs
 - Kernel Expert TODOs
 - Refactorer TODOs
-- HPC Marketeer TODOs
 
 ## Output Location
 - Run report: `.github/agents/runs/YYYY-MM-DD-choice-a.md`
@@ -1155,7 +1230,6 @@ def main() -> None:
         ("Vulkan Guru", "party/vulkan-guru.md"),
         ("Kernel Expert", "party/kernel-expert.md"),
         ("Refactorer", "party/refactorer.md"),
-        ("HPC Marketeer", "party/hpc-marketeer.md"),
         ("Guild Master", "guilds/guild-master.md"),
     ]
 
@@ -1164,7 +1238,6 @@ def main() -> None:
         ("Vulkan Guru", "party/vulkan-guru.md"),
         ("Kernel Expert", "party/kernel-expert.md"),
         ("Refactorer", "party/refactorer.md"),
-        ("HPC Marketeer", "party/hpc-marketeer.md"),
     ]
 
     selected_agent = normalize_agent_name(agent_only) if agent_only else ""
@@ -1315,7 +1388,6 @@ def main() -> None:
                     f"Vulkan Guru TODOs:\n{extract_todos_for('Vulkan Guru', result)}",
                     f"Kernel Expert TODOs:\n{extract_todos_for('Kernel Expert', result)}",
                     f"Refactorer TODOs:\n{extract_todos_for('Refactorer', result)}",
-                    f"HPC Marketeer TODOs:\n{extract_todos_for('HPC Marketeer', result)}",
                 ]
             )
         else:
@@ -1323,13 +1395,39 @@ def main() -> None:
 
     RUNS_DIR.mkdir(parents=True, exist_ok=True)
     PROPOSALS_DIR.mkdir(parents=True, exist_ok=True)
+    LOGS_DIR = RUNS_DIR / "logs"
+    LOGS_DIR.mkdir(parents=True, exist_ok=True)
+
+    # ---------------------------------------------------------------------------
+    # Split raw outputs into public (PR-facing) and reasoning (log-only)
+    # ---------------------------------------------------------------------------
+    public_outputs: Dict[str, str] = {}
+    reasoning_outputs: Dict[str, str] = {}
+    for name, _ in sequence:
+        raw = outputs.get(name, "")
+        pub, reasoning = strip_reasoning(raw)
+        public_outputs[name] = pub
+        reasoning_outputs[name] = reasoning
+
+    # Save full raw outputs + reasoning to log file (NOT committed to PR)
+    detail_log_path = LOGS_DIR / f"{today}-{task_id.lower()}-detail.md"
+    detail_lines = [f"# Full Agent Output Log — {task_id} ({today})", ""]
+    for name, _ in sequence:
+        detail_lines.append(f"## {name} — Full Output")
+        detail_lines.append(outputs.get(name, ""))
+        detail_lines.append("")
+        if reasoning_outputs.get(name):
+            detail_lines.append(f"## {name} — Reasoning")
+            detail_lines.append(reasoning_outputs[name])
+            detail_lines.append("")
+    detail_log_path.write_text("\n".join(detail_lines).strip() + "\n", encoding="utf-8")
 
     # Extract and append new procedures discovered by agents
     procedures_path = TOWN_DIR / "procedures.md"
     new_procedures = []
     for name, _ in sequence:
         output = outputs.get(name, "")
-        m = re.search(r"[78]\) Procedure Recording([\s\S]*?)(?:\n## |\Z)", output, flags=re.IGNORECASE)
+        m = re.search(r"(?:Procedure Recording|## Procedures?)([\s\S]*?)(?:\n## |\Z)", output, flags=re.IGNORECASE)
         if m:
             proc_text = m.group(1).strip()
             if proc_text and "no new" not in proc_text.lower() and "none" not in proc_text.lower() and len(proc_text) > 20:
@@ -1353,51 +1451,67 @@ def main() -> None:
         next_task_content = (
             f"# Recommended Next Run\n\n"
             f"Generated by agent run `{run_id}` on {today}.\n\n"
-            f"## Agent Recommendations\n\n"
             f"{next_run_recs}\n\n"
-            f"## How to Execute\n\n"
-            f"Pick the recommendation you agree with and run:\n\n"
+            f"Run via GitHub Actions **Run workflow** or:\n\n"
             f"```fish\n"
-            f"gh workflow run \"Agent Autonomous Run\" --ref dev-revert-main-linux \\\n"
-            f"  -f macro=<Macro> -f task_command=\"<command from above>\"\n"
-            f"```\n\n"
-            f"Or use the GitHub Actions **Run workflow** button with the same values.\n"
+            f"gh workflow run \"Agent Autonomous Run\" --ref dev-linux \\\n"
+            f"  -f macro=<Macro> -f task_command=\"<command>\"\n"
+            f"```\n"
         )
         next_task_path.write_text(next_task_content, encoding="utf-8")
         print(f"  📋 Next-task recommendations written to {next_task_path.relative_to(ROOT)}")
     elif next_task_path.exists():
-        # Clear stale recommendations
         next_task_path.write_text(
             f"# Recommended Next Run\n\nNo follow-up recommended from run `{run_id}` ({today}).\n",
             encoding="utf-8",
         )
 
+    # ---------------------------------------------------------------------------
+    # Build slim human-readable run report (PR-facing)
+    # ---------------------------------------------------------------------------
     report_path = RUNS_DIR / f"{today}-choice-a.md"
     proposal_md_path = PROPOSALS_DIR / f"{today}-{task_id.lower()}-proposal.md"
     proposal_patch_path = PROPOSALS_DIR / f"{today}-{task_id.lower()}-proposal.patch"
     guard_log_path = PROPOSALS_DIR / f"{today}-{task_id.lower()}-guard.log"
 
+    status_str = "HALTED — " + halt_message if pipeline_halted else "completed"
     report_lines = [
-        f"# Choice A Auto Run — {today}",
+        f"# {task_id} — {today}",
         "",
-        f"- Task: {task_id}",
-        f"- Macro mode: {MACRO_MODE if MACRO_MODE else 'none'}",
-        f"- Task command: {TASK_COMMAND if TASK_COMMAND else '(from current-task.md)'}",
-        f"- Task mode: {TASK_MODE}",
-        f"- Agent mode: {selected_agent if selected_agent else ('set:' + ', '.join(selected_set) if selected_set else 'all')}",
-        f"- Auto apply patch: {'enabled' if AUTO_APPLY_PATCH else 'disabled'}",
-        f"- Pipeline status: {'HALTED — ' + halt_message if pipeline_halted else 'completed'}",
-        "- Sequence: " + " -> ".join([name for name, _ in sequence]),
+        f"**Macro**: {MACRO_MODE or 'none'} | "
+        f"**Agents**: {' → '.join(name for name, _ in sequence)} | "
+        f"**Status**: {status_str}",
         "",
     ]
+
+    # Per-agent one-liner summary
+    report_lines.append("## Agent Summary")
+    report_lines.append("")
+    report_lines.append("| Agent | Finding |")
+    report_lines.append("|-------|---------|")
     for name, _ in sequence:
-        report_lines.append(f"## {name}")
-        report_lines.append(outputs.get(name, ""))
-        report_lines.append("")
+        one_liner = extract_one_liner(public_outputs.get(name, ""))
+        report_lines.append(f"| {name} | {one_liner} |")
+    report_lines.append("")
+
+    # Combined TODOs (deduplicated across agents)
+    combined_todos = aggregate_todos(public_outputs)
+    report_lines.append("## TODOs")
+    report_lines.append("")
+    report_lines.append(combined_todos)
+    report_lines.append("")
+
+    # Per-agent public output (reasoning stripped)
+    for name, _ in sequence:
+        pub = public_outputs.get(name, "").strip()
+        if pub:
+            report_lines.append(f"## {name}")
+            report_lines.append(pub)
+            report_lines.append("")
 
     # Next-run recommendations in the report
     if next_run_recs:
-        report_lines.append("## Recommended Next Run")
+        report_lines.append("## Next Run")
         report_lines.append("")
         report_lines.append(next_run_recs)
         report_lines.append("")
@@ -1407,17 +1521,20 @@ def main() -> None:
     report_lines.append(compute_metrics_summary(trailing))
     report_lines.append("")
 
+    # Code proposal — only the code blocks, no commentary
     proposal_lines = [
         f"# Code Proposal — {task_id} ({today})",
         "",
-        "This file aggregates proposed code changes from the automated agent run.",
-        "",
     ]
     for name, _ in sequence:
-        proposal_lines.append(f"## {name}")
-        m = re.search(r"6\) Code Proposal([\s\S]*)", outputs.get(name, ""), flags=re.IGNORECASE)
-        proposal_lines.append(m.group(1).strip() if m else outputs.get(name, ""))
-        proposal_lines.append("")
+        pub = public_outputs.get(name, "")
+        # Extract code blocks from ## Code Proposal or ## TODOs sections
+        m = re.search(r"(?:Code Proposal|## Code)([\s\S]*?)(?:\n## |\Z)", pub, flags=re.IGNORECASE)
+        code_section = m.group(1).strip() if m else ""
+        if code_section:
+            proposal_lines.append(f"## {name}")
+            proposal_lines.append(code_section)
+            proposal_lines.append("")
 
     report_path.write_text("\n".join(report_lines).strip() + "\n", encoding="utf-8")
     proposal_md_path.write_text("\n".join(proposal_lines).strip() + "\n", encoding="utf-8")
@@ -1444,6 +1561,7 @@ def main() -> None:
         "task_mode": TASK_MODE,
         "agent_mode": selected_agent if selected_agent else ("set:" + ",".join(selected_set) if selected_set else "all"),
         "run_report": str(report_path.relative_to(ROOT)),
+        "detail_log": str(detail_log_path.relative_to(ROOT)),
         "code_proposal": str(proposal_md_path.relative_to(ROOT)),
         "patch_proposal": str(proposal_patch_path.relative_to(ROOT)),
         "auto_apply_patch": AUTO_APPLY_PATCH,

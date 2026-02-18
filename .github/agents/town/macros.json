@@ -1,5 +1,6 @@
 {
   "_doc": "Single source of truth for agent macro definitions. Consumed by agent_autorun.py, workflow YAML dropdown, and macros.md.",
+  "_output_format": "Agents wrap analysis in <reasoning> tags (logged, not in PR). Visible output has only: ## TODOs, ## Code Proposal, ## Next Run, ## Cross-Confirmation.",
   "macros": {
     "Charge": {
       "description": "Surgical strike with one cross-check. Fast, decisive, minimal.",
@@ -11,15 +12,14 @@
       "produces_patch": true,
       "temperature": 0.0,
       "directives": {
-        "C++ Lead": "## Macro Directive: CHARGE\nYou are the surgeon. Propose a MINIMAL patch for the command.\n- Smallest viable diff. No exploration, no brainstorming.\n- Be concrete: file paths, line-level changes, exact code.\n- Mark each finding for cross-check by the next agent.",
-        "Vulkan Guru": "## Macro Directive: CHARGE (Validator)\nYou are the cross-check. Review the C++ Lead's proposal.\nFor EACH Lead finding, explicitly state one of:\n- ✅ CONCUR — you independently reach the same conclusion\n- ⚠️ QUALIFY — you agree but add constraints or caveats\n- ❌ DISSENT — you disagree, provide evidence and alternative\nEnd with: Combined confidence: HIGH / MEDIUM / LOW"
+        "C++ Lead": "## Macro Directive: CHARGE\nYou are the surgeon. Propose a MINIMAL patch for the command.\n- Smallest viable diff. No exploration, no brainstorming.\n- Be concrete: file paths, line-level changes, exact code.\n- Mark each finding for cross-check by the next agent.\n- Put all investigation notes in <reasoning> tags.",
+        "Vulkan Guru": "## Macro Directive: CHARGE (Validator)\nYou are the cross-check. Review the C++ Lead's proposal.\nFor EACH Lead finding, explicitly state one of:\n- ✅ CONCUR — you independently reach the same conclusion\n- ⚠️ QUALIFY — you agree but add constraints or caveats\n- ❌ DISSENT — you disagree, provide evidence and alternative\nEnd with: Combined confidence: HIGH / MEDIUM / LOW\n- Put all reasoning in <reasoning> tags."
       },
       "max_output_chars": 2500,
       "required_sections": [
-        "1) Main Task Outcome",
-        "3) Risks and Constraints",
-        "6) Code Proposal",
-        "9) Recommended Next Run"
+        "## TODOs",
+        "## Code Proposal",
+        "## Next Run"
       ],
       "cross_confirm": true,
       "context_chars": 6000,
@@ -38,17 +38,15 @@
       "produces_patch": false,
       "temperature": 0.1,
       "directives": {
-        "C++ Lead": "## Macro Directive: PULL\nYou are the tank pulling the mob. MAP the terrain, do NOT propose patches.\n- List every file touched, who owns it, and what depends on it.\n- Estimate blast radius if this change goes wrong.\n- Do NOT write code proposals — recon only.",
-        "Vulkan Guru": "## Macro Directive: PULL (Scout)\nAdd what the Lead MISSED in the Vulkan/resource domain.\n- Confirm what Lead got right in your area.\n- Add Vulkan-specific risks not visible from C++ level.\n- Estimate YOUR domain's blast radius.\n- Do NOT write code proposals — recon only.",
-        "Kernel Expert": "## Macro Directive: PULL (Scout)\nAdd what previous agents MISSED in the shader/GPU domain.\n- Confirm what they got right about GPU impact.\n- Add shader/dispatch/compute risks not visible from API level.\n- Estimate YOUR domain's blast radius.\n- Do NOT write code proposals — recon only.",
-        "Refactorer": "## Macro Directive: PULL (Scout)\nAdd what previous agents MISSED about structure and boundaries.\n- Confirm architectural observations from prior agents.\n- Assess complexity change: does this make the codebase simpler or harder?\n- Recommend next macro: Charge (safe/small) or Follow (risky/large).\n- Do NOT write code proposals — recon only."
+        "C++ Lead": "## Macro Directive: PULL\nYou are the tank pulling the mob. MAP the terrain, do NOT propose patches.\n- List every file touched, who owns it, and what depends on it.\n- Estimate blast radius if this change goes wrong.\n- Do NOT write code proposals — recon only.\n- Put investigation notes in <reasoning> tags. Only TODOs and Next Run are visible.",
+        "Vulkan Guru": "## Macro Directive: PULL (Scout)\nAdd what the Lead MISSED in the Vulkan/resource domain.\n- Confirm what Lead got right in your area.\n- Add Vulkan-specific risks not visible from C++ level.\n- Estimate YOUR domain's blast radius.\n- Do NOT write code proposals — recon only.\n- Put investigation notes in <reasoning> tags.",
+        "Kernel Expert": "## Macro Directive: PULL (Scout)\nAdd what previous agents MISSED in the shader/GPU domain.\n- Confirm what they got right about GPU impact.\n- Add shader/dispatch/compute risks not visible from API level.\n- Estimate YOUR domain's blast radius.\n- Do NOT write code proposals — recon only.\n- Put investigation notes in <reasoning> tags.",
+        "Refactorer": "## Macro Directive: PULL (Scout)\nAdd what previous agents MISSED about structure and boundaries.\n- Confirm architectural observations from prior agents.\n- Assess complexity change: does this make the codebase simpler or harder?\n- Recommend next macro: Charge (safe/small) or Follow (risky/large).\n- Do NOT write code proposals — recon only.\n- Put investigation notes in <reasoning> tags."
       },
       "max_output_chars": 3500,
       "required_sections": [
-        "1) Main Task Outcome",
-        "3) Risks and Constraints",
-        "4) Actionable TODOs",
-        "9) Recommended Next Run"
+        "## TODOs",
+        "## Next Run"
       ],
       "cross_confirm": false,
       "context_chars": 8000,
@@ -56,32 +54,27 @@
       "retry_on_gate_fail": true
     },
     "Follow": {
-      "description": "Full implementation cadence. All 5 agents, sequential, cascading cross-confirmation.",
+      "description": "Full implementation cadence. Four agents, sequential, cascading cross-confirmation.",
       "agents": [
         "C++ Lead",
         "Vulkan Guru",
         "Kernel Expert",
-        "Refactorer",
-        "HPC Marketeer"
+        "Refactorer"
       ],
       "mode": "sequential",
       "produces_patch": true,
       "temperature": 0.0,
       "directives": {
-        "C++ Lead": "## Macro Directive: FOLLOW\nFull implementation cadence. You set direction for the entire party.\n- Concrete scoped TODOs for every agent using Structured Handoff Format.\n- Mark your key findings so downstream agents can CONCUR/QUALIFY/DISSENT.",
-        "Vulkan Guru": "## Macro Directive: FOLLOW\nDo your Vulkan work AND cross-confirm the Lead's findings.\nInclude a ## Cross-Confirmation section:\n- For each Lead finding relevant to you: ✅ CONCUR / ⚠️ QUALIFY / ❌ DISSENT\n- State WHY you concur or dissent — evidence from code context.",
-        "Kernel Expert": "## Macro Directive: FOLLOW\nDo your GPU/shader work AND cross-confirm prior agents.\nInclude a ## Cross-Confirmation section:\n- vs C++ Lead: CONCUR/QUALIFY/DISSENT per finding\n- vs Vulkan Guru: CONCUR/QUALIFY/DISSENT per finding",
-        "Refactorer": "## Macro Directive: FOLLOW\nDo your structure work AND cross-confirm all prior agents.\nInclude a ## Cross-Confirmation section for Lead, Guru, and Expert.\n- Flag any naming or boundary choices you challenge.",
-        "HPC Marketeer": "## Macro Directive: FOLLOW (Final)\nDo your docs work AND produce the CONCURRENCE SUMMARY.\n## Concurrence Summary\nFor each major finding, list which agents CONCUR/QUALIFY/DISSENT.\n- 3+ concur → HIGH CONFIDENCE\n- 2 agree, 1 dissents → NEEDS RESOLUTION\nThis is the definitive confidence matrix for the run."
+        "C++ Lead": "## Macro Directive: FOLLOW\nFull implementation cadence. You set direction for the entire party.\n- Concrete scoped TODOs for every agent.\n- Mark your key findings so downstream agents can CONCUR/QUALIFY/DISSENT.\n- Put all analysis in <reasoning> tags. Only TODOs, Code Proposal, Cross-Confirmation, and Next Run are visible.",
+        "Vulkan Guru": "## Macro Directive: FOLLOW\nDo your Vulkan work AND cross-confirm the Lead's findings.\n- For each Lead finding relevant to you: CONCUR / QUALIFY / DISSENT with one-line evidence.\n- Put all analysis in <reasoning> tags.",
+        "Kernel Expert": "## Macro Directive: FOLLOW\nDo your GPU/shader work AND cross-confirm prior agents.\n- vs C++ Lead: CONCUR/QUALIFY/DISSENT per finding\n- vs Vulkan Guru: CONCUR/QUALIFY/DISSENT per finding\n- Put all analysis in <reasoning> tags.",
+        "Refactorer": "## Macro Directive: FOLLOW (Final)\nDo your structure work AND cross-confirm all prior agents.\n- Flag any naming or boundary choices you challenge.\n- Produce a CONCURRENCE SUMMARY: for each major finding, list which agents CONCUR/QUALIFY/DISSENT.\n  3+ concur → HIGH CONFIDENCE, 2 agree 1 dissents → NEEDS RESOLUTION.\n- Put all analysis in <reasoning> tags."
       },
-      "max_output_chars": 5000,
+      "max_output_chars": 4000,
       "required_sections": [
-        "1) Main Task Outcome",
-        "2) Secondary Task Outcomes",
-        "3) Risks and Constraints",
-        "4) Actionable TODOs",
-        "5) Handoff Note",
-        "6) Code Proposal"
+        "## TODOs",
+        "## Code Proposal",
+        "## Next Run"
       ],
       "cross_confirm": true,
       "context_chars": 8000,
@@ -99,15 +92,14 @@
       "produces_patch": false,
       "temperature": 0.2,
       "directives": {
-        "Vulkan Guru": "## Macro Directive: THINK (Independent)\nYou are theorycrafting ALONE. You do NOT see other agents' outputs.\nPropose YOUR approach to this problem from a Vulkan/resource perspective.\n- Approach description\n- Affected files and scope\n- Benefits and risks\n- Complexity: S / M / L\n- Recommended implementation sequence\nDo NOT write patches. This is strategy, not execution.",
-        "Kernel Expert": "## Macro Directive: THINK (Independent)\nYou are theorycrafting ALONE. You do NOT see other agents' outputs.\nPropose YOUR approach from a GPU/parallel/shader perspective.\n- Approach description\n- Affected files and scope\n- Benefits and risks\n- Complexity: S / M / L\n- Recommended implementation sequence\nDo NOT write patches. This is strategy, not execution.",
-        "Refactorer": "## Macro Directive: THINK (Independent)\nYou are theorycrafting ALONE. You do NOT see other agents' outputs.\nPropose YOUR approach from an architecture/structure perspective.\n- Approach description\n- Affected files and scope\n- Benefits and risks\n- Complexity: S / M / L\n- Recommended implementation sequence\nDo NOT write patches. This is strategy, not execution."
+        "Vulkan Guru": "## Macro Directive: THINK (Independent)\nYou are theorycrafting ALONE. You do NOT see other agents' outputs.\nPropose YOUR approach to this problem from a Vulkan/resource perspective.\n- Put detailed analysis in <reasoning> tags.\n- Visible output: ## TODOs (affected files + actions) and ## Next Run.",
+        "Kernel Expert": "## Macro Directive: THINK (Independent)\nYou are theorycrafting ALONE. You do NOT see other agents' outputs.\nPropose YOUR approach from a GPU/parallel/shader perspective.\n- Put detailed analysis in <reasoning> tags.\n- Visible output: ## TODOs (affected files + actions) and ## Next Run.",
+        "Refactorer": "## Macro Directive: THINK (Independent)\nYou are theorycrafting ALONE. You do NOT see other agents' outputs.\nPropose YOUR approach from an architecture/structure perspective.\n- Put detailed analysis in <reasoning> tags.\n- Visible output: ## TODOs (affected files + actions) and ## Next Run."
       },
       "max_output_chars": 3000,
       "required_sections": [
-        "1) Main Task Outcome",
-        "3) Risks and Constraints",
-        "9) Recommended Next Run"
+        "## TODOs",
+        "## Next Run"
       ],
       "cross_confirm": false,
       "context_chars": 8000,
@@ -127,7 +119,7 @@
       },
       "max_output_chars": 5000,
       "required_sections": [
-        "1) Main Task Outcome"
+        "## TODOs"
       ],
       "cross_confirm": false,
       "context_chars": 0,
@@ -150,13 +142,12 @@
       "retry_on_gate_fail": true
     },
     "agents++": {
-      "description": "Full five-agent sequence.",
+      "description": "Full four-agent sequence.",
       "agents": [
         "C++ Lead",
         "Vulkan Guru",
         "Kernel Expert",
-        "Refactorer",
-        "HPC Marketeer"
+        "Refactorer"
       ],
       "mode": "sequential",
       "produces_patch": true,
@@ -170,12 +161,9 @@
     }
   },
   "required_output_sections": [
-    "1) Main Task Outcome",
-    "2) Secondary Task Outcomes",
-    "3) Risks and Constraints",
-    "4) Actionable TODOs",
-    "5) Handoff Note",
-    "6) Code Proposal"
+    "## TODOs",
+    "## Code Proposal",
+    "## Next Run"
   ],
   "retry": {
     "max_attempts": 3,
@@ -187,7 +175,7 @@
   },
   "validation": {
     "min_output_length": 100,
-    "required_section_count": 4
+    "required_section_count": 2
   },
   "quality_gates": {
     "dissent_threshold": 0.5,
