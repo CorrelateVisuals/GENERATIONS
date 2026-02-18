@@ -40,6 +40,8 @@ void CapitalEngine::main_loop() {
   Log::text("{ Main Loop }");
   Log::measure_elapsed_time();
 
+  auto frame_start = std::chrono::high_resolution_clock::now();
+
   CE::RenderGUI::log_stage_strip_tiles();
   if (CE::RenderGUI::is_stage_strip_enabled()) {
     const bool strip_full = CE::Runtime::env_flag_enabled("CE_RENDER_STAGE_STRIP_FULL");
@@ -111,7 +113,15 @@ void CapitalEngine::main_loop() {
               if (node.stage != CE::Runtime::RenderStage::Graphics) {
                 retained_nodes.push_back(node);
               }
-            }
+
+              auto frame_end = std::chrono::high_resolution_clock::now();
+              auto frame_duration = std::chrono::duration_cast<std::chrono::milliseconds>(frame_end - frame_start).count();
+              Log::text("Frame time:", frame_duration, "ms");
+
+              if (frame_duration > 16) {
+              Log::text("WARNING: Frame time exceeded budget!");
+              }
+              }
 
             for (const std::string &pipeline_name : tile->pipelines) {
               retained_nodes.push_back(CE::Runtime::RenderNode{
