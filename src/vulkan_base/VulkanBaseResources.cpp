@@ -120,7 +120,7 @@ void CE::BaseBuffer::create(const VkDeviceSize &size,
 void CE::BaseBuffer::copy(const VkBuffer &src_buffer,
                       VkBuffer &dst_buffer,
                       const VkDeviceSize size,
-                      VkCommandBuffer &command_buffer,
+                      VkCommandBuffer & /*command_buffer*/,
                       const VkCommandPool &command_pool,
                       const VkQueue &queue) {
   Log::text("{ ... }", "copying", size, "bytes");
@@ -153,7 +153,7 @@ void CE::BaseBuffer::copy_to_image(const VkBuffer &buffer,
                                VkImage &image,
                                const uint32_t width,
                                const uint32_t height,
-                               VkCommandBuffer &command_buffer,
+                               VkCommandBuffer & /*command_buffer*/,
                                const VkCommandPool &command_pool,
                                const VkQueue &queue) {
   Log::text("{ img }", "BaseBuffer To BaseImage", width, height);

@@ -25,15 +25,6 @@ GEOMETRY_SHAPE resolve_shape(const int value, const GEOMETRY_SHAPE fallback) {
   }
 }
 
-uint32_t seed_hash_u32(uint32_t value) {
-  value ^= value >> 16;
-  value *= 0x7feb352du;
-  value ^= value >> 15;
-  value *= 0x846ca68bu;
-  value ^= value >> 16;
-  return value;
-}
-
 uint32_t seeded_alive_count(const uint32_t grid_width,
                            const uint32_t grid_height,
                            const uint32_t target_alive) {

@@ -43,10 +43,10 @@ private:
                                    VkDebugUtilsMessengerEXT *debug_messenger);
 
   static VKAPI_ATTR VkBool32 VKAPI_CALL
-  debug_callback(VkDebugUtilsMessageSeverityFlagBitsEXT message_severity,
-                 VkDebugUtilsMessageTypeFlagsEXT message_type,
+  debug_callback(VkDebugUtilsMessageSeverityFlagBitsEXT /*message_severity*/,
+                 VkDebugUtilsMessageTypeFlagsEXT /*message_type*/,
                  const VkDebugUtilsMessengerCallbackDataEXT *callback_data,
-                 void *user_data) {
+                 void * /*user_data*/) {
     const std::string debug_message = callback_data->pMessage;
     log_validation_message(debug_message, "Epic Games");
     return VK_FALSE;

@@ -520,7 +520,10 @@ void CE::BasePipelinesConfiguration::compile_shaders() {
         continue;
       }
       systemCommand = Lib::path(shaderSourcePath + " -o " + shaderOutputPath);
-      system(systemCommand.c_str());
+      int ret = system(systemCommand.c_str());
+      if (ret != 0) {
+        Log::text("{ !!! }", "shader compilation failed:", shaderSourcePath, "exit code", ret);
+      }
     }
   }
 }

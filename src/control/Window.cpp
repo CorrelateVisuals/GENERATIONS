@@ -114,7 +114,7 @@ void Window::set_mouse() {
           if (timer >= mouse.press_delay) {
             const auto buttonMapping = buttonMappings.find(buttonType);
             if (buttonMapping != buttonMappings.end()) {
-              const auto &[key, message] = *buttonMapping;
+              [[maybe_unused]] const auto &[key, message] = *buttonMapping;
                 const glm::vec2 normalizedCoords =
                   glm::vec2(x, y) * glm::vec2(2.0f, 2.0f) - glm::vec2(1.0f, 1.0f);
               mouse.button_down[buttonType].position += normalizedCoords * mouse.speed;

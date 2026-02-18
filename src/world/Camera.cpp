@@ -287,8 +287,9 @@ void Camera::apply_arcball_mode(const glm::vec2 &previous_cursor,
       1.0f + (distance_ratio - 1.0f) * arcball_distance_zoom_scale, 0.25f, 3.5f);
     // Exponential zoom: multiply distance by a factor instead of adding
     // linearly. This gives natural-feeling zoom (fast when far, slow when close).
+    // X-axis: drag right = zoom in (negative input), drag left = zoom out.
     const float zoom_input =
-      smoothed_delta.y * arcball_zoom_speed * arcball_zoom_scalar *
+      -smoothed_delta.x * arcball_zoom_speed * arcball_zoom_scalar *
       arcball_dolly_mult * dolly_distance_scale;
     const float zoom_factor = std::exp(zoom_input * 0.01f);
     arcball_distance *= zoom_factor;
