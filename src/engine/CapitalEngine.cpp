@@ -28,11 +28,18 @@ CapitalEngine::~CapitalEngine() {
 }
 
 void CapitalEngine::recreate_swapchain() {
-  mechanics.swapchain.recreate(mechanics.init_vulkan.surface,
-                               mechanics.queues,
-                               mechanics.sync_objects,
-                               *pipelines,
-                               *resources);
+  try {
+    Log::text("Recreating swapchain...");
+    mechanics.swapchain.recreate(mechanics.init_vulkan.surface,
+                                 mechanics.queues,
+                                 mechanics.sync_objects,
+                                 *pipelines,
+                                 *resources);
+    Log::text("Swapchain recreation completed successfully.");
+  } catch (const std::exception &e) {
+    Log::text("Error during swapchain recreation: ", e.what());
+    throw; // Re-throw to ensure proper error handling upstream
+  }
 }
 
 void CapitalEngine::main_loop() {
