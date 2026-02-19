@@ -35,6 +35,12 @@ void CapitalEngine::recreate_swapchain() {
                                *resources);
 }
 
+void CapitalEngine::renderpick() {
+  // Placeholder for renderpick logic
+  Log::text(Log::Style::header_guard);
+  Log::text("{ Renderpick }");
+}
+
 void CapitalEngine::main_loop() {
   Log::text(Log::Style::header_guard);
   Log::text("{ Main Loop }");
@@ -44,7 +50,9 @@ void CapitalEngine::main_loop() {
 
   CE::RenderGUI::log_stage_strip_tiles();
   if (CE::RenderGUI::is_stage_strip_enabled()) {
-    const bool strip_full = CE::Runtime::env_flag_enabled("CE_RENDER_STAGE_STRIP_FULL");
+    const bool strip_full = CE::Runtime::env_flag_enabled("CE
+
+    renderpick();_RENDER_STAGE_STRIP_FULL");
     Log::text("{ STRIP }",
               "Live strip mode",
               strip_full ? "FULL" : "LIGHTWEIGHT");
