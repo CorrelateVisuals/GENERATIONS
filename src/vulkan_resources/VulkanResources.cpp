@@ -37,6 +37,7 @@ VulkanResources::VulkanResources(VulkanMechanics &mechanics, const CE::Runtime::
   Log::text(Log::Style::header_guard);
   Log::text("{ /// }", "constructing VulkanResources (start)");
   Log::text(Log::Style::header_guard);
+  Log::text("VulkanResources initialized with provided mechanics and terrain settings.");
   Log::text("{ /// }", "constructing VulkanResources");
 
   descriptor_interface.initialize_sets();

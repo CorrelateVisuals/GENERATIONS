@@ -275,5 +275,6 @@ void FrameContext::draw_frame(uint32_t &last_presented_image_index,
     g_profiler.sum_frame_ms += frame_ms;
     g_profiler.max_frame_ms = std::max(g_profiler.max_frame_ms, frame_ms);
     g_profiler.maybe_log();
+    Log::text("Frame profiling updated successfully.");
   }
 }
