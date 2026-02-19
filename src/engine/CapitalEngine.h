@@ -33,4 +33,5 @@ private:
   void recreate_swapchain();
   void draw_frame();
   void take_screenshot(const std::string &tag = "");
+  void renderpick();
 };
