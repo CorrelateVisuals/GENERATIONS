@@ -10,10 +10,15 @@
 #include <iomanip>
 #include <sstream>
 #include <vector>
+#include <chrono>
 
 CapitalEngine::CapitalEngine() {
   const CE::Runtime::TerrainSettings &terrain_settings = CE::Runtime::get_terrain_settings();
   resources = std::make_unique<VulkanResources>(mechanics, terrain_settings);
+
+  // Initialize frame timing variables
+  last_frame_time = std::chrono::high_resolution_clock::now();
+  frame_time = 0.0f;
   pipelines = std::make_unique<Pipelines>(mechanics, *resources);
   frame_context = std::make_unique<FrameContext>(mechanics, *resources, *pipelines);
   
