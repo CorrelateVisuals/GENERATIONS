@@ -40,6 +40,15 @@ void CapitalEngine::main_loop() {
   Log::text("{ Main Loop }");
   Log::measure_elapsed_time();
 
+  Window &main_window = Window::get();
+
+  main_window.set_key_callback([this](int key, int scancode, int action, int mods) {
+    if (key == GLFW_KEY_P && action == GLFW_PRESS) {
+      paused_ = !paused_;
+      Log::text(paused_ ? "Engine paused." : "Engine resumed.");
+    }
+  });
+
   auto frame_start = std::chrono::high_resolution_clock::now();
 
   CE::RenderGUI::log_stage_strip_tiles();
