@@ -42,6 +42,14 @@ void CapitalEngine::main_loop() {
 
   auto frame_start = std::chrono::high_resolution_clock::now();
 
+  // Render-picking logic
+  if (mechanics.is_mouse_click_detected()) {
+    auto clicked_geometry = mechanics.get_clicked_geometry();
+    if (clicked_geometry) {
+      pipelines->highlight_geometry(*clicked_geometry, {1.0f, 0.0f, 0.0f}); // Change color to red
+    }
+  }
+
   CE::RenderGUI::log_stage_strip_tiles();
   if (CE::RenderGUI::is_stage_strip_enabled()) {
     const bool strip_full = CE::Runtime::env_flag_enabled("CE_RENDER_STAGE_STRIP_FULL");
