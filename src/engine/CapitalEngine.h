@@ -27,6 +27,8 @@ private:
   std::unique_ptr<Pipelines> pipelines;
   std::unique_ptr<FrameContext> frame_context;
 
+  double frame_time_delta{0.0}; // Time elapsed between frames in seconds
+
   uint32_t last_presented_image_index{0};
   uint32_t last_submitted_frame_index{0};
 
