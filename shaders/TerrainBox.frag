@@ -23,15 +23,7 @@ vec3 sanitize_color(vec3 c, vec3 fallback) {
     return clamp(c, 0.0f, 1.0f);
 }
 
-vec3 calculate_lighting(vec3 position, vec3 normal, vec3 lightDir, vec3 lightColor) {
-    float diffuse = max(dot(normalize(normal), normalize(lightDir)), 0.0f);
-    return diffuse * lightColor;
-}
-
 void main() {
     vec3 boxBase = vec3(0.34f, 0.34f, 0.36f);
-    vec3 lightDir = normalize(ubo.light.xyz - inWorldPos);
-    vec3 normal = vec3(0.0f, 1.0f, 0.0f); // Assuming the terrain box has a flat top surface
-    vec3 litColor = calculate_lighting(inWorldPos, normal, lightDir, ubo.light.rgb);
-    outColor = vec4(sanitize_color(boxBase * litColor, boxBase), 1.0f);
+    outColor = vec4(sanitize_color(boxBase, boxBase), 1.0f);
 }
