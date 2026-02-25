@@ -447,6 +447,9 @@ CE::BasePipelinesConfiguration::create_shader_modules(VkShaderStageFlagBits shad
 
   std::string shaderPath = resolve_shader_spv_path(this->shader_dir, shaderName);
   auto shaderCode = read_shader_file(shaderPath);
+  if (shaderCode.empty() || (shaderCode.size() % sizeof(uint32_t)) != 0) {
+    throw std::runtime_error("\n!ERROR! invalid SPIR-V shader file: " + shaderPath);
+  }
   VkShaderModule shaderModule{VK_NULL_HANDLE};
 
   VkShaderModuleCreateInfo createInfo{
@@ -513,7 +516,8 @@ void CE::BasePipelinesConfiguration::compile_shaders() {
       if (std::filesystem::exists(shaderOutputPath)) {
         const auto sourceWriteTime = std::filesystem::last_write_time(shaderSourcePath);
         const auto outputWriteTime = std::filesystem::last_write_time(shaderOutputPath);
-        shouldCompile = sourceWriteTime > outputWriteTime;
+        const auto outputSize = std::filesystem::file_size(shaderOutputPath);
+        shouldCompile = sourceWriteTime > outputWriteTime || outputSize == 0;
       }
 
       if (!shouldCompile) {
