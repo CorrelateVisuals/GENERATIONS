@@ -3,6 +3,7 @@
 
 layout(location = 0) in vec3 inWorldPos;
 layout(location = 1) in vec3 inWorldNormal;
+layout(location = 2) in vec3 debugColor;
 
 #define UBO_LIGHT_NAME light
 #include "ParameterUBO.glsl"
@@ -167,5 +168,6 @@ void main() {
     float diffuse = max(dot(normal, lightDirection), 0.0f);
     float lightTerm = clamp(ambientStrength + diffuse * sunShadow, 0.0f, 1.25f);
     vec3 lit = sanitize_color(albedo * lightTerm * 0.96f, vec3(0.35f, 0.42f, 0.36f));
-    outColor = vec4(lit, 1.0f);
+    // Debug: output grid-based color
+    outColor = vec4(sanitize_color(debugColor, debugColor), 1.0f);
 }

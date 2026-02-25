@@ -12,6 +12,7 @@ vec3 safe_normalize(vec3 v, vec3 fallback) {
 
 layout(location = 0) out vec3 outWorldPos;
 layout(location = 1) out vec3 outWorldNormal;
+layout(location = 2) out vec3 debugColor;
 
 void render_landscape_vertex(mat4 model, mat4 view, mat4 projection) {
     vec2 p = inPosition.xy;
@@ -55,5 +56,9 @@ void render_landscape_vertex(mat4 model, mat4 view, mat4 projection) {
 
     outWorldPos = worldPosition.xyz;
     outWorldNormal = worldNormal;
+    // Debug color: encode grid position (normalized to [0,1])
+    float gridX = (p.x - gridMin.x) / (gridMax.x - gridMin.x);
+    float gridY = (p.y - gridMin.y) / (gridMax.y - gridMin.y);
+    debugColor = vec3(gridX, gridY, 1.0 - gridX - gridY);
     gl_Position = projection * viewPosition;
 }
