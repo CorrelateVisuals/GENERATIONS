@@ -16,9 +16,11 @@ CapitalEngine::CapitalEngine() {
   resources = std::make_unique<VulkanResources>(mechanics, terrain_settings);
   pipelines = std::make_unique<Pipelines>(mechanics, *resources);
   frame_context = std::make_unique<FrameContext>(mechanics, *resources, *pipelines);
-  
+
   Log::text(Log::Style::header_guard);
   Log::text("| CAPITAL Engine");
+
+  frame_time_delta = 0.0; // Initialize frame-time delta
 }
 
 CapitalEngine::~CapitalEngine() {
