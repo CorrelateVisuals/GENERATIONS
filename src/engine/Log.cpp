@@ -22,6 +22,8 @@ std::string Log::Style::indent_size = std::string(17, ' ');
 std::string Log::Style::header_guard = std::string(
     "+-------------------------------------------------------------------------"
     "----+");
+
+Log::text("Log Level Initialized: ", LOG_LEVEL_STRING(Log::log_level));
 int Log::Style::column_count = 14;
 int Log::Style::column_count_offset = 4;
 
