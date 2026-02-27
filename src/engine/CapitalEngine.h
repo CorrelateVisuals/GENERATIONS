@@ -21,6 +21,10 @@ public:
 
   void main_loop();
 
+  // New methods for frame time and FPS
+  float getFrameTime() const;
+  float getFPS() const;
+
 private:
   VulkanMechanics mechanics;
   std::unique_ptr<VulkanResources> resources;
