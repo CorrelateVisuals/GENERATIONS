@@ -27,6 +27,11 @@ private:
   std::unique_ptr<Pipelines> pipelines;
   std::unique_ptr<FrameContext> frame_context;
 
+  bool paused_{false}; // Tracks whether the engine is paused
+
+public:
+  bool isPaused() const { return paused_; }
+
   uint32_t last_presented_image_index{0};
   uint32_t last_submitted_frame_index{0};
 
