@@ -27,6 +27,8 @@ private:
   std::unique_ptr<Pipelines> pipelines;
   std::unique_ptr<FrameContext> frame_context;
 
+  void handle_renderpick(); // New private method for renderpick logic
+
   uint32_t last_presented_image_index{0};
   uint32_t last_submitted_frame_index{0};
 

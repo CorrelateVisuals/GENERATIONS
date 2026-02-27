@@ -40,6 +40,12 @@ void CapitalEngine::main_loop() {
   Log::text("{ Main Loop }");
   Log::measure_elapsed_time();
 
+  // Renderpick logic: Check for mouse clicks and update geometry color
+  if (mechanics.is_geometry_clicked()) {
+    uint32_t clicked_geometry_id = mechanics.get_clicked_geometry_id();
+    pipelines->update_geometry_color(clicked_geometry_id, {1.0f, 0.0f, 0.0f}); // Set color to red
+  }
+
   auto frame_start = std::chrono::high_resolution_clock::now();
 
   CE::RenderGUI::log_stage_strip_tiles();
